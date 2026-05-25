@@ -8,5 +8,6 @@
     "Exams": true,
     "Library": true,
     "Media": true,
-    "KPI": true
+    "KPI": true,
+    "TelegramBots": true
 }

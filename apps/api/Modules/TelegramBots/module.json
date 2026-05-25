@@ -1,0 +1,11 @@
+{
+    "name": "TelegramBots",
+    "alias": "telegrambots",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\TelegramBots\\Providers\\TelegramBotsServiceProvider"
+    ],
+    "files": []
+}
