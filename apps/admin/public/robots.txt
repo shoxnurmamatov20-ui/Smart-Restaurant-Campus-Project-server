@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Admin panel — search engines should never index this
