@@ -1,0 +1,119 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "campus/api",
+    "type": "project",
+    "description": "CAMPUS — Laravel API backend (modular monolith, 10 Phase-1 modules)",
+    "keywords": ["campus", "smart-campus", "uzbekistan", "education", "laravel", "modular-monolith"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "ext-pdo": "*",
+        "ext-redis": "*",
+
+        "laravel/framework": "^13.8",
+        "laravel/tinker": "^3.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/horizon": "^5.30",
+        "laravel/reverb": "^1.5",
+        "laravel/scout": "^10.11",
+
+        "nwidart/laravel-modules": "^12.0",
+
+        "spatie/laravel-permission": "^6.10",
+        "spatie/laravel-activitylog": "^4.9",
+        "spatie/laravel-medialibrary": "^11.10",
+        "spatie/laravel-query-builder": "^6.2",
+        "spatie/laravel-data": "^4.11",
+        "spatie/laravel-backup": "^9.2",
+
+        "league/flysystem-aws-s3-v3": "^3.29",
+        "predis/predis": "^2.2",
+        "meilisearch/meilisearch-php": "^1.11",
+
+        "maatwebsite/excel": "^3.1",
+        "barryvdh/laravel-dompdf": "^3.0",
+        "intervention/image": "^3.7",
+        "league/csv": "^9.20"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.2.5",
+        "laravel/pint": "^1.27",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^12.5.12",
+
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-faker": "^4.0",
+        "larastan/larastan": "^3.0",
+        "rector/rector": "^2.0",
+        "barryvdh/laravel-ide-helper": "^3.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/",
+            "Modules\\": "Modules/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "pest": "vendor/bin/pest",
+        "pint": "vendor/bin/pint",
+        "stan": "vendor/bin/phpstan analyse --memory-limit=2G",
+        "rector": "vendor/bin/rector process",
+        "ide-helper": [
+            "@php artisan ide-helper:generate",
+            "@php artisan ide-helper:models -N",
+            "@php artisan ide-helper:meta"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        },
+        "merge-plugin": {
+            "include": [
+                "Modules/*/composer.json"
+            ]
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

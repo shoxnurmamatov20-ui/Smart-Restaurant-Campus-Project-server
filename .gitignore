@@ -1,0 +1,189 @@
+# ============================================
+# CAMPUS — Smart Campus Platform .gitignore
+# ============================================
+
+# ---------- Node.js / TypeScript ----------
+node_modules/
+.pnp.*
+.yarn/cache
+.yarn/install-state.gz
+.yarn/build-state.yml
+.yarn/unplugged
+.pnpm-store/
+.npm/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+.turbo/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Testing
+.playwright/
+playwright-report/
+test-results/
+
+# ---------- Laravel / PHP ----------
+/apps/api/vendor/
+/apps/api/node_modules/
+/apps/api/public/build/
+/apps/api/public/hot/
+/apps/api/public/storage
+/apps/api/storage/*.key
+/apps/api/storage/app/*
+!/apps/api/storage/app/.gitkeep
+!/apps/api/storage/app/public
+/apps/api/storage/framework/cache/*
+/apps/api/storage/framework/sessions/*
+/apps/api/storage/framework/testing/*
+/apps/api/storage/framework/views/*
+/apps/api/storage/logs/*
+!/apps/api/storage/logs/.gitkeep
+/apps/api/bootstrap/cache/*.php
+!/apps/api/bootstrap/cache/.gitkeep
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.php_cs.cache
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+.eggs/
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python ML model artifacts (large)
+apps/ai-services/models_data/
+*.pkl
+*.h5
+*.onnx
+*.pt
+*.pth
+
+# ---------- Environment ----------
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+*.env.bak
+
+# ---------- IDE / Editors ----------
+# VS Code (keep extensions.json and recommended settings only)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+
+# Sublime
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ---------- OS ----------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---------- Misc ----------
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tgz
+*.tar.gz
+
+# ---------- Docker ----------
+docker-compose.override.yml
+.docker/
+
+# ---------- Secrets / Keys ----------
+*.pem
+*.key
+!apps/api/storage/oauth-public.key.example
+!apps/api/storage/oauth-private.key.example
+*.crt
+*.cer
+secrets/
+
+# ---------- Backups ----------
+*.bak
+*.backup
+*.old
+*.orig
+backup/
+
+# ---------- Database dumps ----------
+*.sql
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+
+# ---------- Storage / Uploads ----------
+storage/uploads/
+storage/cache/
+public/uploads/

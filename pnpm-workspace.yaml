@@ -1,0 +1,35 @@
+packages:
+  - 'apps/web'
+  - 'apps/admin'
+  - 'apps/mobile'
+  - 'packages/*'
+
+# Allow these native modules to run install scripts (security feature in pnpm 10+)
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
+  - '@tailwindcss/oxide'
+  - esbuild
+  - '@swc/core'
+  - core-js
+
+# Catalog: pin shared versions across all workspace packages
+catalog:
+  react: ^19.2.4
+  react-dom: ^19.2.4
+  next: ^16.2.6
+  typescript: ^5.9.3
+  '@types/node': ^22.10.0
+  '@types/react': ^19.2.15
+  '@types/react-dom': ^19.2.3
+  tailwindcss: ^4.3.0
+  '@tailwindcss/postcss': ^4.3.0
+  eslint: ^9.39.4
+  zod: ^3.24.0
+  '@tanstack/react-query': ^5.62.0
+  zustand: ^5.0.0
+  'react-hook-form': ^7.54.0
+  'next-intl': ^3.26.0
+
+# Note: apps/api (Laravel) uses Composer, not pnpm
+# Note: apps/ai-services (Python) uses uv, not pnpm

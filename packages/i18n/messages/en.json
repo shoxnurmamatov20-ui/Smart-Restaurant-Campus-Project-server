@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "CAMPUS",
+    "tagline": "University of the future"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "logout": "Logout",
+    "login": "Log in",
+    "register": "Register",
+    "settings": "Settings",
+    "profile": "Profile",
+    "language": "Language"
+  },
+  "modules": {
+    "hr": "HR",
+    "students": "Students",
+    "online": "Online Platform",
+    "edms": "E-Document Workflow",
+    "rttm": "IT Inventory",
+    "psychology": "Psychology Tests",
+    "exams": "Exams",
+    "library": "Library",
+    "media": "Media",
+    "kpi": "KPI"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "network": "Network error. Check your internet connection.",
+    "unauthorized": "Authorization required.",
+    "forbidden": "Access denied.",
+    "not_found": "Not found.",
+    "validation": "Invalid data.",
+    "server": "Server error."
+  }
+}

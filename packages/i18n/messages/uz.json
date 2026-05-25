@@ -1,0 +1,51 @@
+{
+  "app": {
+    "name": "CAMPUS",
+    "tagline": "Kelajak universiteti"
+  },
+  "common": {
+    "loading": "Yuklanmoqda...",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "create": "Yaratish",
+    "search": "Qidirish",
+    "filter": "Filtrlash",
+    "sort": "Saralash",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "back": "Orqaga",
+    "next": "Keyingi",
+    "previous": "Oldingi",
+    "submit": "Yuborish",
+    "close": "Yopish",
+    "logout": "Chiqish",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "settings": "Sozlamalar",
+    "profile": "Profil",
+    "language": "Til"
+  },
+  "modules": {
+    "hr": "Kadrlar",
+    "students": "Talabalar",
+    "online": "Online platforma",
+    "edms": "Hujjat aylanishi",
+    "rttm": "RTTM",
+    "psychology": "Psixologik test",
+    "exams": "Test tizimi",
+    "library": "Kutubxona",
+    "media": "Media",
+    "kpi": "KPI"
+  },
+  "errors": {
+    "generic": "Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+    "network": "Tarmoq xatosi. Internetni tekshiring.",
+    "unauthorized": "Avtorizatsiya talab qilinadi.",
+    "forbidden": "Ruxsat berilmagan.",
+    "not_found": "Topilmadi.",
+    "validation": "Ma'lumotlar noto'g'ri.",
+    "server": "Server xatosi."
+  }
+}

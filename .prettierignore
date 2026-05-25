@@ -1,0 +1,31 @@
+node_modules
+.next
+.turbo
+dist
+build
+coverage
+public
+*.min.js
+*.min.css
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+composer.lock
+uv.lock
+
+# Laravel
+apps/api/vendor
+apps/api/storage
+apps/api/bootstrap/cache
+
+# Python
+__pycache__
+.venv
+*.egg-info
+.ruff_cache
+.mypy_cache
+.pytest_cache
+
+# Generated
+**/*.generated.ts
+**/*.gen.ts

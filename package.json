@@ -1,0 +1,44 @@
+{
+  "name": "campus",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CAMPUS — Yagona Raqamli Ekotizim Platformasi (Smart Campus monorepo)",
+  "author": "uzbcorp@gmail.com",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=11"
+  },
+  "packageManager": "pnpm@11.0.8",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "type-check": "turbo run type-check",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml,css}\"",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:reset": "docker compose down -v && docker compose up -d",
+    "api:install": "cd apps/api && composer install",
+    "api:migrate": "cd apps/api && php artisan migrate",
+    "api:seed": "cd apps/api && php artisan db:seed",
+    "api:fresh": "cd apps/api && php artisan migrate:fresh --seed",
+    "api:test": "cd apps/api && php artisan test",
+    "ai:install": "cd apps/ai-services && uv sync",
+    "ai:dev": "cd apps/ai-services && uv run uvicorn src.main:app --reload --port 8001",
+    "ai:test": "cd apps/ai-services && uv run pytest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  }
+}
