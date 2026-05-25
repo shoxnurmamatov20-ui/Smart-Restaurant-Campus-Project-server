@@ -1,14 +1,10 @@
 /**
- * @campus/ui — Shared UI components based on shadcn/ui.
+ * @campus/ui — Shared UI components based on shadcn/ui patterns.
  *
- * Components will be added via: pnpm dlx shadcn@latest add <component>
- * (run from this package directory)
+ * Add new components here via:
+ *   pnpm dlx shadcn@latest add <component>  (from this package's dir)
  *
- * Re-export structure:
- *   export * from './components/button';
- *   export * from './components/input';
- *   ...
+ * Or write them manually under src/components/<name>.tsx and re-export below.
  */
 
-// Placeholder export — components added as they're created.
-export const PLACEHOLDER = true;
+export * from './components/button';

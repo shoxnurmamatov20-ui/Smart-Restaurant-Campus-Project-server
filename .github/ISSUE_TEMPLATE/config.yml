@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: mailto:uzbcorp@gmail.com
+    about: Xavfsizlik kamchiligi haqida ochiq issue OCHMANG. Email yuboring.
+  - name: 💬 Savollar va muhokama
+    url: https://github.com/uzbcorp/smart-campus/discussions
+    about: Issue emas, savol/yordam uchun Discussions ishlatilsin.

@@ -1,0 +1,37 @@
+# ============================================================
+# CAMPUS — Code owners
+# ============================================================
+# Format: <pattern> <owner1> <owner2>
+# https://docs.github.com/articles/about-code-owners
+
+# Default owner — everything
+*                                       @uzbcorp
+
+# Backend (Laravel)
+/apps/api/                              @uzbcorp
+/apps/api/Modules/                      @uzbcorp
+
+# Frontend
+/apps/web/                              @uzbcorp
+/apps/admin/                            @uzbcorp
+/apps/mobile/                           @uzbcorp
+
+# AI services
+/apps/ai-services/                      @uzbcorp
+
+# Shared packages
+/packages/                              @uzbcorp
+
+# Infrastructure (extra care)
+/infrastructure/                        @uzbcorp
+/.github/                               @uzbcorp
+/docker-compose*.yml                    @uzbcorp
+
+# Docs
+/docs/                                  @uzbcorp
+/docs/decisions/                        @uzbcorp   # ADRs
+
+# Security-sensitive
+/SECURITY.md                            @uzbcorp
+/apps/api/config/                       @uzbcorp
+/.env*                                  @uzbcorp
