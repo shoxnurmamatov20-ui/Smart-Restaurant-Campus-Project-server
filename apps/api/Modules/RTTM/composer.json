@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/rttm",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\RTTM\\": "app/",
+            "Modules\\RTTM\\Database\\Factories\\": "database/factories/",
+            "Modules\\RTTM\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\RTTM\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/edms",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\EDMS\\": "app/",
+            "Modules\\EDMS\\Database\\Factories\\": "database/factories/",
+            "Modules\\EDMS\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\EDMS\\Tests\\": "tests/"
+        }
+    }
+}

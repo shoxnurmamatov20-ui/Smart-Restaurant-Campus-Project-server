@@ -1,0 +1,11 @@
+{
+    "name": "EDMS",
+    "alias": "edms",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\EDMS\\Providers\\EDMSServiceProvider"
+    ],
+    "files": []
+}

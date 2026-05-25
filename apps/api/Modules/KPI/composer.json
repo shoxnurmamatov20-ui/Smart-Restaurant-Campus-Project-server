@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/kpi",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\KPI\\": "app/",
+            "Modules\\KPI\\Database\\Factories\\": "database/factories/",
+            "Modules\\KPI\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\KPI\\Tests\\": "tests/"
+        }
+    }
+}

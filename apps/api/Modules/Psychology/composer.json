@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/psychology",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Psychology\\": "app/",
+            "Modules\\Psychology\\Database\\Factories\\": "database/factories/",
+            "Modules\\Psychology\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Psychology\\Tests\\": "tests/"
+        }
+    }
+}

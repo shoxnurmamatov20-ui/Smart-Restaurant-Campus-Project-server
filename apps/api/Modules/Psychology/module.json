@@ -1,0 +1,11 @@
+{
+    "name": "Psychology",
+    "alias": "psychology",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Psychology\\Providers\\PsychologyServiceProvider"
+    ],
+    "files": []
+}
