@@ -22,6 +22,7 @@ const NAV = [
   ]},
   { group: 'Aloqa', items: [
     { href: '/notifications', icon: '📢', label: 'Xabarnomalar' },
+    { href: '/telegram', icon: '✈️', label: 'Telegram botlar' },
   ]},
   { group: 'Texnik', items: [
     { href: '/system-health', icon: '🩺', label: 'Tizim salomatligi' },
