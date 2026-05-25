@@ -31,5 +31,12 @@ catalog:
   'react-hook-form': ^7.54.0
   'next-intl': ^3.26.0
 
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  '@tailwindcss/oxide': true
+  '@swc/core': true
+
 # Note: apps/api (Laravel) uses Composer, not pnpm
 # Note: apps/ai-services (Python) uses uv, not pnpm
