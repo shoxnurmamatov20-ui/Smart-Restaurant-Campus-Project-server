@@ -16,7 +16,7 @@
   "dependencies": {
     "@campus/utils": "workspace:*",
     "class-variance-authority": "^0.7.1",
-    "lucide-react": "^0.469.0"
+    "lucide-react": "^1.16.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -26,8 +26,8 @@
     "@campus/config": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "catalog:"
   }
 }

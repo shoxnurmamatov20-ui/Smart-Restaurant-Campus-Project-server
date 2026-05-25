@@ -15,21 +15,21 @@ onlyBuiltDependencies:
 
 # Catalog: pin shared versions across all workspace packages
 catalog:
-  react: ^19.2.4
-  react-dom: ^19.2.4
+  react: ^19.2.6
+  react-dom: ^19.2.6
   next: ^16.2.6
-  typescript: ^5.9.3
-  '@types/node': ^22.10.0
+  typescript: ^6.0.3
+  '@types/node': ^25.9.1
   '@types/react': ^19.2.15
   '@types/react-dom': ^19.2.3
   tailwindcss: ^4.3.0
   '@tailwindcss/postcss': ^4.3.0
-  eslint: ^9.39.4
-  zod: ^3.24.0
-  '@tanstack/react-query': ^5.62.0
-  zustand: ^5.0.0
-  'react-hook-form': ^7.54.0
-  'next-intl': ^3.26.0
+  eslint: ^10.4.0
+  zod: ^4.4.3
+  '@tanstack/react-query': ^5.100.14
+  zustand: ^5.0.13
+  'react-hook-form': ^7.76.1
+  'next-intl': ^4.12.0
 
 allowBuilds:
   esbuild: true
@@ -37,6 +37,7 @@ allowBuilds:
   unrs-resolver: true
   '@tailwindcss/oxide': true
   '@swc/core': true
+  '@parcel/watcher': true
 
 # Note: apps/api (Laravel) uses Composer, not pnpm
 # Note: apps/ai-services (Python) uses uv, not pnpm

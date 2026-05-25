@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@campus/types": "workspace:*",
-    "axios": "^1.7.9"
+    "axios": "^1.16.1"
   },
   "devDependencies": {
     "@campus/config": "workspace:*",

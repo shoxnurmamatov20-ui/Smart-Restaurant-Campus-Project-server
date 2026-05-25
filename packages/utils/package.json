@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.3.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@campus/config": "workspace:*",

@@ -32,13 +32,34 @@
     "api:test": "cd apps/api && php artisan test",
     "ai:install": "cd apps/ai-services && uv sync",
     "ai:dev": "cd apps/ai-services && uv run uvicorn src.main:app --reload --port 8001",
-    "ai:test": "cd apps/ai-services && uv run pytest"
+    "ai:test": "cd apps/ai-services && uv run pytest",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix --no-warn-ignored"
+    ],
+    "*.{json,md,mdx,yml,yaml,css}": [
+      "prettier --write"
+    ],
+    "apps/api/**/*.php": [
+      "C:/Users/User/php-fresh/php.exe apps/api/vendor/bin/pint --dirty"
+    ],
+    "apps/ai-services/**/*.py": [
+      "C:/Users/User/.local/bin/uv.exe --directory apps/ai-services run ruff check --fix",
+      "C:/Users/User/.local/bin/uv.exe --directory apps/ai-services run ruff format"
+    ]
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.9",
-    "turbo": "^2.3.0",
-    "typescript": "^5.7.0"
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@types/node": "catalog:",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "turbo": "^2.9.14",
+    "typescript": "^6.0.3"
   }
 }
