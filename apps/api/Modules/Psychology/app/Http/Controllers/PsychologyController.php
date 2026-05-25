@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Psychology\Http\Controllers;
 
 use App\Http\Controllers\Controller;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,7 +18,7 @@ Route::get('/', function () {
     return response()->json([
         'service' => 'CAMPUS API',
         'version' => config('app.version', '0.0.0'),
-        'env'     => config('app.env'),
-        'time'    => now()->toIso8601String(),
+        'env' => config('app.env'),
+        'time' => now()->toIso8601String(),
     ]);
 });

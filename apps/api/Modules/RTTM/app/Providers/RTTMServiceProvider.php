@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\RTTM\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class RTTMServiceProvider extends ModuleServiceProvider
 {
@@ -36,7 +38,7 @@ class RTTMServiceProvider extends ModuleServiceProvider
 
     /**
      * Define module schedules.
-     * 
+     *
      * @param $schedule
      */
     // protected function configureSchedules(Schedule $schedule): void

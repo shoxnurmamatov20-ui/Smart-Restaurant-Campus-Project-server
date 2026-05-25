@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Students\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class StudentsServiceProvider extends ModuleServiceProvider
 {
@@ -36,7 +38,7 @@ class StudentsServiceProvider extends ModuleServiceProvider
 
     /**
      * Define module schedules.
-     * 
+     *
      * @param $schedule
      */
     // protected function configureSchedules(Schedule $schedule): void

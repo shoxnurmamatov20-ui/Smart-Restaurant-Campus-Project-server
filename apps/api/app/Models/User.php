@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -19,7 +21,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles, LogsActivity;
+    use HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
 
     public function getActivitylogOptions(): LogOptions
     {
