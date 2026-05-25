@@ -39,6 +39,7 @@ Boshqa qaysi yo'llar ko'rib chiqildi va nega ular tanlanmadi?
 | [0003](0003-monorepo-structure.md) | Monorepo with pnpm + Composer + uv | accepted |
 | [0004](0004-modular-monolith.md) | Modular monolith (vs microservices from day one) | accepted |
 | [0005](0005-separate-super-admin-app.md) | Separate Next.js app for Super Admin | accepted |
+| [0006](0006-telegram-multibot-architecture.md) | Telegram multi-bot subsystem (aiogram 3 + FastAPI) | accepted |
 
 ## ADR yozish
 
