@@ -1,0 +1,115 @@
+[project]
+name = "campus-telegram-bots"
+version = "0.0.0"
+description = "CAMPUS — Multi-bot Telegram subsystem (10–50 bots via aiogram 3 dispatcher)"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "CAMPUS Team", email = "uzbcorp@gmail.com" }]
+
+dependencies = [
+    # ============ Bot framework ============
+    "aiogram>=3.15.0",                    # Telegram Bot API (async, FSM, middleware, i18n)
+    "aiogram-i18n>=1.4",                  # Babel-based i18n for aiogram
+
+    # ============ Web framework (webhook host) ============
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "python-multipart>=0.0.20",
+
+    # ============ Config & data ============
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "python-dotenv>=1.0.1",
+    "pyyaml>=6.0.2",
+
+    # ============ HTTP client (to Laravel API) ============
+    "httpx>=0.28.0",
+    "tenacity>=9.0.0",
+
+    # ============ Redis (FSM storage, rate limit, dedup) ============
+    "redis[hiredis]>=5.2.0",
+
+    # ============ Database (direct read for analytics — write goes via Laravel) ============
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+
+    # ============ Logging ============
+    "structlog>=24.5.0",
+
+    # ============ Observability ============
+    "prometheus-fastapi-instrumentator>=7.0.0",
+    "sentry-sdk[fastapi]>=2.20.0",
+
+    # ============ Security ============
+    "cryptography>=44.0.0",               # decrypt bot tokens from Laravel
+    "phonenumbers>=8.13.50",              # validate +998 numbers
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "httpx>=0.28.0",
+    "aiogram[test]>=3.15.0",              # test bot framework
+    "ruff>=0.8.0",
+    "mypy>=1.14.0",
+    "types-redis>=4.6.0",
+    "types-pyyaml>=6.0.12",
+    "ipython>=8.30.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "B", "C4", "UP", "ASYNC", "S", "N", "SIM", "RUF",
+]
+ignore = [
+    "S101",
+    "S104",  # 0.0.0.0 bind OK for containers
+    "S105",  # secret-token comparisons in tests use literal strings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--cov=src",
+    "--cov-report=term-missing",
+]
