@@ -3,6 +3,7 @@ import { formatNumber } from '@restaurant/utils';
 
 import { moduleMetadata } from '../../module-page';
 import { PageHead, Row, TableCard } from '../../screen';
+import { getDeliveries } from './operations-data';
 
 export const generateMetadata = () => moduleMetadata('stockOps');
 
@@ -27,7 +28,7 @@ export const generateMetadata = () => moduleMetadata('stockOps');
  */
 const COLUMNS = '[grid-template-columns:minmax(0,1.4fr)_110px_110px_120px]';
 
-/** The design's two open deliveries. */
+/** The design's two open deliveries — what the screen draws with no session. */
 const DELIVERIES = [
   {
     id: 'INV-4862',
@@ -60,6 +61,20 @@ export default async function StockOperationsPage() {
     getTranslations('console.stockOps'),
   ]);
 
+  /*
+   * The API's open deliveries when there is a session, the fixtures when there
+   * is not. The two carry their line names differently — a fixture holds a
+   * catalogue key, a real document holds what the supplier wrote — so the rows
+   * are normalised here rather than in the table below.
+   */
+  const live = await getDeliveries();
+  const deliveries =
+    live ??
+    DELIVERIES.map((delivery) => ({
+      ...delivery,
+      lines: delivery.lines.map((line) => ({ ...line, name: t(line.key) })),
+    }));
+
   return (
     <>
       <PageHead title={nav('stockOps')} subtitle={t('subtitle')} />
@@ -78,7 +93,7 @@ export default async function StockOperationsPage() {
         ))}
       </div>
 
-      {DELIVERIES.map((delivery) => (
+      {deliveries.map((delivery) => (
         <section key={delivery.id} className="bg-surface mb-4 overflow-hidden rounded-lg border">
           <div className="border-divider flex flex-wrap items-center justify-between gap-3 border-b px-5 pt-4 pb-3.5">
             <div>
@@ -110,8 +125,8 @@ export default async function StockOperationsPage() {
               const variance = line.received - line.ordered;
 
               return (
-                <Row key={line.key} columns={COLUMNS} className="py-3">
-                  <span className="min-w-0 text-sm font-medium">{t(line.key)}</span>
+                <Row key={line.name} columns={COLUMNS} className="py-3">
+                  <span className="min-w-0 text-sm font-medium">{line.name}</span>
 
                   <span data-num className="text-fg-muted text-right text-sm">
                     {formatNumber(line.ordered)} kg

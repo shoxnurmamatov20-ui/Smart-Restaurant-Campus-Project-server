@@ -14,12 +14,14 @@ use Modules\Crm\Database\Seeders\CrmFeedbackSeeder;
 use Modules\Finance\Database\Seeders\FinanceDatabaseSeeder;
 use Modules\Finance\Database\Seeders\FinancePaymentSeeder;
 use Modules\Inventory\Database\Seeders\InventoryDatabaseSeeder;
+use Modules\Inventory\Database\Seeders\StockMovementSeeder;
 use Modules\Kitchen\Database\Seeders\KitchenDatabaseSeeder;
 use Modules\Kitchen\Database\Seeders\KitchenTicketSeeder;
 use Modules\Menu\Database\Seeders\MenuDatabaseSeeder;
 use Modules\Orders\Database\Seeders\OrdersDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffShiftSeeder;
+use Modules\Suppliers\Database\Seeders\PurchaseOrderSeeder;
 use Modules\Suppliers\Database\Seeders\SuppliersDatabaseSeeder;
 use Modules\Tables\Database\Seeders\ReservationSeeder;
 use Modules\Tables\Database\Seeders\TablesDatabaseSeeder;
@@ -121,6 +123,12 @@ final class DatabaseSeeder extends Seeder
                 // laid out above. Both belong after the things they reference.
                 CrmFeedbackSeeder::class,
                 ReservationSeeder::class,
+
+                // The stock ledger is written backwards from each ingredient's
+                // current balance, and purchase orders price their lines from
+                // it, so both come after Inventory has set those balances.
+                StockMovementSeeder::class,
+                PurchaseOrderSeeder::class,
             ]);
         } finally {
             activity()->enableLogging();

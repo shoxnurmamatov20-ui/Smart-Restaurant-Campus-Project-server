@@ -99,7 +99,8 @@ matn i18n katalogida (`console.roles`).
   yoziladi. Bir kod **ikkinchi marta ishlamaydi** (`two_factor_last_window`).
   Demo kalit: `JBSWY3DPEHPK3PXP` (UserSeeder, faqat local).
 - **API'ga ulangan ekranlar: `menu`, `orders`, `tables` (+ bronlar),
-  `inventory`, `kitchen`, `finance/till`, `staff/shifts`, `crm`.**
+  `inventory`, `inventory/operations`, `kitchen`, `finance/till`,
+  `staff/shifts`, `crm`.**
   `lib/api-server.ts` sessiya cookie'sidan token oladi va `apiGet<T>()`
   qaytaradi; xato, 401 yoki sessiya yo'qligida `null` — ekran fixture'ga
   qaytadi va API o'chganda ham ishlashda davom etadi. `translate()` jsonb
@@ -129,11 +130,18 @@ matn i18n katalogida (`console.roles`).
   hammasi beshlik bo'lgan demo eng muhim oqimni ko'rsatmaydi. Bron faqat **bo'sh**
   stolni band qiladi: allaqachon o'tirgan stol o'tirgan bo'lib qoladi, xost
   to'qnashuvni ko'rishi kerak.
-- Qolgan ekranlar hali fixture: `suppliers/purchase-orders`,
-  `inventory/movements` — endpoint bor, bazada 0 qator (seeder kerak);
-  `suppliers` va `staff` (ro'yxat ekrani) — API ustunlari ekran ustunlarining
-  faqat 2 tasini qoplaydi, avval **migratsiya** kerak; `analytics` —
-  sahifalanmagan boshqa shakl.
+- **Ombor daftari `StockMovementSeeder` bilan** — har bir ingredientning
+  hozirgi qoldig'idan **orqaga** hisoblanadi, so'ng vaqt tartibida oldinga
+  o'ynatiladi. Ikki qoida: `balance_after` **soat bo'yicha** boradi (kod
+  tartibi bo'yicha emas — birinchi variantda chiqindi keyingi kungi sarfdan
+  keyin qo'llanib, daftar qayta o'ynatilganda boshqa javob berardi), va
+  **javon daftarga ergashadi** — kelishmovchilikda daftar haq.
+  `PurchaseOrderSeeder` — to'rt holat (qoralama, yuborilgan, tasdiqlangan,
+  qabul qilingan); ariza jamisi qatorlar yig'indisiga teng.
+- Qolgan ekranlar hali fixture: `suppliers` va `staff` (ro'yxat ekranlari) —
+  API ustunlari ekran ustunlarining faqat 2 tasini qoplaydi, avval
+  **migratsiya** kerak (o'z vaqtida yetkazish foizi, haftalik soat va smenadagi
+  savdo hech qayerda saqlanmaydi); `analytics` — sahifalanmagan boshqa shakl.
 - **CRM'da ikkita ustun ataylab bo'sh** (`—`): _segment_ — bu biznes egallaydigan
   tasnif, tashrif sonidan chiqarib tashlash mijozga restoran rozi bo'lmagan
   yorliq yopishtirish bo'lardi; _oxirgi tashrif_ — mijoz yozuvida sana yo'q,
