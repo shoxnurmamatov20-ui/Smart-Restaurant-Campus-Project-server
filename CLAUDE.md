@@ -145,10 +145,16 @@ matn i18n katalogida (`console.roles`).
   foydali. Buni hisoblash mumkin, chunki bu **e'lon qilingan usul**, mijoz
   segmenti kabi biznes egallaydigan tasnif emas — qoida kodda yozilgan, oshpaz
   rozi bo'lmasa nima sabab bo'lganini ko'radi.
-- Qolgan ekranlar hali fixture: `suppliers` va `staff` (ro'yxat ekranlari) —
-  API ustunlari ekran ustunlarining faqat 2 tasini qoplaydi, avval
-  **migratsiya** kerak (o'z vaqtida yetkazish foizi, haftalik soat va smenadagi
-  savdo hech qayerda saqlanmaydi).
+- **Hisoblanadigan ustunlar saqlanmaydi.** Yetkazib beruvchining sarfi, ochiq
+  arizalari va o'z vaqtida yetkazish foizi xarid arizalaridan chiqadi; xodimning
+  bugungi smenasi, ish soati va savdosi smena, davomat va buyurtmalardan.
+  Saqlangan foiz — o'zi umumlashtirgan arizalardan ajralib ketadigan foiz, va
+  buni birinchi bo'lib "kechikdingiz" deb aytilgan yetkazib beruvchi sezadi.
+  Bazaga faqat **ikkita** ustun qo'shildi: `suppliers.category` va
+  `lead_time_days` — bularni hech qanday arizadan chiqarib bo'lmaydi.
+- **`clockedIn` — davomatdan, bandlik holatidan emas.** `status = active`
+  "shu yerda ishlaydi" degani, "hozir shu yerda" degani emas; ikkinchisi deb
+  o'qish tunda soat 3 da butun shtatni oshxonada ko'rsatardi.
 - **CRM'da ikkita ustun ataylab bo'sh** (`—`): _segment_ — bu biznes egallaydigan
   tasnif, tashrif sonidan chiqarib tashlash mijozga restoran rozi bo'lmagan
   yorliq yopishtirish bo'lardi; _oxirgi tashrif_ — mijoz yozuvida sana yo'q,

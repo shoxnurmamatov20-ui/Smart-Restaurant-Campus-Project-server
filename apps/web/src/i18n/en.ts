@@ -816,6 +816,7 @@ export const en: WebMessages = {
       unitPcs: 'pcs',
     },
     suppliers: {
+      days: 'days',
       subtitle: "6 active · 8 open purchase orders · 117M so'm spent this quarter",
       add: 'Add supplier',
       colSupplier: 'Supplier',

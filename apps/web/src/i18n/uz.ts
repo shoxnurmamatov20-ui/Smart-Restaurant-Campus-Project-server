@@ -832,6 +832,7 @@ export const uz = {
       unitPcs: 'dona',
     },
     suppliers: {
+      days: 'kun',
       subtitle: "6 ta faol · 8 ta ochiq xarid · bu chorakda 117M so'm",
       add: "Yetkazib beruvchi qo'shish",
       colSupplier: 'Yetkazib beruvchi',

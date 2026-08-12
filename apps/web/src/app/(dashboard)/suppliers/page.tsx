@@ -2,7 +2,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { moduleMetadata } from '../module-page';
 import { ACTION_PRIMARY, PageHead, Row, TableCard } from '../screen';
-import { onTimeTone, SUPPLIERS } from './suppliers-data';
+import { onTimeTone } from './suppliers-data';
+import { getSuppliers } from './suppliers-server';
 
 export const generateMetadata = () => moduleMetadata('suppliers');
 
@@ -36,6 +37,10 @@ export default async function SuppliersPage() {
     getTranslations('console.common'),
   ]);
 
+  // The API when there is a session, the fixtures when there is not. The three
+  // figures are derived from the purchase orders — see getSuppliers().
+  const suppliers = await getSuppliers(t);
+
   return (
     <>
       <PageHead title={nav('suppliers')} subtitle={t('subtitle')}>
@@ -56,11 +61,11 @@ export default async function SuppliersPage() {
           { label: t('colSpend'), align: 'right' },
         ]}
       >
-        {SUPPLIERS.map((supplier) => (
+        {suppliers.map((supplier) => (
           <Row key={supplier.id} columns={COLUMNS}>
             <span className="truncate text-sm font-semibold">{supplier.name}</span>
-            <span className="text-fg-muted text-sm">{t(supplier.category)}</span>
-            <span className="text-fg-muted text-sm">{t(supplier.lead)}</span>
+            <span className="text-fg-muted text-sm">{supplier.categoryLabel}</span>
+            <span className="text-fg-muted text-sm">{supplier.leadLabel}</span>
 
             <span
               data-num

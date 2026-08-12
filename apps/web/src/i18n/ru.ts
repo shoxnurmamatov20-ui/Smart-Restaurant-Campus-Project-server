@@ -815,6 +815,7 @@ export const ru: WebMessages = {
       unitPcs: 'шт',
     },
     suppliers: {
+      days: 'дн.',
       subtitle: '6 активных · 8 открытых закупок · 117 млн сум за квартал',
       add: 'Добавить поставщика',
       colSupplier: 'Поставщик',

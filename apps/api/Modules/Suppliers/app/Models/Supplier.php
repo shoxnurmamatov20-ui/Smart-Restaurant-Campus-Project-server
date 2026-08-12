@@ -30,14 +30,25 @@ final class Supplier extends Model
 
     protected $table = 'suppliers.suppliers';
 
+    /**
+     * What a supplier sells.
+     *
+     * The storekeeper's first filter on the supplier screen. `other` exists so
+     * a supplier that fits none of them is still filterable rather than falling
+     * out of every view.
+     */
+    public const CATEGORIES = ['meat', 'poultry', 'produce', 'dairy', 'dry', 'beverages', 'other'];
+
     protected $fillable = [
         'tenant_id',
         'code',
         'name',
+        'category',
         'contact_name',
         'phone',
         'email',
         'payment_terms_days',
+        'lead_time_days',
         'rating',
         'debt',
         'is_active',
@@ -48,6 +59,7 @@ final class Supplier extends Model
         return [
             'is_active' => 'boolean',
             'payment_terms_days' => 'integer',
+            'lead_time_days' => 'integer',
             'rating' => 'integer',
             'debt' => 'integer',
         ];
