@@ -3,7 +3,7 @@ import { formatTiyinAmount } from '@restaurant/utils';
 
 import { moduleMetadata } from '../module-page';
 import { PageHead, Pill } from '../screen';
-import { averageOrder, CUSTOMERS, ORDER_HISTORY, visitsPerMonth } from './customers-data';
+import { getCustomers, ORDER_HISTORY, visitsPerMonth } from './customers-data';
 
 export const generateMetadata = () => moduleMetadata('crm');
 
@@ -30,7 +30,13 @@ export default async function CustomersPage() {
     getTranslations('console.customers'),
   ]);
 
-  const selected = CUSTOMERS[0];
+  // The API when there is a session, the fixtures when there is not.
+  const customers = await getCustomers(t);
+  const selected = customers[0];
+
+  // An empty guest list is a real state — a restaurant on its first day — and
+  // the panel below reads a guest, so there has to be one to read.
+  if (selected === undefined) return null;
 
   return (
     <>
@@ -41,7 +47,7 @@ export default async function CustomersPage() {
         className="grid [grid-template-columns:340px_minmax(0,1fr)] items-start gap-5"
       >
         <div className="flex flex-col gap-2">
-          {CUSTOMERS.map((customer) => {
+          {customers.map((customer) => {
             const active = customer.id === selected.id;
 
             return (
@@ -60,7 +66,7 @@ export default async function CustomersPage() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{customer.name}</span>
                   <span data-num className="text-fg-subtle mt-0.5 block text-xs">
-                    {t(customer.segment)} · {customer.visits} {t('visitsShort')}
+                    {customer.segmentLabel} · {customer.visits} {t('visitsShort')}
                   </span>
                 </span>
 
@@ -81,13 +87,13 @@ export default async function CustomersPage() {
             <div className="min-w-0 flex-1">
               <h3 className="font-display tracking-snug text-xl font-semibold">{selected.name}</h3>
               <p data-num className="text-fg-muted mt-1.5 text-sm">
-                {selected.phone} · {t('lastVisit')} {t(selected.lastVisit)}
+                {selected.phone} · {t('lastVisit')} {selected.lastVisitLabel}
               </p>
             </div>
 
             <div className="flex flex-none gap-2">
-              <Pill tone="success">{t(selected.tier)}</Pill>
-              <Pill tone="neutral">{t(selected.segment)}</Pill>
+              <Pill tone="success">{selected.tierLabel}</Pill>
+              <Pill tone="neutral">{selected.segmentLabel}</Pill>
             </div>
           </div>
 
@@ -97,7 +103,7 @@ export default async function CustomersPage() {
             {[
               { label: t('totalSpend'), value: formatTiyinAmount(selected.spend) },
               { label: t('visits'), value: String(selected.visits) },
-              { label: t('averageOrder'), value: formatTiyinAmount(averageOrder(selected)) },
+              { label: t('averageOrder'), value: formatTiyinAmount(selected.averageOrder) },
               {
                 label: t('frequency'),
                 value: `${visitsPerMonth(selected)} ${t('perMonth')}`,
@@ -116,7 +122,7 @@ export default async function CustomersPage() {
             {t('note')}
           </div>
           <p className="text-fg-muted mb-6 text-sm leading-relaxed text-pretty">
-            {t(selected.note)}
+            {selected.noteLabel}
           </p>
 
           <div className="text-fg-subtle text-2xs tracking-caps mb-1.5 font-semibold uppercase">

@@ -858,6 +858,7 @@ export const en: WebMessages = {
       roleStore: 'Inventory manager',
     },
     customers: {
+      allergy: 'Allergy',
       subtitle: '2 148 known guests · 312 loyalty members · 41 at risk of lapsing',
       totalSpend: 'Total spend',
       visits: 'Visits',

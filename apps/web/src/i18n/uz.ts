@@ -874,6 +874,7 @@ export const uz = {
       roleStore: 'Ombor menejeri',
     },
     customers: {
+      allergy: 'Allergiya',
       subtitle: "2 148 tanish mehmon · 312 sodiqlik a'zosi · 41 tasi yo'qolish xavfida",
       totalSpend: 'Jami sarf',
       visits: 'Tashriflar',

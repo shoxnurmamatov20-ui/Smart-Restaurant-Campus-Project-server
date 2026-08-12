@@ -857,6 +857,7 @@ export const ru: WebMessages = {
       roleStore: 'Менеджер склада',
     },
     customers: {
+      allergy: 'Аллергия',
       subtitle: '2 148 известных гостей · 312 в программе лояльности · 41 под риском оттока',
       totalSpend: 'Всего потрачено',
       visits: 'Визиты',

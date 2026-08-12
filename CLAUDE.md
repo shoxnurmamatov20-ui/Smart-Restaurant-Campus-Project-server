@@ -88,16 +88,18 @@ matn i18n katalogida (`console.roles`).
 - **Kirish — bitta karta, uchta yorliq** (§3.12): pochta, PIN, platforma.
   `src/components/sign-in-panel.tsx` ikki joyda ishlatiladi — marketing sahifada
   namoyish sifatida, `/login`da `live` bilan. Faqat pochta eshigi haqiqiy
-  (`POST /login` Sanctum'da bor); PIN va TOTP endpointlari hali yozilmagan,
-  shuning uchun ikkala rejimda ham namoyish bo'lib qoladi. `/register` yo'q —
+  (`POST /login` Sanctum'da bor). PIN endpointi (`POST /api/v1/pos/auth/pin`)
+  ham yozilgan, lekin u **ulangan terminal tokenini** talab qiladi, shuning
+  uchun brauzerdagi karta uni chaqira olmaydi; TOTP esa `/admin/login`da,
+  alohida eshikda. `/register` yo'q —
   restoran `#contact` orqali keladi, tenant'ni operator ochadi.
 - **Platforma eshigi ulangan:** `POST /api/v1/admin/login` — pochta + parol +
   TOTP, faqat `super-admin` va faqat restoranga tegishli bo'lmagan hisob;
   token 30 daqiqada tugaydi, eski tokenlar o'chiriladi, kirish audit jurnaliga
   yoziladi. Bir kod **ikkinchi marta ishlamaydi** (`two_factor_last_window`).
   Demo kalit: `JBSWY3DPEHPK3PXP` (UserSeeder, faqat local).
-- **API'ga ulangan ekranlar: `menu`, `orders`, `tables`, `inventory`, `kitchen`,
-  `finance/till`, `staff/shifts`.**
+- **API'ga ulangan ekranlar: `menu`, `orders`, `tables` (+ bronlar),
+  `inventory`, `kitchen`, `finance/till`, `staff/shifts`, `crm`.**
   `lib/api-server.ts` sessiya cookie'sidan token oladi va `apiGet<T>()`
   qaytaradi; xato, 401 yoki sessiya yo'qligida `null` — ekran fixture'ga
   qaytadi va API o'chganda ham ishlashda davom etadi. `translate()` jsonb
@@ -122,12 +124,20 @@ matn i18n katalogida (`console.roles`).
   O'tmish — davomat, kelajak — reja; kelmagan smenaga davomat yozilmaydi.
   Har bir lavozimning o'z vaqti bor (barmen 14–00, omborchi 07–15), chunki
   hammani 09–18 ga tiqish hech bir restoranda bo'lmagan jadval chizadi.
-- Qolgan ekranlar hali fixture. Sabablari har xil: `crm/feedbacks`,
-  `suppliers/purchase-orders`, `tables/reservations`, `inventory/movements` —
-  endpoint bor, lekin bazada 0 qator (KDS, Finance, Staff'dagi kabi seeder
-  kerak); `suppliers` va `staff` (ro'yxat ekrani) — API ustunlari ekran
-  ustunlarining faqat 2 tasini qoplaydi, avval **migratsiya** kerak;
-  `analytics` — sahifalanmagan boshqa shakl.
+- **Fikr va bronlar** `CrmFeedbackSeeder` / `ReservationSeeder` bilan. Fikrlar
+  ataylab xushomadsiz — bittasi allergiya haqidagi shoshilinch shikoyat, chunki
+  hammasi beshlik bo'lgan demo eng muhim oqimni ko'rsatmaydi. Bron faqat **bo'sh**
+  stolni band qiladi: allaqachon o'tirgan stol o'tirgan bo'lib qoladi, xost
+  to'qnashuvni ko'rishi kerak.
+- Qolgan ekranlar hali fixture: `suppliers/purchase-orders`,
+  `inventory/movements` — endpoint bor, bazada 0 qator (seeder kerak);
+  `suppliers` va `staff` (ro'yxat ekrani) — API ustunlari ekran ustunlarining
+  faqat 2 tasini qoplaydi, avval **migratsiya** kerak; `analytics` —
+  sahifalanmagan boshqa shakl.
+- **CRM'da ikkita ustun ataylab bo'sh** (`—`): _segment_ — bu biznes egallaydigan
+  tasnif, tashrif sonidan chiqarib tashlash mijozga restoran rozi bo'lmagan
+  yorliq yopishtirish bo'lardi; _oxirgi tashrif_ — mijoz yozuvida sana yo'q,
+  uni buyurtmalardan olish endpoint ishi.
 
 ## Hujjatlar (Documents in this directory)
 

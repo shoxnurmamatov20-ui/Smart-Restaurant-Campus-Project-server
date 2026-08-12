@@ -34,6 +34,15 @@ type ApiTable = {
 
 type ApiHall = { id: number; name: Translated | string; sort_order?: number };
 
+type ApiReservation = {
+  guest_name: string;
+  guests_count: number;
+  starts_at: string;
+  status: string;
+  is_upcoming: boolean;
+  table: { id: number | null } | null;
+};
+
 /**
  * The API's table states against the five the design draws.
  *
@@ -67,9 +76,10 @@ export async function getFloor(
   t: (key: string) => string,
   locale: string,
 ): Promise<readonly Zone[]> {
-  const [tables, halls] = await Promise.all([
+  const [tables, halls, reservations] = await Promise.all([
     apiGet<Paginated<ApiTable>>('/tables/tables?per_page=200'),
     apiGet<Paginated<ApiHall>>('/tables/halls?per_page=50'),
+    apiGet<Paginated<ApiReservation>>('/tables/reservations?per_page=200'),
   ]);
 
   if (!tables?.data) {
@@ -82,6 +92,25 @@ export async function getFloor(
 
   const rooms = halls?.data ?? [];
 
+  /*
+   * The next booking on each table.
+   *
+   * Only ones still to come, and only ones somebody is actually expected for:
+   * a cancelled booking releases the table and a no-show has already released
+   * it. A table held for a guest who is not coming is a table turned away.
+   *
+   * Earliest first, so a table booked twice tonight shows the sitting the host
+   * has to seat next rather than the one after it.
+   */
+  const holds = new Map<number, ApiReservation>();
+
+  for (const booking of (reservations?.data ?? [])
+    .filter((r) => r.is_upcoming && ['pending', 'confirmed'].includes(r.status))
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))) {
+    const id = booking.table?.id;
+    if (id !== null && id !== undefined && !holds.has(id)) holds.set(id, booking);
+  }
+
   return rooms.map((hall) => ({
     key: String(hall.id),
     label: translate(hall.name, locale),
@@ -89,13 +118,24 @@ export async function getFloor(
       // A table taken out of service is not on the floor. It still exists —
       // the QR code on it still resolves — but a host should not be offered it.
       .filter((table) => table.is_active && table.hall?.id === hall.id)
-      .map((table) => ({
-        name: table.label,
-        seats: table.seats,
-        status: TABLE_STATE[table.status] ?? 'free',
-        // TODO(api): covers, waiter, elapsed time and the running bill live on
-        // the open order, not the table. `GET /orders/orders?table=` has them;
-        // joining the two is the floor screen's next step.
-      })),
+      .map((table) => {
+        const hold = holds.get(table.id);
+        const state = TABLE_STATE[table.status] ?? 'free';
+
+        return {
+          name: table.label,
+          seats: table.seats,
+          // A booking only marks a free table as held. One that is already
+          // occupied stays occupied — the party sitting there is the truth, and
+          // the host needs to see the clash rather than have it painted over.
+          status: hold && state === 'free' ? ('reserved' as const) : state,
+          reservation: hold
+            ? `${hold.starts_at.slice(11, 16)} · ${hold.guest_name}, ${hold.guests_count}`
+            : undefined,
+          // TODO(api): covers, waiter, elapsed time and the running bill live on
+          // the open order, not the table. `GET /orders/orders?table=` has them;
+          // joining the two is the floor screen's next step.
+        };
+      }),
   }));
 }
