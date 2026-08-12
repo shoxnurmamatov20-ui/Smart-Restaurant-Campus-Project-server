@@ -87,11 +87,12 @@ export const GROUP_STYLE: Record<DishGroup, { tint: string; text: string; rail: 
 export const GROUPS: readonly DishGroup[] = ['stars', 'plowhorses', 'puzzles', 'dogs'];
 
 /** What the kitchen keeps of every so'm the dish takes. */
-export const marginOf = (dish: DishRow): number =>
-  Math.round(((dish.price - dish.cost) / dish.price) * 100);
+export const marginOf = (dish: { price: number; cost: number }): number =>
+  dish.price === 0 ? 0 : Math.round(((dish.price - dish.cost) / dish.price) * 100);
 
 /** What the dish actually earned over the period. */
-export const profitOf = (dish: DishRow): number => (dish.price - dish.cost) * dish.sold;
+export const profitOf = (dish: { price: number; cost: number; sold: number }): number =>
+  (dish.price - dish.cost) * dish.sold;
 
 /** The four service figures the design puts under the charts. */
 export const SERVICE = {

@@ -100,7 +100,7 @@ matn i18n katalogida (`console.roles`).
   Demo kalit: `JBSWY3DPEHPK3PXP` (UserSeeder, faqat local).
 - **API'ga ulangan ekranlar: `menu`, `orders`, `tables` (+ bronlar),
   `inventory`, `inventory/operations`, `kitchen`, `finance/till`,
-  `staff/shifts`, `crm`.**
+  `staff/shifts`, `crm`, `analytics`.**
   `lib/api-server.ts` sessiya cookie'sidan token oladi va `apiGet<T>()`
   qaytaradi; xato, 401 yoki sessiya yo'qligida `null` — ekran fixture'ga
   qaytadi va API o'chganda ham ishlashda davom etadi. `translate()` jsonb
@@ -138,10 +138,17 @@ matn i18n katalogida (`console.roles`).
   **javon daftarga ergashadi** — kelishmovchilikda daftar haq.
   `PurchaseOrderSeeder` — to'rt holat (qoralama, yuborilgan, tasdiqlangan,
   qabul qilingan); ariza jamisi qatorlar yig'indisiga teng.
+- **Analitika hisobotlari sahifalanmagan** — har biri o'z shaklidagi hisobot,
+  shuning uchun `Paginated<T>` emas, alohida tiplangan (`analytics-server.ts`).
+  Menyu matritsasi (yulduz / ot / topishmoq / it) **Kasavana–Smith usuli** bilan
+  hisoblanadi: o'rtachadan ko'p sotilgan — ommabop, o'rtachadan yuqori marja —
+  foydali. Buni hisoblash mumkin, chunki bu **e'lon qilingan usul**, mijoz
+  segmenti kabi biznes egallaydigan tasnif emas — qoida kodda yozilgan, oshpaz
+  rozi bo'lmasa nima sabab bo'lganini ko'radi.
 - Qolgan ekranlar hali fixture: `suppliers` va `staff` (ro'yxat ekranlari) —
   API ustunlari ekran ustunlarining faqat 2 tasini qoplaydi, avval
   **migratsiya** kerak (o'z vaqtida yetkazish foizi, haftalik soat va smenadagi
-  savdo hech qayerda saqlanmaydi); `analytics` — sahifalanmagan boshqa shakl.
+  savdo hech qayerda saqlanmaydi).
 - **CRM'da ikkita ustun ataylab bo'sh** (`—`): _segment_ — bu biznes egallaydigan
   tasnif, tashrif sonidan chiqarib tashlash mijozga restoran rozi bo'lmagan
   yorliq yopishtirish bo'lardi; _oxirgi tashrif_ — mijoz yozuvida sana yo'q,

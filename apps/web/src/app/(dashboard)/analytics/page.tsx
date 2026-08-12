@@ -1,18 +1,10 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { formatTiyinAmount } from '@restaurant/utils';
 
 import { moduleMetadata } from '../module-page';
 import { PageHead, Rail, Row, TableCard } from '../screen';
-import {
-  CATEGORY_MIX,
-  COVERS_BY_HOUR,
-  DISHES,
-  GROUP_STYLE,
-  GROUPS,
-  marginOf,
-  profitOf,
-  SERVICE,
-} from './analytics-data';
+import { GROUP_STYLE, GROUPS, marginOf, profitOf, SERVICE } from './analytics-data';
+import { getCategoryMix, getCoversByHour, getMenuEngineering } from './analytics-server';
 
 export const generateMetadata = () => moduleMetadata('analytics');
 
@@ -38,12 +30,20 @@ const CARD = 'bg-surface rounded-lg border';
 const H3 = 'text-md font-semibold tracking-snug';
 
 export default async function AnalyticsPage() {
-  const [nav, t] = await Promise.all([
+  const [nav, t, locale] = await Promise.all([
     getTranslations('console.nav'),
     getTranslations('console.analytics'),
+    getLocale(),
   ]);
 
-  const peak = Math.max(...COVERS_BY_HOUR);
+  // The API when there is a session, the fixtures when there is not.
+  const [dishes, covers, categories] = await Promise.all([
+    getMenuEngineering(t),
+    getCoversByHour(),
+    getCategoryMix(t, locale),
+  ]);
+
+  const peak = Math.max(...covers, 1);
 
   return (
     <>
@@ -58,7 +58,7 @@ export default async function AnalyticsPage() {
           <p className="text-fg-subtle mt-1 mb-[22px] text-xs">{t('coversSub')}</p>
 
           <div className="flex h-[180px] items-end gap-2.5">
-            {COVERS_BY_HOUR.map((covers, index) => (
+            {covers.map((covers, index) => (
               <div key={index} className="flex flex-1 flex-col items-center gap-2">
                 <span data-num className="text-fg-subtle text-2xs">
                   {covers}
@@ -83,10 +83,10 @@ export default async function AnalyticsPage() {
           <h3 className={H3}>{t('categoryTitle')}</h3>
           <p className="text-fg-subtle mt-1 mb-5 text-xs">{t('categorySub')}</p>
 
-          {CATEGORY_MIX.map((category) => (
-            <div key={category.key} className="py-[9px]">
+          {categories.map((category) => (
+            <div key={category.id} className="py-[9px]">
               <div className="mb-[7px] flex justify-between">
-                <span className="text-sm">{t(category.key)}</span>
+                <span className="text-sm">{category.name}</span>
                 <span className="flex gap-3">
                   <span data-num className="text-fg-subtle text-sm">
                     {(category.revenue / 100_000_000).toFixed(1)}M
@@ -148,7 +148,7 @@ export default async function AnalyticsPage() {
         <div className="border-divider grid [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))] gap-3 border-b px-[22px] py-[18px]">
           {GROUPS.map((group) => {
             const style = GROUP_STYLE[group];
-            const count = DISHES.filter((dish) => dish.group === group).length;
+            const count = dishes.filter((dish) => dish.group === group).length;
 
             return (
               <div key={group} className={`rounded-md border px-4 py-3.5 ${style.tint}`}>
@@ -177,13 +177,13 @@ export default async function AnalyticsPage() {
             t('colGroup'),
           ]}
         >
-          {DISHES.map((dish) => {
+          {dishes.map((dish) => {
             const style = GROUP_STYLE[dish.group];
             const margin = marginOf(dish);
 
             return (
-              <Row key={dish.key} columns={COLUMNS} className="py-3">
-                <span className="min-w-0 text-sm font-semibold">{t(dish.key)}</span>
+              <Row key={dish.id} columns={COLUMNS} className="py-3">
+                <span className="min-w-0 text-sm font-semibold">{dish.name}</span>
 
                 <span data-num className="text-fg-muted text-right text-sm">
                   {dish.sold}
