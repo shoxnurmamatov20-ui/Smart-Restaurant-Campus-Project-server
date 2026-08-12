@@ -1,0 +1,9 @@
+{
+  "name": "Finance",
+  "alias": "finance",
+  "description": "Kassa smenasi, to'lovlar, fiskal cheklar, xarajatlar va kunlik moliyaviy yopilish.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "finance"],
+  "priority": 8,
+  "providers": ["Modules\\Finance\\Providers\\FinanceServiceProvider"],
+  "files": []
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Crm",
+  "alias": "crm",
+  "description": "Mijozlar bazasi, bonus/cashback dasturi, promo-aksiyalar va fikr-mulohaza.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "crm"],
+  "priority": 9,
+  "providers": ["Modules\\Crm\\Providers\\CrmServiceProvider"],
+  "files": []
+}

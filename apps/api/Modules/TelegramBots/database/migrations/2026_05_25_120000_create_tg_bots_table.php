@@ -11,10 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         // tg_bots - registered Telegram bots (one row per bot)
-        Schema::create('tg_bots', function (Blueprint $table): void {
+        Schema::create('telegram.tg_bots', function (Blueprint $table): void {
             $table->id();
-            $table->string('key', 64)->unique()->comment('matches registry key, e.g. "student"');
-            $table->string('telegram_username', 64)->nullable()->comment('@CampusStudentBot');
+            $table->string('key', 64)->unique()->comment('matches registry key, e.g. "guest"');
+            $table->string('telegram_username', 64)->nullable()->comment('@OshMarkaziGuestBot');
             $table->string('name_uz');
             $table->string('name_ru');
             $table->string('name_en');
@@ -37,11 +37,11 @@ return new class extends Migration
             $table->index('module');
         });
 
-        // tg_bot_users - Telegram user ↔ CAMPUS user linking, per bot
-        Schema::create('tg_bot_users', function (Blueprint $table): void {
+        // tg_bot_users - Telegram user ↔ platform user linking, per bot
+        Schema::create('telegram.tg_bot_users', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('bot_id')->constrained('tg_bots')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('bot_id')->constrained('telegram.tg_bots')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('public.users')->nullOnDelete();
             $table->bigInteger('telegram_id')->comment('Telegram user id');
             $table->string('telegram_username', 64)->nullable();
             $table->string('phone', 32)->nullable();
@@ -58,11 +58,11 @@ return new class extends Migration
             $table->index(['user_id']);
         });
 
-        // tg_subscriptions - opt-in channels per user (e.g. "new_grades_immediate")
-        Schema::create('tg_subscriptions', function (Blueprint $table): void {
+        // tg_subscriptions - opt-in channels per user (e.g. "orders.ready")
+        Schema::create('telegram.tg_subscriptions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('bot_user_id')->constrained('tg_bot_users')->cascadeOnDelete();
-            $table->string('channel', 64)->comment('e.g. "grades.posted", "attendance.absent"');
+            $table->foreignId('bot_user_id')->constrained('telegram.tg_bot_users')->cascadeOnDelete();
+            $table->string('channel', 64)->comment('e.g. "orders.ready", "orders.delayed"');
             $table->boolean('enabled')->default(true);
             $table->json('settings')->nullable();
             $table->timestamps();
@@ -72,14 +72,14 @@ return new class extends Migration
         });
 
         // tg_messages - outbound message audit log (Laravel -> bot)
-        Schema::create('tg_messages', function (Blueprint $table): void {
+        Schema::create('telegram.tg_messages', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('bot_id')->constrained('tg_bots')->cascadeOnDelete();
-            $table->foreignId('bot_user_id')->nullable()->constrained('tg_bot_users')->nullOnDelete();
+            $table->foreignId('bot_id')->constrained('telegram.tg_bots')->cascadeOnDelete();
+            $table->foreignId('bot_user_id')->nullable()->constrained('telegram.tg_bot_users')->nullOnDelete();
             $table->bigInteger('telegram_chat_id');
             $table->bigInteger('telegram_message_id')->nullable();
             $table->text('text');
-            $table->string('channel', 64)->nullable()->comment('e.g. "grades.posted"');
+            $table->string('channel', 64)->nullable()->comment('e.g. "orders.ready"');
             $table->string('status', 16)->default('queued')->comment('queued|sent|failed');
             $table->text('error')->nullable();
             $table->json('payload')->nullable();
@@ -91,11 +91,11 @@ return new class extends Migration
         });
 
         // tg_command_logs - analytics: which command, who, when, latency
-        Schema::create('tg_command_logs', function (Blueprint $table): void {
+        Schema::create('telegram.tg_command_logs', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('bot_id')->constrained('tg_bots')->cascadeOnDelete();
+            $table->foreignId('bot_id')->constrained('telegram.tg_bots')->cascadeOnDelete();
             $table->bigInteger('telegram_id');
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('public.users')->nullOnDelete();
             $table->string('command', 64);
             $table->string('chat_type', 16)->default('private');
             $table->unsignedInteger('latency_ms')->default(0);
@@ -110,10 +110,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('tg_command_logs');
-        Schema::dropIfExists('tg_messages');
-        Schema::dropIfExists('tg_subscriptions');
-        Schema::dropIfExists('tg_bot_users');
-        Schema::dropIfExists('tg_bots');
+        Schema::dropIfExists('telegram.tg_command_logs');
+        Schema::dropIfExists('telegram.tg_messages');
+        Schema::dropIfExists('telegram.tg_subscriptions');
+        Schema::dropIfExists('telegram.tg_bot_users');
+        Schema::dropIfExists('telegram.tg_bots');
     }
 };

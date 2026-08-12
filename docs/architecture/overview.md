@@ -1,11 +1,11 @@
-# CAMPUS — Arxitektura sharhi
+# Smart Restaurant Campus — Arxitektura sharhi
 
 ## Yuqori darajadagi rasm
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
 │                    FOYDALANUVCHILAR                            │
-│  Talabalar · O'qituvchilar · Xodimlar · Ota-onalar · Mehmonlar │
+│  Mehmonlar · Ofitsiantlar · Oshpazlar · Menejerlar · Kuryerlar │
 └────────────────┬──────────────────────────────┬───────────────┘
                  │                              │
                  ▼                              ▼
@@ -59,7 +59,7 @@
    ┌──────────────────────────────────────────┐
    │  INTEGRATSIYALAR (tashqi)                │
    ├──────────────────────────────────────────┤
-   │  HEMIS · E-IMZO · Payme · Click · Eskiz  │
+   │  Fiskal · Payme · Click · Uzum · Eskiz   │
    │  OpenAI · Anthropic · MyGov              │
    └──────────────────────────────────────────┘
 ```
@@ -70,31 +70,33 @@
 2. **Stateless services** — Sessiya holati Redis'da, fayl Minio'da. App container'lar restart bo'lsa ham ishlaydi.
 3. **Async first** — Og'ir operatsiyalar queue'ga (Laravel Horizon + Redis).
 4. **i18n from day one** — uz / ru / en. Yangi modul majburiy ravishda 3 tilga tarjima.
-5. **Multi-tenant ready** — Ma'lumotlar modeli tenant_id bilan kelishi mumkin (universitetlar uchun).
-6. **Audit log mandatory** — Har bir o'zgaruvchi amal Spatie ActivityLog orqali yoziladi.
-7. **Defense in depth** — Sanctum (auth), Keycloak (SSO), RBAC (Spatie permission), 2FA (Super Admin majburiy).
+5. **Multi-tenant by default** — Tenant-owned jadvallar `tenant_id` bilan ishlaydi; qarang: [`multi-tenancy.md`](multi-tenancy.md).
+6. **Module contracts mandatory** — Har modul API, event, policy, job va test standartiga amal qiladi; qarang: [`module-contracts.md`](module-contracts.md).
+7. **Audit log mandatory** — Har bir o'zgaruvchi amal Spatie ActivityLog orqali yoziladi.
+8. **Defense in depth** — Sanctum (auth), Keycloak (SSO), RBAC (Spatie permission), 2FA (Super Admin majburiy).
+9. **Observable production** — SLO, alert, backup/restore va runbook talablari repo ichida; qarang: [`production-readiness.md`](production-readiness.md).
 
 ## Komponentlar mas'uliyati
 
-| Komponent | Mas'uliyat |
-|-----------|-----------|
-| **Nginx** | TLS, rate limit, statik fayllar, reverse proxy, WebSocket upgrade |
-| **apps/web** | Talaba/xodim foydalanuvchi UI (multi-tenant aware) |
-| **apps/admin** | Super Admin paneli (2FA, IP allowlist, audit) |
-| **apps/api** | Asosiy biznes-logika, 10 ta Phase-1 modul (modular monolith) |
-| **apps/ai-services** | Computational AI/ML (anti-plagiat, chatbot, prediction) |
-| **PostgreSQL** | Asosiy OLTP — barcha business data |
-| **Redis** | Cache (Laravel cache), Sessions, Queues (Horizon), Pub/Sub |
-| **ClickHouse** | OLAP — KPI, analytics, time-series |
-| **MinIO** | Fayl saqlash — media, hujjatlar, eksport |
-| **Meilisearch** | Tezkor qidiruv (lugatxona, talaba qidirish) |
-| **Keycloak** | Identity Provider (SSO, OIDC) |
-| **Reverb** | WebSocket (chat, real-time notifikatsiyalar) |
+| Komponent            | Mas'uliyat                                                         |
+| -------------------- | ------------------------------------------------------------------ |
+| **Nginx**            | TLS, rate limit, statik fayllar, reverse proxy, WebSocket upgrade  |
+| **apps/web**         | Xodimlar konsoli — ofitsiant, oshpaz, menejer (multi-tenant aware) |
+| **apps/admin**       | Super Admin paneli (2FA, IP allowlist, audit)                      |
+| **apps/api**         | Asosiy biznes-logika, 12 modul (modular monolith)                  |
+| **apps/ai-services** | Computational AI/ML (talab prognozi, taom tanish, fikr tahlili)    |
+| **PostgreSQL**       | Asosiy OLTP — barcha business data                                 |
+| **Redis**            | Cache (Laravel cache), Sessions, Queues (Horizon), Pub/Sub         |
+| **ClickHouse**       | OLAP — KPI, analytics, time-series                                 |
+| **MinIO**            | Fayl saqlash — media, hujjatlar, eksport                           |
+| **Meilisearch**      | Tezkor qidiruv (menyu, mijozlar, buyurtmalar)                      |
+| **Keycloak**         | Identity Provider (SSO, OIDC)                                      |
+| **Reverb**           | WebSocket (chat, real-time notifikatsiyalar)                       |
 
-## Data flow misol — Talaba davomatga belgi qo'yish
+## Data flow misol — Mehmon QR orqali buyurtma berishi
 
 ```
-1. Talaba telefonida QR scan qiladi → apps/web yoki apps/mobile
+1. Mehmon stoldagi QR kodni skanerlaydi → apps/web (publik menyu)
 2. Web → POST /api/v1/attendance (Sanctum token)
 3. Nginx → apps/api (PHP-FPM)
 4. Laravel:
@@ -109,9 +111,9 @@
 
 ## Scaling stretegiyasi
 
-| Bosqich | User soni | Yondashuv |
-|---------|-----------|-----------|
-| **MVP** (Phase 1) | < 10K | Bitta server, Docker Compose |
-| **Growth** | 10K–100K | Vertical scaling, Postgres replica, Redis cluster |
-| **Scale** | 100K–1M | Kubernetes, modul'larni alohida service'larga ajratish |
-| **Global** | 1M+ | Multi-region, CDN, edge caching, sharding |
+| Bosqich           | User soni | Yondashuv                                              |
+| ----------------- | --------- | ------------------------------------------------------ |
+| **MVP** (Phase 1) | < 10K     | Bitta server, Docker Compose                           |
+| **Growth**        | 10K–100K  | Vertical scaling, Postgres replica, Redis cluster      |
+| **Scale**         | 100K–1M   | Kubernetes, modul'larni alohida service'larga ajratish |
+| **Global**        | 1M+       | Multi-region, CDN, edge caching, sharding              |

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Smart Restaurant Campus">
+  <!--
+    A serving cloche over a plate.
+
+    The vector source the PWA's icon-192.png and icon-512.png are rendered
+    from — regenerate them with tools/icons/render.mjs after editing this file.
+
+    Terracotta #c5521c is the staff console's primary token, oklch(0.58 0.16 42),
+    converted once so the installed app's tile matches the app it opens. The mark
+    sits inside the central 80% so a maskable launcher can crop the corners
+    without cutting the dome.
+  -->
+  <rect width="512" height="512" rx="112" fill="#c5521c" />
+  <circle cx="256" cy="178" r="20" fill="#ffffff" />
+  <path d="M120 330a136 136 0 0 1 272 0Z" fill="#ffffff" />
+  <rect x="96" y="342" width="320" height="26" rx="13" fill="#ffffff" opacity="0.72" />
+</svg>

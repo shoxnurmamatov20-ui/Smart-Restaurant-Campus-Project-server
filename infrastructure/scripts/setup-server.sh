@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ============================================================
-# CAMPUS — Production server bootstrap (Ubuntu 24.04 LTS)
+# Smart Restaurant Campus — Production server bootstrap (Ubuntu 24.04 LTS)
 # Run once on fresh server: bash setup-server.sh
 # ============================================================
 set -euo pipefail
 
 # ============ Config ============
-APP_USER="campus"
-APP_DIR="/srv/campus"
+APP_USER="restaurant"
+APP_DIR="/srv/restaurant-campus"
 TIMEZONE="Asia/Tashkent"
 
 log() { echo -e "\033[1;34m[setup]\033[0m $*"; }
@@ -90,7 +90,7 @@ systemctl enable --now fail2ban
 
 # ============ 10. System tuning ============
 log "Sistema parametrlarini sozlash..."
-cat > /etc/sysctl.d/99-campus.conf <<EOF
+cat > /etc/sysctl.d/99-restaurant-campus.conf <<EOF
 # Network performance
 net.core.somaxconn = 65535
 net.ipv4.tcp_max_syn_backlog = 65535
@@ -106,9 +106,9 @@ vm.dirty_background_ratio = 5
 # File descriptors
 fs.file-max = 2097152
 EOF
-sysctl -p /etc/sysctl.d/99-campus.conf
+sysctl -p /etc/sysctl.d/99-restaurant-campus.conf
 
-cat > /etc/security/limits.d/99-campus.conf <<EOF
+cat > /etc/security/limits.d/99-restaurant-campus.conf <<EOF
 * soft nofile 65535
 * hard nofile 65535
 * soft nproc 65535

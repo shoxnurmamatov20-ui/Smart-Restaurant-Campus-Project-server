@@ -1,28 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local",
-    "**/.env",
-    "tsconfig.json"
-  ],
-  "globalEnv": [
-    "NODE_ENV",
-    "APP_ENV",
-    "CI"
-  ],
+  "globalDependencies": ["**/.env.*local", "**/.env", "tsconfig.json"],
+  "globalEnv": ["NODE_ENV", "APP_ENV", "CI"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "build/**"
-      ],
-      "env": [
-        "NEXT_PUBLIC_*",
-        "NEXTAUTH_*"
-      ]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+      "env": ["NEXT_PUBLIC_*", "NEXTAUTH_*"]
     },
     "dev": {
       "cache": false,
@@ -35,11 +19,6 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
-    },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "outputs": ["test-results/**", "playwright-report/**"]
     },
     "type-check": {
       "dependsOn": ["^build"],

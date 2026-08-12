@@ -1,5 +1,5 @@
 # ============================================================
-# CAMPUS — Laravel API (PHP-FPM 8.3)
+# Smart Restaurant Campus — Laravel API (PHP-FPM 8.3)
 # Multi-stage production build
 # ============================================================
 

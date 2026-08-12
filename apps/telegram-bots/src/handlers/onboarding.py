@@ -1,6 +1,6 @@
 """Shared onboarding router — /start + phone verification.
 
-Reusable across any bot that requires phone-based CAMPUS user linking.
+Reusable across any bot that requires phone-based platform user linking.
 Per-bot router can `include_router(onboarding_router(bot_key=...))`.
 """
 

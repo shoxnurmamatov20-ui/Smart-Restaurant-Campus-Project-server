@@ -1,8 +1,9 @@
-# @campus/mobile (Phase 2 — bo'sh)
+# @restaurant/mobile (Phase 2 — bo'sh)
 
 React Native + Expo mobile app — **Phase 2'da boshlanadi**.
 
 ## Phase 1'da nima qilamiz?
+
 **Hech narsa.** Mobile ilova Phase 2 ga ko'chirildi (foydalanuvchi qarori, 2026-05-25).
 
 ## Phase 2 rejasi
@@ -26,7 +27,8 @@ pnpm dlx create-expo-app@latest . --template blank-typescript
 ## Web bilan kod ulashish
 
 Web va mobile ulashiladi:
-- `@campus/types` — TS types (User, ApiResponse, etc.)
-- `@campus/utils` — helper funktsiyalar
-- `@campus/i18n` — tarjimalar
-- `@campus/sdk` — API client (axios)
+
+- `@restaurant/types` — TS types (User, ApiResponse, etc.)
+- `@restaurant/utils` — helper funktsiyalar
+- `@restaurant/i18n` — tarjimalar
+- `@restaurant/sdk` — API client (axios)

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================
-# CAMPUS — Deployment script
+# Smart Restaurant Campus — Deployment script
 # Pull latest, rebuild affected services, restart, run migrations
 # ============================================================
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/srv/campus}"
+APP_DIR="${APP_DIR:-/srv/restaurant-campus}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 
 log() { echo -e "\033[1;34m[deploy]\033[0m $*"; }

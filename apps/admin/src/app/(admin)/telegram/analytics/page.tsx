@@ -1,34 +1,29 @@
-export const metadata = { title: 'Telegram analytics · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function TelegramAnalyticsPage() {
-  return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Telegram analytics</h1>
-        <p className="mt-2 text-muted-foreground">
-          Botlar bo'yicha umumiy statistika: xabarlar, komandalar, faollik
-        </p>
-      </header>
+import { PageIntro, StatStrip, Stub } from '../../screen';
 
-      <div className="grid gap-3 md:grid-cols-4">
-        <Stat label="Faol foydalanuvchilar (24h)" value="—" />
-        <Stat label="Xabar (24h)" value="—" />
-        <Stat label="Eng faol bot" value="—" />
-        <Stat label="Xato darajasi" value="—" />
-      </div>
-
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Real-time charts (Recharts) + bot bo'yicha drilldown
-      </div>
-    </div>
-  );
+export async function generateMetadata() {
+  const t = await getTranslations('platform.telegram');
+  return { title: t('analytics') };
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+export default async function TelegramAnalyticsPage() {
+  const tg = await getTranslations('platform.extra.tg');
+
   return (
-    <div className="rounded-lg border bg-white p-4">
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold">{value}</p>
-    </div>
+    <>
+      <PageIntro>{tg('analyticsIntro')}</PageIntro>
+
+      <StatStrip
+        stats={[
+          { label: tg('activeUsers24h'), value: '—' },
+          { label: tg('messages24h'), value: '—' },
+          { label: tg('topBot'), value: '—' },
+          { label: tg('errorRate'), value: '—' },
+        ]}
+      />
+
+      <Stub title={tg('analyticsStub')}>{tg('analyticsNote')}</Stub>
+    </>
   );
 }

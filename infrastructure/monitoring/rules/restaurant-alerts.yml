@@ -1,0 +1,60 @@
+groups:
+  - name: restaurant-campus-platform
+    rules:
+      - alert: CampusTargetDown
+        expr: up{job=~"prometheus|alertmanager|postgres|redis|node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Monitoring target is down'
+          description: '{{ $labels.job }} target {{ $labels.instance }} has been down for more than 2 minutes.'
+
+      - alert: CampusApiHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="api"}[5m])) by (le)) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: 'API p95 latency is above 500ms'
+          description: 'API p95 latency has exceeded the production SLO for 10 minutes.'
+
+      - alert: CampusHighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job) / sum(rate(http_requests_total[5m])) by (job) > 0.01
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High 5xx error rate'
+          description: '{{ $labels.job }} has more than 1% 5xx responses for 10 minutes.'
+
+      - alert: CampusQueueDelayHigh
+        expr: horizon_queue_wait_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: 'Queue delay is high'
+          description: 'Laravel Horizon queue wait time is above 60 seconds.'
+
+      - alert: CampusPostgresExporterDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: 'PostgreSQL exporter is down'
+          description: 'Prometheus cannot scrape PostgreSQL exporter.'
+
+      - alert: CampusRedisExporterDown
+        expr: up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: 'Redis exporter is down'
+          description: 'Prometheus cannot scrape Redis exporter.'

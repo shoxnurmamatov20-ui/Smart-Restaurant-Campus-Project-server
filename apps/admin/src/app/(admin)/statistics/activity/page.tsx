@@ -1,13 +1,24 @@
-export const metadata = { title: 'Faollik statistikasi · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function ActivityStatsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { statisticsSections } from '../../statistics/sections';
+
+export async function generateMetadata() {
+  const t = await getTranslations('platform.extra.statistics');
+  return { title: t('activityStub') };
+}
+
+export default async function ActivityStatsPage() {
+  const t = await getTranslations('platform.extra.statistics');
+  const sections = await statisticsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Faollik analitikasi</h1>
-      {/* TODO: API calls, login attempts, peak hours, geographic distribution */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Faollik dashboard
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/statistics/activity" />
+
+      <PageIntro>{t('activityIntro')}</PageIntro>
+
+      <Stub title={t('activityStub')}>{t('activityNote')}</Stub>
+    </>
   );
 }

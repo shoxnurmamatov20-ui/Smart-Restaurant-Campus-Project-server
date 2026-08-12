@@ -1,13 +1,24 @@
-export const metadata = { title: 'Tizim resurslari · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function SystemStatsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { statisticsSections } from '../../statistics/sections';
+
+export async function generateMetadata() {
+  const t = await getTranslations('platform.extra.statistics');
+  return { title: t('systemStub') };
+}
+
+export default async function SystemStatsPage() {
+  const t = await getTranslations('platform.extra.statistics');
+  const sections = await statisticsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tizim resurslari</h1>
-      {/* TODO: CPU, RAM, disk, network — Prometheus API'dan */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Server health metrics
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/statistics/system" />
+
+      <PageIntro>{t('systemIntro')}</PageIntro>
+
+      <Stub title={t('systemStub')}>{t('systemNote')}</Stub>
+    </>
   );
 }

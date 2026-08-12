@@ -29,3 +29,13 @@ __pycache__
 # Generated
 **/*.generated.ts
 **/*.gen.ts
+
+# Working documents for in-progress modules — specs and step-by-step plans.
+# They are drafted and edited by hand as work proceeds; reformatting them
+# renumbers checkboxes and reflows prose mid-task for no benefit.
+docs/superpowers
+
+# Design handoff bundles exported from claude.ai/design. Vendor artefacts, not
+# our source: reformatting them would turn every re-export into a diff and
+# would edit files the designer owns.
+Restaurant form scope questions-handoff*

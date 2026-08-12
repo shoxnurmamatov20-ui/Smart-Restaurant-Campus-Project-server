@@ -11,11 +11,33 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!--
+            Module tests. Without this suite the per-module Feature tests
+            (Modules/Menu/tests/Feature/...) are collected by nobody and pass
+            silently by never running.
+        -->
+        <testsuite name="Modules">
+            <directory>Modules/*/tests/Unit</directory>
+            <directory>Modules/*/tests/Feature</directory>
+        </testsuite>
+        <!--
+            Rules about the shape of the codebase rather than its behaviour:
+            module boundaries, tenant columns, route conventions. A modular
+            monolith decays silently without them.
+        -->
+        <testsuite name="Architecture">
+            <directory>tests/Architecture</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>app</directory>
+            <directory>Modules</directory>
         </include>
+        <exclude>
+            <directory>Modules/*/database/migrations</directory>
+            <directory>Modules/*/resources</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
@@ -23,14 +45,35 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!--
+            PostgreSQL, not SQLite.
+
+            The schema-per-module layout only exists in PostgreSQL — SQLite has
+            no concept of a schema at all. Testing against a different engine
+            than production would mean the test database and the real one have
+            different shapes, which is exactly how a bug hides: this project has
+            already been bitten once by seeded rows silently losing tenant_id.
+
+            The database is created once by `php artisan db:setup`;
+            RefreshDatabase migrates it on the first test and wraps every test in
+            a transaction after that.
+        -->
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="5432"/>
+        <env name="DB_DATABASE" value="restaurant_campus_test"/>
+        <env name="DB_USERNAME" value="restaurant_campus"/>
+        <env name="DB_PASSWORD" value="changeme"/>
         <env name="DB_URL" value=""/>
+        <!-- Never reach for MinIO/S3 from a test: a network round-trip that
+             times out turns one slow test into a two-minute suite. -->
+        <env name="FILESYSTEM_DISK" value="local"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="TENANCY_REQUIRE_TENANT" value="false"/>
     </php>
 </phpunit>

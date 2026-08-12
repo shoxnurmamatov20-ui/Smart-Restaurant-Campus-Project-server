@@ -1,0 +1,49 @@
+/* ============================================================
+   The POS terminal — the rules a utility class cannot express
+
+   Two: the press feedback the design requires on a touch surface, and the
+   stacking the three columns do on a narrow screen.
+   ============================================================ */
+
+[data-pos] button:active {
+  transform: scale(0.97);
+}
+
+/* The ticket narrows before it stacks: 380px is comfortable on a 1366 tablet
+   and takes a third of a 1024 one. */
+@media (max-width: 1200px) {
+  [data-pos] {
+    grid-template-columns: 96px minmax(0, 1fr) 326px !important;
+  }
+}
+
+/* Below 820 the columns stack, per the design's breakpoint table. Categories
+   become a horizontal strip along the top — a vertical rail of six tiles on a
+   phone would push the items off the screen entirely. */
+@media (max-width: 820px) {
+  [data-pos] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto minmax(0, 1fr) auto !important;
+  }
+  [data-pos] > nav {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  [data-pos] > nav > button {
+    flex: none;
+    min-width: 108px;
+  }
+  [data-pos] > aside {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-pos] button:active {
+    transform: none;
+  }
+}

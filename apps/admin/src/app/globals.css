@@ -1,149 +1,60 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+/*
+ * The token layer, by relative path rather than by package name.
+ *
+ * Tailwind v4 resolves a CSS `@import` through the package's `exports` map
+ * under the `style` condition, and would not accept `@restaurant/ui/styles/...`
+ * however that entry was declared. The relative path is unambiguous, and it
+ * matches the `@source` line below, which has to be relative anyway.
+ */
+@import '../../../../packages/ui/src/styles/tokens.css';
 
-/* ============================================
-   CAMPUS Super Admin — Tailwind v4.3 + shadcn theme
-   Admin uses a darker, more serious palette.
-   ============================================ */
+/*
+ * Tailwind v4 finds classes by scanning the files it can see, and a workspace
+ * package is outside this app's tree. Without this the utilities used only
+ * inside @restaurant/ui are never generated and its components render unstyled.
+ */
+@source '../../../../packages/ui/src';
 
-@custom-variant dark (&:is(.dark *));
+/* ============================================================
+   Platforma administratori
 
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+   The one place a palette override still earns its keep. This console runs the
+   platform rather than a restaurant — it is where somebody suspends a tenant
+   or impersonates a user — so it deliberately does not wear the product's
+   brand: nobody should confuse this window with the one where they take
+   orders.
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+   Only the brand hue is neutralised. Everything else — the neutral scale, the
+   type, the radii, the shadows — stays on the design's tokens, so the two
+   consoles are recognisably the same system.
 
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-}
+   Every value redefined in `:root` MUST also be redefined in the dark block.
+   Both match <html data-theme="dark"> at the same specificity, and this file
+   comes after the token layer, so a token set only in `:root` keeps its light
+   value in the dark theme. `tokens.test.ts` fails the build if that happens.
+   ============================================================ */
 
 :root {
-  --radius: 0.5rem;
-
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.13 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0 0);
-
-  /* Admin: darker, more serious primary (charcoal) */
-  --primary: oklch(0.18 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.18 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.18 0 0);
-
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.9 0 0);
-  --ring: oklch(0.18 0 0);
-
-  --chart-1: oklch(0.5 0.18 254);
-  --chart-2: oklch(0.6 0.15 162);
-  --chart-3: oklch(0.62 0.2 35);
-  --chart-4: oklch(0.7 0.18 90);
-  --chart-5: oklch(0.55 0.2 304);
-
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.13 0 0);
-  --sidebar-primary: oklch(0.18 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.18 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: oklch(0.18 0 0);
+  --brand-500: var(--n-800);
+  --brand-600: var(--n-900);
+  --brand-700: var(--n-900);
+  --primary: var(--n-800);
+  --ring: var(--n-800);
+  --sidebar-primary: var(--n-900);
+  --sidebar-accent: var(--bg-muted);
+  --sidebar-accent-foreground: var(--fg);
 }
 
+:root[data-theme='dark'],
+:root.dark,
 .dark {
-  --background: oklch(0.13 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-
-  --primary: oklch(0.92 0 0);
-  --primary-foreground: oklch(0.13 0 0);
-
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.25 0 0);
-  --muted-foreground: oklch(0.7 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0 0);
-
-  --chart-1: oklch(0.65 0.2 254);
-  --chart-2: oklch(0.7 0.17 162);
-  --chart-3: oklch(0.75 0.2 70);
-  --chart-4: oklch(0.6 0.27 304);
-  --chart-5: oklch(0.65 0.25 16);
-
-  --sidebar: oklch(0.18 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.92 0 0);
-  --sidebar-primary-foreground: oklch(0.13 0 0);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0 0);
-}
-
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+  --brand-500: var(--n-100);
+  --brand-600: var(--n-0);
+  --brand-700: var(--n-0);
+  --primary: var(--n-100);
+  --ring: var(--n-400);
+  --sidebar-primary: var(--n-0);
+  --sidebar-accent: var(--bg-muted);
+  --sidebar-accent-foreground: var(--fg);
 }

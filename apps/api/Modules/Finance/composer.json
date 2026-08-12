@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/finance",
+  "description": "Kassa smenasi, to'lovlar, fiskal cheklar, xarajatlar va kunlik moliyaviy yopilish.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Finance\\": "app/",
+      "Modules\\Finance\\Database\\Factories\\": "database/factories/",
+      "Modules\\Finance\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Finance\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

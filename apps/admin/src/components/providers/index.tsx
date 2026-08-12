@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@restaurant/ui';
+import { Toaster } from '@restaurant/ui';
 import { QueryProvider } from './query-provider';
 import { ThemeProvider } from './theme-provider';
 

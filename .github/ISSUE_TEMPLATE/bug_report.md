@@ -30,12 +30,12 @@ assignees: ''
 
 ## Muhit
 
-- **Modul:** [HR / Students / EDMS / …]
+- **Modul:** [Menu / Orders / Kitchen / …]
 - **App:** [web / admin / api / mobile / ai-services]
 - **Browser:** [Chrome 120 / Firefox 121 / …]
 - **OS:** [Windows 11 / macOS 15 / Ubuntu 24.04 / iOS / Android]
 - **Versiya:** [yoki commit hash]
-- **User role:** [super-admin / dean / teacher / student / …]
+- **User role:** [super-admin / owner / branch-manager / chef / waiter / …]
 
 ## Logs
 
@@ -45,6 +45,7 @@ assignees: ''
 ```
 xatolik logs shu yerga
 ```
+
 </details>
 
 <details>
@@ -53,6 +54,7 @@ xatolik logs shu yerga
 ```
 console errors shu yerga
 ```
+
 </details>
 
 ## Qo'shimcha kontekst

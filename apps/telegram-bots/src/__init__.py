@@ -1,3 +1,3 @@
-"""CAMPUS Telegram Bots package."""
+"""Smart Restaurant Campus Telegram Bots package."""
 
 __version__ = "0.0.0"

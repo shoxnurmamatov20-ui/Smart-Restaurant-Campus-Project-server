@@ -1,13 +1,24 @@
-export const metadata = { title: 'SMS sozlamalari · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function SmsSettingsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { settingsSections } from '../sections';
+
+export async function generateMetadata() {
+  const tab = await getTranslations('platform.settings');
+  return { title: tab('sms') };
+}
+
+export default async function SmsSettingsPage() {
+  const t = await getTranslations('platform.extra.settingsSms');
+  const sections = await settingsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">SMS (Eskiz) sozlamalari</h1>
-      {/* TODO: Eskiz API token, from, test send, hisob balansi */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Eskiz API konfiguratsiya
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/settings/sms" />
+
+      <PageIntro>{t('intro')}</PageIntro>
+
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

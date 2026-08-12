@@ -1,25 +1,35 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, Inter_Tight, JetBrains_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+/** The design's families — see apps/web/src/app/layout.tsx. */
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin', 'cyrillic'],
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const interTight = Inter_Tight({
+  variable: '--font-inter-tight',
+  subsets: ['latin', 'cyrillic'],
+  weight: ['500', '600', '700', '800'],
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
+  subsets: ['latin', 'cyrillic'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'CAMPUS Super Admin',
-    template: '%s · Super Admin',
+    default: 'Restaurant Campus — Platform Admin',
+    template: '%s',
   },
-  description: 'CAMPUS tizimi administratorlik paneli',
-  applicationName: 'CAMPUS Admin',
+  description: 'Smart Restaurant Campus platformasi administratorlik paneli',
+  applicationName: 'Restaurant Campus Admin',
   robots: {
     index: false,
     follow: false,
@@ -39,9 +49,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html
       lang="uz"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-background text-foreground flex flex-col">
+      <body className="bg-background text-foreground flex min-h-full flex-col">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-ai-services
+  namespace: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-ai-services
+    app.kubernetes.io/part-of: smart-restaurant-campus
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: restaurant-ai-services
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: restaurant-ai-services
+        app.kubernetes.io/part-of: smart-restaurant-campus
+    spec:
+      containers:
+        - name: ai-services
+          image: ghcr.io/your-org/restaurant-ai-services:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8001
+          envFrom:
+            - secretRef:
+                name: restaurant-campus-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: '2'
+              memory: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-ai-services
+  namespace: restaurant-campus
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: restaurant-ai-services
+  ports:
+    - name: http
+      port: 8001
+      targetPort: http

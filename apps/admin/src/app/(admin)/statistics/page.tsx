@@ -1,38 +1,36 @@
-import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata = { title: 'Statistika · Super Admin' };
+import { PageIntro, Stub, Tabs } from '../screen';
+import { statisticsSections } from './sections';
 
-const TABS = [
-  { href: '/statistics', label: 'Umumiy' },
-  { href: '/statistics/users', label: 'Foydalanuvchilar' },
-  { href: '/statistics/activity', label: 'Faollik' },
-  { href: '/statistics/system', label: 'Tizim resurslar' },
-];
+export async function generateMetadata() {
+  const nav = await getTranslations('platform.nav');
+  return { title: nav('statistics') };
+}
 
-export default function StatisticsPage() {
+/**
+ * Deeper analytics than the overview carries.
+ *
+ * The overview answers "is the platform healthy today". This answers "what has
+ * been happening", which needs a column store rather than the operational
+ * database — hence ClickHouse, and hence a separate screen.
+ *
+ * TODO — once the platform API lands:
+ *   - GET /api/v1/admin/statistics, backed by ClickHouse
+ *   - Charts, at the same weight as the overview's
+ *   - A period picker shared by all four tabs
+ */
+export default async function StatisticsPage() {
+  const t = await getTranslations('platform.extra.statistics');
+  const sections = await statisticsSections();
+
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Statistika</h1>
-        <p className="mt-2 text-muted-foreground">Tizim bo'yicha chuqur analitika (ClickHouse)</p>
-      </header>
+    <>
+      <Tabs items={sections} current="/statistics" />
 
-      <nav className="flex gap-1 border-b">
-        {TABS.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:border-zinc-300"
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <PageIntro>{t('intro')}</PageIntro>
 
-      {/* TODO: charts via Recharts, server data via TanStack Query → /api/v1/admin/statistics */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Umumiy statistika dashboard
-      </div>
-    </div>
+      <Stub title={t('generalStub')}>{t('generalNote')}</Stub>
+    </>
   );
 }

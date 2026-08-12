@@ -1,30 +1,28 @@
 {
-    "name": "nwidart/telegrambots",
-    "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
-    "extra": {
-        "laravel": {
-            "providers": [],
-            "aliases": {
-
-            }
-        }
-    },
-    "autoload": {
-        "psr-4": {
-            "Modules\\TelegramBots\\": "app/",
-            "Modules\\TelegramBots\\Database\\Factories\\": "database/factories/",
-            "Modules\\TelegramBots\\Database\\Seeders\\": "database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Modules\\TelegramBots\\Tests\\": "tests/"
-        }
+  "name": "nwidart/telegrambots",
+  "description": "",
+  "authors": [
+    {
+      "name": "Nicolas Widart",
+      "email": "n.widart@gmail.com"
     }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Modules\\TelegramBots\\": "app/",
+      "Modules\\TelegramBots\\Database\\Factories\\": "database/factories/",
+      "Modules\\TelegramBots\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\TelegramBots\\Tests\\": "tests/"
+    }
+  }
 }

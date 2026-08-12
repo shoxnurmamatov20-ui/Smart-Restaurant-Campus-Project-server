@@ -3,6 +3,7 @@
 ## Muammo
 
 Hozirgi mahalliy o'rnatishlar buzilgan:
+
 - `C:\php\php.exe` → **Segmentation fault**
 - `C:\Users\User\.local\bin\uv.exe` → **Access Violation** (0xC0000005)
 - `composer.bat` → PHP'ga bog'liq, shuning uchun ham ishlamayapti
@@ -82,12 +83,12 @@ Agar yana segfault bersa, **Visual C++ Redistributable** yo'qligida muammo. Yuqo
 ## PHP tuzilgach — Laravel o'rnatish
 
 ```powershell
-Set-Location "C:\Users\User\Desktop\Smart Campus\apps\api"
+Set-Location "C:\Users\User\Desktop\Smart Restaurant Campus Project\apps\api"
 composer install
 php artisan key:generate           # APP_KEY o'rnatadi
 php artisan install:api            # Sanctum + routes/api.php
 php artisan migrate                # database migrations
-php artisan module:make HR Students Online EDMS RTTM Psychology Exams Library Media KPI
+php artisan module:make Menu Orders Kitchen Tables Inventory Suppliers Staff Finance Crm Analytics
 ```
 
 ## Hozirgi obhod yechimi (workaround)
@@ -96,5 +97,6 @@ PHP tuzatilgan bo'lmasa, Laravel skeleton fayllar **commit qilingan** va tayyor.
 Sizning kompyuteringizda PHP ishlay boshlasa darhol `composer install` ishlaydi.
 
 Frontend (Next.js apps) va Python AI services Laravel'siz ham ishlaydi:
+
 - Web/Admin uchun mock data ishlatish mumkin
 - AI services mustaqil servis

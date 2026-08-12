@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/orders",
+  "description": "Barcha kanallar bo'yicha buyurtmalar: zal, olib ketish, yetkazib berish, agregator.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Orders\\": "app/",
+      "Modules\\Orders\\Database\\Factories\\": "database/factories/",
+      "Modules\\Orders\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Orders\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

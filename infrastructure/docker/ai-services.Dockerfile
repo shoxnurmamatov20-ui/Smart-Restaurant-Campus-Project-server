@@ -1,5 +1,5 @@
 # ============================================================
-# CAMPUS — Python AI Services (FastAPI + uv)
+# Smart Restaurant Campus — Python AI Services (FastAPI + uv)
 # ============================================================
 
 FROM ghcr.io/astral-sh/uv:python3.13-alpine AS base

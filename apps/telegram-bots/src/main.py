@@ -49,7 +49,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="CAMPUS Telegram Bots",
+    title="Smart Restaurant Campus Telegram Bots",
     description="Multi-bot dispatcher (10–50 bots) backed by aiogram 3.",
     version=settings.app_version,
     docs_url="/docs" if settings.app_debug else None,
@@ -72,7 +72,7 @@ Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_sch
 @app.get("/", include_in_schema=False)
 async def root() -> dict[str, Any]:
     return {
-        "service": "CAMPUS Telegram Bots",
+        "service": "Smart Restaurant Campus Telegram Bots",
         "version": settings.app_version,
         "total_registered": len(ALL_BOTS),
         "enabled": list(manager.bots.keys()),
@@ -83,7 +83,7 @@ async def root() -> dict[str, Any]:
 async def health() -> dict[str, Any]:
     return {
         "status": "ok",
-        "service": "campus-telegram-bots",
+        "service": "restaurant-campus-telegram-bots",
         "enabled_bots": len(manager.bots),
         "total_bots": len(ALL_BOTS),
     }

@@ -1,6 +1,6 @@
-# Contributing to CAMPUS
+# Contributing to Smart Restaurant Campus
 
-CAMPUS loyihasiga hissa qo'shganingiz uchun rahmat! Quyidagi qoidalar va tartiblarni qo'llab-quvvatlang.
+Smart Restaurant Campus loyihasiga hissa qo'shganingiz uchun rahmat! Quyidagi qoidalar va tartiblarni qo'llab-quvvatlang.
 
 ## Workflow
 
@@ -14,6 +14,7 @@ CAMPUS loyihasiga hissa qo'shganingiz uchun rahmat! Quyidagi qoidalar va tartibl
 ## Code standards
 
 ### TypeScript / Next.js
+
 - **ESLint + Prettier** — `pnpm lint` va `pnpm format` ishlatiladi
 - **TypeScript strict mode** — `any` ishlatish taqiqlangan
 - **Komponentlar** — server components afzal, client components faqat zarurat bo'lganda
@@ -21,12 +22,14 @@ CAMPUS loyihasiga hissa qo'shganingiz uchun rahmat! Quyidagi qoidalar va tartibl
 - **Komponent naming** — PascalCase (`UserProfile`)
 
 ### PHP / Laravel
+
 - **PSR-12** — code style standart
 - **Laravel Pint** — `composer run pint` orqali avtoformatlash
 - **Modul yo'nalishi** — har modul `apps/api/modules/<Name>/` ichida
 - **Naming** — Eloquent modellar (`Employee`), Controllerlar (`EmployeeController`), va h.k.
 
 ### Python
+
 - **Ruff + mypy** — `ruff check` va `mypy src/`
 - **Type hints** — majburiy
 - **Pydantic models** — request/response schemas uchun
@@ -47,10 +50,11 @@ CAMPUS loyihasiga hissa qo'shganingiz uchun rahmat! Quyidagi qoidalar va tartibl
 **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`
 
 **Misollar:**
+
 ```
-feat(hr): add Face ID attendance endpoint
-fix(students): correct HEMIS sync race condition
-docs(architecture): add data flow diagram for EDMS
+feat(menu): add stop-list expiry endpoint
+fix(orders): correct split-bill rounding
+docs(architecture): add data flow diagram for the kitchen display
 chore(deps): bump Next.js to 15.2.0
 ```
 

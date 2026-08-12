@@ -1,4 +1,4 @@
-"""CAMPUS AI Services — FastAPI application entrypoint."""
+"""Smart Restaurant Campus AI Services — FastAPI application entrypoint."""
 
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
@@ -25,8 +25,8 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="CAMPUS AI Services",
-    description="AI/ML microservices for the CAMPUS Smart Campus Platform",
+    title="Smart Restaurant Campus AI Services",
+    description="AI/ML microservices for the Smart Restaurant Campus platform",
     version=settings.app_version,
     docs_url="/docs" if settings.app_debug else None,
     redoc_url="/redoc" if settings.app_debug else None,
@@ -53,14 +53,14 @@ app.include_router(v1_router, prefix="/api/v1")
 @app.get("/health", tags=["health"])
 async def health() -> dict[str, str]:
     """Health check endpoint."""
-    return {"status": "ok", "service": "campus-ai-services"}
+    return {"status": "ok", "service": "restaurant-campus-ai-services"}
 
 
 @app.get("/", include_in_schema=False)
 async def root() -> dict[str, str]:
     """Root endpoint."""
     return {
-        "service": "CAMPUS AI Services",
+        "service": "Smart Restaurant Campus AI Services",
         "version": settings.app_version,
         "docs": "/docs" if settings.app_debug else "disabled",
     }

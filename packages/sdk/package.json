@@ -1,8 +1,8 @@
 {
-  "name": "@campus/sdk",
+  "name": "@restaurant/sdk",
   "version": "0.0.0",
   "private": true,
-  "description": "API SDK for the CAMPUS Laravel API (auto-generated from OpenAPI)",
+  "description": "API SDK for the Smart Restaurant Campus Laravel API",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -11,15 +11,18 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
     "generate": "echo 'TODO: openapi-typescript generate'"
   },
   "dependencies": {
-    "@campus/types": "workspace:*",
-    "axios": "^1.16.1"
+    "@restaurant/types": "workspace:*",
+    "axios": "^1.19.0"
   },
   "devDependencies": {
-    "@campus/config": "workspace:*",
+    "@restaurant/config": "workspace:*",
+    "eslint": "catalog:",
     "typescript": "catalog:"
   }
 }

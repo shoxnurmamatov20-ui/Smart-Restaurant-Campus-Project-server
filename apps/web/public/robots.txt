@@ -4,4 +4,4 @@ Disallow: /api/
 Disallow: /admin/
 Disallow: /_next/
 
-Sitemap: https://campus.uz/sitemap.xml
+Sitemap: https://restaurant-campus.uz/sitemap.xml

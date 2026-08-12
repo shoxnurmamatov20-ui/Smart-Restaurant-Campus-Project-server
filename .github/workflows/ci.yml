@@ -38,6 +38,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # The repo is formatted; this keeps it that way rather than letting the
+      # drift come back one PR at a time.
+      - name: Format check
+        run: pnpm format:check
+
       - name: Build
         run: pnpm build
 
@@ -52,9 +57,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: campus
-          POSTGRES_PASSWORD: campus
-          POSTGRES_DB: campus_test
+          POSTGRES_USER: restaurant_campus
+          POSTGRES_PASSWORD: restaurant_campus
+          POSTGRES_DB: restaurant_campus_test
         ports:
           - 5432:5432
         options: >-
@@ -96,16 +101,46 @@ jobs:
         working-directory: apps/api
         run: vendor/bin/pint --test
 
+      # Creates the twelve module schemas and lands every table in its own —
+      # see ADR-0010. The step also proves migrations run clean on a database
+      # that has never seen them.
       - name: Run migrations
         working-directory: apps/api
         env:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_DATABASE: campus_test
-          DB_USERNAME: campus
-          DB_PASSWORD: campus
+          DB_DATABASE: restaurant_campus_test
+          DB_USERNAME: restaurant_campus
+          DB_PASSWORD: restaurant_campus
         run: php artisan migrate --force
+
+      - name: Verify the schema layout
+        working-directory: apps/api
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: restaurant_campus_test
+          DB_USERNAME: restaurant_campus
+          DB_PASSWORD: restaurant_campus
+        # Prints module → schema → tables, and fails if a migration declares a
+        # table the database does not have.
+        run: php artisan db:annotate
+
+      # Seeding is how every developer and every new venue starts. It has broken
+      # silently before — rows landing with no tenant_id, and a demo restaurant
+      # nobody could sign into — so it is exercised on the real engine.
+      - name: Run seeders
+        working-directory: apps/api
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: restaurant_campus_test
+          DB_USERNAME: restaurant_campus
+          DB_PASSWORD: restaurant_campus
+        run: php artisan db:seed --force
 
       - name: Run tests
         working-directory: apps/api
@@ -113,9 +148,9 @@ jobs:
           DB_CONNECTION: pgsql
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_DATABASE: campus_test
-          DB_USERNAME: campus
-          DB_PASSWORD: campus
+          DB_DATABASE: restaurant_campus_test
+          DB_USERNAME: restaurant_campus
+          DB_PASSWORD: restaurant_campus
           REDIS_HOST: localhost
         run: php artisan test
 

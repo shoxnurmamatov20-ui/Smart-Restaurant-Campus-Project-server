@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "CAMPUS",
-    "tagline": "University of the future"
+    "name": "Restaurant Campus",
+    "tagline": "Your whole restaurant on one screen"
   },
   "common": {
     "loading": "Loading...",
@@ -20,29 +20,49 @@
     "previous": "Previous",
     "submit": "Submit",
     "close": "Close",
-    "logout": "Logout",
+    "logout": "Log out",
     "login": "Log in",
     "register": "Register",
     "settings": "Settings",
     "profile": "Profile",
-    "language": "Language"
+    "language": "Language",
+    "total": "Total",
+    "print": "Print",
+    "export": "Export"
   },
   "modules": {
-    "hr": "HR",
-    "students": "Students",
-    "online": "Online Platform",
-    "edms": "E-Document Workflow",
-    "rttm": "IT Inventory",
-    "psychology": "Psychology Tests",
-    "exams": "Exams",
-    "library": "Library",
-    "media": "Media",
-    "kpi": "KPI"
+    "menu": "Menu",
+    "orders": "Orders",
+    "kitchen": "Kitchen",
+    "tables": "Tables & Reservations",
+    "inventory": "Inventory",
+    "suppliers": "Suppliers",
+    "staff": "Staff",
+    "finance": "Finance & POS",
+    "crm": "CRM & Loyalty",
+    "analytics": "Analytics"
+  },
+  "channels": {
+    "dine_in": "Dine-in",
+    "takeaway": "Takeaway",
+    "delivery": "Delivery",
+    "aggregator": "Aggregator"
+  },
+  "order_status": {
+    "draft": "Draft",
+    "placed": "Placed",
+    "in_kitchen": "In kitchen",
+    "ready": "Ready",
+    "served": "Served",
+    "on_the_way": "On the way",
+    "delivered": "Delivered",
+    "paid": "Paid",
+    "cancelled": "Cancelled"
   },
   "errors": {
-    "generic": "An error occurred. Please try again.",
-    "network": "Network error. Check your internet connection.",
-    "unauthorized": "Authorization required.",
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection.",
+    "unauthorized": "Authentication required.",
     "forbidden": "Access denied.",
     "not_found": "Not found.",
     "validation": "Invalid data.",

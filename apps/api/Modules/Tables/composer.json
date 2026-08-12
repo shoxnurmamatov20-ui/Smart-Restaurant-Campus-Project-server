@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/tables",
+  "description": "Zallar, stollar, joy bandligi, oldindan bron qilish va QR-menyu.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Tables\\": "app/",
+      "Modules\\Tables\\Database\\Factories\\": "database/factories/",
+      "Modules\\Tables\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Tables\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

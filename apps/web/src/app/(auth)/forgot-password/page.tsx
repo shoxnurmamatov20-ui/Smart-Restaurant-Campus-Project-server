@@ -1,16 +1,13 @@
-export default function ForgotPasswordPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6 rounded-lg border bg-card p-8 shadow-sm">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold">Parolni tiklash</h1>
-          <p className="text-sm text-muted-foreground">
-            Emailingizga tiklash havolasi yuboriladi
-          </p>
-        </div>
+import { getTranslations } from 'next-intl/server';
 
-        {/* TODO: implement forgot password form */}
-      </div>
-    </div>
-  );
+import { ResetForm } from './reset-form';
+
+export async function generateMetadata() {
+  const t = await getTranslations('marketing.reset');
+  return { title: t('title') };
+}
+
+/** A server shell for the title; the form itself holds state. */
+export default function ForgotPasswordPage() {
+  return <ResetForm />;
 }

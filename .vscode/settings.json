@@ -78,10 +78,7 @@
   "tailwindCSS.includeLanguages": {
     "blade": "html"
   },
-  "eslint.workingDirectories": [
-    { "pattern": "apps/*" },
-    { "pattern": "packages/*" }
-  ],
+  "eslint.workingDirectories": [{ "pattern": "apps/*" }, { "pattern": "packages/*" }],
   "eslint.format.enable": false,
   "eslint.lintTask.enable": true,
   "git.autofetch": true,

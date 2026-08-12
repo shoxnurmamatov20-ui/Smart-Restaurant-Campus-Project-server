@@ -1,0 +1,9 @@
+{
+  "name": "Suppliers",
+  "alias": "suppliers",
+  "description": "Yetkazib beruvchilar bazasi, xarid arizalari, kirim hujjatlari va qarzdorlik.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "suppliers"],
+  "priority": 6,
+  "providers": ["Modules\\Suppliers\\Providers\\SuppliersServiceProvider"],
+  "files": []
+}

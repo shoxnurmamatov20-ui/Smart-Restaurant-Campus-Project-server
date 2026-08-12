@@ -1,0 +1,9 @@
+{
+  "name": "Analytics",
+  "alias": "analytics",
+  "description": "Sotuv analitikasi, food-cost, ABC tahlil, filiallar taqqoslash va rahbar dashboardi.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "analytics"],
+  "priority": 10,
+  "providers": ["Modules\\Analytics\\Providers\\AnalyticsServiceProvider"],
+  "files": []
+}

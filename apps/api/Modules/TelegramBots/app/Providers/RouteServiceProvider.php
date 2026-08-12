@@ -47,6 +47,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapApiRoutes(): void
     {
-        Route::middleware('api')->prefix('api/v1')->name('api.v1.')->group(module_path($this->name, '/routes/api.php'));
+        // The route file declares the full path and name (v1/<alias>,
+        // api.v1.<alias>.), so this must add ONLY the /api prefix. Adding a
+        // prefix here as well produced /api/v1/v1/... and api.api.v1....
+        Route::middleware('api')->prefix('api')->group(module_path($this->name, '/routes/api.php'));
     }
 }

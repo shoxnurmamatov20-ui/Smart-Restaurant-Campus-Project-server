@@ -1,5 +1,5 @@
 # ============================================================
-# CAMPUS — Next.js Web App
+# Smart Restaurant Campus — Next.js Web App
 # Multi-stage production build with standalone output
 # ============================================================
 
@@ -14,7 +14,7 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/ ./packages/
 
 RUN corepack enable && corepack prepare pnpm@11 --activate
-RUN pnpm install --frozen-lockfile --filter=@campus/web... --filter='./packages/*'
+RUN pnpm install --frozen-lockfile --filter=@restaurant/web... --filter='./packages/*'
 
 # ============ STAGE 2: builder ============
 FROM node:24-alpine AS builder
@@ -32,7 +32,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 RUN corepack enable && corepack prepare pnpm@11 --activate
-RUN pnpm --filter @campus/web build
+RUN pnpm --filter @restaurant/web build
 
 # ============ STAGE 3: runner (production) ============
 FROM node:24-alpine AS runner

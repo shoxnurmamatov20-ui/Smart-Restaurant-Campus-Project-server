@@ -6,7 +6,7 @@
 
 ## Context
 
-CAMPUS — 30+ modulli, 2+ yillik loyiha. Vaqt o'tishi bilan jamoa o'zgaradi, qarorlar unutiladi. Nima uchun X tanlangani haqida savol tug'iladi.
+Smart Restaurant Campus — 30+ modulli, 2+ yillik loyiha. Vaqt o'tishi bilan jamoa o'zgaradi, qarorlar unutiladi. Nima uchun X tanlangani haqida savol tug'iladi.
 
 ## Decision
 

@@ -1,4 +1,4 @@
-import type { User } from '@campus/types';
+import type { User } from '@restaurant/types';
 
 /**
  * Client-side permission checks. Server-side enforcement is authoritative.

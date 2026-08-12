@@ -1,20 +1,20 @@
 # Telegram WebApp / Mini App integration
 
-> CAMPUS web va admin ilovalari Telegram ichida **Mini App** sifatida ham ochiladi.
+> Smart Restaurant Campus web va admin ilovalari Telegram ichida **Mini App** sifatida ham ochiladi.
 > Foydalanuvchi botda tugmani bossa, Next.js sahifa Telegram chat ichida ochiladi va
 > avtomatik avtorizatsiyalanadi — alohida parol kerak emas.
 
 ## Foydalanuvchi safari (UX)
 
 ```
-[Talaba telegramda /menu yozadi]
+[Mehmon telegramda /menu yozadi]
          │
          ▼
 [Bot "📅 Dars jadvali" tugmasini ko'rsatadi (web_app type)]
          │
          ▼
-[Talaba tugmani bossa, Telegram chat ichida iframe ochiladi]
-   → https://campus.uz/tg-app/schedule
+[Mehmon tugmani bossa, Telegram chat ichida iframe ochiladi]
+   → https://restaurant-campus.uz/tg-app/schedule
          │
          ▼
 [Next.js sahifa window.Telegram.WebApp.initData o'qiydi]
@@ -26,7 +26,7 @@
 [Laravel HMAC verify → Sanctum cookie o'rnatadi → user logged in]
          │
          ▼
-[To'liq Next.js UI — talaba o'z jadvalini ko'radi]
+[To'liq Next.js UI — mehmon menyuni ko'radi va buyurtma beradi]
 ```
 
 ## Bot tomonidagi WebApp tugma
@@ -39,7 +39,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(
         text="📅 Dars jadvali",
-        web_app=WebAppInfo(url="https://campus.uz/tg-app/schedule"),
+        web_app=WebAppInfo(url="https://restaurant-campus.uz/tg-app/schedule"),
     )]
 ])
 await message.answer("Tanlang:", reply_markup=keyboard)
@@ -123,7 +123,7 @@ final class WebAppAuthController extends Controller
         $tgUser = json_decode($parsed['user'], true);
         $telegramId = $tgUser['id'];
         $botUser = BotUser::with('user')->where('telegram_id', $telegramId)->first();
-        if (! $botUser?->user) abort(403, 'Not linked to CAMPUS user');
+        if (! $botUser?->user) abort(403, 'Not linked to platform user');
 
         // Issue Sanctum session
         Auth::login($botUser->user);
@@ -172,7 +172,7 @@ Route::post('/auth/telegram', [WebAppAuthController::class, 'authenticate']);
 ## Avantajlar
 
 - **Bitta UI code** — apps/web/admin Next.js komponentlari Telegram ichida ham, brauzerda ham bir xil ishlaydi.
-- **One-tap login** — talaba parol kiritmaydi, Telegram HMAC etarli.
+- **One-tap login** — mehmon parol kiritmaydi, Telegram HMAC yetarli.
 - **Rich UX** — Telegram menyusi taqsimotiga sig'masa, WebApp orqali butun Next.js komponent (chart, form, calendar) ko'rsatish mumkin.
 - **Native Telegram features** — `tg.BackButton`, `tg.MainButton`, haptic feedback, theme params (light/dark sync).
 

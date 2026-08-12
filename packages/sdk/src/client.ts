@@ -1,25 +1,25 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
-import type { ApiError } from '@campus/types';
+import type { ApiError } from '@restaurant/types';
 
-export type CampusClientConfig = {
+export type RestaurantClientConfig = {
   baseURL: string;
   token?: string;
   onUnauthorized?: () => void;
 };
 
 /**
- * Create a configured Axios instance for the CAMPUS Laravel API.
+ * Create a configured Axios instance for the Smart Restaurant Campus Laravel API.
  *
  * Endpoints will be added here as the API grows. For now this exports
  * a base client that apps (web/admin/mobile) can use.
  */
-export function createClient(config: CampusClientConfig): AxiosInstance {
+export function createClient(config: RestaurantClientConfig): AxiosInstance {
   const client = axios.create({
     baseURL: config.baseURL,
     timeout: 30_000,
     withCredentials: true,
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
   });

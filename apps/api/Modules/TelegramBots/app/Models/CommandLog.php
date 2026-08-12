@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class CommandLog extends Model
 {
-    protected $table = 'tg_command_logs';
+    use BelongsToTenant;
+
+    protected $table = 'telegram.tg_command_logs';
 
     protected $fillable = [
+        'tenant_id',
         'bot_id',
         'telegram_id',
         'user_id',

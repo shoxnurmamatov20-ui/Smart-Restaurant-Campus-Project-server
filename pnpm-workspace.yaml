@@ -1,8 +1,15 @@
 packages:
   - 'apps/web'
   - 'apps/admin'
-  - 'apps/mobile'
   - 'packages/*'
+
+# Note: apps/mobile is Phase 2 and holds only a README — it has no package.json,
+# so listing it here would be a workspace entry pointing at nothing. Add it back
+# in the same commit that adds the Expo app.
+#
+# The till used to be a third app here (apps/pos, port 3002). It was folded back
+# into the staff console: POS is module 12, and a module is a section of
+# apps/web, not an application of its own — see ADR-0011.
 
 # Allow these native modules to run install scripts (security feature in pnpm 10+)
 onlyBuiltDependencies:
@@ -15,21 +22,21 @@ onlyBuiltDependencies:
 
 # Catalog: pin shared versions across all workspace packages
 catalog:
-  react: ^19.2.6
-  react-dom: ^19.2.6
-  next: ^16.2.6
+  react: ^19.2.8
+  react-dom: ^19.2.8
+  next: ^16.3.0
   typescript: ^6.0.3
-  '@types/node': ^25.9.1
-  '@types/react': ^19.2.15
-  '@types/react-dom': ^19.2.3
-  tailwindcss: ^4.3.0
-  '@tailwindcss/postcss': ^4.3.0
-  eslint: ^10.4.0
+  '@types/node': ^25.9.5
+  '@types/react': ^19.2.18
+  '@types/react-dom': ^19.2.4
+  tailwindcss: ^4.3.3
+  '@tailwindcss/postcss': ^4.3.3
+  eslint: ^10.8.1
   zod: ^4.4.3
-  '@tanstack/react-query': ^5.100.14
-  zustand: ^5.0.13
-  'react-hook-form': ^7.76.1
-  'next-intl': ^4.12.0
+  '@tanstack/react-query': ^5.101.4
+  zustand: ^5.0.14
+  'react-hook-form': ^7.85.0
+  'next-intl': ^4.13.6
 
 allowBuilds:
   esbuild: true

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,9 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class BotUser extends Model
 {
-    protected $table = 'tg_bot_users';
+    use BelongsToTenant;
+
+    protected $table = 'telegram.tg_bot_users';
 
     protected $fillable = [
+        'tenant_id',
         'bot_id',
         'user_id',
         'telegram_id',

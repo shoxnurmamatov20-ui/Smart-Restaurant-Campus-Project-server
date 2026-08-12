@@ -1,11 +1,11 @@
 [project]
-name = "campus-telegram-bots"
+name = "restaurant-campus-telegram-bots"
 version = "0.0.0"
-description = "CAMPUS — Multi-bot Telegram subsystem (10–50 bots via aiogram 3 dispatcher)"
+description = "Smart Restaurant Campus — multi-bot Telegram subsystem (50 bots via one aiogram 3 dispatcher)"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "Proprietary" }
-authors = [{ name = "CAMPUS Team", email = "uzbcorp@gmail.com" }]
+authors = [{ name = "Smart Restaurant Campus Team", email = "uzbcorp@gmail.com" }]
 
 dependencies = [
     # ============ Bot framework ============

@@ -1,31 +1,40 @@
 # Kubernetes manifests (production)
 
-Bu papka kelajakda Kubernetes deploymentlar uchun (Phase 2 yoki 3).
+Bu papka production/K3s deploymentlar uchun baseline manifestlarni saqlaydi.
 
-## Hozir nima qilamiz
+## Hozirgi holat
 
-**Hozir** — Docker Compose ishlatamiz (universitet serverida).
+**Local/dev** - Docker Compose.
 
-**Keyinroq** (10K+ concurrent user'ga yetganda) — Kubernetes'ga o'tamiz.
+**Production path** - K3s yoki Kubernetes, `base/` manifestlari va environment overlaylar orqali.
 
-## Tuzilma (rejada)
+## Tuzilma
 
-```
+```text
 kubernetes/
-├── base/                    # Asosiy manifestlar (Kustomize base)
-│   ├── api/
-│   ├── web/
-│   ├── admin/
-│   ├── ai-services/
-│   ├── postgres/
-│   ├── redis/
-│   └── kustomization.yaml
-└── overlays/                # Environment-specific (Kustomize overlays)
-    ├── dev/
-    ├── staging/
-    └── production/
+  base/
+    namespace.yaml
+    configmap.yaml
+    secret.example.yaml
+    api.yaml
+    web.yaml
+    admin.yaml
+    ai-services.yaml
+    hpa.yaml
+    pdb.yaml
+    kustomization.yaml
+  overlays/
+    staging/
+    production/
 ```
 
-## Alternativlar
-- **K3s** — lightweight K8s for single server (universitet uchun moskelishi mumkin)
-- **Docker Swarm** — oraliq variant (kerak bo'lsa)
+## Qo'llash
+
+```bash
+kubectl apply -f base/secret.example.yaml # faqat real secret qiymatlar bilan almashtirilgandan keyin
+kubectl apply -k base
+```
+
+## Muhim eslatma
+
+`restaurant-campus-api` hozir PHP-FPM container sifatida ishlaydi. HTTP ingress uchun production overlayda Nginx/FastCGI gateway yoki alohida gateway deployment qo'shiladi. `base/` workload, scaling, secret/config va disruption policy standartini belgilaydi.

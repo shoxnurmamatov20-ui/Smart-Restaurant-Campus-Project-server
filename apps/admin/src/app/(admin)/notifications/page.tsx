@@ -1,19 +1,30 @@
-export const metadata = { title: 'Xabarnomalar · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function NotificationsPage() {
+import { ACTION_PRIMARY, PageIntro, Stub } from '../screen';
+
+export async function generateMetadata() {
+  const nav = await getTranslations('platform.nav');
+  return { title: nav('notifications') };
+}
+
+export default async function NotificationsPage() {
+  const t = await getTranslations('platform.extra.notifications');
+
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Broadcast xabarnomalar</h1>
-        <p className="mt-2 text-muted-foreground">
-          Foydalanuvchilarga umumiy xabar yuborish (Push + SMS + Email + Telegram)
-        </p>
-      </header>
+    <>
+      <PageIntro
+        actions={
+          <>
+            <button type="button" className={ACTION_PRIMARY}>
+              {t('action')}
+            </button>
+          </>
+        }
+      >
+        {t('intro')}
+      </PageIntro>
 
-      {/* TODO: Yangi e'lon formasi (sarlavha, matn, target audience, kanal), tarix */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Xabarnomalar konstruktori
-      </div>
-    </div>
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

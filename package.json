@@ -1,8 +1,8 @@
 {
-  "name": "campus",
+  "name": "restaurant-campus",
   "version": "0.0.0",
   "private": true,
-  "description": "CAMPUS — Yagona Raqamli Ekotizim Platformasi (Smart Campus monorepo)",
+  "description": "Smart Restaurant Campus — restoranlar uchun yagona raqamli boshqaruv platformasi (monorepo)",
   "author": "uzbcorp@gmail.com",
   "license": "UNLICENSED",
   "engines": {
@@ -16,7 +16,6 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml,css}\"",
@@ -44,7 +43,7 @@
       "prettier --write"
     ],
     "apps/api/**/*.php": [
-      "C:/Users/User/php-fresh/php.exe apps/api/vendor/bin/pint --dirty"
+      "C:/Users/User/php8424/php.exe apps/api/vendor/bin/pint --dirty"
     ],
     "apps/ai-services/**/*.py": [
       "C:/Users/User/.local/bin/uv.exe --directory apps/ai-services run ruff check --fix",
@@ -52,14 +51,19 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.1",
-    "@commitlint/config-conventional": "^21.0.1",
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
     "@types/node": "catalog:",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "turbo": "^2.9.14",
-    "typescript": "^6.0.3"
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "turbo": "^2.10.9",
+    "typescript": "catalog:"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "^7.1.5"
+    }
   }
 }

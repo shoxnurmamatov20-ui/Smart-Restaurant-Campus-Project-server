@@ -1,6 +1,6 @@
-# CAMPUS Telegram Bots (multi-bot dispatcher)
+# Smart Restaurant Campus — Telegram bots (multi-bot dispatcher)
 
-> **Single Python process, 10–50 Telegram bots.** Built on aiogram 3 + FastAPI + Redis FSM,
+> **Single Python process, 50 Telegram bots.** Built on aiogram 3 + FastAPI + Redis FSM,
 > all bots share one Laravel API client.
 
 Architecture lives in [ADR-0006](../../docs/decisions/0006-telegram-multibot-architecture.md).
@@ -22,7 +22,7 @@ cd apps/telegram-bots
 uv sync
 cp .env.example .env
 # Edit .env: set PUBLIC_WEBHOOK_URL (e.g. https://your-ngrok.ngrok.app)
-# Get bot tokens from @BotFather, paste into BOT_TOKEN_STUDENT, etc.
+# Get bot tokens from @BotFather, paste into BOT_TOKEN_GUEST, BOT_TOKEN_WAITER, etc.
 uv run uvicorn src.main:app --reload --port 8002
 
 # Expose to Telegram (one of):
@@ -38,7 +38,7 @@ In **dev** (APP_DEBUG=true), set webhooks manually:
 
 ```bash
 curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
-  -d "url=https://your-tunnel/tg/webhook/student" \
+  -d "url=https://your-tunnel/tg/webhook/guest" \
   -d "secret_token=<WEBHOOK_SECRET_TOKEN>"
 ```
 
@@ -46,15 +46,15 @@ Or use `uv run python -c 'from src.core.bot_manager import manager; import async
 
 ## URLs
 
-| Path | Purpose |
-|------|---------|
-| `GET /` | service info |
-| `GET /health` | liveness + bot counts |
-| `GET /docs` | Swagger UI (dev only) |
-| `GET /metrics` | Prometheus |
-| `GET /bots` | catalog of all 50 bots (admin UI consumes this) |
-| `POST /tg/webhook/{bot_key}` | Telegram webhook entrypoint |
-| `POST /internal/send/{bot_key}` | outbound from Laravel queues |
+| Path                            | Purpose                                         |
+| ------------------------------- | ----------------------------------------------- |
+| `GET /`                         | service info                                    |
+| `GET /health`                   | liveness + bot counts                           |
+| `GET /docs`                     | Swagger UI (dev only)                           |
+| `GET /metrics`                  | Prometheus                                      |
+| `GET /bots`                     | catalog of all 50 bots (admin UI consumes this) |
+| `POST /tg/webhook/{bot_key}`    | Telegram webhook entrypoint                     |
+| `POST /internal/send/{bot_key}` | outbound from Laravel queues                    |
 
 ## Folder structure
 
@@ -70,8 +70,8 @@ apps/telegram-bots/
 │   ├── bots/
 │   │   ├── registry.py          # 50-bot catalog (single source of truth)
 │   │   ├── _stub.py             # Fallback router for bots without dedicated handler
-│   │   ├── student.py           # Talaba boti (full implementation)
-│   │   ├── parent.py            # Ota-ona boti (full implementation)
+│   │   ├── guest.py             # Mehmon boti (full implementation)
+│   │   ├── waiter.py            # Ofitsiant boti (full implementation)
 │   │   └── ...                  # one file per implemented bot
 │   ├── handlers/
 │   │   └── onboarding.py        # Shared /start + phone verify flow
@@ -115,18 +115,18 @@ uv run mypy src/               # strict types
 
 ## Outbound from Laravel
 
-When Laravel needs to push a Telegram message (e.g., grade posted → notify student):
+When Laravel needs to push a Telegram message (e.g. a dish is ready → notify the waiter):
 
 ```php
 // In Laravel
 SendTelegramMessage::dispatch(
-    botKey: 'student',
+    botKey: 'waiter',
     telegramId: $user->telegram_id,
-    text: "💯 Yangi baho: {$subject} — {$score}",
+    text: "🔔 Tayyor: {$orderNumber} — {$tableLabel}",
 );
 ```
 
-The job hits `POST http://telegram-bots:8002/internal/send/student` with the
+The job hits `POST http://telegram-bots:8002/internal/send/waiter` with the
 shared `LARAVEL_INTERNAL_TOKEN`, and aiogram sends the message.
 
 ## Integration with Telegram WebApp

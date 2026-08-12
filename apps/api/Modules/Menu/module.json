@@ -1,0 +1,9 @@
+{
+  "name": "Menu",
+  "alias": "menu",
+  "description": "Restoran menyusi: kategoriyalar, taomlar, narxlar, modifikatorlar, stop-list.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "menu"],
+  "priority": 1,
+  "providers": ["Modules\\Menu\\Providers\\MenuServiceProvider"],
+  "files": []
+}

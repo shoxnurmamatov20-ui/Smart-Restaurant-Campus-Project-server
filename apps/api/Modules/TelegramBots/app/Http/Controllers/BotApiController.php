@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Http\Controllers;
 
+use App\Contracts\Menu\MenuCatalog;
+use App\Contracts\Menu\Section;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +18,11 @@ use Modules\TelegramBots\Models\CommandLog;
  * Endpoints called BY the Python telegram-bots service (apps/telegram-bots).
  * All routes prefix: /api/v1/bots/{bot_key}/...
  * Auth: Bearer LARAVEL_INTERNAL_TOKEN (shared with apps/telegram-bots .env).
+ *
+ * TelegramBots is a gateway module: it owns no business rules of its own and
+ * exists to translate between Telegram and the domain modules. That is why it
+ * is the one module allowed to read another module's models directly (Menu,
+ * below) — the alternative would be an HTTP call from Laravel to itself.
  */
 final class BotApiController extends Controller
 {
@@ -34,7 +41,7 @@ final class BotApiController extends Controller
             'username' => 'nullable|string|max:64',
         ]);
 
-        // Find CAMPUS user by phone (E.164 — adjust to your normalisation logic)
+        // Find the platform user by phone (E.164 — see src/utils/phone.py on the bot side)
         $user = User::query()
             ->where(function ($q) use ($data) {
                 $q->where('phone', $data['phone'])
@@ -44,7 +51,7 @@ final class BotApiController extends Controller
 
         if (! $user) {
             return response()->json([
-                'message' => 'No CAMPUS user with this phone',
+                'message' => 'No platform user with this phone',
                 'phone' => $data['phone'],
             ], 404);
         }
@@ -135,43 +142,161 @@ final class BotApiController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    // ============ Student-bot specific endpoints (sample) ============
+    // ============ Domain endpoints consumed by the bots ============
+    //
+    // `menu` is real — it reads the live Menu module, which is implemented.
+    // The rest delegate to modules that are still skeletons (Orders, Kitchen,
+    // Tables, Crm, Finance), so they are gated by the `telegrambots.mock_data`
+    // config flag:
+    //   - true  (dev):  return placeholder values so the bot UI can be built
+    //   - false (prod): return HTTP 501 so users see "tez orada" rather than
+    //                   an invented bonus balance or a fake shift total
+    //
+    // Replace each mock branch with a real query as its module lands.
 
-    public function myScheduleToday(Request $request, string $botKey): JsonResponse
+    /**
+     * The live menu, exactly as a guest may order it right now.
+     *
+     * Real data: the Menu module is implemented, so this never mocks. Only
+     * orderable items of active categories are exposed — a bot must never
+     * offer a dish the kitchen has just stopped.
+     */
+    public function menu(Request $request, string $botKey, MenuCatalog $menu): JsonResponse
     {
-        // TODO: pull from Students module once the schedule table exists.
-        // For now return a placeholder so the bot UI can be tested.
+        // Resolved even though nothing below needs the row: the lookup is
+        // tenant-scoped, so it is what stops a misconfigured bot key from
+        // quietly serving whichever restaurant the X-Tenant header named.
+        Bot::where('key', $botKey)->firstOrFail();
+
+        $channel = (string) $request->query('channel', 'dine_in');
+
+        // Read through the platform contract, not through Menu's models: a bot
+        // that imported another module's Eloquent classes would break every
+        // time Menu changed a column, and could never be deployed on its own.
+        $sections = $menu->sellable($channel);
+
         return response()->json([
-            'lessons' => [
-                ['start' => '08:30', 'end' => '10:00', 'subject' => 'Matematik analiz', 'classroom' => 'A-201', 'teacher' => 'Aliyev A.'],
-                ['start' => '10:15', 'end' => '11:45', 'subject' => 'Dasturlash asoslari', 'classroom' => 'L-105', 'teacher' => 'Karimov B.'],
+            'channel' => $channel,
+            'categories' => array_map(static fn (Section $section): array => $section->toArray(), $sections),
+        ]);
+    }
+
+    public function myOrders(Request $request, string $botKey): JsonResponse
+    {
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.orders', 'Orders moduli');
+        }
+
+        return response()->json([
+            'orders' => [
+                [
+                    'id' => 1,
+                    'number' => 'A-1042',
+                    'channel' => 'dine_in',
+                    'status' => 'in_kitchen',
+                    'table_label' => 'A-7',
+                    'total_tiyin' => 12700000,
+                    'placed_at' => now()->subMinutes(12)->toIso8601String(),
+                    'lines' => [],
+                ],
             ],
         ]);
     }
 
-    public function myRecentGrades(Request $request, string $botKey): JsonResponse
+    public function myLoyalty(Request $request, string $botKey): JsonResponse
     {
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.loyalty', 'CRM moduli');
+        }
+
         return response()->json([
-            'grades' => [
-                ['subject' => 'Matematik analiz', 'score' => 92, 'date' => '2026-05-24'],
-                ['subject' => 'Dasturlash asoslari', 'score' => 87, 'date' => '2026-05-22'],
-                ['subject' => 'Ingliz tili', 'score' => 75, 'date' => '2026-05-21'],
+            'points' => 1240,
+            'tier' => 'silver',
+            'cashback_tiyin' => 3100000,
+            'next_tier_points' => 2000,
+        ]);
+    }
+
+    public function myTables(Request $request, string $botKey): JsonResponse
+    {
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.tables', 'Tables moduli');
+        }
+
+        return response()->json([
+            'tables' => [
+                ['id' => 7, 'label' => 'A-7', 'hall' => 'Asosiy zal', 'seats' => 4, 'status' => 'occupied'],
+                ['id' => 8, 'label' => 'A-8', 'hall' => 'Asosiy zal', 'seats' => 2, 'status' => 'free'],
             ],
         ]);
     }
 
-    public function myAttendanceSummary(Request $request, string $botKey): JsonResponse
+    public function myReadyTickets(Request $request, string $botKey): JsonResponse
     {
-        return response()->json(['attendance_pct' => 94, 'absent_count' => 3]);
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.ready', 'Kitchen moduli');
+        }
+
+        return response()->json([
+            'tickets' => [
+                ['id' => 55, 'order_number' => 'A-1042', 'station' => 'hot', 'table_label' => 'A-7'],
+            ],
+        ]);
     }
 
-    public function myBalance(Request $request, string $botKey): JsonResponse
+    public function myGuestCalls(Request $request, string $botKey): JsonResponse
     {
-        return response()->json(['cafeteria_uzs' => 145000, 'contract_due_uzs' => 0]);
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.calls', 'Tables moduli');
+        }
+
+        return response()->json(['calls' => []]);
     }
 
-    public function myLibraryLoans(Request $request, string $botKey): JsonResponse
+    public function myShift(Request $request, string $botKey): JsonResponse
     {
-        return response()->json(['loans' => []]);
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('me.shift', 'Finance moduli');
+        }
+
+        return response()->json([
+            'is_open' => true,
+            'opened_at' => now()->startOfDay()->addHours(10)->toIso8601String(),
+            'revenue_tiyin' => 184500000,
+            'orders_count' => 37,
+            'average_cheque_tiyin' => 4986000,
+            'guests_count' => 92,
+        ]);
+    }
+
+    public function storeFeedback(Request $request, string $botKey): JsonResponse
+    {
+        Bot::where('key', $botKey)->firstOrFail();
+
+        $validated = $request->validate([
+            'score' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        if (! $this->mockEnabled()) {
+            return $this->notImplemented('feedback.store', 'CRM moduli');
+        }
+
+        return response()->json(['ok' => true, 'score' => $validated['score']], 201);
+    }
+
+    private function mockEnabled(): bool
+    {
+        return (bool) config('telegrambots.mock_data', true);
+    }
+
+    private function notImplemented(string $feature, string $blockingModule): JsonResponse
+    {
+        return response()->json([
+            'message' => "Bu funksiya hozircha yo'q. ({$blockingModule} kutilmoqda.)",
+            'code' => 'FEATURE_NOT_IMPLEMENTED',
+            'feature' => $feature,
+            'blocked_by' => $blockingModule,
+        ], 501);
     }
 }

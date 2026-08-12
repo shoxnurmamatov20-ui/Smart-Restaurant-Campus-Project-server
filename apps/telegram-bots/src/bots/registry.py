@@ -1,13 +1,14 @@
-"""Catalog of all CAMPUS Telegram bots (10 immediate + 40 Phase 2+).
+"""Catalog of every Smart Restaurant Campus Telegram bot (10 live + 40 planned).
 
 Adding a new bot:
   1. Append a BotDefinition entry below.
   2. (Optional) Create a handler module under src/bots/<key>.py.
   3. Set BOT_TOKEN_<KEY> in .env to the @BotFather token.
-  4. Restart the dispatcher — Telegram webhook auto-registers on startup.
+  4. Restart the dispatcher — the Telegram webhook auto-registers on startup.
 
-The registry is the single source of truth — apps/admin reads it through the
-Laravel API to render the bot management UI.
+This registry is the single source of truth. apps/admin renders the bot
+management UI from it via the Laravel TelegramBots module, so a key added here
+and nowhere else still shows up in the back office.
 """
 
 from __future__ import annotations
@@ -23,18 +24,24 @@ class BotPhase(str, Enum):
 
 
 class BotAudience(str, Enum):
-    """Who the bot is primarily for."""
+    """Who the bot is primarily for — mirrors the restaurant RBAC roles."""
 
-    STUDENT = "student"
-    PARENT = "parent"
-    TEACHER = "teacher"
-    EMPLOYEE = "employee"
-    ADMIN = "admin"
-    LIBRARIAN = "librarian"
-    COOK = "cook"
-    DRIVER = "driver"
-    SECURITY = "security"
-    PSYCHOLOGIST = "psychologist"
+    GUEST = "guest"            # mehmon / mijoz
+    WAITER = "waiter"          # ofitsiant
+    COOK = "cook"              # oshpaz
+    CHEF = "chef"              # osh-boshi
+    BARTENDER = "bartender"    # barmen
+    CASHIER = "cashier"        # kassir
+    HOST = "host"              # hostes
+    COURIER = "courier"        # kuryer
+    STOREKEEPER = "storekeeper"  # omborchi
+    MANAGER = "manager"        # filial menejeri
+    OWNER = "owner"            # restoran egasi
+    ACCOUNTANT = "accountant"  # buxgalter
+    MARKETER = "marketer"      # marketolog
+    SUPPLIER = "supplier"      # yetkazib beruvchi
+    SECURITY = "security"      # xavfsizlik
+    STAFF = "staff"            # umumiy xodim
     ANY = "any"
 
 
@@ -46,11 +53,11 @@ class BotDefinition:
     name_en: str
     purpose: str                             # one-line description (Uzbek)
     audience: BotAudience
-    module: str | None                       # linked Phase-1 module key, if any
+    module: str | None                       # linked Phase-1 module alias, if any
     phase: BotPhase = BotPhase.PHASE_2
     commands: tuple[str, ...] = field(default_factory=tuple)
-    requires_phone: bool = True              # /start verifies phone (HEMIS lookup)
-    requires_login: bool = True              # actions need CAMPUS user link
+    requires_phone: bool = True              # /start verifies the phone number
+    requires_login: bool = True              # actions need a linked platform user
 
     @property
     def env_var(self) -> str:
@@ -58,241 +65,277 @@ class BotDefinition:
 
 
 # ============================================================
-# Phase 1 — 10 immediate bots
+# Phase 1 — the 10 bots a restaurant needs from day one
 # ============================================================
 
 PHASE_1_BOTS: tuple[BotDefinition, ...] = (
     BotDefinition(
-        key="student",
-        name_uz="Talaba boti",
-        name_ru="Бот студента",
-        name_en="Student bot",
-        purpose="Talaba kabinetining Telegram nusxasi: jadval, baholar, davomat, kantin balansi",
-        audience=BotAudience.STUDENT,
-        module="students",
+        key="guest",
+        name_uz="Mehmon boti",
+        name_ru="Бот гостя",
+        name_en="Guest bot",
+        purpose="Menyu, buyurtma, stol broni, bonus balansi — mehmon uchun asosiy kanal",
+        audience=BotAudience.GUEST,
+        module="menu",
         phase=BotPhase.PHASE_1,
-        commands=("start", "schedule", "grades", "attendance", "balance", "library", "help"),
+        commands=("start", "menu", "order", "book", "bonus", "myorders", "help"),
+        # A guest browsing the menu should not be forced to share a phone number;
+        # the phone is only asked when they actually place an order.
+        requires_phone=False,
+        requires_login=False,
     ),
     BotDefinition(
-        key="parent",
-        name_uz="Ota-ona boti",
-        name_ru="Бот родителя",
-        name_en="Parent bot",
-        purpose="Farzandning universitetdagi holati: kelish-ketish, baholar, to'lovlar",
-        audience=BotAudience.PARENT,
-        module="students",
+        key="waiter",
+        name_uz="Ofitsiant boti",
+        name_ru="Бот официанта",
+        name_en="Waiter bot",
+        purpose="Stollar holati, 'taom tayyor' xabari, mehmon chaqiruvi, smena tushumi",
+        audience=BotAudience.WAITER,
+        module="orders",
         phase=BotPhase.PHASE_1,
-        commands=("start", "child", "grades", "attendance", "payments", "messages", "help"),
+        commands=("start", "tables", "myorders", "ready", "calls", "shift", "help"),
     ),
     BotDefinition(
-        key="teacher",
-        name_uz="O'qituvchi boti",
-        name_ru="Бот преподавателя",
-        name_en="Teacher bot",
-        purpose="O'qituvchi uchun dars jadvali, davomat olish, baho qo'yish, KPI",
-        audience=BotAudience.TEACHER,
-        module="hr",
+        key="kitchen",
+        name_uz="Oshxona boti",
+        name_ru="Бот кухни",
+        name_en="Kitchen bot",
+        purpose="Yangi chiptalar, tayyorlash taymeri, stop-list e'lon qilish",
+        audience=BotAudience.COOK,
+        module="kitchen",
         phase=BotPhase.PHASE_1,
-        commands=("start", "schedule", "attendance", "grade", "kpi", "tickets", "help"),
+        commands=("start", "tickets", "start_cooking", "ready", "stop", "help"),
     ),
     BotDefinition(
-        key="hr",
-        name_uz="Kadrlar boti",
-        name_ru="Бот отдела кадров",
-        name_en="HR bot",
-        purpose="Xodimlar uchun Face ID kelish-ketish, ta'til so'rovi, payslip",
-        audience=BotAudience.EMPLOYEE,
-        module="hr",
+        key="courier",
+        name_uz="Kuryer boti",
+        name_ru="Бот курьера",
+        name_en="Courier bot",
+        purpose="Yetkazish topshiriqlari, manzil va marshrut, yetkazildi belgisi",
+        audience=BotAudience.COURIER,
+        module="orders",
         phase=BotPhase.PHASE_1,
-        commands=("start", "checkin", "checkout", "leave", "payslip", "help"),
+        commands=("start", "tasks", "accept", "delivered", "earnings", "help"),
     ),
     BotDefinition(
-        key="library",
-        name_uz="Kutubxona boti",
-        name_ru="Бот библиотеки",
-        name_en="Library bot",
-        purpose="Kitob qidirish, band qilish, qaytarish eslatma, yangi kelganlar",
-        audience=BotAudience.ANY,
-        module="library",
+        key="manager",
+        name_uz="Filial menejeri boti",
+        name_ru="Бот менеджера филиала",
+        name_en="Branch manager bot",
+        purpose="Smena holati, kassa, kechikkan buyurtmalar, stop-list va ogohlantirishlar",
+        audience=BotAudience.MANAGER,
+        module="analytics",
         phase=BotPhase.PHASE_1,
-        commands=("start", "search", "reserve", "myloans", "return", "help"),
+        commands=("start", "shift", "revenue", "alerts", "stoplist", "staff", "help"),
     ),
     BotDefinition(
-        key="cafeteria",
-        name_uz="Kantin boti",
-        name_ru="Бот столовой",
-        name_en="Cafeteria bot",
-        purpose="Kunlik menyu, balans, oldindan buyurtma, allergiya hisobiga",
-        audience=BotAudience.ANY,
-        module="media",  # placeholder — will be Phase 2 cafeteria module
+        key="owner",
+        name_uz="Egasi boti",
+        name_ru="Бот владельца",
+        name_en="Owner bot",
+        purpose="Kunlik tushum, filiallar taqqoslash, food-cost, kritik ogohlantirishlar",
+        audience=BotAudience.OWNER,
+        module="analytics",
         phase=BotPhase.PHASE_1,
-        commands=("start", "menu", "order", "balance", "topup", "help"),
+        commands=("start", "today", "branches", "foodcost", "alerts", "help"),
     ),
     BotDefinition(
-        key="transport",
-        name_uz="Transport boti",
-        name_ru="Бот транспорта",
-        name_en="Transport bot",
-        purpose="Shuttle bus jadvali, real-time GPS, ota-ona uchun bola qaysi avtobusda",
-        audience=BotAudience.ANY,
-        module=None,
+        key="loyalty",
+        name_uz="Sodiqlik boti",
+        name_ru="Бот лояльности",
+        name_en="Loyalty bot",
+        purpose="Bonus balansi, darajalar, promo-kodlar va shaxsiy takliflar",
+        audience=BotAudience.GUEST,
+        module="crm",
         phase=BotPhase.PHASE_1,
-        commands=("start", "schedule", "track", "subscribe", "help"),
+        commands=("start", "balance", "tier", "promo", "history", "help"),
     ),
     BotDefinition(
-        key="helpdesk",
-        name_uz="Help Desk boti",
-        name_ru="Бот техподдержки",
-        name_en="Help Desk bot",
-        purpose="IT yoki akademik ticket ochish, javob olish, FAQ",
-        audience=BotAudience.ANY,
-        module="rttm",
+        key="reservation",
+        name_uz="Bron boti",
+        name_ru="Бот бронирования",
+        name_en="Reservation bot",
+        purpose="Stol bron qilish, tasdiqlash, eslatma va bekor qilish",
+        audience=BotAudience.GUEST,
+        module="tables",
         phase=BotPhase.PHASE_1,
-        commands=("start", "new", "mytickets", "faq", "agent", "help"),
+        commands=("start", "book", "mybookings", "cancel", "help"),
     ),
     BotDefinition(
-        key="edms",
-        name_uz="Hujjat aylanishi boti",
-        name_ru="Бот документооборота",
-        name_en="EDMS bot",
-        purpose="Tasdiqlash kutilayotgan hujjatlar, yangi arizalar bildirishnomasi",
-        audience=BotAudience.EMPLOYEE,
-        module="edms",
+        key="feedback",
+        name_uz="Fikr-mulohaza boti",
+        name_ru="Бот отзывов",
+        name_en="Feedback bot",
+        purpose="Taom va xizmat bahosi, shikoyat, rahbariyatga to'g'ridan-to'g'ri murojaat",
+        audience=BotAudience.GUEST,
+        module="crm",
         phase=BotPhase.PHASE_1,
-        commands=("start", "inbox", "outbox", "search", "help"),
+        commands=("start", "rate", "complaint", "help"),
+        # Complaints must be possible without identifying yourself, otherwise the
+        # honest ones never arrive.
+        requires_phone=False,
+        requires_login=False,
     ),
     BotDefinition(
-        key="rector",
-        name_uz="Rektor boti",
-        name_ru="Бот ректора",
-        name_en="Rector bot",
-        purpose="Rektor uchun KPI dashboard, kritik xabarnomalar, big-picture sayt",
-        audience=BotAudience.ADMIN,
-        module="kpi",
+        key="supplier",
+        name_uz="Yetkazib beruvchi boti",
+        name_ru="Бот поставщика",
+        name_en="Supplier bot",
+        purpose="Xarid arizalari, yetkazish jadvali, kirim tasdiqlash va hisob-kitob",
+        audience=BotAudience.SUPPLIER,
+        module="suppliers",
         phase=BotPhase.PHASE_1,
-        commands=("start", "kpi", "alerts", "stats", "help"),
-        requires_phone=True,
+        commands=("start", "orders", "confirm", "invoices", "debt", "help"),
     ),
 )
 
 
 # ============================================================
-# Phase 2+ — 40 future bots (config-only, no handlers yet)
+# Phase 2+ — 40 planned bots (config-only, no handlers yet)
 # ============================================================
 
-PHASE_2_BOTS: tuple[BotDefinition, ...] = (
-    BotDefinition("smart_classroom", "Smart Classroom boti", "Бот умной аудитории", "Smart Classroom bot",
-                  "Sinfdagi IoT qurilmalar boshqaruvi (yorug'lik, AC, projector)",
-                  BotAudience.TEACHER, module=None),
-    BotDefinition("exam_proctor", "Imtihon proktorlik", "Бот проктора экзаменов", "Exam Proctor bot",
-                  "Imtihon davomida anti-cheat hodisalari uchun real-time bildirishnoma",
-                  BotAudience.TEACHER, module="exams"),
-    BotDefinition("alumni", "Bitiruvchilar boti", "Бот выпускников", "Alumni bot",
-                  "Bitiruvchilar tarmog'i: vakansiyalar, tadbirlar, mentorlik",
-                  BotAudience.ANY, module=None),
-    BotDefinition("anonymous_tip", "Anonim shikoyat boti", "Бот анонимных жалоб", "Anonymous Tip bot",
-                  "Korrupsiya, zo'ravonlik, akademik nopok haqida anonim xabar",
-                  BotAudience.ANY, module=None, requires_phone=False, requires_login=False),
-    BotDefinition("dormitory", "Yotoqxona boti", "Бот общежития", "Dormitory bot",
-                  "Yotoqxona joy bandlash, komendant murojaat, qoidalar",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("parking", "Parking boti", "Бот парковки", "Parking bot",
-                  "Avtoturargoh bo'sh joylari, bron, to'lov",
-                  BotAudience.EMPLOYEE, module=None),
+_OPERATIONS_BOTS: tuple[BotDefinition, ...] = (
+    BotDefinition("stock_alert", "Ombor ogohlantirish boti", "Бот складских оповещений", "Stock alert bot",
+                  "Ingredient minimal qoldiqdan pastga tushganda darhol xabar",
+                  BotAudience.STOREKEEPER, module="inventory"),
+    BotDefinition("waste", "Chiqim nazorati boti", "Бот списаний", "Waste control bot",
+                  "Chiqim aktlari, buzilgan mahsulot va yo'qotishlar hisoboti",
+                  BotAudience.MANAGER, module="inventory"),
+    BotDefinition("haccp", "HACCP / sanitariya boti", "Бот HACCP", "HACCP bot",
+                  "Muzlatkich harorati, tozalash jadvali, sanitariya kitobchasi muddati",
+                  BotAudience.CHEF, module="staff"),
+    BotDefinition("shift_swap", "Smena almashinuvi boti", "Бот обмена сменами", "Shift swap bot",
+                  "Xodimlar smenani almashtirish so'rovi va menejer tasdig'i",
+                  BotAudience.STAFF, module="staff"),
+    BotDefinition("payroll", "Ish haqi boti", "Бот зарплаты", "Payroll bot",
+                  "Ishlangan soatlar, servis haqi ulushi, oylik hisob-kitobi",
+                  BotAudience.STAFF, module="staff"),
+    BotDefinition("training", "Xodim o'qitish boti", "Бот обучения персонала", "Training bot",
+                  "Yangi taom tex-kartasi, servis standartlari, mini-testlar",
+                  BotAudience.STAFF, module="staff"),
+    BotDefinition("recruiting", "Ishga qabul boti", "Бот найма", "Recruiting bot",
+                  "Vakansiyalar, nomzod arizalari va suhbat jadvali",
+                  BotAudience.MANAGER, module="staff"),
+    BotDefinition("equipment", "Jihoz texnik xizmati boti", "Бот обслуживания оборудования", "Equipment bot",
+                  "Pech, muzlatkich, kofemashina — texnik xizmat jadvali va buzilish arizasi",
+                  BotAudience.MANAGER, module=None),
+    BotDefinition("energy", "Energiya monitoringi boti", "Бот энергомониторинга", "Energy bot",
+                  "Elektr va gaz iste'moli anomaliyalari, tejash tavsiyalari",
+                  BotAudience.MANAGER, module=None),
     BotDefinition("security", "Xavfsizlik boti", "Бот охраны", "Security bot",
-                  "Xavfsizlik xodimlari uchun real-time hodisalar, video monitoring linklari",
+                  "CCTV hodisalari, kassa yonidagi shubhali harakat, tungi signal",
                   BotAudience.SECURITY, module=None),
-    BotDefinition("sports", "Sport klublari boti", "Бот спортклубов", "Sports clubs bot",
-                  "Sport seksiyalar jadvali, ro'yxatdan o'tish, natijalar",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("new_books", "Yangi kitoblar boti", "Бот новых книг", "New books bot",
-                  "Kutubxonaga kelgan yangi kitoblar haftalik bildirishnomasi",
-                  BotAudience.ANY, module="library"),
-    BotDefinition("scholarships", "Stipendiya boti", "Бот стипендий", "Scholarships bot",
-                  "Stipendiya muddati, hisob-kitobi, to'lov tarixi",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("research", "Ilmiy ishlar boti", "Бот научной работы", "Research bot",
-                  "Maqola muddati, Scopus ko'rsatkichlari, grant chaqiriqlari",
-                  BotAudience.TEACHER, module=None),
-    BotDefinition("conferences", "Konferensiyalar boti", "Бот конференций", "Conferences bot",
-                  "Yaqinlashayotgan konferensiyalar, registratsiya, eslatma",
-                  BotAudience.TEACHER, module=None),
-    BotDefinition("diplomas", "Diplom ishlari boti", "Бот дипломных работ", "Diplomas bot",
-                  "BMI bosqichlari, antiplagiat natijasi, himoya jadvali",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("internship", "Amaliyot boti", "Бот практики", "Internship bot",
-                  "Korxonalar bazasi, kundalik hisobot yuklash, baholash",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("career", "Karyera markazi boti", "Бот карьерного центра", "Career bot",
-                  "Vakansiyalar, CV maslahat, mock interview natija",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("masterclass", "Masterclass boti", "Бот мастер-классов", "Masterclass bot",
-                  "Tashqi mehmonlar masterklasslari jadvali va registratsiya",
-                  BotAudience.ANY, module=None),
-    BotDefinition("mental_health", "Ruhiy salomatlik boti", "Бот психологии", "Mental Health bot",
-                  "Maxfiy psixolog murojaat, mood tracker, favqulodda yordam",
-                  BotAudience.ANY, module="psychology", requires_phone=False),
-    BotDefinition("emergency", "Favqulodda bildirishnoma", "Бот экстренных уведомлений", "Emergency bot",
-                  "Yong'in, evakuatsiya, sog'liq favqulodda holatlarda push xabar",
-                  BotAudience.ANY, module=None),
-    BotDefinition("weather", "Ob-havo + transport buzilishi", "Бот погоды/транспорта", "Weather/transport bot",
-                  "Tashqi sharoit (ob-havo, yo'l) buzilganda darslar va shuttle ta'siri",
-                  BotAudience.ANY, module=None),
-    BotDefinition("language_pair", "Til amaliyot boti", "Бот языкового обмена", "Language pair bot",
-                  "Til o'rganmoqchi talabalar uchun juftlik chat (uz↔en, ru↔en)",
-                  BotAudience.STUDENT, module=None),
-    BotDefinition("ai_assistant", "AI yordamchi bot", "Бот AI-ассистента", "AI Assistant bot",
-                  "GPT/Claude orqali universitet hayoti haqida 24/7 savol-javob (modul 27)",
-                  BotAudience.ANY, module=None),
-    BotDefinition("dropout_alert", "Dropout ogohlantirishi", "Бот предсказания отчисления", "Dropout alert bot",
-                  "AI modul (modul 28) talaba o'qishni tashlash xavfini bashorat qilganda dekan boti",
-                  BotAudience.ADMIN, module="kpi"),
-    # Per-fakultet (8)
-    *(
-        BotDefinition(
-            key=f"fac_{slug}",
-            name_uz=f"{name_uz} fakulteti boti",
-            name_ru=f"Бот факультета {name_ru}",
-            name_en=f"{name_en} faculty bot",
-            purpose=f"{name_uz} fakulteti talabalari uchun ichki e'lonlar, dekanat xabarnomasi",
-            audience=BotAudience.STUDENT,
-            module=None,
-        )
-        for slug, name_uz, name_ru, name_en in (
-            ("it", "IT", "ИТ", "IT"),
-            ("economics", "Iqtisodiyot", "Экономики", "Economics"),
-            ("law", "Yuridik", "Юридический", "Law"),
-            ("medicine", "Tibbiyot", "Медицины", "Medicine"),
-            ("engineering", "Muhandislik", "Инженерный", "Engineering"),
-            ("philology", "Filologiya", "Филологический", "Philology"),
-            ("pedagogy", "Pedagogika", "Педагогический", "Pedagogy"),
-            ("arts", "San'at", "Искусств", "Arts"),
-        )
-    ),
-    # Per-kafedra (10 placeholders)
-    *(
-        BotDefinition(
-            key=f"dep_{slug}",
-            name_uz=f"{name_uz} kafedrasi boti",
-            name_ru=f"Бот кафедры {name_ru}",
-            name_en=f"{name_en} department bot",
-            purpose=f"{name_uz} kafedrasi talaba va o'qituvchilari uchun maxsus kanal",
-            audience=BotAudience.ANY,
-            module=None,
-        )
-        for slug, name_uz, name_ru, name_en in (
-            ("programming", "Dasturlash", "Программирования", "Programming"),
-            ("networks", "Tarmoqlar", "Сетей", "Networks"),
-            ("ai", "Sun'iy intellekt", "ИИ", "AI"),
-            ("database", "Ma'lumotlar bazasi", "Баз данных", "Database"),
-            ("marketing", "Marketing", "Маркетинга", "Marketing"),
-            ("finance", "Moliya", "Финансов", "Finance"),
-            ("management", "Menejment", "Менеджмента", "Management"),
-            ("civil_law", "Fuqaroviy huquq", "Гражданского права", "Civil Law"),
-            ("pediatrics", "Pediatriya", "Педиатрии", "Pediatrics"),
-            ("surgery", "Xirurgiya", "Хирургии", "Surgery"),
-        )
-    ),
+)
+
+_MARKETING_BOTS: tuple[BotDefinition, ...] = (
+    BotDefinition("birthday", "Tug'ilgan kun boti", "Бот дней рождения", "Birthday bot",
+                  "Mijoz tug'ilgan kunida avtomatik taklif va sovg'a",
+                  BotAudience.GUEST, module="crm"),
+    BotDefinition("winback", "Qaytarish kampaniyasi boti", "Бот возврата гостей", "Win-back bot",
+                  "Uzoq kelmagan mijozlarga shaxsiy taklif",
+                  BotAudience.GUEST, module="crm"),
+    BotDefinition("catering", "Banket / keytering boti", "Бот банкетов", "Catering bot",
+                  "Banket so'rovi, menyu tanlash, oldindan to'lov",
+                  BotAudience.GUEST, module="tables"),
+    BotDefinition("corporate", "Korporativ mijozlar boti", "Бот корпоративных клиентов", "Corporate bot",
+                  "Kompaniyalar uchun biznes-lanch shartnomasi va oylik hisob",
+                  BotAudience.GUEST, module="crm"),
+    BotDefinition("gift_card", "Sovg'a sertifikati boti", "Бот подарочных сертификатов", "Gift card bot",
+                  "Sertifikat sotib olish, sovg'a qilish va faollashtirish",
+                  BotAudience.GUEST, module="crm"),
+    BotDefinition("review_watch", "Tashqi sharhlar boti", "Бот мониторинга отзывов", "Review watch bot",
+                  "Google Maps, Yandex va agregatorlardagi yangi sharhlar",
+                  BotAudience.MANAGER, module="crm"),
+    BotDefinition("menu_ai", "AI menyu maslahatchi", "AI-помощник по меню", "AI menu assistant",
+                  "Mehmon didiga qarab taom tavsiya qiladi (Claude API)",
+                  BotAudience.GUEST, module="menu", requires_phone=False, requires_login=False),
+    BotDefinition("nutrition", "Kaloriya va parhez boti", "Бот питания", "Nutrition bot",
+                  "Kaloriya hisobi, parhez va sportchi menyusi",
+                  BotAudience.GUEST, module="menu", requires_phone=False),
+    BotDefinition("allergen", "Allergen ogohlantirish boti", "Бот аллергенов", "Allergen bot",
+                  "Mehmon profilidagi allergiyalarga qarab xavfli taomlarni belgilaydi",
+                  BotAudience.GUEST, module="menu"),
+    BotDefinition("queue", "Navbat boti", "Бот очереди", "Queue bot",
+                  "Kutish ro'yxati, navbat raqami va 'stolingiz tayyor' xabari",
+                  BotAudience.GUEST, module="tables", requires_login=False),
+)
+
+_DELIVERY_BOTS: tuple[BotDefinition, ...] = (
+    BotDefinition("aggregator", "Agregatorlar boti", "Бот агрегаторов", "Aggregator bot",
+                  "Yandex Eats, Express24, Uzum Tezkor buyurtmalari bitta oqimda",
+                  BotAudience.MANAGER, module="orders"),
+    BotDefinition("delivery_zone", "Yetkazish zonalari boti", "Бот зон доставки", "Delivery zone bot",
+                  "Zona bo'yicha narx, minimal buyurtma va yetkazish vaqti",
+                  BotAudience.MANAGER, module="orders"),
+    BotDefinition("driver_dispatch", "Kuryer taqsimoti boti", "Бот распределения курьеров", "Dispatch bot",
+                  "Buyurtmalarni kuryerlarga avtomatik taqsimlash va marshrut",
+                  BotAudience.COURIER, module="orders"),
+    BotDefinition("tracking", "Buyurtma kuzatuvi boti", "Бот отслеживания заказа", "Tracking bot",
+                  "Mehmon uchun real-time yetkazish holati va kuryer joylashuvi",
+                  BotAudience.GUEST, module="orders", requires_login=False),
+)
+
+_FINANCE_BOTS: tuple[BotDefinition, ...] = (
+    BotDefinition("cash_alert", "Kassa anomaliyasi boti", "Бот кассовых аномалий", "Cash alert bot",
+                  "Ko'p bekor qilish, katta chegirma, kassa farqi — darhol egasiga",
+                  BotAudience.OWNER, module="finance"),
+    BotDefinition("fiscal", "Fiskal boti", "Бот фискализации", "Fiscal bot",
+                  "Fiskal modul xatolari va chek yuborilmagan holatlar",
+                  BotAudience.ACCOUNTANT, module="finance"),
+    BotDefinition("debt", "Qarzdorlik boti", "Бот задолженностей", "Debt bot",
+                  "Yetkazib beruvchi va korporativ mijoz qarzdorligi eslatmasi",
+                  BotAudience.ACCOUNTANT, module="suppliers"),
+    BotDefinition("budget", "Byudjet nazorati boti", "Бот бюджета", "Budget bot",
+                  "Xarajat kategoriyasi rejadan oshganda ogohlantirish",
+                  BotAudience.OWNER, module="finance"),
+)
+
+# Per-branch channels (8) — one bot per venue for internal announcements.
+_BRANCH_BOTS: tuple[BotDefinition, ...] = tuple(
+    BotDefinition(
+        key=f"br_{slug}",
+        name_uz=f"{name_uz} filiali boti",
+        name_ru=f"Бот филиала {name_ru}",
+        name_en=f"{name_en} branch bot",
+        purpose=f"{name_uz} filiali xodimlari uchun ichki e'lonlar va smena xabarlari",
+        audience=BotAudience.STAFF,
+        module=None,
+    )
+    for slug, name_uz, name_ru, name_en in (
+        ("chilonzor", "Chilonzor", "Чиланзар", "Chilonzor"),
+        ("yunusobod", "Yunusobod", "Юнусабад", "Yunusobod"),
+        ("mirzo_ulugbek", "Mirzo Ulug'bek", "Мирзо-Улугбек", "Mirzo Ulugbek"),
+        ("sergeli", "Sergeli", "Сергели", "Sergeli"),
+        ("yakkasaroy", "Yakkasaroy", "Яккасарай", "Yakkasaroy"),
+        ("shayxontohur", "Shayxontohur", "Шайхантахур", "Shaykhontohur"),
+        ("olmazor", "Olmazor", "Алмазар", "Olmazor"),
+        ("bektemir", "Bektemir", "Бектемир", "Bektemir"),
+    )
+)
+
+_CONCEPT_BOTS: tuple[BotDefinition, ...] = (
+    BotDefinition("concept_pizza", "Pizza konsepti boti", "Бот пиццерии", "Pizza concept bot",
+                  "Pizza yo'nalishi uchun alohida menyu va aksiyalar kanali",
+                  BotAudience.GUEST, module="menu", requires_login=False),
+    BotDefinition("concept_coffee", "Kofexona konsepti boti", "Бот кофейни", "Coffee concept bot",
+                  "Kofexona menyusi, sodiqlik kartasi va yangi ta'mlar",
+                  BotAudience.GUEST, module="menu", requires_login=False),
+    BotDefinition("franchise", "Franchayzing boti", "Бот франчайзинга", "Franchise bot",
+                  "Franchayzi hamkorlar uchun standartlar, hisobot va royalti",
+                  BotAudience.OWNER, module=None),
+    BotDefinition("audit", "Ichki audit boti", "Бот внутреннего аудита", "Internal audit bot",
+                  "Tekshiruv ro'yxatlari (checklist), sirli mehmon natijalari",
+                  BotAudience.OWNER, module=None),
+)
+
+
+PHASE_2_BOTS: tuple[BotDefinition, ...] = (
+    *_OPERATIONS_BOTS,
+    *_MARKETING_BOTS,
+    *_DELIVERY_BOTS,
+    *_FINANCE_BOTS,
+    *_BRANCH_BOTS,
+    *_CONCEPT_BOTS,
 )
 
 

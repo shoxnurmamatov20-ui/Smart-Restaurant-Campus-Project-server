@@ -13,7 +13,7 @@ grafana-dashboards/
 ├── nginx.json               # Nginx access patterns
 └── modules/                 # Per-modul KPI dashboards
     ├── hr.json
-    ├── students.json
+    ├── orders.json
     └── ...
 ```
 

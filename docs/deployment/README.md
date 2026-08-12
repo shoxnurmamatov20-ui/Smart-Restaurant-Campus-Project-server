@@ -2,13 +2,13 @@
 
 ## Production server
 
-| Parametr | Qiymat |
-|----------|--------|
-| OS | Ubuntu Server 24.04 LTS |
-| RAM | 500 GB |
-| Disk | 12 TB |
-| Provider | Universitet on-prem |
-| Domen | campus.uz (planlanmoqda) |
+| Parametr | Qiymat                              |
+| -------- | ----------------------------------- |
+| OS       | Ubuntu Server 24.04 LTS             |
+| RAM      | 500 GB                              |
+| Disk     | 12 TB                               |
+| Provider | Restoran on-prem yoki bulut         |
+| Domen    | restaurant-campus.uz (planlanmoqda) |
 
 ## Birinchi marta o'rnatish
 
@@ -17,16 +17,16 @@
 ssh root@<server-ip>
 
 # 2. Loyihani klone qiling
-git clone https://github.com/<owner>/smart-campus.git /tmp/campus-bootstrap
+git clone https://github.com/<owner>/smart-restaurant-campus.git /tmp/restaurant-campus-bootstrap
 
 # 3. Setup skriptini ishga tushiring
-sudo bash /tmp/campus-bootstrap/infrastructure/scripts/setup-server.sh
-# Bu: Docker, UFW, fail2ban, user "campus" yaratadi, /srv/campus papkasini tayyorlaydi
+sudo bash /tmp/restaurant-campus-bootstrap/infrastructure/scripts/setup-server.sh
+# Bu: Docker, UFW, fail2ban, user "restaurant" yaratadi, /srv/restaurant-campus papkasini tayyorlaydi
 
 # 4. Loyiha foydalanuvchisi sifatida
-su - campus
-cd /srv/campus
-git clone https://github.com/<owner>/smart-campus.git .
+su - restaurant
+cd /srv/restaurant-campus
+git clone https://github.com/<owner>/smart-restaurant-campus.git .
 
 # 5. .env tayyorlash
 cp .env.example .env
@@ -42,17 +42,18 @@ docker compose exec api php artisan admin:create
 
 # 8. SSL (Let's Encrypt — kerak bo'lsa)
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d campus.uz -d www.campus.uz -d admin.campus.uz
+sudo certbot --nginx -d restaurant-campus.uz -d www.restaurant-campus.uz -d admin.restaurant-campus.uz
 ```
 
 ## Yangilanish (deploy)
 
 ```bash
-cd /srv/campus
+cd /srv/restaurant-campus
 bash infrastructure/scripts/deploy.sh
 ```
 
 Yoki avtomatik (GitHub Actions orqali):
+
 - `main` ga push → CI run → testlar pass bo'lsa → server'ga SSH deploy
 - Konfiguratsiya: `.github/workflows/deploy-production.yml` (TBD)
 
@@ -62,10 +63,10 @@ Avtomatik kunlik backup:
 
 ```bash
 # Crontab
-0 3 * * * /srv/campus/infrastructure/scripts/backup.sh
+0 3 * * * /srv/restaurant-campus/infrastructure/scripts/backup.sh
 ```
 
-Backup joyi: `/srv/campus/backups/` (postgres + minio + redis snapshot)
+Backup joyi: `/srv/restaurant-campus/backups/` (postgres + minio + redis snapshot)
 
 Retention: 30 kun (deploy.sh ichida sozlanadi)
 
@@ -81,12 +82,12 @@ docker compose --profile monitoring up -d
 
 ## Disaster recovery
 
-| Scenariy | Yechim |
-|----------|--------|
-| Postgres buzildi | `pg_restore` oxirgi backup'dan |
-| Server o'lik | Yangi server'da `setup-server.sh` + git clone + backup restore |
-| Docker corrupt | `docker system prune -a` + re-pull images |
-| Domen ishlamayapti | DNS tekshirish + nginx logs |
+| Scenariy           | Yechim                                                         |
+| ------------------ | -------------------------------------------------------------- |
+| Postgres buzildi   | `pg_restore` oxirgi backup'dan                                 |
+| Server o'lik       | Yangi server'da `setup-server.sh` + git clone + backup restore |
+| Docker corrupt     | `docker system prune -a` + re-pull images                      |
+| Domen ishlamayapti | DNS tekshirish + nginx logs                                    |
 
 ## SSL sertifikat yangilash
 

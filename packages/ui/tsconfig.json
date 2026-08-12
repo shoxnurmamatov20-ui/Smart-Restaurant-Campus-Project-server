@@ -1,8 +1,9 @@
 {
-  "extends": "@campus/config/tsconfig/react-library.json",
+  "extends": "@restaurant/config/tsconfig/react-library.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["node"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]

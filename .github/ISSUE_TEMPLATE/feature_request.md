@@ -26,16 +26,17 @@ assignees: ''
 
 ## Modul
 
-- [ ] HR
-- [ ] Students
-- [ ] Online platform
-- [ ] EDMS
-- [ ] RTTM
-- [ ] Psychology
-- [ ] Exams
-- [ ] Library
-- [ ] Media
-- [ ] KPI
+- [ ] Menu
+- [ ] Orders
+- [ ] Kitchen
+- [ ] Tables
+- [ ] Inventory
+- [ ] Suppliers
+- [ ] Staff
+- [ ] Finance
+- [ ] CRM
+- [ ] Analytics
+- [ ] TelegramBots
 - [ ] Super Admin
 - [ ] Boshqa / yangi modul
 

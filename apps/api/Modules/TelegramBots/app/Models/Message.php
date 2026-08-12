@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 final class Message extends Model
 {
-    protected $table = 'tg_messages';
+    use BelongsToTenant;
+
+    protected $table = 'telegram.tg_messages';
 
     protected $fillable = [
+        'tenant_id',
         'bot_id',
         'bot_user_id',
         'telegram_chat_id',

@@ -35,7 +35,7 @@ class RateLimitMiddleware(BaseMiddleware):
 
         bot = data.get("bot")
         bot_id = getattr(bot, "id", "unknown") if bot else "unknown"
-        key = f"campus:tg:ratelimit:{bot_id}:{user_id}"
+        key = f"src:tg:ratelimit:{bot_id}:{user_id}"
         try:
             count = await self.redis.incr(key)
             if count == 1:

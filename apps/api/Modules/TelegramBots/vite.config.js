@@ -6,36 +6,36 @@ import laravel from 'laravel-vite-plugin';
 // import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig({
-    build: {
-        outDir: '../../public/build-telegrambots',
-        emptyOutDir: true,
-        manifest: true,
+  build: {
+    outDir: '../../public/build-telegrambots',
+    emptyOutDir: true,
+    manifest: true,
+  },
+  plugins: [
+    laravel({
+      publicDirectory: '../../public',
+      buildDirectory: 'build-telegrambots',
+      input: [
+        __dirname + '/resources/assets/sass/app.scss',
+        __dirname + '/resources/assets/js/app.js',
+      ],
+      refresh: true,
+    }),
+    // Uncomment the plugin for your frontend framework:
+    // vue({
+    //     template: {
+    //         transformAssetUrls: {
+    //             base: null,
+    //             includeAbsolute: false,
+    //         },
+    //     },
+    // }),
+    // react(),
+    // svelte(),
+  ],
+  resolve: {
+    alias: {
+      '@': __dirname + '/resources/js',
     },
-    plugins: [
-        laravel({
-            publicDirectory: '../../public',
-            buildDirectory: 'build-telegrambots',
-            input: [
-                __dirname + '/resources/assets/sass/app.scss',
-                __dirname + '/resources/assets/js/app.js'
-            ],
-            refresh: true,
-        }),
-        // Uncomment the plugin for your frontend framework:
-        // vue({
-        //     template: {
-        //         transformAssetUrls: {
-        //             base: null,
-        //             includeAbsolute: false,
-        //         },
-        //     },
-        // }),
-        // react(),
-        // svelte(),
-    ],
-    resolve: {
-        alias: {
-            '@': __dirname + '/resources/js',
-        },
-    },
+  },
 });

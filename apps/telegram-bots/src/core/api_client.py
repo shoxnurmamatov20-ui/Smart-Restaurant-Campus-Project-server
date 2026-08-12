@@ -31,7 +31,7 @@ class LaravelClient:
 
     Authenticates with `LARAVEL_INTERNAL_TOKEN` (bot-shared service-account token).
     User-specific actions pass an additional X-Telegram-User header with telegram_id;
-    Laravel looks up the linked CAMPUS user from tg_bot_users.
+    Laravel looks up the linked platform user from tg_bot_users.
     """
 
     def __init__(self) -> None:
@@ -43,7 +43,7 @@ class LaravelClient:
             timeout=httpx.Timeout(15.0, connect=5.0),
             headers={
                 "Accept": "application/json",
-                "User-Agent": "campus-telegram-bots/0.0.0",
+                "User-Agent": "restaurant-campus-telegram-bots/0.0.0",
             },
         )
         return self
@@ -64,7 +64,7 @@ class LaravelClient:
                 timeout=httpx.Timeout(15.0, connect=5.0),
                 headers={
                     "Accept": "application/json",
-                    "User-Agent": "campus-telegram-bots/0.0.0",
+                    "User-Agent": "restaurant-campus-telegram-bots/0.0.0",
                 },
             )
 
@@ -125,10 +125,10 @@ class LaravelClient:
         full_name: str,
         username: str | None = None,
     ) -> dict[str, Any]:
-        """Link a Telegram user to a CAMPUS user (creates tg_bot_users row).
+        """Link a Telegram user to a platform user (creates tg_bot_users row).
 
-        Server resolves CAMPUS user by phone (E.164) and creates the binding.
-        Returns the linked user payload or 404 if no CAMPUS user with that phone.
+        Server resolves platform user by phone (E.164) and creates the binding.
+        Returns the linked user payload or 404 if no platform user with that phone.
         """
         return await self._request(
             "POST",

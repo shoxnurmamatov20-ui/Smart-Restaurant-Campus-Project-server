@@ -1,13 +1,14 @@
 {
-    "HR": true,
-    "Students": true,
-    "Online": true,
-    "EDMS": true,
-    "RTTM": true,
-    "Psychology": true,
-    "Exams": true,
-    "Library": true,
-    "Media": true,
-    "KPI": true,
-    "TelegramBots": true
+  "Menu": true,
+  "Orders": true,
+  "Kitchen": true,
+  "Tables": true,
+  "Inventory": true,
+  "Suppliers": true,
+  "Staff": true,
+  "Finance": true,
+  "Crm": true,
+  "Analytics": true,
+  "TelegramBots": true,
+  "Pos": true
 }

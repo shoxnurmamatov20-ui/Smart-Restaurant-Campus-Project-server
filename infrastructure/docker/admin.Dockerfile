@@ -1,5 +1,5 @@
 # ============================================================
-# CAMPUS — Super Admin (Next.js)
+# Smart Restaurant Campus — Super Admin (Next.js)
 # Multi-stage production build (port 3001)
 # ============================================================
 
@@ -12,7 +12,7 @@ COPY apps/admin/package.json ./apps/admin/
 COPY packages/ ./packages/
 
 RUN corepack enable && corepack prepare pnpm@11 --activate
-RUN pnpm install --frozen-lockfile --filter=@campus/admin... --filter='./packages/*'
+RUN pnpm install --frozen-lockfile --filter=@restaurant/admin... --filter='./packages/*'
 
 FROM node:24-alpine AS builder
 RUN apk add --no-cache libc6-compat
@@ -29,7 +29,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 RUN corepack enable && corepack prepare pnpm@11 --activate
-RUN pnpm --filter @campus/admin build
+RUN pnpm --filter @restaurant/admin build
 
 FROM node:24-alpine AS runner
 WORKDIR /app

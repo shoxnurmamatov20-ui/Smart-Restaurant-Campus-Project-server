@@ -10,7 +10,7 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-const STORAGE_KEY = 'campus-admin-theme';
+const STORAGE_KEY = 'restaurant-campus-admin-theme';
 
 export function ThemeProvider({
   children,
@@ -19,13 +19,18 @@ export function ThemeProvider({
   children: ReactNode;
   defaultTheme?: Theme;
 }) {
-  const [theme, setThemeState] = useState<Theme>(defaultTheme);
+  // Read the stored theme during the initial render rather than in an effect.
+  // Setting state from inside an effect makes the app paint the default theme
+  // first and then flash to the stored one; the lazy initialiser avoids both
+  // the flash and the cascading re-render. It is SSR-safe because the server
+  // has no `window` and falls through to `defaultTheme`, which is exactly what
+  // the server-rendered HTML assumes.
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return defaultTheme;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : defaultTheme;
+  });
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
-    if (stored === 'light' || stored === 'dark' || stored === 'system') setThemeState(stored);
-  }, []);
 
   useEffect(() => {
     const root = document.documentElement;

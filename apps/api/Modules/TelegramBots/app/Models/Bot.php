@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,11 +13,13 @@ use Illuminate\Support\Facades\Crypt;
 
 final class Bot extends Model
 {
+    use BelongsToTenant;
     use SoftDeletes;
 
-    protected $table = 'tg_bots';
+    protected $table = 'telegram.tg_bots';
 
     protected $fillable = [
+        'tenant_id',
         'key',
         'telegram_username',
         'name_uz',

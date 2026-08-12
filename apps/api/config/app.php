@@ -80,11 +80,25 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'uz'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'uz'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | Every language the platform can actually answer in. `SetLocale` refuses
+    | anything outside this list, and translated columns (`{uz, ru, en}` jsonb)
+    | are validated against it — so adding a language here is the single switch
+    | that opens it everywhere.
+    |
+    */
+
+    'supported_locales' => ['uz', 'ru', 'en'],
 
     /*
     |--------------------------------------------------------------------------

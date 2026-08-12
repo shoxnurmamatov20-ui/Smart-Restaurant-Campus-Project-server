@@ -1,16 +1,22 @@
 {
-  "name": "CAMPUS — Yagona Raqamli Ekotizim",
-  "short_name": "CAMPUS",
-  "description": "Universitet boshqaruvi va ta'lim jarayonlarini to'liq raqamlashtirish platformasi",
-  "start_url": "/",
+  "name": "Smart Restaurant Campus",
+  "short_name": "Restaurant Campus",
+  "description": "Restoran, kafe va oshxonalar uchun yagona raqamli boshqaruv platformasi",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#c5521c",
   "lang": "uz",
-  "categories": ["education", "productivity"],
+  "categories": ["business", "food", "productivity"],
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
@@ -26,13 +32,18 @@
   ],
   "shortcuts": [
     {
-      "name": "Talabalar",
-      "url": "/students",
+      "name": "Buyurtmalar",
+      "url": "/orders",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Online dars",
-      "url": "/online",
+      "name": "Oshxona (KDS)",
+      "url": "/kitchen",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Stollar",
+      "url": "/tables",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]

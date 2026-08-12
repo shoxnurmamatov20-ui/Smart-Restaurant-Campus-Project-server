@@ -1,1 +1,75 @@
-"""Pydantic DTOs that mirror Laravel API responses."""
+"""Pydantic DTOs that mirror Laravel API responses.
+
+- `dto.py` — request/response shapes (PlatformUser, OrderBrief, KitchenTicket, ...)
+- `enums.py` — closed enumerations (UserRole, OrderStatus, KitchenStation, ...)
+"""
+
+from src.models.dto import (
+    BranchRevenue,
+    BranchRevenueResponse,
+    DeliveryTask,
+    DeliveryTasksResponse,
+    KitchenTicket,
+    KitchenTicketsResponse,
+    LinkedUserResponse,
+    LoyaltyBalance,
+    MenuCategoryBrief,
+    MenuItemBrief,
+    MenuResponse,
+    OrderBrief,
+    OrderLine,
+    OrdersResponse,
+    OutboundMessagePayload,
+    PlatformUser,
+    PromoOffer,
+    PromoOffersResponse,
+    PurchaseOrderBrief,
+    PurchaseOrdersResponse,
+    ReservationBrief,
+    ReservationsResponse,
+    ShiftSummary,
+    TableBrief,
+    TablesResponse,
+)
+from src.models.enums import (
+    KitchenStation,
+    OrderChannel,
+    OrderStatus,
+    TableStatus,
+    UserRole,
+    UserStatus,
+)
+
+__all__ = [
+    "BranchRevenue",
+    "BranchRevenueResponse",
+    "DeliveryTask",
+    "DeliveryTasksResponse",
+    "KitchenStation",
+    "KitchenTicket",
+    "KitchenTicketsResponse",
+    "LinkedUserResponse",
+    "LoyaltyBalance",
+    "MenuCategoryBrief",
+    "MenuItemBrief",
+    "MenuResponse",
+    "OrderBrief",
+    "OrderChannel",
+    "OrderLine",
+    "OrderStatus",
+    "OrdersResponse",
+    "OutboundMessagePayload",
+    "PlatformUser",
+    "PromoOffer",
+    "PromoOffersResponse",
+    "PurchaseOrderBrief",
+    "PurchaseOrdersResponse",
+    "ReservationBrief",
+    "ReservationsResponse",
+    "ShiftSummary",
+    "TableBrief",
+    "TableStatus",
+    "TablesResponse",
+    "UserRole",
+    "UserStatus",
+]

@@ -1,11 +1,11 @@
 [project]
-name = "campus-ai-services"
+name = "restaurant-campus-ai-services"
 version = "0.0.0"
-description = "CAMPUS — AI/ML microservices (chatbot, antiplagiat, dropout prediction, face recognition)"
+description = "Smart Restaurant Campus — AI/ML microservices (menu assistant, demand forecast, food vision, review sentiment, staff face ID)"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "Proprietary" }
-authors = [{ name = "CAMPUS Team", email = "uzbcorp@gmail.com" }]
+authors = [{ name = "Smart Restaurant Campus Team", email = "uzbcorp@gmail.com" }]
 
 dependencies = [
     # ============ Web framework ============
@@ -60,11 +60,11 @@ dev = [
 # ============ Optional / feature-specific ============
 # Install when implementing the corresponding modules:
 #
-# Antiplagiat (modul 13):     uv add sentence-transformers
+# Review sentiment:          uv add sentence-transformers
 # Face recognition (modul 21): uv add opencv-python face-recognition
-# ML / Dropout prediction:    uv add scikit-learn pandas numpy
+# Demand forecast:           uv add scikit-learn lightgbm pandas numpy
 # Chart generation:           uv add matplotlib plotly
-# OCR (EDMS modul 4):         uv add pytesseract pillow
+# OCR (kirim hujjatlari):      uv add pytesseract pillow
 
 [build-system]
 requires = ["hatchling"]

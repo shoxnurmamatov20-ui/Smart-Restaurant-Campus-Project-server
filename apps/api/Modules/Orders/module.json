@@ -1,0 +1,9 @@
+{
+  "name": "Orders",
+  "alias": "orders",
+  "description": "Barcha kanallar bo'yicha buyurtmalar: zal, olib ketish, yetkazib berish, agregator.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "orders"],
+  "priority": 2,
+  "providers": ["Modules\\Orders\\Providers\\OrdersServiceProvider"],
+  "files": []
+}

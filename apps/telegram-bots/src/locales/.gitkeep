@@ -1,0 +1,15 @@
+# Future home for Babel-compatible .po/.mo translation files.
+#
+# Layout will be:
+#   locales/<lang>/LC_MESSAGES/<domain>.po
+#
+# e.g.:
+#   locales/uz/LC_MESSAGES/messages.po
+#   locales/ru/LC_MESSAGES/messages.po
+#   locales/en/LC_MESSAGES/messages.po
+#
+# Compile with:
+#   uv run pybabel compile -d src/locales
+#
+# Currently the in-process TRANSLATIONS dict in src/middlewares/i18n.py is
+# used; migrate to aiogram-i18n + Babel when string count > ~200.

@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/staff",
+  "description": "Restoran xodimlari, smenalar jadvali, davomat (Face ID / QR) va ish haqi asosi.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Staff\\": "app/",
+      "Modules\\Staff\\Database\\Factories\\": "database/factories/",
+      "Modules\\Staff\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Staff\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

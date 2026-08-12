@@ -1,0 +1,9 @@
+{
+  "name": "Staff",
+  "alias": "staff",
+  "description": "Restoran xodimlari, smenalar jadvali, davomat (Face ID / QR) va ish haqi asosi.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "staff"],
+  "priority": 7,
+  "providers": ["Modules\\Staff\\Providers\\StaffServiceProvider"],
+  "files": []
+}

@@ -19,22 +19,24 @@ Closes # <!-- yoki "Related to #..." -->
 
 ## Module
 
-- [ ] HR
-- [ ] Students
-- [ ] Online platform
-- [ ] EDMS
-- [ ] RTTM
-- [ ] Psychology
-- [ ] Exams
-- [ ] Library
-- [ ] Media
-- [ ] KPI
+- [ ] Menu
+- [ ] Orders
+- [ ] Kitchen
+- [ ] Tables
+- [ ] Inventory
+- [ ] Suppliers
+- [ ] Staff
+- [ ] Finance
+- [ ] CRM
+- [ ] Analytics
+- [ ] TelegramBots
 - [ ] Super Admin
 - [ ] Shared (packages/, infrastructure/, docs/, …)
 
 ## Testing
 
 <!-- Qanday qilib test qilindi? -->
+
 - [ ] Unit testlar yozildi va pass qildi
 - [ ] Integration testlar yozildi va pass qildi
 - [ ] E2E testlar yozildi (qulay bo'lsa)

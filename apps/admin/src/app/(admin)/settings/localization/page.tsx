@@ -1,13 +1,24 @@
-export const metadata = { title: 'Lokalizatsiya · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function LocalizationSettingsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { settingsSections } from '../sections';
+
+export async function generateMetadata() {
+  const tab = await getTranslations('platform.settings');
+  return { title: tab('localization') };
+}
+
+export default async function LocalizationSettingsPage() {
+  const t = await getTranslations('platform.extra.settingsLocalization');
+  const sections = await settingsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Tillar va lokalizatsiya</h1>
-      {/* TODO: yoqilgan tillar (uz/ru/en/qoraqalpoq), default til, tarjima inline editor */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Tillar va tarjima
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/settings/localization" />
+
+      <PageIntro>{t('intro')}</PageIntro>
+
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

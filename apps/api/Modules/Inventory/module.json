@@ -1,0 +1,9 @@
+{
+  "name": "Inventory",
+  "alias": "inventory",
+  "description": "Ingredientlar, texnologik kartalar, qoldiq nazorati, inventarizatsiya va chiqim.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "inventory"],
+  "priority": 5,
+  "providers": ["Modules\\Inventory\\Providers\\InventoryServiceProvider"],
+  "files": []
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Kitchen",
+  "alias": "kitchen",
+  "description": "Oshxona displey tizimi: chiptalar, sexlar bo'yicha marshrutlash, tayyorlash vaqti nazorati.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "kitchen"],
+  "priority": 3,
+  "providers": ["Modules\\Kitchen\\Providers\\KitchenServiceProvider"],
+  "files": []
+}

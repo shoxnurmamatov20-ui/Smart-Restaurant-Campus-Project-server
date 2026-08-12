@@ -1,13 +1,13 @@
-"""FSM state classes for multi-step flows."""
+"""FSM state groups for aiogram conversations.
 
-from __future__ import annotations
+Per-flow state groups live in their own file (`states/<flow>.py`).
+Re-export the public groups here so handlers can use them directly.
 
-from aiogram.fsm.state import State, StatesGroup
+When adding a new multi-step flow:
+  1. Create `states/<flow>.py` with a StatesGroup subclass.
+  2. Re-export it here for convenience.
+"""
 
+from src.states.onboarding import OnboardingStates
 
-class OnboardingStates(StatesGroup):
-    """User /start flow: share phone -> link CAMPUS user."""
-
-    waiting_for_phone = State()
-    linking = State()
-    done = State()
+__all__ = ["OnboardingStates"]

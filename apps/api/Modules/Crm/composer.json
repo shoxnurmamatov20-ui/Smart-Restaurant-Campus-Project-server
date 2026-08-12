@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/crm",
+  "description": "Mijozlar bazasi, bonus/cashback dasturi, promo-aksiyalar va fikr-mulohaza.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Crm\\": "app/",
+      "Modules\\Crm\\Database\\Factories\\": "database/factories/",
+      "Modules\\Crm\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Crm\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

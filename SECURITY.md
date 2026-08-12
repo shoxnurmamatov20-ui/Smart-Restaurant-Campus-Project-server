@@ -2,15 +2,16 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
+| Version | Supported                               |
+| ------- | --------------------------------------- |
 | 0.x     | :white_check_mark: (active development) |
 
 ## Reporting a Vulnerability
 
-CAMPUS xavfsizlik muammolarini jiddiy qabul qiladi. Agar siz xavfsizlik kamchiligini topgan bo'lsangiz, iltimos:
+Smart Restaurant Campus xavfsizlik muammolarini jiddiy qabul qiladi. Agar siz xavfsizlik kamchiligini topgan bo'lsangiz, iltimos:
 
 ### ❌ QILMANG
+
 - Issue ochmang (umumiy ko'rinadi)
 - Pull Request orqali muammoni "fix" qilmang (umumiy ko'rinadi)
 - Twitter/Telegram/forum'da yozmang
@@ -21,6 +22,7 @@ CAMPUS xavfsizlik muammolarini jiddiy qabul qiladi. Agar siz xavfsizlik kamchili
 Quyidagi manzilga email yuboring: **uzbcorp@gmail.com**
 
 Email tarkibida quyidagilar bo'lsin:
+
 - **Mavzu (subject):** `[SECURITY] <qisqacha tavsif>`
 - **Tafsilot:** Muammo nima, qaerda, qanday yetkazadi
 - **Reproduce qadamlar:** Aniq qanday qilib topish mumkin
@@ -37,13 +39,15 @@ Email tarkibida quyidagilar bo'lsin:
 ## Bug Bounty
 
 Hozircha rasmiy bug bounty dasturi yo'q, lekin xavfsizlik tadqiqotchilarini tan olamiz:
+
 - Hall of Fame'da nomingiz
 - Loyiha team bilan rasmiy minnatdorchilik
 - Kelajakda — bounty dasturi rejada bor
 
 ## Xavfsizlik standartlari
 
-CAMPUS quyidagi standartlarga rioya qiladi:
+Smart Restaurant Campus quyidagi standartlarga rioya qiladi:
+
 - **OWASP Top 10** (web app xavfsizligi)
 - **PCI-DSS** (to'lov ma'lumotlari uchun)
 - **GDPR-compatible** (shaxsiy ma'lumotlar)

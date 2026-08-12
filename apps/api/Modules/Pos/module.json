@@ -1,0 +1,9 @@
+{
+  "name": "Pos",
+  "alias": "pos",
+  "description": "Kassa terminali: qurilma, PIN, sotuv, aralash to'lov, tasdiq, kassa qutisi, chek, fiskal.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "pos", "till", "cashier"],
+  "priority": 12,
+  "providers": ["Modules\\Pos\\Providers\\PosServiceProvider"],
+  "files": []
+}

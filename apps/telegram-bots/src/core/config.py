@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     )
 
     # ============ App ============
-    app_name: str = "CAMPUS Telegram Bots"
+    app_name: str = "Smart Restaurant Campus Telegram Bots"
     app_version: str = "0.0.0"
     app_env: str = Field(default="local")
     app_debug: bool = Field(default=True)
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # ============ Database (read-only analytics) ============
     database_url: str = Field(
-        default="postgresql+asyncpg://campus:changeme@localhost:5432/campus"
+        default="postgresql+asyncpg://restaurant_campus:changeme@localhost:5432/restaurant_campus"
     )
 
     # ============ Redis ============

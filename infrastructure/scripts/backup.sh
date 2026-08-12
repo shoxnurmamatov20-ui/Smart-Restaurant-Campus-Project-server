@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================
-# CAMPUS — Backup script (PostgreSQL + MinIO + Redis snapshot)
-# Run via cron: 0 3 * * * /srv/campus/infrastructure/scripts/backup.sh
+# Smart Restaurant Campus — Backup script (PostgreSQL + MinIO + Redis snapshot)
+# Run via cron: 0 3 * * * /srv/restaurant-campus/infrastructure/scripts/backup.sh
 # ============================================================
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/srv/campus/backups}"
+BACKUP_DIR="${BACKUP_DIR:-/srv/restaurant-campus/backups}"
 RETENTION_DAYS="${RETENTION_DAYS:-30}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
@@ -19,7 +19,7 @@ mkdir -p "$BACKUP_DIR"/{postgres,minio,redis}
 log "PostgreSQL dump..."
 PG_DUMP_FILE="$BACKUP_DIR/postgres/campus_${TIMESTAMP}.sql.gz"
 docker compose -f "$COMPOSE_FILE" exec -T postgres \
-    pg_dump -U campus -d campus --clean --if-exists \
+    pg_dump -U restaurant_campus -d restaurant_campus --clean --if-exists \
     | gzip > "$PG_DUMP_FILE"
 log "  → $PG_DUMP_FILE ($(du -h "$PG_DUMP_FILE" | cut -f1))"
 
@@ -33,7 +33,7 @@ log "  → $PG_DUMP_FILE ($(du -h "$PG_DUMP_FILE" | cut -f1))"
 log "MinIO bucket mirror..."
 MINIO_BACKUP="$BACKUP_DIR/minio/campus_${TIMESTAMP}.tar.gz"
 docker compose -f "$COMPOSE_FILE" exec -T minio \
-    tar czf - /data/campus 2>/dev/null > "$MINIO_BACKUP" || true
+    tar czf - /data/restaurant-campus 2>/dev/null > "$MINIO_BACKUP" || true
 log "  → $MINIO_BACKUP ($(du -h "$MINIO_BACKUP" | cut -f1))"
 
 # ============ Redis snapshot (BGSAVE) ============

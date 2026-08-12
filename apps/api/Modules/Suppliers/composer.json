@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/suppliers",
+  "description": "Yetkazib beruvchilar bazasi, xarid arizalari, kirim hujjatlari va qarzdorlik.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Suppliers\\": "app/",
+      "Modules\\Suppliers\\Database\\Factories\\": "database/factories/",
+      "Modules\\Suppliers\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Suppliers\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

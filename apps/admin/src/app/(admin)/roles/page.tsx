@@ -1,19 +1,20 @@
-export const metadata = { title: 'Rollar va permissionlar · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function RolesPage() {
+import { PageIntro, Stub } from '../screen';
+
+export async function generateMetadata() {
+  const nav = await getTranslations('platform.nav');
+  return { title: nav('roles') };
+}
+
+export default async function RolesPage() {
+  const t = await getTranslations('platform.extra.roles');
+
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Rollar va permissionlar</h1>
-        <p className="mt-2 text-muted-foreground">
-          RBAC tizimi (Spatie laravel-permission)
-        </p>
-      </header>
+    <>
+      <PageIntro>{t('intro')}</PageIntro>
 
-      {/* TODO: Rollar ro'yxati + permissionlar matrix (15+ rol × 100+ permission) */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Rollar matrix
-      </div>
-    </div>
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

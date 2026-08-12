@@ -21,11 +21,11 @@ use RuntimeException;
  * Usage from anywhere in Laravel:
  *
  *   SendTelegramMessage::dispatch(
- *       botKey: 'student',
- *       telegramChatId: $student->telegram_chat_id,
- *       text: "💯 Yangi baho: {$subject}: {$score}",
- *       channel: 'grades.posted',
- *       userId: $student->id,
+ *       botKey: 'waiter',
+ *       telegramChatId: $waiter->telegram_chat_id,
+ *       text: "🍽 {$table} stoli uchun \"{$dish}\" tayyor",
+ *       channel: 'orders.ready',
+ *       userId: $waiter->id,
  *   );
  */
 final class SendTelegramMessage implements ShouldQueue

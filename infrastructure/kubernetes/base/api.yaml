@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-campus-api
+  namespace: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-campus-api
+    app.kubernetes.io/part-of: smart-restaurant-campus
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: restaurant-campus-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: restaurant-campus-api
+        app.kubernetes.io/part-of: smart-restaurant-campus
+    spec:
+      containers:
+        - name: php-fpm
+          image: ghcr.io/your-org/restaurant-campus-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: fpm
+              containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: restaurant-campus-config
+            - secretRef:
+                name: restaurant-campus-secrets
+          # php-fpm speaks FastCGI, not HTTP, so an httpGet probe cannot reach
+          # it. A tcpSocket probe can, but only proves a socket is open — it
+          # stayed green through a database outage while every request 500'd.
+          # These exec the same checks the /api/health endpoints run.
+          readinessProbe:
+            exec:
+              command: ['php', 'artisan', 'health:check', '--readiness']
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # Liveness is deliberately the TCP check: a database outage must not
+          # get every pod killed and restarted, which fixes nothing and removes
+          # the capacity needed to recover.
+          livenessProbe:
+            tcpSocket:
+              port: fpm
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-campus-api-worker
+  namespace: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-campus-api-worker
+    app.kubernetes.io/part-of: smart-restaurant-campus
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: restaurant-campus-api-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: restaurant-campus-api-worker
+        app.kubernetes.io/part-of: smart-restaurant-campus
+    spec:
+      containers:
+        - name: horizon
+          image: ghcr.io/your-org/restaurant-campus-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ['php']
+          args: ['artisan', 'horizon']
+          envFrom:
+            - configMapRef:
+                name: restaurant-campus-config
+            - secretRef:
+                name: restaurant-campus-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: '1'
+              memory: 1Gi
+---
+# Laravel's scheduler. Exactly one replica: two would deliver every outbox
+# event twice and run activitylog:clean concurrently. Without this deployment
+# nothing scheduled ever runs in production — the outbox relay, audit retention
+# and expired-token pruning all silently do not happen.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-campus-api-scheduler
+  namespace: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-campus-api-scheduler
+    app.kubernetes.io/part-of: smart-restaurant-campus
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: restaurant-campus-api-scheduler
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: restaurant-campus-api-scheduler
+        app.kubernetes.io/part-of: smart-restaurant-campus
+    spec:
+      containers:
+        - name: scheduler
+          image: ghcr.io/your-org/restaurant-campus-api:latest
+          imagePullPolicy: IfNotPresent
+          # schedule:work is the long-running form of `* * * * * schedule:run`,
+          # so no cron sidecar is needed in the image.
+          command: ['php']
+          args: ['artisan', 'schedule:work']
+          envFrom:
+            - configMapRef:
+                name: restaurant-campus-config
+            - secretRef:
+                name: restaurant-campus-secrets
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-campus-api
+  namespace: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-campus-api
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: restaurant-campus-api
+  ports:
+    - name: fpm
+      port: 9000
+      targetPort: fpm

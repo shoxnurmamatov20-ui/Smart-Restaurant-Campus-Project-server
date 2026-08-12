@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-campus-config
+  namespace: restaurant-campus
+data:
+  APP_ENV: production
+  APP_DEBUG: 'false'
+  APP_TIMEZONE: Asia/Tashkent
+  APP_LOCALE: uz
+  APP_FALLBACK_LOCALE: en
+  TENANCY_MODE: single_database
+  TENANCY_HEADER: X-Tenant
+  TENANCY_REQUIRE_TENANT: 'true'
+  QUEUE_CONNECTION: redis
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+  FILESYSTEM_DISK: s3
+  SCOUT_DRIVER: meilisearch
+  SCOUT_QUEUE: 'true'

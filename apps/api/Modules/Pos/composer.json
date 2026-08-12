@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/pos",
+  "description": "Kassa terminali: qurilma, PIN, sotuv, aralash to'lov, tasdiq, kassa qutisi, chek, fiskal.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Pos\\": "app/",
+      "Modules\\Pos\\Database\\Factories\\": "database/factories/",
+      "Modules\\Pos\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Pos\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

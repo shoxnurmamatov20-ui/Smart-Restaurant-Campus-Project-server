@@ -1,11 +1,13 @@
-import type { LoginPayload, User } from '@campus/types';
+import type { LoginPayload, User } from '@restaurant/types';
 import { adminApi } from '../api/client';
 
 /**
- * Super Admin login (always 2FA).
+ * Platform admin login (always 2FA).
  * Returns user + session (cookie-based via Sanctum).
  */
-export async function adminLogin(payload: LoginPayload & { two_factor_code: string }): Promise<User> {
+export async function adminLogin(
+  payload: LoginPayload & { two_factor_code: string },
+): Promise<User> {
   await fetch(`${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '')}/sanctum/csrf-cookie`, {
     credentials: 'include',
   });

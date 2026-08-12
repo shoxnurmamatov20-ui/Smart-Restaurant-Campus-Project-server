@@ -1,5 +1,5 @@
 {
-  "extends": "@campus/config/tsconfig/base.json",
+  "extends": "@restaurant/config/tsconfig/base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

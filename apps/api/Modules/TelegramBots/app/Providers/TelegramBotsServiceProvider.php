@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Modules\TelegramBots\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\TelegramBots\Console\CheckConfigCommand;
+use Modules\TelegramBots\Console\RotateInternalTokenCommand;
+use Modules\TelegramBots\Console\SyncBotRegistryCommand;
 use Modules\TelegramBots\Http\Middleware\InternalBotsAuth;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -26,7 +29,9 @@ class TelegramBotsServiceProvider extends ModuleServiceProvider
      * @var string[]
      */
     protected array $commands = [
-        \Modules\TelegramBots\Console\SyncBotRegistryCommand::class,
+        SyncBotRegistryCommand::class,
+        RotateInternalTokenCommand::class,
+        CheckConfigCommand::class,
     ];
 
     /**

@@ -6,17 +6,18 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes — CAMPUS API
+| Web Routes — Smart Restaurant Campus API
 |--------------------------------------------------------------------------
-| API server is mainly used via /api routes. Web routes here are:
-|   - / (status page)
-|   - /docs (API docs, dev only — when generator is set up)
-|   - /horizon (queue dashboard, auth required)
+| This service is API-first; the interfaces live in apps/web (staff console),
+| apps/admin (platform admin) and the Telegram WebApps. Web routes here are:
+|   - /          status page
+|   - /horizon   queue dashboard (auth required, gated in HorizonServiceProvider)
+|   - /pulse     app performance (auth required)
 */
 
 Route::get('/', function () {
     return response()->json([
-        'service' => 'CAMPUS API',
+        'service' => 'Smart Restaurant Campus API',
         'version' => config('app.version', '0.0.0'),
         'env' => config('app.env'),
         'time' => now()->toIso8601String(),

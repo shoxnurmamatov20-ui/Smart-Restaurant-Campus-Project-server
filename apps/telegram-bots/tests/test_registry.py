@@ -4,7 +4,7 @@ from src.bots.registry import ALL_BOTS, BOTS_BY_KEY, PHASE_1_BOTS, total_count
 
 
 def test_registry_has_at_least_50_bots() -> None:
-    assert total_count() >= 50, "User asked for 10–50 bots; we should ship at least 50 definitions"
+    assert total_count() >= 50, "The platform ships 10 live + 40 planned bot definitions"
 
 
 def test_phase1_has_exactly_10() -> None:
@@ -30,4 +30,31 @@ def test_env_var_format() -> None:
 
 
 def test_lookup_works() -> None:
-    assert BOTS_BY_KEY["student"].name_uz == "Talaba boti"
+    assert BOTS_BY_KEY["guest"].name_uz == "Mehmon boti"
+
+
+def test_guest_facing_bots_do_not_force_a_login() -> None:
+    """A first-time visitor scanning a table QR has no account yet.
+
+    Demanding a phone number before showing the menu loses that guest, so the
+    entry-point bots must stay open.
+    """
+    for key in ("guest", "feedback"):
+        assert not BOTS_BY_KEY[key].requires_login, f"{key} must work without a linked account"
+        assert not BOTS_BY_KEY[key].requires_phone, f"{key} must not demand a phone up front"
+
+
+def test_staff_bots_require_a_linked_account() -> None:
+    """Anything that exposes revenue, tickets or guest data must be gated."""
+    for key in ("waiter", "kitchen", "courier", "manager", "owner", "supplier"):
+        assert BOTS_BY_KEY[key].requires_login, f"{key} must require a linked account"
+
+
+def test_every_module_link_is_a_real_module() -> None:
+    known = {
+        "menu", "orders", "kitchen", "tables", "inventory",
+        "suppliers", "staff", "finance", "crm", "analytics",
+    }
+    for b in ALL_BOTS:
+        if b.module is not None:
+            assert b.module in known, f"{b.key} points at unknown module {b.module!r}"

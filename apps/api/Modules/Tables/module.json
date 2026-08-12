@@ -1,0 +1,9 @@
+{
+  "name": "Tables",
+  "alias": "tables",
+  "description": "Zallar, stollar, joy bandligi, oldindan bron qilish va QR-menyu.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "tables"],
+  "priority": 4,
+  "providers": ["Modules\\Tables\\Providers\\TablesServiceProvider"],
+  "files": []
+}

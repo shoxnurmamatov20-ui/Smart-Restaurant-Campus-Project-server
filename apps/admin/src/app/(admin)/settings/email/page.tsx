@@ -1,13 +1,24 @@
-export const metadata = { title: 'Email sozlamalari · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function EmailSettingsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { settingsSections } from '../sections';
+
+export async function generateMetadata() {
+  const tab = await getTranslations('platform.settings');
+  return { title: tab('email') };
+}
+
+export default async function EmailSettingsPage() {
+  const t = await getTranslations('platform.extra.settingsEmail');
+  const sections = await settingsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Email (SMTP) sozlamalari</h1>
-      {/* TODO: host, port, encryption, username, password, from address, test send */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        SMTP konfiguratsiya
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/settings/email" />
+
+      <PageIntro>{t('intro')}</PageIntro>
+
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

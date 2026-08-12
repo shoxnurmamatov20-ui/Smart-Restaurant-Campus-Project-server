@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/analytics",
+  "description": "Sotuv analitikasi, food-cost, ABC tahlil, filiallar taqqoslash va rahbar dashboardi.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Analytics\\": "app/",
+      "Modules\\Analytics\\Database\\Factories\\": "database/factories/",
+      "Modules\\Analytics\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Analytics\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

@@ -19,7 +19,16 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    /*
+     * PostgreSQL, everywhere, including tests.
+     *
+     * The platform gives every module its own schema, which no other engine
+     * supports; the CRM birthday scope uses `extract()`; the outbox relies on
+     * PostgreSQL's transactional DDL. Falling back to SQLite would not degrade
+     * gracefully — it would run a different schema against the same code, which
+     * is how a bug reaches production unnoticed.
+     */
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -34,6 +43,12 @@ return [
 
     'connections' => [
 
+        /*
+         * Left defined but deliberately unused, and unreachable in practice:
+         * `ModuleBoundaryTest::test_the_platform_runs_on_postgresql` fails the
+         * build if anything points the application at it. Removing it outright
+         * would break Laravel's own `database:` helpers, which reference the key.
+         */
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
@@ -95,9 +110,45 @@ return [
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'charset' => env('DB_CHARSET', 'utf8'),
+
+            /*
+             * Pin the session timezone to UTC.
+             *
+             * Laravel stores timestamps as naive UTC in `timestamp without time
+             * zone` columns, but PostgreSQL's `now()` returns a value in the
+             * *server's* timezone — which on this machine defaults to
+             * Asia/Tashkent. Any SQL comparing a Laravel column against `now()`
+             * was therefore five hours out, and would be out by a different
+             * amount on a differently configured server: the purest form of
+             * "works on my machine".
+             *
+             * Setting it here makes every connection agree with the application,
+             * on every machine. `ModuleBoundaryTest` asserts it stays that way.
+             */
+            'timezone' => 'UTC',
+
             'prefix' => '',
             'prefix_indexes' => true,
-            'search_path' => 'public',
+
+            /*
+             * One schema per module (see the 0000_01_01_000000 migration).
+             *
+             * `public` stays first, so anything created without an explicit
+             * schema — a framework table, a package migration we do not own —
+             * lands in the platform's own space rather than inside a module.
+             *
+             * Every module schema follows, which means an unqualified table name
+             * still resolves: `exists:menu_items,id` in a validation rule, or
+             * `assertDatabaseHas('orders', …)` in a test, keeps working without
+             * every call site having to know which module owns the table.
+             * Models and migrations qualify explicitly anyway, so the schema is
+             * declared where it matters and inferred where it does not.
+             */
+            'search_path' => env(
+                'DB_SEARCH_PATH',
+                'public,menu,orders,kitchen,tables,inventory,suppliers,staff,finance,crm,telegram,analytics,pos',
+            ),
+
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 

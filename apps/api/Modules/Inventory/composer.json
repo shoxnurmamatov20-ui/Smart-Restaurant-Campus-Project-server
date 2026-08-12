@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/inventory",
+  "description": "Ingredientlar, texnologik kartalar, qoldiq nazorati, inventarizatsiya va chiqim.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Inventory\\": "app/",
+      "Modules\\Inventory\\Database\\Factories\\": "database/factories/",
+      "Modules\\Inventory\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Inventory\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

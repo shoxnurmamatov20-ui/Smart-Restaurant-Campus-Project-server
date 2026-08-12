@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/kitchen",
+  "description": "Oshxona displey tizimi: chiptalar, sexlar bo'yicha marshrutlash, tayyorlash vaqti nazorati.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Kitchen\\": "app/",
+      "Modules\\Kitchen\\Database\\Factories\\": "database/factories/",
+      "Modules\\Kitchen\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Kitchen\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

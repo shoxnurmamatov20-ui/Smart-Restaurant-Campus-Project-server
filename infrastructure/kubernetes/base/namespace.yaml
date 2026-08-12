@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: restaurant-campus
+  labels:
+    app.kubernetes.io/name: restaurant-campus
+    app.kubernetes.io/part-of: smart-restaurant-campus

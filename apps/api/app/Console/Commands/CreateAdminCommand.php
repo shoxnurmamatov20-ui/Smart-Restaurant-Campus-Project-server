@@ -7,20 +7,20 @@ namespace App\Console\Commands;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
+use Spatie\Permission\Models\Role;
+
 /**
  * Yangi Super Admin yaratish (interactive).
  *
  * Foydalanish:
  *   php artisan admin:create
- *   php artisan admin:create --email=admin@campus.uz --name="Bosh admin"
+ *   php artisan admin:create --email=admin@restaurant-campus.uz --name="Bosh admin"
  */
 final class CreateAdminCommand extends Command
 {
@@ -30,16 +30,16 @@ final class CreateAdminCommand extends Command
         {--role=super-admin : Role to assign (default: super-admin)}
         {--password= : Plain password (NOT recommended — use interactive)}';
 
-    protected $description = "Yangi Super Admin foydalanuvchi yaratish (RBAC roli bilan)";
+    protected $description = 'Yangi Super Admin foydalanuvchi yaratish (RBAC roli bilan)';
 
     public function handle(): int
     {
-        $this->info('🔐 CAMPUS — Super Admin yaratish');
+        $this->info('🔐 Smart Restaurant Campus — Super Admin yaratish');
         $this->newLine();
 
         $email = $this->option('email') ?: text(
             label: 'Email manzili',
-            placeholder: 'admin@campus.uz',
+            placeholder: 'admin@restaurant-campus.uz',
             required: true,
             validate: fn (string $value) => match (true) {
                 ! filter_var($value, FILTER_VALIDATE_EMAIL) => 'Email noto\'g\'ri formatda',
@@ -93,7 +93,7 @@ final class CreateAdminCommand extends Command
         $user->assignRole($roleName);
 
         $this->newLine();
-        $this->info("✅ Super Admin yaratildi:");
+        $this->info('✅ Super Admin yaratildi:');
         $this->table(['Field', 'Value'], [
             ['ID', (string) $user->id],
             ['Email', $user->email],

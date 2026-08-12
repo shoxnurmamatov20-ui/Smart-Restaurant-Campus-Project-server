@@ -1,0 +1,108 @@
+/* ============================================================
+   Smart Restaurant Cloud — the public site
+
+   Only what a utility class cannot express. Everything with a class name in
+   the markup is Tailwind against the design's tokens; what is left here is the
+   layout vocabulary the prototype declares as attributes, because those are
+   what its own breakpoints key on.
+   ============================================================ */
+
+[data-wrap] {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+[data-sec] {
+  padding: 112px 0;
+}
+
+/* ---- Hover, the prototype's `style-hover` made real ---- */
+
+[data-navlink]:hover {
+  color: var(--fg);
+}
+
+[data-btn-quiet]:hover {
+  background: var(--bg-muted);
+}
+
+[data-btn-brand]:hover {
+  background: var(--brand-600);
+}
+
+[data-card-lift] {
+  transition: box-shadow var(--dur-med) var(--ease-standard);
+}
+[data-card-lift]:hover {
+  box-shadow: var(--shadow-md);
+}
+
+[data-role-row] {
+  transition: background 160ms var(--ease-standard);
+}
+[data-role-row]:hover {
+  background: var(--bg-subtle);
+}
+
+[data-footlink]:hover {
+  color: #fff;
+}
+
+[data-dark-btn]:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ---- Responsive, exactly the prototype's breakpoints ---- */
+
+@media (max-width: 1100px) {
+  [data-navlinks] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1040px) {
+  [data-price] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 900px) {
+  [data-wrap] {
+    padding: 0 20px;
+  }
+  [data-sec] {
+    padding: 72px 0;
+  }
+  [data-h2] {
+    font-size: 32px;
+  }
+  [data-lede] {
+    font-size: 16px;
+  }
+  [data-hero],
+  [data-two],
+  [data-three],
+  [data-price] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-h1] {
+    font-size: 40px !important;
+  }
+  [data-stats] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 600px) {
+  [data-hidesm] {
+    display: none !important;
+  }
+  [data-h1] {
+    font-size: 32px !important;
+  }
+  [data-herobtn] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}

@@ -1,24 +1,30 @@
-export const metadata = { title: 'API kalitlari · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function ApiKeysPage() {
+import { ACTION_PRIMARY, PageIntro, Stub } from '../screen';
+
+export async function generateMetadata() {
+  const nav = await getTranslations('platform.nav');
+  return { title: nav('apiKeys') };
+}
+
+export default async function ApiKeysPage() {
+  const t = await getTranslations('platform.extra.apiKeys');
+
   return (
-    <div className="space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">API kalitlari</h1>
-          <p className="mt-2 text-muted-foreground">
-            Tashqi tizimlar uchun API tokenlar (Laravel Sanctum personal access tokens)
-          </p>
-        </div>
-        <button className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-          ➕ Yangi kalit
-        </button>
-      </header>
+    <>
+      <PageIntro
+        actions={
+          <>
+            <button type="button" className={ACTION_PRIMARY}>
+              {t('action')}
+            </button>
+          </>
+        }
+      >
+        {t('intro')}
+      </PageIntro>
 
-      {/* TODO: kalitlar jadvali, scope, last used, revoke */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        API kalitlar ro'yxati
-      </div>
-    </div>
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

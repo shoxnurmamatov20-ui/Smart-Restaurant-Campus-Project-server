@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Restaurant Campus — Staff Console
 
-## Getting Started
+Next.js 16 web app used by restaurant staff: waiters, cooks, hosts, cashiers,
+storekeepers and managers. The platform operator uses `apps/admin` instead.
 
-First, run the development server:
+Runs on **port 3000**.
+
+## Modules
+
+| Yo'l         | Modul                                                          |
+| ------------ | -------------------------------------------------------------- |
+| `/dashboard` | Smena dashboardi — tushum, buyurtmalar, o'rtacha chek, stollar |
+| `/orders`    | Buyurtmalar (zal / olib ketish / yetkazib berish)              |
+| `/kitchen`   | Oshxona displey tizimi (KDS)                                   |
+| `/tables`    | Zal xaritasi, stollar, bronlar                                 |
+| `/menu`      | Menyu, taomlar, narxlar, stop-list                             |
+| `/inventory` | Ombor, ingredientlar, texnologik kartalar                      |
+| `/suppliers` | Yetkazib beruvchilar va xaridlar                               |
+| `/finance`   | Kassa smenasi, to'lovlar, xarajatlar                           |
+| `/staff`     | Xodimlar, smenalar, davomat                                    |
+| `/crm`       | Mijozlar, sodiqlik, aksiyalar                                  |
+| `/analytics` | Sotuv analitikasi, food-cost, KPI                              |
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install            # from the repo root
+cp .env.local.example .env.local
+pnpm --filter @restaurant/web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>. The API must be running on
+<http://localhost:8000> — see `apps/api/README.md`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Conventions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Money** arrives from the API as an integer number of tiyin
+  (1 so'm = 100 tiyin). Format it at render time; never store the formatted value.
+- **Content translations** (dish names, category titles) come back already
+  resolved in `title`, with the full `{uz, ru, en}` map in `name` for editors.
+  UI chrome strings live in `@restaurant/i18n`.
+- **Tenant** — every API call carries the restaurant via the `X-Tenant` header;
+  see `src/lib/constants.ts`.
+- Shared code comes from `@restaurant/ui`, `@restaurant/types`, `@restaurant/sdk`.
+- Live screens (KDS, floor map, revenue tiles) subscribe to Laravel Reverb
+  channels `tenant.{id}.kitchen`, `.floor`, `.cashdesk`, `.management`.

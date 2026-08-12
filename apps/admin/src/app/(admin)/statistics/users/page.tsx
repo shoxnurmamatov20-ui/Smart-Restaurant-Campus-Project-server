@@ -1,13 +1,24 @@
-export const metadata = { title: 'Foydalanuvchilar statistikasi · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function UsersStatsPage() {
+import { PageIntro, Stub, Tabs } from '../../screen';
+import { statisticsSections } from '../../statistics/sections';
+
+export async function generateMetadata() {
+  const t = await getTranslations('platform.extra.statistics');
+  return { title: t('usersStub') };
+}
+
+export default async function UserStatsPage() {
+  const t = await getTranslations('platform.extra.statistics');
+  const sections = await statisticsSections();
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Foydalanuvchilar statistikasi</h1>
-      {/* TODO: rolda bo'yicha split, yangi ro'yxatdan o'tishlar, faol/passiv, MAU/DAU */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        User analitika charts
-      </div>
-    </div>
+    <>
+      <Tabs items={sections} current="/statistics/users" />
+
+      <PageIntro>{t('usersIntro')}</PageIntro>
+
+      <Stub title={t('usersStub')}>{t('usersNote')}</Stub>
+    </>
   );
 }

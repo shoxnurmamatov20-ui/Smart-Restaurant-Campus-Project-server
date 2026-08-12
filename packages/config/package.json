@@ -1,25 +1,23 @@
 {
-  "name": "@campus/config",
+  "name": "@restaurant/config",
   "version": "0.0.0",
   "private": true,
-  "description": "Shared ESLint, Prettier, TSConfig, and Tailwind base configs",
+  "description": "Shared ESLint (flat) and TSConfig presets for the workspace packages",
   "exports": {
-    "./eslint/base": "./eslint/base.js",
-    "./eslint/react": "./eslint/react.js",
-    "./eslint/next": "./eslint/next.js",
-    "./prettier": "./prettier/index.js",
+    "./eslint/base": "./eslint/base.mjs",
+    "./eslint/react": "./eslint/react.mjs",
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/react-library.json": "./tsconfig/react-library.json",
-    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
-    "./tailwind/base": "./tailwind/base.ts"
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.59.4",
-    "@typescript-eslint/parser": "^8.59.4",
     "eslint": "catalog:",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
     "typescript": "catalog:"
   }
 }

@@ -14,22 +14,20 @@ export default function AdminErrorPage({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
-      <div className="w-full max-w-md space-y-6 rounded-lg border bg-white p-8 text-center shadow">
+    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+      <div className="bg-card w-full max-w-md space-y-6 rounded-lg border p-8 text-center shadow">
         <div className="text-6xl">🛑</div>
         <h1 className="text-2xl font-bold">Admin panel xatosi</h1>
-        <p className="text-sm text-muted-foreground">
-          {error.message || 'Kutilmagan xatolik. IT bo\'limga xabar berildi.'}
+        <p className="text-muted-foreground text-sm">
+          {error.message || "Kutilmagan xatolik. IT bo'limga xabar berildi."}
         </p>
         {error.digest && (
-          <p className="text-xs font-mono text-muted-foreground">
-            Error ID: {error.digest}
-          </p>
+          <p className="text-muted-foreground font-mono text-xs">Error ID: {error.digest}</p>
         )}
         <div className="flex justify-center gap-2">
           <button
             onClick={reset}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:opacity-90"
           >
             Qaytadan urinish
           </button>

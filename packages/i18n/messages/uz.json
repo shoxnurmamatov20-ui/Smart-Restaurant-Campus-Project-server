@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "CAMPUS",
-    "tagline": "Kelajak universiteti"
+    "name": "Restaurant Campus",
+    "tagline": "Restoraningiz bitta ekranda"
   },
   "common": {
     "loading": "Yuklanmoqda...",
@@ -25,19 +25,39 @@
     "register": "Ro'yxatdan o'tish",
     "settings": "Sozlamalar",
     "profile": "Profil",
-    "language": "Til"
+    "language": "Til",
+    "total": "Jami",
+    "print": "Chop etish",
+    "export": "Eksport"
   },
   "modules": {
-    "hr": "Kadrlar",
-    "students": "Talabalar",
-    "online": "Online platforma",
-    "edms": "Hujjat aylanishi",
-    "rttm": "RTTM",
-    "psychology": "Psixologik test",
-    "exams": "Test tizimi",
-    "library": "Kutubxona",
-    "media": "Media",
-    "kpi": "KPI"
+    "menu": "Menyu",
+    "orders": "Buyurtmalar",
+    "kitchen": "Oshxona",
+    "tables": "Stollar va bronlar",
+    "inventory": "Ombor",
+    "suppliers": "Yetkazib beruvchilar",
+    "staff": "Xodimlar",
+    "finance": "Moliya va kassa",
+    "crm": "Mijozlar va sodiqlik",
+    "analytics": "Analitika"
+  },
+  "channels": {
+    "dine_in": "Zalda",
+    "takeaway": "Olib ketish",
+    "delivery": "Yetkazib berish",
+    "aggregator": "Agregator"
+  },
+  "order_status": {
+    "draft": "Qoralama",
+    "placed": "Qabul qilindi",
+    "in_kitchen": "Oshxonada",
+    "ready": "Tayyor",
+    "served": "Berildi",
+    "on_the_way": "Yo'lda",
+    "delivered": "Yetkazildi",
+    "paid": "To'landi",
+    "cancelled": "Bekor qilindi"
   },
   "errors": {
     "generic": "Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",

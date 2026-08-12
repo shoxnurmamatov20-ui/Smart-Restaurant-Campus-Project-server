@@ -1,4 +1,4 @@
-# CAMPUS - Local dev services launcher (Windows native)
+# Smart Restaurant Campus - Local dev services launcher (Windows native)
 # Starts MinIO, Meilisearch, Mailpit in background.
 # PostgreSQL 18 and Memurai (Redis) are already running as Windows services.
 #
@@ -100,7 +100,7 @@ if ($Status) {
 } elseif ($Stop) {
     Stop-CampusServices
     Write-Host ""
-    Write-Host "All campus services stopped."
+    Write-Host "All Restaurant Campus services stopped."
 } else {
     Start-CampusServices
     Start-Sleep -Seconds 4

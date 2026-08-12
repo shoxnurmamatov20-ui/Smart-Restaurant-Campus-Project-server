@@ -1,19 +1,20 @@
-export const metadata = { title: 'Hisobotlar · Super Admin' };
+import { getTranslations } from 'next-intl/server';
 
-export default function ReportsPage() {
+import { PageIntro, Stub } from '../screen';
+
+export async function generateMetadata() {
+  const nav = await getTranslations('platform.nav');
+  return { title: nav('reports') };
+}
+
+export default async function ReportsPage() {
+  const t = await getTranslations('platform.extra.reports');
+
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Hisobotlar generatsiyasi</h1>
-        <p className="mt-2 text-muted-foreground">
-          Excel/PDF eksport (maatwebsite/excel + barryvdh/laravel-dompdf)
-        </p>
-      </header>
+    <>
+      <PageIntro>{t('intro')}</PageIntro>
 
-      {/* TODO: shabloniyalar (talaba ro'yxati, davomat, KPI, va h.k.), scheduling */}
-      <div className="rounded-md border bg-white p-12 text-center text-muted-foreground">
-        Hisobot shabloniyalari
-      </div>
-    </div>
+      <Stub title={t('stub')}>{t('note')}</Stub>
+    </>
   );
 }

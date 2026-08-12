@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/menu",
+  "description": "Restoran menyusi: kategoriyalar, taomlar, narxlar, modifikatorlar, stop-list.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Menu\\": "app/",
+      "Modules\\Menu\\Database\\Factories\\": "database/factories/",
+      "Modules\\Menu\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Menu\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

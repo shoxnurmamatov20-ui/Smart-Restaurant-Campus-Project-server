@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+--brand-50:#EEF5FF;--brand-100:#DBE9FE;--brand-200:#BDD7FC;--brand-500:#2E74EA;--brand-600:#1C5AD1;--brand-700:#1947A8;
+--accent-50:#ECFBF6;--accent-500:#0FB48A;--accent-600:#0A8F6C;
+--success-50:#ECFDF3;--success-500:#12B76A;--success-600:#039855;
+--warning-50:#FFFAEB;--warning-500:#F79009;--warning-600:#DC6803;
+--danger-50:#FEF3F2;--danger-500:#F04438;--danger-600:#D92D20;
+--n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;--n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+--bg:var(--n-0);--bg-subtle:var(--n-50);--bg-muted:var(--n-100);--surface:var(--n-0);
+--border:var(--n-150);--border-strong:var(--n-200);--divider:var(--n-100);
+--fg:var(--n-900);--fg-muted:var(--n-600);--fg-subtle:var(--n-500);--fg-inverse:var(--n-0);
+--font-display:'Inter Tight',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+--font-sans:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+--shadow-xs:0 1px 2px rgba(16,24,40,.04);
+--shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+--shadow-md:0 4px 8px -2px rgba(16,24,40,.06),0 2px 4px -2px rgba(16,24,40,.04);
+--shadow-lg:0 12px 16px -4px rgba(16,24,40,.06),0 4px 6px -2px rgba(16,24,40,.03);
+--shadow-xl:0 20px 24px -4px rgba(16,24,40,.08),0 8px 8px -4px rgba(16,24,40,.03);
+--ease-standard:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{overflow-x:hidden}
+a{color:var(--brand-600);text-decoration:none}
+a:hover{color:var(--brand-700)}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:3px solid rgba(46,116,234,.55);outline-offset:2px;border-radius:6px}
+h1,h2,h3,h4,p{margin:0}
+[data-wrap]{max-width:1200px;margin:0 auto;padding:0 32px}
+[data-sec]{padding:112px 0}
+[data-eyebrow]{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-600)}
+[data-h2]{font-family:var(--font-display);font-size:44px;font-weight:700;line-height:1.12;letter-spacing:-.022em;margin:14px 0 0}
+[data-lede]{font-size:18px;line-height:1.6;color:var(--fg-muted);margin:16px 0 0;max-width:620px;text-wrap:pretty}
+@media(max-width:1100px){
+ [data-navlinks]{display:none !important}
+}
+@media(max-width:1040px){
+ [data-price]{grid-template-columns:1fr !important}
+}
+@media(max-width:900px){
+ [data-wrap]{padding:0 20px}
+ [data-sec]{padding:72px 0}
+ [data-h2]{font-size:32px}
+ [data-lede]{font-size:16px}
+ [data-navlinks]{display:none !important}
+ [data-hero]{grid-template-columns:1fr !important}
+ [data-two]{grid-template-columns:1fr !important}
+ [data-three]{grid-template-columns:1fr !important}
+ [data-price]{grid-template-columns:1fr !important}
+ [data-h1]{font-size:40px !important}
+ [data-stats]{grid-template-columns:1fr 1fr !important}
+}
+@media(max-width:600px){
+ [data-hidesm]{display:none !important}
+ [data-h1]{font-size:32px !important}
+ [data-herobtn]{flex-direction:column !important;align-items:stretch !important}
+}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--bg)">
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:#fff;box-shadow:var(--shadow-xl);font-size:14px;font-weight:500;white-space:nowrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+      {{toast}}
+    </div>
+  </sc-if>
+
+  <header style="position:sticky;top:0;z-index:50;height:64px;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border)">
+    <div data-wrap="1" style="height:64px;display:flex;align-items:center;gap:32px">
+      <a href="#top" style="display:flex;align-items:center;gap:10px;color:var(--fg);flex:none">
+        <span style="width:30px;height:30px;border-radius:8px;background:var(--brand-500);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:-.02em;flex:none">SR</span>
+        <span style="font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:-.02em;white-space:nowrap">Smart Restaurant <span style="color:var(--fg-subtle);font-weight:600">Cloud</span></span>
+      </a>
+      <nav data-navlinks="1" style="display:flex;align-items:center;gap:26px;margin-left:6px">
+        <a href="#product" style="font-size:14px;font-weight:500;color:var(--fg-muted)" style-hover="color:var(--fg)">{{t.nProduct}}</a>
+        <a href="#roles" style="font-size:14px;font-weight:500;color:var(--fg-muted)" style-hover="color:var(--fg)">{{t.nRoles}}</a>
+        <a href="#pricing" style="font-size:14px;font-weight:500;color:var(--fg-muted)" style-hover="color:var(--fg)">{{t.nPricing}}</a>
+        <a href="#faq" style="font-size:14px;font-weight:500;color:var(--fg-muted)" style-hover="color:var(--fg)">{{t.nFaq}}</a>
+      </nav>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:2px;height:34px;padding:0 3px;border:1px solid var(--border);border-radius:9px;background:var(--surface)">
+        <button onClick="{{setUz}}" style="height:26px;padding:0 9px;border:0;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)" style-hover="background:var(--bg-muted)" data-langbtn="uz">UZ</button>
+        <button onClick="{{setRu}}" style="height:26px;padding:0 9px;border:0;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)" style-hover="background:var(--bg-muted)" data-langbtn="ru">RU</button>
+        <button onClick="{{setEn}}" style="height:26px;padding:0 9px;border:0;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)" style-hover="background:var(--bg-muted)" data-langbtn="en">EN</button>
+      </div>
+      <a data-hidesm="1" href="#login" style="height:38px;display:inline-flex;align-items:center;padding:0 15px;border:1px solid var(--border-strong);border-radius:10px;font-size:14px;font-weight:600;color:var(--fg);background:var(--surface);white-space:nowrap" style-hover="background:var(--bg-muted)">{{t.nLogin}}</a>
+      <a href="#contact" style="height:38px;display:inline-flex;align-items:center;padding:0 17px;border-radius:10px;font-size:14px;font-weight:600;color:#fff;background:var(--brand-500);white-space:nowrap" style-hover="background:var(--brand-600)">{{t.nDemo}}</a>
+    </div>
+  </header>
+
+  <section id="top" style="padding:96px 0 0;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,var(--bg) 60%,var(--bg-subtle) 100%)">
+    <div data-wrap="1">
+      <div data-hero="1" style="display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:999px;background:var(--accent-50);border:1px solid rgba(15,180,138,.22)">
+            <span style="width:6px;height:6px;border-radius:999px;background:var(--accent-500)"></span>
+            <span style="font-size:12px;font-weight:600;color:var(--accent-600)">{{t.heroPill}}</span>
+          </div>
+          <h1 data-h1="1" style="font-family:var(--font-display);font-size:60px;font-weight:700;line-height:1.06;letter-spacing:-.028em;margin:22px 0 0;text-wrap:balance">{{t.heroH}}</h1>
+          <p style="font-size:19px;line-height:1.6;color:var(--fg-muted);margin:20px 0 0;max-width:520px;text-wrap:pretty">{{t.heroP}}</p>
+          <div data-herobtn="1" style="display:flex;align-items:center;gap:12px;margin-top:32px">
+            <a href="#contact" style="height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 24px;border-radius:12px;font-size:15px;font-weight:600;color:#fff;background:var(--brand-500);box-shadow:var(--shadow-sm)" style-hover="background:var(--brand-600)">{{t.heroCta1}}</a>
+            <a href="#product" style="height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 22px;border-radius:12px;font-size:15px;font-weight:600;color:var(--fg);background:var(--surface);border:1px solid var(--border-strong)" style-hover="background:var(--bg-muted)">{{t.heroCta2}}</a>
+          </div>
+          <p style="font-size:13px;color:var(--fg-subtle);margin-top:16px">{{t.heroNote}}</p>
+        </div>
+
+        <div style="position:relative">
+          <div style="border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:var(--shadow-xl);overflow:hidden">
+            <div style="height:38px;display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid var(--divider);background:var(--bg-subtle)">
+              <span style="width:9px;height:9px;border-radius:999px;background:var(--n-200)"></span>
+              <span style="width:9px;height:9px;border-radius:999px;background:var(--n-200)"></span>
+              <span style="width:9px;height:9px;border-radius:999px;background:var(--n-200)"></span>
+              <span style="margin-left:10px;font-size:11px;color:var(--fg-subtle);font-weight:500">app.smartrestaurant.uz</span>
+            </div>
+            <div style="padding:20px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.mockDate}}</div>
+                  <div style="font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:-.02em;margin-top:4px">{{t.mockTitle}}</div>
+                </div>
+                <div style="display:flex;gap:3px;padding:2px;border:1px solid var(--border);border-radius:8px">
+                  <span style="padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;background:var(--surface);box-shadow:var(--shadow-xs)">{{t.mockDay}}</span>
+                  <span style="padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;color:var(--fg-subtle)">{{t.mockWeek}}</span>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+                <div style="border:1px solid var(--border);border-radius:12px;padding:13px">
+                  <div style="font-size:11px;color:var(--fg-subtle);font-weight:500">{{t.mockRev}}</div>
+                  <div style="font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:3px">18 420 000</div>
+                  <div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:11px;color:var(--fg-subtle)">so'm</span><span style="font-size:11px;font-weight:600;color:var(--success-600)">+12.4%</span></div>
+                  <div style="height:3px;border-radius:999px;background:var(--bg-muted);margin-top:9px;overflow:hidden"><div style="width:74%;height:100%;background:var(--brand-500);border-radius:999px"></div></div>
+                </div>
+                <div style="border:1px solid var(--border);border-radius:12px;padding:13px">
+                  <div style="font-size:11px;color:var(--fg-subtle);font-weight:500">{{t.mockOrd}}</div>
+                  <div style="font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:3px">192</div>
+                  <div style="display:flex;align-items:center;gap:5px;margin-top:2px"><span style="font-size:11px;color:var(--fg-subtle)">{{t.mockDone}}</span><span style="font-size:11px;font-weight:600;color:var(--success-600)">+8</span></div>
+                  <div style="height:3px;border-radius:999px;background:var(--bg-muted);margin-top:9px;overflow:hidden"><div style="width:80%;height:100%;background:var(--accent-500);border-radius:999px"></div></div>
+                </div>
+              </div>
+              <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:10px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:12px;font-weight:600">{{t.mockChart}}</div>
+                  <div style="font-size:11px;font-weight:600;color:var(--success-600)">+10.2%</div>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:6px;height:74px;margin-top:12px">
+                  <div style="flex:1;height:28px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:33px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:30px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:38px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:36px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:43px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:47px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:44px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:53px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:56px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:61px;border-radius:3px 3px 0 0;background:var(--brand-200)"></div>
+                  <div style="flex:1;height:74px;border-radius:3px 3px 0 0;background:var(--brand-500)"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;background:var(--warning-50);border-color:rgba(247,144,9,.24)">
+                <span style="width:7px;height:7px;border-radius:999px;background:var(--warning-500);flex:none"></span>
+                <span style="font-size:12px;color:var(--warning-600);font-weight:600">{{t.mockAlert}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-stats="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:72px 0 -1px">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+          <div style="background:var(--surface);padding:24px 22px">
+            <div style="font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:-.022em">{{s.v}}</div>
+            <div style="font-size:13px;color:var(--fg-subtle);margin-top:4px">{{s.l}}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="product" data-sec="1" style="background:var(--bg-subtle);border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-eyebrow="1">{{t.pEyebrow}}</div>
+      <h2 data-h2="1">{{t.pH}}</h2>
+      <p data-lede="1">{{t.pP}}</p>
+      <div data-three="1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px">
+        <sc-for list="{{features}}" as="f" hint-placeholder-count="6">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;transition:box-shadow 200ms var(--ease-standard)" style-hover="box-shadow:var(--shadow-md)">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-50);display:grid;place-items:center;color:var(--brand-600);font-family:var(--font-display);font-weight:700;font-size:14px">{{f.n}}</div>
+            <div style="font-size:16px;font-weight:600;margin-top:16px;letter-spacing:-.01em">{{f.t}}</div>
+            <p style="font-size:14px;line-height:1.6;color:var(--fg-muted);margin-top:7px;text-wrap:pretty">{{f.d}}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="roles" data-sec="1" style="border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-eyebrow="1">{{t.rEyebrow}}</div>
+      <h2 data-h2="1">{{t.rH}}</h2>
+      <p data-lede="1">{{t.rP}}</p>
+      <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:44px">
+        <sc-for list="{{roles}}" as="r" hint-placeholder-count="5">
+          <div data-two="1" style="display:grid;grid-template-columns:200px 1fr;gap:24px;padding:22px 24px;border-bottom:1px solid var(--divider);background:var(--surface);transition:background 160ms var(--ease-standard)" style-hover="background:var(--bg-subtle)">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="width:34px;height:34px;border-radius:999px;background:var(--bg-muted);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--fg-muted);flex:none">{{r.i}}</span>
+              <span style="font-size:15px;font-weight:600;letter-spacing:-.01em">{{r.t}}</span>
+            </div>
+            <div style="display:flex;align-items:center">
+              <p style="font-size:14px;line-height:1.6;color:var(--fg-muted);text-wrap:pretty">{{r.d}}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section data-sec="1" style="background:var(--bg-subtle);border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-two="1" style="display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center">
+        <div>
+          <div data-eyebrow="1">{{t.cEyebrow}}</div>
+          <h2 data-h2="1">{{t.cH}}</h2>
+          <p data-lede="1">{{t.cP}}</p>
+        </div>
+        <div style="display:grid;gap:12px">
+          <sc-for list="{{compliance}}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px">
+              <span style="width:20px;height:20px;border-radius:999px;background:var(--success-50);display:grid;place-items:center;flex:none;margin-top:1px">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#039855" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+              </span>
+              <div>
+                <div style="font-size:14px;font-weight:600">{{c.t}}</div>
+                <div style="font-size:13px;line-height:1.55;color:var(--fg-muted);margin-top:3px">{{c.d}}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" data-sec="1" style="border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-eyebrow="1">{{t.prEyebrow}}</div>
+      <h2 data-h2="1">{{t.prH}}</h2>
+      <p data-lede="1">{{t.prP}}</p>
+      <div data-price="1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px;align-items:start">
+        <sc-for list="{{plans}}" as="p" hint-placeholder-count="3">
+          <div style="border:1px solid var(--border);border-radius:16px;padding:28px;background:var(--surface)" data-plan="{{p.hi}}">
+            <div style="display:flex;align-items:center;gap:9px">
+              <span style="font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:-.02em">{{p.n}}</span>
+              <sc-if value="{{p.hi}}" hint-placeholder-val="{{false}}">
+                <span style="height:21px;display:inline-flex;align-items:center;padding:0 8px;border-radius:999px;background:var(--brand-50);color:var(--brand-600);font-size:11px;font-weight:600">{{t.prPop}}</span>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px">
+              <span style="font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:-.024em;white-space:nowrap">{{p.price}}</span>
+              <span style="font-size:13px;color:var(--fg-subtle)">{{t.prMonth}}</span>
+            </div>
+            <div style="font-size:13px;color:var(--fg-subtle);margin-top:5px">{{p.sub}}</div>
+            <div style="height:1px;background:var(--divider);margin:20px 0"></div>
+            <div style="display:grid;gap:11px">
+              <sc-for list="{{p.items}}" as="it" hint-placeholder-count="4">
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0A8F6C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:3px"><path d="M20 6 9 17l-5-5"></path></svg>
+                  <span style="font-size:14px;line-height:1.5;color:var(--fg-muted)">{{it}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <a href="#contact" style="margin-top:24px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:14px;font-weight:600;border:1px solid var(--border-strong);background:var(--surface);color:var(--fg)" style-hover="background:var(--bg-muted)" data-planbtn="{{p.hi}}">{{t.prCta}}</a>
+          </div>
+        </sc-for>
+      </div>
+      <p style="font-size:13px;color:var(--fg-subtle);margin-top:20px">{{t.prNote}}</p>
+    </div>
+  </section>
+
+  <section data-sec="1" style="background:var(--bg-subtle);border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-eyebrow="1">{{t.tEyebrow}}</div>
+      <h2 data-h2="1">{{t.tH}}</h2>
+      <div data-three="1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px">
+        <sc-for list="{{quotes}}" as="q" hint-placeholder-count="3">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;display:flex;flex-direction:column">
+            <p style="font-size:15px;line-height:1.65;color:var(--fg);text-wrap:pretty;flex:1">{{q.q}}</p>
+            <div style="display:flex;align-items:center;gap:11px;margin-top:22px;padding-top:18px;border-top:1px solid var(--divider)">
+              <span style="width:36px;height:36px;border-radius:999px;background:var(--bg-muted);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--fg-muted)">{{q.i}}</span>
+              <div>
+                <div style="font-size:14px;font-weight:600">{{q.n}}</div>
+                <div style="font-size:12px;color:var(--fg-subtle);margin-top:1px">{{q.r}}</div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" data-sec="1" style="border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-two="1" style="display:grid;grid-template-columns:360px 1fr;gap:56px;align-items:start">
+        <div>
+          <div data-eyebrow="1">{{t.fEyebrow}}</div>
+          <h2 data-h2="1">{{t.fH}}</h2>
+          <p style="font-size:15px;line-height:1.6;color:var(--fg-muted);margin-top:16px">{{t.fP}}</p>
+          <a href="#contact" style="display:inline-flex;align-items:center;gap:7px;margin-top:18px;font-size:14px;font-weight:600;color:var(--brand-600)">{{t.fLink}} <span>&rarr;</span></a>
+        </div>
+        <div style="border-top:1px solid var(--border)">
+          <sc-for list="{{faq}}" as="f" hint-placeholder-count="6">
+            <div style="border-bottom:1px solid var(--border)">
+              <button onClick="{{f.toggle}}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 4px;background:transparent;border:0;text-align:left;color:var(--fg)">
+                <span style="font-size:16px;font-weight:600;letter-spacing:-.01em">{{f.q}}</span>
+                <span style="width:22px;height:22px;flex:none;display:grid;place-items:center;color:var(--fg-subtle);font-size:19px;font-weight:400;line-height:1">{{f.sign}}</span>
+              </button>
+              <sc-if value="{{f.open}}" hint-placeholder-val="{{false}}">
+                <p style="font-size:15px;line-height:1.65;color:var(--fg-muted);padding:0 40px 22px 4px;text-wrap:pretty;margin:0">{{f.a}}</p>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="login" data-sec="1" style="background:var(--bg-subtle);border-bottom:1px solid var(--border)">
+    <div data-wrap="1">
+      <div data-two="1" style="display:grid;grid-template-columns:1fr 460px;gap:56px;align-items:center">
+        <div>
+          <div data-eyebrow="1">{{t.lEyebrow}}</div>
+          <h2 data-h2="1">{{t.lH}}</h2>
+          <p data-lede="1">{{t.lP}}</p>
+          <div style="display:grid;gap:14px;margin-top:32px;max-width:520px">
+            <sc-for list="{{doors}}" as="d" hint-placeholder-count="3">
+              <div style="display:flex;gap:14px;align-items:flex-start">
+                <span style="width:26px;height:26px;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--fg-muted);flex:none;margin-top:1px">{{d.n}}</span>
+                <div>
+                  <div style="font-size:15px;font-weight:600">{{d.t}}</div>
+                  <div style="font-size:14px;line-height:1.55;color:var(--fg-muted);margin-top:2px">{{d.d}}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-lg);padding:28px">
+          <div style="display:flex;gap:3px;padding:3px;background:var(--bg-muted);border-radius:11px">
+            <button onClick="{{tabEmail}}" data-ltab="email" style="flex:1;height:34px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">{{t.lTab1}}</button>
+            <button onClick="{{tabPin}}" data-ltab="pin" style="flex:1;height:34px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">{{t.lTab2}}</button>
+            <button onClick="{{tabAdmin}}" data-ltab="admin" style="flex:1;height:34px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">{{t.lTab3}}</button>
+          </div>
+
+          <sc-if value="{{isEmail}}" hint-placeholder-val="{{true}}">
+            <div style="margin-top:24px">
+              <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em">{{t.lEmailH}}</div>
+              <p style="font-size:13px;color:var(--fg-subtle);margin-top:5px">{{t.lEmailP}}</p>
+              <label style="display:block;font-size:13px;font-weight:600;margin-top:20px">{{t.lMail}}</label>
+              <input type="email" placeholder="rustam@smartrestaurant.uz" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:16px">
+                <label style="font-size:13px;font-weight:600">{{t.lPass}}</label>
+                <a href="#login" style="font-size:13px;font-weight:500">{{t.lForgot}}</a>
+              </div>
+              <input type="password" placeholder="••••••••" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <label style="display:flex;align-items:center;gap:9px;margin-top:16px;font-size:13px;color:var(--fg-muted);cursor:pointer">
+                <input type="checkbox" style="width:16px;height:16px;accent-color:var(--brand-500)"> {{t.lRemember}}
+              </label>
+              <button onClick="{{doLogin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:var(--brand-500);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--brand-600)">{{t.lEnter}}</button>
+              <p style="font-size:12px;color:var(--fg-subtle);margin-top:14px;line-height:1.5">{{t.lEmailNote}}</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isPin}}" hint-placeholder-val="{{false}}">
+            <div style="margin-top:24px">
+              <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em">{{t.lPinH}}</div>
+              <p style="font-size:13px;color:var(--fg-subtle);margin-top:5px">{{t.lPinP}}</p>
+              <div style="display:flex;justify-content:center;gap:12px;margin-top:22px">
+                <sc-for list="{{pinDots}}" as="p" hint-placeholder-count="4">
+                  <span style="width:44px;height:52px;border-radius:12px;border:1px solid var(--border-strong);background:var(--bg-subtle);display:grid;place-items:center;font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--fg)">{{p.c}}</span>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px">
+                <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+                  <button onClick="{{k.press}}" style="height:56px;border:1px solid var(--border);border-radius:12px;background:var(--surface);font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--fg)" style-hover="background:var(--bg-muted)" style-active="transform:scale(.97)">{{k.l}}</button>
+                </sc-for>
+              </div>
+              <p style="font-size:12px;color:var(--fg-subtle);margin-top:14px;line-height:1.5;text-align:center">{{t.lPinNote}}</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isAdmin}}" hint-placeholder-val="{{false}}">
+            <div style="margin-top:24px">
+              <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em">{{t.lAdminH}}</div>
+              <p style="font-size:13px;color:var(--fg-subtle);margin-top:5px">{{t.lAdminP}}</p>
+              <div style="display:flex;gap:11px;align-items:flex-start;margin-top:20px;padding:14px;border:1px solid rgba(247,144,9,.24);background:var(--warning-50);border-radius:12px">
+                <span style="width:7px;height:7px;border-radius:999px;background:var(--warning-500);flex:none;margin-top:6px"></span>
+                <span style="font-size:13px;line-height:1.5;color:var(--warning-600);font-weight:500">{{t.lAdminWarn}}</span>
+              </div>
+              <label style="display:block;font-size:13px;font-weight:600;margin-top:18px">{{t.lMail}}</label>
+              <input type="email" placeholder="admin@smartrestaurant.uz" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <label style="display:block;font-size:13px;font-weight:600;margin-top:16px">{{t.lCode}}</label>
+              <input type="text" placeholder="000 000" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:16px;letter-spacing:.14em;color:var(--fg);background:var(--surface)">
+              <button onClick="{{doLogin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:var(--n-900);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--n-800)">{{t.lEnter}}</button>
+              <p style="font-size:12px;color:var(--fg-subtle);margin-top:14px;line-height:1.5">{{t.lAdminNote}}</p>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" data-sec="1" style="background:var(--n-900)">
+    <div data-wrap="1">
+      <div data-two="1" style="display:grid;grid-template-columns:1fr 420px;gap:56px;align-items:center">
+        <div>
+          <h2 data-h2="1" style="color:#fff">{{t.ctaH}}</h2>
+          <p style="font-size:17px;line-height:1.6;color:rgba(255,255,255,.66);margin-top:16px;max-width:480px;text-wrap:pretty">{{t.ctaP}}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:30px">
+            <a href="#contact" style="height:48px;display:inline-flex;align-items:center;padding:0 22px;border-radius:12px;font-size:15px;font-weight:600;color:#fff;background:var(--brand-500)" style-hover="background:var(--brand-600)">{{t.ctaBtn1}}</a>
+            <a href="#contact" style="height:48px;display:inline-flex;align-items:center;padding:0 22px;border-radius:12px;font-size:15px;font-weight:600;color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16)" style-hover="background:rgba(255,255,255,.15)">{{t.ctaBtn2}}</a>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:26px">
+          <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45)">{{t.ctaCall}}</div>
+          <a href="#contact" style="display:block;font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:-.02em;color:#fff;margin-top:10px">+998 71 200 40 40</a>
+          <div style="height:1px;background:rgba(255,255,255,.1);margin:20px 0"></div>
+          <div style="display:grid;gap:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:rgba(255,255,255,.62)">Telegram</span><a href="#contact" style="font-size:14px;font-weight:600;color:#fff">@smartrestaurant_uz</a></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:rgba(255,255,255,.62)">{{t.ctaMail}}</span><a href="#contact" style="font-size:14px;font-weight:600;color:#fff">sales@smartrestaurant.uz</a></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:rgba(255,255,255,.62)">{{t.ctaHours}}</span><span style="font-size:14px;font-weight:600;color:#fff">{{t.ctaHoursV}}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding:44px 0;background:var(--n-900);border-top:1px solid rgba(255,255,255,.09)">
+    <div data-wrap="1" style="display:flex;flex-wrap:wrap;align-items:center;gap:20px;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:11px">SR</span>
+        <span style="font-size:14px;color:rgba(255,255,255,.55)">© 2026 Smart Restaurant Cloud · {{t.fRights}}</span>
+      </div>
+      <div style="display:flex;gap:22px">
+        <a href="#top" style="font-size:14px;color:rgba(255,255,255,.55)" style-hover="color:#fff">{{t.fTerms}}</a>
+        <a href="#top" style="font-size:14px;color:rgba(255,255,255,.55)" style-hover="color:#fff">{{t.fPrivacy}}</a>
+        <a href="#login" style="font-size:14px;color:rgba(255,255,255,.55)" style-hover="color:#fff">{{t.nLogin}}</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { lang: "uz", open: 0, ltab: "email", pin: "", toast: "" };
+
+  flash(msg) {
+    clearTimeout(this._tt);
+    this.setState({ toast: msg });
+    this._tt = setTimeout(() => this.setState({ toast: "" }), 2600);
+  }
+
+  componentDidMount() { this.paint(); }
+  componentDidUpdate() { this.paint(); }
+
+  paint() {
+    const el = this.el || document;
+    const L = this.state.lang;
+    (el.querySelectorAll ? el : document).querySelectorAll("[data-langbtn]").forEach(b => {
+      const on = b.getAttribute("data-langbtn") === L;
+      b.style.background = on ? "var(--bg-muted)" : "transparent";
+      b.style.color = on ? "var(--fg)" : "var(--fg-muted)";
+    });
+    document.querySelectorAll("[data-ltab]").forEach(b => {
+      const on = b.getAttribute("data-ltab") === this.state.ltab;
+      b.style.background = on ? "var(--surface)" : "transparent";
+      b.style.color = on ? "var(--fg)" : "var(--fg-muted)";
+      b.style.boxShadow = on ? "var(--shadow-xs)" : "none";
+    });
+    document.querySelectorAll("[data-plan]").forEach(c => {
+      const hi = c.getAttribute("data-plan") === "true";
+      c.style.borderColor = hi ? "var(--brand-500)" : "var(--border)";
+      c.style.boxShadow = hi ? "var(--shadow-lg)" : "none";
+    });
+    document.querySelectorAll("[data-planbtn]").forEach(b => {
+      const hi = b.getAttribute("data-planbtn") === "true";
+      b.style.background = hi ? "var(--brand-500)" : "var(--surface)";
+      b.style.color = hi ? "#fff" : "var(--fg)";
+      b.style.borderColor = hi ? "var(--brand-500)" : "var(--border-strong)";
+    });
+  }
+
+  renderVals() {
+    const L = this.state.lang;
+    const P = (u, r, e) => (L === "ru" ? r : L === "en" ? e : u);
+
+    const t = {
+      nProduct: P("Mahsulot", "Продукт", "Product"),
+      nRoles: P("Kim uchun", "Для кого", "Who it's for"),
+      nPricing: P("Narxlar", "Цены", "Pricing"),
+      nFaq: P("Savollar", "Вопросы", "FAQ"),
+      nLogin: P("Kirish", "Вход", "Sign in"),
+      nDemo: P("Demo so'rash", "Запросить демо", "Request a demo"),
+
+      heroPill: P("42 restoran, 118 filial ishlatmoqda", "42 ресторана, 118 филиалов", "42 restaurants, 118 branches"),
+      heroH: P("Restoraningiz bitta ekranda", "Ваш ресторан на одном экране", "Your restaurant on one screen"),
+      heroP: P("Buyurtmadan hisobotgacha. Ofitsiant, oshpaz, kassir, omborchi va egasi — hammasi bitta tizimda, o'zbek tilida.", "От заказа до отчёта. Официант, повар, кассир, кладовщик и владелец — в одной системе.", "From the first order to the monthly report. Waiters, kitchen, cashiers, storekeepers and owners in one system."),
+      heroCta1: P("Bepul demo olish", "Получить демо", "Get a free demo"),
+      heroCta2: P("Mahsulotni ko'rish", "Смотреть продукт", "See the product"),
+      heroNote: P("14 kun bepul sinov · Karta talab qilinmaydi · 1 kunda ishga tushirish", "14 дней бесплатно · Без карты · Запуск за 1 день", "14-day trial · No card required · Live in one day"),
+
+      mockDate: P("Seshanba, 11-avgust", "Вторник, 11 августа", "Tuesday, 11 August"),
+      mockTitle: P("Chilonzor filiali", "Филиал Чиланзар", "Chilonzor branch"),
+      mockDay: P("Bugun", "День", "Today"),
+      mockWeek: P("Hafta", "Неделя", "Week"),
+      mockRev: P("Tushum", "Выручка", "Revenue"),
+      mockOrd: P("Buyurtmalar", "Заказы", "Orders"),
+      mockDone: P("yopilgan", "закрыто", "closed"),
+      mockChart: P("So'nggi 12 oy", "Последние 12 месяцев", "Last 12 months"),
+      mockAlert: P("Mol go'shti kritik darajada — 2.4 kg qoldi", "Говядина на исходе — осталось 2.4 кг", "Beef running low — 2.4 kg left"),
+
+      pEyebrow: P("Mahsulot", "Продукт", "Product"),
+      pH: P("Restoranning har bir bo'limi uchun", "Для каждого участка ресторана", "Built for every part of the restaurant"),
+      pP: P("Alohida dasturlar va Excel jadvallari o'rniga bitta tizim. Zaldan omborgacha, kassadan buxgalteriyagacha.", "Одна система вместо разрозненных программ и таблиц Excel — от зала до склада.", "One system instead of scattered tools and spreadsheets — from the floor to the storeroom."),
+
+      rEyebrow: P("Kim uchun", "Для кого", "Who it's for"),
+      rH: P("Har kim faqat o'z ishini ko'radi", "Каждый видит только свою работу", "Everyone sees only their own work"),
+      rP: P("Sakkizta rol, sakkizta boshqa ekran. Ofitsiantga moliya kerak emas, egasiga oshxona navbati kerak emas.", "Восемь ролей — восемь разных экранов. Официанту не нужны финансы, владельцу — очередь кухни.", "Eight roles, eight different screens. A waiter does not need the ledger; an owner does not need the kitchen queue."),
+
+      cEyebrow: P("Qonuniy moslik", "Соответствие", "Compliance"),
+      cH: P("O'zbekiston talablariga to'liq mos", "Полное соответствие требованиям Узбекистана", "Built for Uzbek regulation"),
+      cP: P("Soliq va hisobot masalalarini tizim o'zi hal qiladi. Buxgalteringiz Excel ga qaytmaydi.", "Налоги и отчётность система берёт на себя. Бухгалтеру не придётся возвращаться в Excel.", "Tax and reporting are handled inside the system, so your accountant never falls back to spreadsheets."),
+
+      prEyebrow: P("Narxlar", "Цены", "Pricing"),
+      prH: P("Ochiq narx, yashirin to'lovsiz", "Открытые цены, без скрытых платежей", "Open pricing, no hidden fees"),
+      prP: P("Filial soniga qarab to'laysiz. Yangilanishlar, yordam va ma'lumot zaxirasi narxga kiritilgan.", "Вы платите по числу филиалов. Обновления, поддержка и резервные копии включены.", "You pay by branch. Updates, support and backups are included."),
+      prMonth: P("so'm / oyiga", "сум / месяц", "so'm / month"),
+      prPop: P("Ommabop", "Популярный", "Popular"),
+      prCta: P("Tanlash", "Выбрать", "Choose"),
+      prNote: P("Narxlar QQS bilan. Yillik to'lovda ikki oy bepul. Uskuna alohida sotib olinadi yoki ijaraga beriladi.", "Цены с НДС. При годовой оплате два месяца бесплатно. Оборудование приобретается или арендуется отдельно.", "Prices include VAT. Pay annually and two months are free. Hardware is bought or leased separately."),
+
+      tEyebrow: P("Mijozlar", "Клиенты", "Customers"),
+      tH: P("Toshkent, Samarqand, Buxoro va Termizda", "В Ташкенте, Самарканде, Бухаре и Термезе", "In Tashkent, Samarkand, Bukhara and Termez"),
+
+      fEyebrow: P("Savollar", "Вопросы", "FAQ"),
+      fH: P("Ko'p so'raladigan savollar", "Частые вопросы", "Common questions"),
+      fP: P("Javobini topmadingizmi? Qo'ng'iroq qiling yoki Telegram orqali yozing — o'sha kuni javob beramiz.", "Не нашли ответ? Позвоните или напишите в Telegram — ответим в тот же день.", "Not answered here? Call us or write on Telegram — we reply the same day."),
+      fLink: P("Biz bilan bog'lanish", "Связаться с нами", "Talk to us"),
+
+      ctaH: P("Restoraningizni bir hafta ichida ko'chiring", "Перенесите ресторан за неделю", "Move your restaurant across in a week"),
+      ctaP: P("Ma'lumotlarni biz ko'chiramiz, xodimlarni biz o'rgatamiz. Siz faqat ishlashda davom etasiz.", "Мы переносим данные и обучаем персонал. Вы просто продолжаете работать.", "We migrate your data and train your staff. You just keep serving."),
+      ctaBtn1: P("Demo so'rash", "Запросить демо", "Request a demo"),
+      ctaBtn2: P("Narxlarni ko'rish", "Смотреть цены", "See pricing"),
+      ctaCall: P("Qo'ng'iroq qiling", "Позвоните нам", "Call us"),
+      ctaMail: P("Elektron pochta", "Почта", "Email"),
+      ctaHours: P("Ish vaqti", "Часы работы", "Hours"),
+      ctaHoursV: P("Har kuni, 9:00–21:00", "Ежедневно, 9:00–21:00", "Daily, 9:00–21:00"),
+
+      lEyebrow: P("Tizimga kirish", "Вход в систему", "Sign in"),
+      lH: P("Uchta eshik, uchta boshqa yo'l", "Три двери, три разных пути", "Three doors, three different paths"),
+      lP: P("Egasi kompyuterdan parol bilan kiradi, ofitsiant planshetdan PIN bilan, platforma operatori esa ikki bosqichli tasdiq bilan.", "Владелец входит с компьютера по паролю, официант — с планшета по PIN, оператор платформы — через двухфакторное подтверждение.", "Owners sign in from a desktop with a password, waiters from a tablet with a PIN, platform operators with two-factor confirmation."),
+      lTab1: P("Pochta", "Почта", "Email"),
+      lTab2: P("PIN kod", "PIN-код", "PIN"),
+      lTab3: P("Platforma", "Платформа", "Platform"),
+      lEmailH: P("Egasi va menejer", "Владелец и менеджер", "Owner and manager"),
+      lEmailP: P("Buxgalter ham shu yerdan kiradi", "Бухгалтер входит здесь же", "Accountants sign in here too"),
+      lMail: P("Elektron pochta", "Электронная почта", "Email address"),
+      lPass: P("Parol", "Пароль", "Password"),
+      lForgot: P("Parolni tiklash", "Восстановить пароль", "Reset password"),
+      lRemember: P("Meni eslab qol", "Запомнить меня", "Keep me signed in"),
+      lEnter: P("Kirish", "Войти", "Sign in"),
+      lEmailNote: P("Bir necha filialda ishlasangiz, kirgandan keyin filial tanlanadi.", "Если вы работаете в нескольких филиалах, филиал выбирается после входа.", "If you work across branches, you pick the branch after signing in."),
+      lPinH: P("Smena boshlanishi", "Начало смены", "Start of shift"),
+      lPinP: P("Ofitsiant, kassir va oshpaz uchun", "Для официанта, кассира и повара", "For waiters, cashiers and kitchen staff"),
+      lPinNote: P("PIN kodni menejer beradi. Uch marta xato kiritilsa, kod menejer tomonidan tiklanadi.", "PIN выдаёт менеджер. После трёх ошибок код сбрасывает менеджер.", "The manager issues the PIN. After three wrong attempts the manager resets it."),
+      lAdminH: P("Platforma operatori", "Оператор платформы", "Platform operator"),
+      lAdminP: P("Smart Restaurant Cloud xodimlari uchun", "Только для сотрудников Smart Restaurant Cloud", "Smart Restaurant Cloud staff only"),
+      lAdminWarn: P("Har bir kirish jurnalga yoziladi va restoran egasiga ko'rinadi.", "Каждый вход записывается в журнал и виден владельцу ресторана.", "Every sign-in is logged and visible to the restaurant owner."),
+      lCode: P("Tasdiqlash kodi", "Код подтверждения", "Verification code"),
+      lAdminNote: P("Kod ilovadan olinadi. Sessiya 30 daqiqada avtomatik yopiladi.", "Код берётся из приложения. Сессия закрывается автоматически через 30 минут.", "The code comes from the authenticator app. Sessions close automatically after 30 minutes."),
+
+      fRights: P("Barcha huquqlar himoyalangan", "Все права защищены", "All rights reserved"),
+      fTerms: P("Shartlar", "Условия", "Terms"),
+      fPrivacy: P("Maxfiylik", "Конфиденциальность", "Privacy"),
+    };
+
+    const stats = [
+      { v: "42", l: P("restoran ishlatmoqda", "ресторана работают", "restaurants running") },
+      { v: "118", l: P("filial ulangan", "подключённых филиалов", "connected branches") },
+      { v: "99.98%", l: P("ishlash vaqti, 30 kun", "аптайм за 30 дней", "uptime, last 30 days") },
+      { v: "142 ms", l: P("o'rtacha javob vaqti", "среднее время ответа", "average response time") },
+    ];
+
+    const features = [
+      { n: "01", t: P("Zal va buyurtmalar", "Зал и заказы", "Floor and orders"), d: P("Stollar sxemasi, buyurtmani bo'lish va birlashtirish, stolni ko'chirish. Ofitsiant uch teginishda buyurtma yuboradi.", "Схема столов, разделение и объединение счетов, перенос стола. Официант отправляет заказ в три касания.", "Table map, split and merge bills, transfer a table. A waiter fires an order in three taps.") },
+      { n: "02", t: P("Oshxona ekrani", "Кухонный экран", "Kitchen display"), d: P("Grill, issiq, salat va ichimlik alohida navbat ko'radi. Kechikkan chek qizil bo'ladi, stop-list bir teginishda.", "Гриль, горячий цех, салаты и бар видят свою очередь. Опоздавший чек краснеет, стоп-лист в одно касание.", "Grill, hot line, salads and bar each see their own queue. Late tickets turn red; the 86 list is one tap away.") },
+      { n: "03", t: P("Kassa va fiskal", "Касса и фискал", "Cash and fiscal"), d: P("Kassa ochish va yopish, X va Z hisobot, inkassatsiya, naqd farqi. Onlayn-kassa soliq.uz bilan sinxron.", "Открытие и закрытие смены, X и Z отчёты, инкассация, расхождение по кассе. Онлайн-касса синхронна с soliq.uz.", "Open and close the drawer, X and Z reports, cash drops, variance. The fiscal register syncs with soliq.uz.") },
+      { n: "04", t: P("Ombor va tannarx", "Склад и себестоимость", "Stock and cost"), d: P("Texnologik karta har bir taomdan xomashyoni avtomatik yechadi. Qabul qilish, inventarizatsiya, chiqindi va ko'chirish.", "Технологическая карта списывает сырьё автоматически. Приёмка, инвентаризация, списание и перемещение.", "Recipe cards deduct ingredients automatically. Goods receipt, stock counts, waste and transfers.") },
+      { n: "05", t: P("Moliya va buxgalteriya", "Финансы и бухгалтерия", "Finance and books"), d: P("Xarajat kiritish, yetkazib beruvchi qarzlari, maosh, davrni yopish va sverka. EHF, QQS va 1C eksporti.", "Ввод расходов, долги поставщикам, зарплата, закрытие периода и сверка. ЭСФ, НДС и выгрузка в 1С.", "Expense entry, supplier payables, payroll, period close and reconciliation. E-invoicing, VAT and 1C export.") },
+      { n: "06", t: P("Ko'p filial", "Мультифилиальность", "Multi-branch"), d: P("Filiallarni yonma-yon solishtiring: tushum, mehnat foizi, oziq-ovqat foizi, reja bajarilishi. Har biriga alohida maqsad.", "Сравнивайте филиалы рядом: выручка, доля труда, фудкост, выполнение плана. Цель для каждого.", "Compare branches side by side: revenue, labour cost, food cost, target attainment. A target for each one.") },
+    ];
+
+    const roles = [
+      { i: "OF", t: P("Ofitsiant", "Официант", "Waiter"), d: P("Planshetda ishlaydi. O'z stollari, tayyor buyurtma signali, mijoz chaqiruvi va o'z smenasi hisoboti. Narxni o'zgartira olmaydi.", "Работает на планшете: свои столы, сигнал о готовности, вызов гостя и отчёт по смене. Цены менять не может.", "Works on a tablet: own tables, ready-order alerts, guest calls and a personal shift report. Cannot change prices.") },
+      { i: "KS", t: P("Kassir", "Кассир", "Cashier"), d: P("Kassa ochadi va yopadi, to'lov qabul qiladi, qaytaradi, inkassatsiya qiladi. Har bir farq qayd etiladi.", "Открывает и закрывает кассу, принимает оплату, оформляет возврат и инкассацию. Каждое расхождение фиксируется.", "Opens and closes the drawer, takes payment, issues refunds, drops cash. Every variance is logged.") },
+      { i: "OS", t: P("Oshpaz", "Повар", "Kitchen"), d: P("Faqat o'z bo'limining navbatini ko'radi. Taom tugasa stop-listga qo'yadi — u shu zahoti zal ekranida o'chadi.", "Видит очередь только своего цеха. Закончился продукт — ставит в стоп-лист, и он мгновенно гаснет в зале.", "Sees only their station's queue. Runs out of an item and marks it 86 — it greys out on the floor instantly.") },
+      { i: "OM", t: P("Omborchi", "Кладовщик", "Storekeeper"), d: P("Mahsulot qabul qiladi, inventarizatsiya o'tkazadi, chiqindini yozadi, filiallar orasida ko'chiradi.", "Принимает товар, проводит инвентаризацию, списывает и перемещает между филиалами.", "Receives deliveries, runs stock counts, records waste and moves stock between branches.") },
+      { i: "MN", t: P("Menejer", "Менеджер", "Manager"), d: P("Smenani ochadi va yopadi, chegirmalarni tasdiqlaydi, jadval tuzadi, bandlovlarni boshqaradi, nazorat paneliga qaraydi.", "Открывает и закрывает смену, утверждает скидки, ставит график, ведёт брони, смотрит панель контроля.", "Opens and closes the shift, approves discounts, sets the rota, handles bookings, watches the control panel.") },
+      { i: "BX", t: P("Buxgalter", "Бухгалтер", "Accountant"), d: P("Xarajat kiritadi, qarzlarni yuritadi, maosh hisoblaydi, oyni yopadi, EHF va QQS hisobotini topshiradi.", "Вводит расходы, ведёт долги, считает зарплату, закрывает месяц, сдаёт ЭСФ и НДС.", "Enters expenses, tracks payables, runs payroll, closes the month, files e-invoices and VAT.") },
+      { i: "EG", t: P("Restoran egasi", "Владелец", "Owner"), d: P("Barcha filiallar, foyda, menyu rentabelligi, mehnat xarajati, nazorat va reja bajarilishi. Telefondan ham.", "Все филиалы, прибыль, рентабельность меню, доля труда, контроль и выполнение плана. И с телефона.", "Every branch, profit, menu profitability, labour cost, loss prevention and target attainment. From the phone too.") },
+    ];
+
+    const compliance = [
+      { t: P("Onlayn-kassa va fiskal modul", "Онлайн-касса и фискальный модуль", "Fiscal register"), d: P("Har bir chek soliq.uz ga real vaqtda yuboriladi. Fiskal modul holati kassir ekranida ko'rinib turadi.", "Каждый чек уходит в soliq.uz в реальном времени. Статус модуля виден кассиру.", "Every receipt is sent to soliq.uz in real time; the cashier always sees the module status.") },
+      { t: P("Elektron hisob-faktura (EHF)", "Электронный счёт-фактура (ЭСФ)", "E-invoicing"), d: P("Didox orqali yetkazib beruvchilar bilan fakturalar almashinuvi. Kutilayotgan hujjatlar bir joyda.", "Обмен счетами-фактурами с поставщиками через Didox. Ожидающие документы в одном месте.", "Exchange invoices with suppliers through Didox. Pending documents sit in one queue.") },
+      { t: P("QQS va soliq hisoboti", "НДС и налоговая отчётность", "VAT and tax filing"), d: P("Chorak hisoboti tizim ichida shakllanadi va topshirishga tayyor holda beriladi.", "Квартальный отчёт формируется внутри системы и готов к сдаче.", "The quarterly return is assembled inside the system and handed over ready to file.") },
+      { t: P("1C ga eksport", "Выгрузка в 1С", "1C export"), d: P("Buxgalteriyani 1C da yuritsangiz, oylik ma'lumot bir tugma bilan ko'chiriladi.", "Если бухгалтерия ведётся в 1С, месячные данные выгружаются одной кнопкой.", "If your books live in 1C, the month exports with a single click.") },
+    ];
+
+    const plans = [
+      { n: "Start", hi: false, price: "2 400 000", sub: P("Bitta filial, 15 foydalanuvchigacha", "Один филиал, до 15 пользователей", "One branch, up to 15 users"),
+        items: [P("Zal, buyurtma va kassa", "Зал, заказы и касса", "Floor, orders and till"), P("Oshxona ekrani", "Кухонный экран", "Kitchen display"), P("Asosiy ombor va hisobotlar", "Базовый склад и отчёты", "Basic stock and reports"), P("Elektron pochta orqali yordam", "Поддержка по почте", "Email support")] },
+      { n: "Growth", hi: true, price: "6 900 000", sub: P("5 filialgacha, 60 foydalanuvchigacha", "До 5 филиалов, до 60 пользователей", "Up to 5 branches, 60 users"),
+        items: [P("Start dagi hamma narsa", "Всё из Start", "Everything in Start"), P("Texnologik karta va tannarx", "Техкарты и себестоимость", "Recipe cards and costing"), P("Buxgalteriya, maosh, EHF", "Бухгалтерия, зарплата, ЭСФ", "Books, payroll, e-invoicing"), P("Nazorat paneli va menyu rentabelligi", "Панель контроля и рентабельность меню", "Loss prevention and menu profitability"), P("Telefon orqali yordam", "Поддержка по телефону", "Phone support")] },
+      { n: "Enterprise", hi: false, price: P("Kelishuv", "По договору", "Custom"), sub: P("Cheklanmagan filial va foydalanuvchi", "Без ограничений по филиалам", "Unlimited branches and users"),
+        items: [P("Growth dagi hamma narsa", "Всё из Growth", "Everything in Growth"), P("Ko'p filialli konsolidatsiya", "Консолидация по сети", "Group-level consolidation"), P("1C va tashqi tizimlar integratsiyasi", "Интеграция с 1С и внешними системами", "1C and third-party integrations"), P("Shaxsiy menejer va SLA", "Персональный менеджер и SLA", "Named manager and SLA"), P("Joyida o'rnatish va o'qitish", "Внедрение и обучение на месте", "On-site rollout and training")] },
+    ];
+
+    const quotes = [
+      { q: P("Uch filialda uch xil hisob yuritardik. Endi ertalab telefonni ochib, kechagi foydani ko'raman. Menyudagi ikkita taomni olib tashladik — ular foyda keltirmayotgan ekan.", "Три филиала вели учёт по-разному. Теперь утром открываю телефон и вижу вчерашнюю прибыль. Два блюда убрали из меню — они не приносили прибыль.", "Three branches, three ways of counting. Now I open my phone in the morning and see yesterday's profit. We dropped two dishes that were losing money."), i: "RK", n: "Rustam Kamolov", r: P("Egasi · Smart Restaurant, Toshkent", "Владелец · Smart Restaurant, Ташкент", "Owner · Smart Restaurant, Tashkent") },
+      { q: P("Kassa farqi oyiga bir necha marta chiqardi va sababini topolmasdik. Nazorat paneli birinchi haftadayoq javobni ko'rsatdi.", "Расхождения по кассе случались несколько раз в месяц, и мы не находили причину. Панель контроля показала ответ в первую же неделю.", "The till came up short a few times a month and we never found out why. The control panel answered that in the first week."), i: "KY", n: "Kamola Yusupova", r: P("Menejer · Choyxona 24, Toshkent", "Менеджер · Choyxona 24, Ташкент", "Manager · Choyxona 24, Tashkent") },
+      { q: P("Oshxonada chekni qo'lda yozardik va yo'qotardik. Endi grill o'z navbatini, salat o'z navbatini ko'radi. Kutish vaqti sezilarli qisqardi.", "На кухне писали чеки от руки и теряли их. Теперь гриль видит свою очередь, салаты — свою. Время ожидания заметно сократилось.", "The kitchen wrote tickets by hand and lost them. Now the grill sees its own queue and the salad station sees its own. Wait times dropped noticeably."), i: "SE", n: "Shahzod Ergashev", r: P("Egasi · Osh Markazi, Samarqand", "Владелец · Osh Markazi, Самарканд", "Owner · Osh Markazi, Samarkand") },
+    ];
+
+    const faqSrc = [
+      { q: P("Ishga tushirish qancha vaqt oladi?", "Сколько занимает запуск?", "How long does setup take?"),
+        a: P("Bitta filial uchun bir kun. Menyuni biz kiritamiz, uskunani sozlaymiz, xodimlarni ikki soatlik mashg'ulotda o'rgatamiz. Bir necha filial bo'lsa, haftasiga bitta filial tavsiya qilamiz.", "Один филиал — один день. Мы заводим меню, настраиваем оборудование и проводим двухчасовое обучение. Для сети рекомендуем по филиалу в неделю.", "One branch takes a day. We load the menu, configure the hardware and run a two-hour training. For a chain we suggest one branch per week.") },
+      { q: P("Internet uzilsa nima bo'ladi?", "Что если пропадёт интернет?", "What happens if the internet drops?"),
+        a: P("Planshet va kassa oflayn ishlashda davom etadi: buyurtma qabul qilinadi, chek chiqadi. Ulanish tiklanganda hamma narsa avtomatik sinxronlanadi.", "Планшет и касса продолжают работать офлайн: заказ принимается, чек печатается. При восстановлении связи всё синхронизируется автоматически.", "Tablets and tills keep working offline: orders are taken and receipts print. Everything syncs automatically once the connection returns.") },
+      { q: P("Qanday uskuna kerak?", "Какое оборудование нужно?", "What hardware do I need?"),
+        a: P("Har bir ofitsiantga planshet, kassaga printer va naqd yashigi, oshxonaga televizor yoki monitor. Uskunani bizdan sotib olsangiz ham, o'zingiznikini ishlatsangiz ham bo'ladi.", "Планшет каждому официанту, принтер и денежный ящик на кассу, телевизор или монитор на кухню. Оборудование можно купить у нас или использовать своё.", "A tablet per waiter, a printer and cash drawer at the till, a TV or monitor in the kitchen. Buy the hardware from us or bring your own.") },
+      { q: P("Eski tizimdagi ma'lumotlar ko'chadimi?", "Перенесутся ли данные из старой системы?", "Will my old data come across?"),
+        a: P("Ha. Menyu, mijozlar bazasi, ombor qoldig'i va xodimlar ro'yxatini biz ko'chiramiz. Excel yoki boshqa POS dan bo'lishi mumkin.", "Да. Меню, базу клиентов, остатки склада и список сотрудников переносим мы — из Excel или другой POS.", "Yes. We migrate the menu, customer base, stock balances and staff list, whether they come from Excel or another POS.") },
+      { q: P("Xodimlar o'rganib ketadimi?", "Смогут ли сотрудники освоить систему?", "Will my staff manage it?"),
+        a: P("Ofitsiant ekrani atigi uchta amaldan iborat: stolni tanlash, taom qo'shish, yuborish. Odatda birinchi smenadayoq o'rganib ketishadi. Tizim to'liq o'zbek tilida.", "Экран официанта — это три действия: выбрать стол, добавить блюдо, отправить. Обычно осваивают за первую же смену. Система полностью на узбекском.", "The waiter screen is three actions: pick a table, add a dish, send. Most people have it by the end of their first shift, and the system is fully localised.") },
+      { q: P("Ma'lumotlarim xavfsizmi?", "Насколько защищены данные?", "Is my data safe?"),
+        a: P("Ma'lumot shifrlangan holda saqlanadi va kuniga ikki marta zaxiralanadi. Har bir foydalanuvchi faqat o'z roliga ruxsat etilgan ma'lumotni ko'radi, har bir muhim amal jurnalga yoziladi.", "Данные хранятся в зашифрованном виде и резервируются дважды в день. Каждый видит только то, что позволяет его роль, важные действия пишутся в журнал.", "Data is encrypted at rest and backed up twice a day. Each user sees only what their role allows, and every sensitive action is written to an audit log.") },
+    ];
+
+    const faq = faqSrc.map((f, i) => ({
+      q: f.q, a: f.a,
+      open: this.state.open === i,
+      sign: this.state.open === i ? "\u2212" : "+",
+      toggle: () => this.setState(s => ({ open: s.open === i ? -1 : i })),
+    }));
+
+    const doors = [
+      { n: "01", t: P("Egasi, menejer, buxgalter", "Владелец, менеджер, бухгалтер", "Owner, manager, accountant"), d: P("Pochta va parol, kompyuterdan. Kirgandan keyin filial tanlanadi.", "Почта и пароль с компьютера. После входа выбирается филиал.", "Email and password from a desktop; the branch is chosen after signing in.") },
+      { n: "02", t: P("Ofitsiant, kassir, oshpaz", "Официант, кассир, повар", "Waiter, cashier, kitchen"), d: P("Planshetdan 4 xonali PIN. Ikki soniyada kiradi, smena shu yerdan boshlanadi.", "С планшета — четырёхзначный PIN. Вход за две секунды, смена начинается здесь.", "A four-digit PIN on the tablet. Two seconds in, and the shift starts here.") },
+      { n: "03", t: P("Platforma operatori", "Оператор платформы", "Platform operator"), d: P("Alohida manzil va ikki bosqichli tasdiq. Har bir kirish jurnalga tushadi.", "Отдельный адрес и двухфакторное подтверждение. Каждый вход в журнале.", "A separate address and two-factor confirmation. Every sign-in is logged.") },
+    ];
+
+    const pinDots = [0, 1, 2, 3].map(i => ({ c: this.state.pin.length > i ? "\u2022" : "" }));
+
+    const keyLabels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "\u2190"];
+    const keys = keyLabels.map(l => ({
+      l,
+      press: () => {
+        if (l === "C") return this.setState({ pin: "" });
+        if (l === "\u2190") return this.setState(s => ({ pin: s.pin.slice(0, -1) }));
+        this.setState(s => {
+          const pin = (s.pin + l).slice(0, 4);
+          if (pin.length === 4) {
+            setTimeout(() => {
+              this.flash(P("Smena ochildi · Jasur Toshev", "Смена открыта · Жасур Тошев", "Shift started · Jasur Toshev"));
+              this.setState({ pin: "" });
+            }, 220);
+          }
+          return { pin };
+        });
+      },
+    }));
+
+    return {
+      t, stats, features, roles, compliance, plans, quotes, faq, doors, pinDots, keys,
+      isEmail: this.state.ltab === "email",
+      isPin: this.state.ltab === "pin",
+      isAdmin: this.state.ltab === "admin",
+      hasToast: !!this.state.toast,
+      toast: this.state.toast,
+      tabEmail: () => this.setState({ ltab: "email" }),
+      tabPin: () => this.setState({ ltab: "pin", pin: "" }),
+      tabAdmin: () => this.setState({ ltab: "admin" }),
+      doLogin: () => this.flash(P("Namoyish rejimi · haqiqiy kirish tizim ichida", "Демо-режим · реальный вход внутри системы", "Demo mode · real sign-in lives inside the product")),
+      setUz: () => this.setState({ lang: "uz" }),
+      setRu: () => this.setState({ lang: "ru" }),
+      setEn: () => this.setState({ lang: "en" }),
+    };
+  }
+}
+</script>
+</body>
+</html>
