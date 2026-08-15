@@ -129,6 +129,16 @@ both write `users`, `tenants`, `migrations`, `sessions`, `cache`, `jobs` into
 above: `/srv/srcp/releases/…` with an atomic `current` symlink, php-fpm instead
 of `artisan serve`, a `srcp` service account that is not `pos`, Horizon instead
 of a bare `queue:work`, systemd sandboxing, journald limits and log rotation.
+
+It also runs `srcp-health` on a five-minute timer. That script existed from the
+start and nothing called it: it was run by hand after a change, and by
+`srcp-deploy` to decide whether to keep a release. Both are moments when someone
+is already watching. The moment that matters — a worker dying at 19:00 on a
+Friday — had no observer at all, and the first report would have been a waiter
+saying the tills had stopped. The unit is `Type=oneshot` with its exit code left
+meaningful, so a failure shows up in `systemctl --failed` and can carry an
+`OnFailure=` notifier later without anything else changing.
+
 Nothing in it has been applied — it needs root, and the box has no passwordless
 path to it. `infrastructure/server/README.md` is the description; the order is
 

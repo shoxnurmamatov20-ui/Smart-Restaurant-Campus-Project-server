@@ -1,0 +1,49 @@
+# Smart Restaurant Campus — the check that notices before a person does.
+#
+# srcp-health has existed since this deployment was written and nothing has ever
+# called it. It was run by hand after a change and by srcp-deploy to decide
+# whether to keep a release — which covers the two moments someone is already
+# watching, and leaves the one that matters uncovered: the middle of service,
+# when a worker has died or the disk has filled and the first report is a waiter
+# saying the tills stopped.
+#
+# Type=oneshot with the exit code left meaningful, so a failure is a failed unit
+# rather than a line in a log nobody greps. `systemctl --failed` lists it,
+# OnFailure can hang a notifier off it, and any monitoring agent that already
+# watches systemd sees it without being taught anything new.
+#
+# --quiet prints nothing when all is well, so a passing check costs one journal
+# line about the unit starting and stopping, not a full report every five
+# minutes. When it fails it prints the whole thing, which is what is wanted at
+# the moment it fails.
+
+[Unit]
+Description=SRCP health check
+Documentation=file:///srv/srcp/current/infrastructure/server/bin/srcp-health
+
+# No Requires= on the services it checks. This unit's job is to report that they
+# are down; a dependency would stop it from running in exactly that case.
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/srcp-health --quiet
+
+# Runs as root because srcp-health reads shared/env/api.env (0640 srcp:srcp) for
+# the database and Redis credentials, and drops to the service account itself
+# with runuser before touching artisan. Nothing here writes.
+User=root
+
+# A check that hangs is a check that is not running. Sixty seconds is generous
+# against the 15s curl timeouts inside it; past that something is wrong in a way
+# this unit should report rather than wait for.
+TimeoutStartSec=60
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true

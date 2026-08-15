@@ -196,7 +196,8 @@ fi
 #-----------------------------------------------------------------------------
 log "systemd"
 for unit in srcp-web.service srcp-admin.service srcp-horizon.service \
-            srcp-scheduler.service srcp-scheduler.timer srcp.target; do
+            srcp-scheduler.service srcp-scheduler.timer \
+            srcp-health.service srcp-health.timer srcp.target; do
     install_file "$SRC/systemd/$unit" "/etc/systemd/system/$unit" 0644 && UNITS_TOUCHED=1 || true
 done
 
@@ -209,8 +210,11 @@ if (( UNITS_TOUCHED )) && ! (( DRY_RUN )); then
     # cannot resolve — so only a hard failure stops the apply.
     systemd-analyze verify /etc/systemd/system/srcp-*.service >/dev/null 2>&1 \
         || warn "systemd-analyze reported issues; run it by hand to read them"
+    # Timers, not the oneshot units they fire: enabling srcp-health.service
+    # itself would run the check once at boot and never again, which looks like
+    # monitoring and is not.
     systemctl enable srcp-web.service srcp-admin.service srcp-horizon.service \
-                     srcp-scheduler.timer srcp.target >/dev/null 2>&1 || true
+                     srcp-scheduler.timer srcp-health.timer srcp.target >/dev/null 2>&1 || true
     ok "units installed and enabled"
 fi
 

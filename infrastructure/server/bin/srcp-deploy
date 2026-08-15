@@ -348,6 +348,7 @@ PHPV=$(find /etc/php -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort -V | 
 systemctl restart "php$PHPV-fpm"
 systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
 systemctl start   srcp-scheduler.timer
+systemctl start   srcp-health.timer
 systemctl start   srcp.target 2>/dev/null || true
 ok "services restarted"
 
