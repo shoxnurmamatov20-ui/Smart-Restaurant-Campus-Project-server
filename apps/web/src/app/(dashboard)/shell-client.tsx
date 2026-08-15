@@ -8,6 +8,7 @@ import { useLocale, useMessages } from 'next-intl';
 import { useTheme } from '@/components/providers/theme-provider';
 import { LANGUAGE_OPTIONS, type Locale, type Messages } from '@/i18n';
 import { rememberLocale } from '@/i18n/locale';
+import { SESSION_ENDPOINT } from '@/lib/base-path';
 import { rememberRole } from '@/lib/role-cookie';
 import { ROLE_LIST, type ModuleKey, type RoleId } from '@/lib/roles';
 
@@ -643,7 +644,7 @@ export function AccountMenu({
                 // Failure is already handled inside the handler: it clears the
                 // cookie whether or not the API answered, so the worst case is
                 // a token nobody holds. Either way this browser is signed out.
-                await fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {});
+                await fetch(SESSION_ENDPOINT, { method: 'DELETE' }).catch(() => {});
                 router.replace('/login');
                 router.refresh();
               }}

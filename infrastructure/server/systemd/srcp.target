@@ -1,0 +1,22 @@
+# One handle for the whole application.
+#
+#   systemctl restart srcp.target    — all four services, in dependency order
+#   systemctl status  srcp.target    — is the platform up?
+#
+# Each unit declares PartOf=srcp.target, which is what makes stop and restart
+# propagate down. It is not Requires: a stopped console must not take the queue
+# with it, and the target must be able to come up when one service is masked
+# for maintenance.
+#
+# php-fpm is deliberately not part of this. It is a system service shared with
+# whatever else the box ever serves, and its own unit is the right handle for
+# it — srcp-deploy restarts it explicitly rather than through this target.
+
+[Unit]
+Description=Smart Restaurant Campus
+Documentation=file:///srv/srcp/current/docs/deployment/pos26-uzcloud.md
+Wants=srcp-web.service srcp-admin.service srcp-horizon.service srcp-scheduler.timer
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target

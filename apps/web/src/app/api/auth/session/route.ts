@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { apiBase, SESSION_COOKIE, SESSION_MAX_AGE } from '@/lib/server-session';
+import {
+  apiBase,
+  SESSION_COOKIE,
+  SESSION_COOKIE_SECURE,
+  SESSION_MAX_AGE,
+} from '@/lib/server-session';
 import { ROLE_COOKIE } from '@/lib/role-cookie';
 import { landingPath, roleFromServer } from '@/lib/roles';
 
@@ -78,9 +83,9 @@ export async function POST(request: NextRequest) {
 
   const options = {
     sameSite: 'lax' as const,
-    // Off over plain http so development works; production terminates TLS and
-    // sets NODE_ENV, which is the condition that matters.
-    secure: process.env.NODE_ENV === 'production',
+    // NODE_ENV is the default and the usual answer; a deployment that does not
+    // terminate TLS has to say so out loud. See lib/server-session.ts.
+    secure: SESSION_COOKIE_SECURE,
     path: '/',
     maxAge: SESSION_MAX_AGE,
   };

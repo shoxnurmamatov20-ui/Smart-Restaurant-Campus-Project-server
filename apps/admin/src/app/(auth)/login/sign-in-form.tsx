@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useMessages } from 'next-intl';
 
 import type { Messages } from '@/i18n';
+import { SESSION_ENDPOINT } from '@/lib/base-path';
 
 /**
  * The platform door, as the handoff draws it (§3.12, third tab).
@@ -54,7 +55,7 @@ export function SignInForm() {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/session', {
+      const response = await fetch(SESSION_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, code }),

@@ -26,6 +26,29 @@ import type { AuthContext } from './auth';
  */
 export const SESSION_COOKIE = 'restaurant-campus-session';
 
+/**
+ * Whether the session cookie is marked `Secure`.
+ *
+ * `NODE_ENV === 'production'` is the right default and stays the default: a
+ * deployment that terminates TLS should never hand the token to a plain-http
+ * request. But the two are not the same question, and on a host that serves
+ * over http — an IP with no certificate, a box behind someone else's TLS — the
+ * default is silently fatal. The browser drops a `Secure` cookie on an http
+ * origin without a word, so signing in answers 200, sets nothing, and returns
+ * the reader to the login form. Nothing in the logs says why.
+ *
+ * So the deployment states it. `SESSION_COOKIE_SECURE=false` is an admission
+ * that the token crosses the network in clear text and anyone on the path can
+ * read it; it belongs to a demo or an internal network, not to a real venue's
+ * takings. The fix is a domain and a certificate, not this variable.
+ */
+export const SESSION_COOKIE_SECURE: boolean =
+  process.env.SESSION_COOKIE_SECURE === 'false'
+    ? false
+    : process.env.SESSION_COOKIE_SECURE === 'true'
+      ? true
+      : process.env.NODE_ENV === 'production';
+
 /** Where the API lives, from the server's point of view. */
 export function apiBase(): string {
   return process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';

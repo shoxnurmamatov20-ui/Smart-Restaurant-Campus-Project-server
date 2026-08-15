@@ -1,0 +1,77 @@
+# Smart Restaurant Campus — Laravel scheduler tick.
+#
+# ---------------------------------------------------------------------
+# Why this exists
+#
+# It did not, and nothing noticed, which is the dangerous kind of missing.
+# `artisan schedule:list` on this box declares three jobs:
+#
+#     * * * * *   events:relay                        the domain event outbox
+#     30 3 * * *  activitylog:clean                   audit trail retention
+#     0 0 * * *   sanctum:prune-expired --hours=24    dead API tokens
+#
+# and there was no cron entry and no timer to run any of them. The outbox is
+# the one that hurts: `domain_events` is written inside the transaction that
+# changes an order, and relayed afterwards by this tick. With no tick the rows
+# accumulate silently — every consumer downstream simply never hears about the
+# order, and the application reports no error because nothing failed.
+#
+# It was empty when this unit was written, so nothing had been lost yet.
+#
+# ---------------------------------------------------------------------
+# Why a timer rather than cron
+#
+# The three cron entries this box already has are for database backups and are
+# fine there. A timer is better for this one: systemd records the exit status,
+# `systemctl status srcp-scheduler` shows the last run and its output, and the
+# journal keeps the history. Cron's equivalent is an email nobody reads on a
+# host with no MTA configured.
+#
+# No [Install] section: this unit is started by srcp-scheduler.timer and should
+# never be enabled on its own.
+
+[Unit]
+Description=SRCP Laravel scheduler tick
+Documentation=https://laravel.com/docs/scheduling
+After=network-online.target postgresql.service redis-server.service
+PartOf=srcp.target
+
+[Service]
+Type=oneshot
+User=srcp
+Group=srcp
+WorkingDirectory=/srv/srcp/current/apps/api
+
+ExecStart=/usr/bin/php /srv/srcp/current/apps/api/artisan schedule:run
+
+# A tick that outlives its own interval means the previous one is still going.
+# systemd will not start a second copy of a running service, so the effect is a
+# skipped minute rather than two relays fighting over the same rows — but a tick
+# that regularly takes this long is a signal, and this is the ceiling that makes
+# it visible in the journal instead of silent.
+TimeoutStartSec=300
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/srcp/shared /var/log/srcp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+MemoryMax=512M
+TasksMax=128

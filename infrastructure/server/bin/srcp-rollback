@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-rollback — put the previous release back.
+#
+#   sudo srcp-rollback              # go back one
+#   sudo srcp-rollback --list       # what is available
+#   sudo srcp-rollback --to 20260814T142500Z
+#
+# This is the half of the release layout that justifies the other half. Going
+# back is a rename and two restarts: no rebuild, no dependency install, no
+# network, nothing that can fail differently at 9pm than it did at 2pm. The
+# release being rolled back to was serving traffic an hour ago and is byte for
+# byte the same tree it was then.
+#
+# What it does NOT undo is the database. A release that ran migrations cannot
+# be rolled back by this script alone — the schema has moved and the older code
+# does not know about it. That is why srcp-deploy does not migrate unless it is
+# asked to, and why the manifest records whether it did.
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-rollback
+readonly ROOT=/srv/srcp
+readonly RELEASES=$ROOT/releases
+readonly CURRENT=$ROOT/current
+
+TARGET=""
+LIST=0
+
+log()  { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+ok()   { printf '\033[0;32m[%s] ✓\033[0m %s\n' "$PROG" "$*"; }
+warn() { printf '\033[0;33m[%s] WARN\033[0m %s\n' "$PROG" "$*" >&2; }
+die()  { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit 1; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --to)      TARGET=${2:?--to needs a release name}; shift 2 ;;
+        --list|-l) LIST=1; shift ;;
+        -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+        *)         die "unknown argument: $1" ;;
+    esac
+done
+
+[[ -d $RELEASES ]] || die "$RELEASES does not exist"
+live=$(readlink -f "$CURRENT" 2>/dev/null || true)
+mapfile -t releases < <(find "$RELEASES" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort -r)
+
+if (( LIST )); then
+    printf '\nReleases in %s, newest first:\n\n' "$RELEASES"
+    for r in "${releases[@]}"; do
+        marker='  '
+        [[ $RELEASES/$r == "$live" ]] && marker='→ '
+        printf '%s%s' "$marker" "$r"
+        if [[ -f $RELEASES/$r/RELEASE ]]; then
+            printf '   %s' "$(grep -E '^(git_commit|migrated)' "$RELEASES/$r/RELEASE" | awk '{printf "%s=%s ", $1, substr($2,1,12)}')"
+        fi
+        [[ $RELEASES/$r == "$live" ]] && printf '   \033[0;32m(live)\033[0m'
+        printf '\n'
+    done
+    printf '\n'
+    exit 0
+fi
+
+[[ $EUID -eq 0 ]] || die "must run as root (use sudo)"
+(( ${#releases[@]} >= 2 )) || die "only ${#releases[@]} release(s) on disk — there is nothing to go back to"
+
+if [[ -z $TARGET ]]; then
+    # The newest release that is not the live one. Sorting is by the UTC
+    # timestamp the directories are named with, so this is genuinely "the one
+    # before" and not "whichever the filesystem listed first".
+    for r in "${releases[@]}"; do
+        [[ $RELEASES/$r == "$live" ]] && continue
+        TARGET=$r
+        break
+    done
+fi
+
+[[ -d $RELEASES/$TARGET ]] || die "no such release: $TARGET (try --list)"
+[[ $RELEASES/$TARGET != "$live" ]] || die "$TARGET is already live"
+
+log "rolling back: $(basename "${live:-none}")  →  $TARGET"
+
+if [[ -f $RELEASES/$TARGET/RELEASE ]]; then
+    sed 's/^/    /' "$RELEASES/$TARGET/RELEASE"
+fi
+
+# A release that migrated the database is a one-way door for the schema. Say so
+# rather than discovering it as a column-not-found on the first order.
+if [[ -f ${live:-}/RELEASE ]] && grep -q '^migrated *yes' "${live}/RELEASE" 2>/dev/null; then
+    warn "the release being rolled back FROM ran migrations."
+    warn "the schema will stay where it is; $TARGET's code has to be able to live with it."
+fi
+
+ln -sfnT "$RELEASES/$TARGET" "$CURRENT.new"
+mv -fT "$CURRENT.new" "$CURRENT"
+ok "current -> $TARGET"
+
+# Configuration is part of a release too. Rolling back the code without rolling
+# back the nginx and unit files it was built against leaves a mismatch that is
+# very hard to see: everything is "up", the routes are from a version that no
+# longer exists.
+/usr/local/sbin/srcp-apply --from "$RELEASES/$TARGET" || warn "srcp-apply failed — the system configuration is still the newer one"
+
+PHPV=$(find /etc/php -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort -V | tail -1)
+systemctl restart "php$PHPV-fpm"
+systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
+ok "services restarted"
+
+sleep 6
+if /usr/local/sbin/srcp-health --quiet; then
+    ok "healthy on $TARGET"
+else
+    /usr/local/sbin/srcp-health || true
+    die "rolled back to $TARGET and it is not healthy — the problem is not the release"
+fi

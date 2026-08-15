@@ -1,0 +1,64 @@
+# Smart Restaurant Campus — platform administrator console (Next.js).
+#
+# Mounted under /admin because the staff console holds `/` on this host, and
+# `basePath: '/admin'` in next.config.ts has to agree with the nginx prefix.
+# See srcp-web.service for the reasoning behind the sandbox directives; this
+# file differs only in port, path and ceiling.
+
+[Unit]
+Description=SRCP platform console (Next.js, 127.0.0.1:3010)
+Documentation=file:///srv/srcp/current/docs/deployment/pos26-uzcloud.md
+After=network-online.target
+Wants=network-online.target
+PartOf=srcp.target
+
+# In [Unit], not [Service] — see srcp-web.service for why systemd 249 ignores
+# these when they sit in the wrong section.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+User=srcp
+Group=srcp
+WorkingDirectory=/srv/srcp/current/apps/admin
+
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/lib/node24/bin:/usr/local/bin:/usr/bin:/bin
+
+ExecStart=/usr/local/lib/node24/bin/node \
+    /srv/srcp/current/apps/admin/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3010
+
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/srcp/shared
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+# Lower than the staff console: this one is opened by a handful of platform
+# operators, not by every till in every restaurant.
+MemoryMax=768M
+TasksMax=512
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

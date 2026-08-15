@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-apply — install this deployment's system configuration into /etc.
+#
+#   sudo srcp-apply                     # from /srv/srcp/current
+#   sudo srcp-apply --from /home/pos/srcp
+#   sudo srcp-apply --dry-run
+#
+# Everything under /etc that belongs to this application is generated from
+# infrastructure/server/ in the repository, so the server's configuration is
+# reviewed, versioned and rolled back the same way its code is. Editing a file
+# under /etc directly works exactly once: the next deploy overwrites it and
+# whatever the change fixed breaks again with no record of what it was.
+#
+# Nothing is deleted. Files this replaces are moved into
+# /var/backups/srcp/etc/<timestamp>/, and that same directory is what a failed
+# validation is restored from — so a configuration that nginx or php-fpm refuses
+# never reaches a reload.
+#
+# Exit codes: 0 applied (or nothing to do), 1 failed and rolled back.
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-apply
+SRC_ROOT=/srv/srcp/current
+DRY_RUN=0
+
+log()  { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+ok()   { printf '\033[0;32m[%s]\033[0m %s\n' "$PROG" "$*"; }
+warn() { printf '\033[0;33m[%s] WARN\033[0m %s\n' "$PROG" "$*" >&2; }
+die()  { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit 1; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --from)    SRC_ROOT=${2:?--from needs a directory}; shift 2 ;;
+        --dry-run) DRY_RUN=1; shift ;;
+        -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+        *)         die "unknown argument: $1" ;;
+    esac
+done
+
+[[ $EUID -eq 0 ]] || die "must run as root (use sudo)"
+
+# --from may name either the repository root or the server directory inside it.
+# Accepting both removes the commonest way to run this and have it silently find
+# nothing: the two paths differ by three directory levels nobody remembers.
+if   [[ -d "$SRC_ROOT/infrastructure/server" ]]; then SRC="$SRC_ROOT/infrastructure/server"
+elif [[ -d "$SRC_ROOT/nginx" && -d "$SRC_ROOT/systemd" ]]; then SRC="$SRC_ROOT"
+else die "no infrastructure/server directory under $SRC_ROOT"
+fi
+log "source: $SRC"
+
+# The PHP version is discovered rather than written down. This box is on 8.4;
+# an apt upgrade to 8.5 would move every path under /etc/php and a hardcoded
+# version would apply the pool to a directory nothing reads any more.
+PHPV=$(find /etc/php -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | sort -V | tail -1)
+[[ -n "$PHPV" ]] || die "no PHP installation found under /etc/php"
+[[ -d /etc/php/$PHPV/fpm ]] || die "PHP $PHPV has no fpm SAPI installed"
+log "php: $PHPV"
+
+readonly STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+readonly BACKUP=/var/backups/srcp/etc/$STAMP
+CHANGED=0
+NGINX_TOUCHED=0
+PHP_TOUCHED=0
+UNITS_TOUCHED=0
+
+run() { if (( DRY_RUN )); then printf '  would: %s\n' "$*"; else "$@"; fi; }
+
+# Paths this run created that did not exist before. A restore has to remove
+# these as well as put the replaced ones back: leaving a newly added site file
+# enabled is exactly the thing that made the validation fail, so restoring only
+# what was overwritten would hand nginx the same broken configuration again.
+ADDED=()
+
+# Copy one file into place, keeping the version it replaces. Returns 1 when the
+# destination already matched, so callers can tell "applied" from "no change"
+# and skip a reload nobody needs.
+install_file() {
+    local src=$1 dst=$2 mode=${3:-0644}
+    [[ -f $src ]] || die "missing source file: $src"
+
+    if [[ -f $dst ]] && cmp -s "$src" "$dst"; then
+        return 1
+    fi
+
+    if [[ -e $dst ]]; then
+        run mkdir -p "$BACKUP$(dirname "$dst")"
+        run cp -a "$dst" "$BACKUP$dst"
+    else
+        ADDED+=("$dst")
+    fi
+    run mkdir -p "$(dirname "$dst")"
+    run install -o root -g root -m "$mode" "$src" "$dst"
+    printf '  → %s\n' "$dst"
+    CHANGED=1
+    return 0
+}
+
+# Retire a file the previous deployment installed. Moved, never deleted: a
+# rollback needs it, and "where did that file go" is a bad question to have to
+# answer during an outage.
+retire_file() {
+    local path=$1
+    [[ -e $path || -L $path ]] || return 0
+    run mkdir -p "$BACKUP$(dirname "$path")"
+    run mv "$path" "$BACKUP$path"
+    printf '  ← retired %s\n' "$path"
+    CHANGED=1
+}
+
+restore_backup() {
+    warn "restoring previous configuration"
+
+    local path
+    for path in "${ADDED[@]+"${ADDED[@]}"}"; do
+        rm -f "$path" && printf '  ✗ removed %s\n' "$path"
+    done
+
+    [[ -d $BACKUP ]] || return 0
+    ( cd "$BACKUP" && find . \( -type f -o -type l \) -print0 | while IFS= read -r -d '' f; do
+        mkdir -p "$(dirname "/${f#./}")"
+        cp -a "$f" "/${f#./}"
+        printf '  ↩ %s\n' "/${f#./}"
+      done )
+}
+
+#-----------------------------------------------------------------------------
+# 1. Directories and log destinations, before anything can fail to open them
+#-----------------------------------------------------------------------------
+log "directories"
+install_file "$SRC/system/tmpfiles-srcp.conf" /etc/tmpfiles.d/srcp.conf 0644 || true
+run install -d -o root -g adm -m 0750 /var/log/srcp
+run install -d -o root -g root -m 0750 /var/backups/srcp
+
+#-----------------------------------------------------------------------------
+# 2. PHP — pool and shared ini, validated before php-fpm is asked to restart
+#-----------------------------------------------------------------------------
+log "php $PHPV"
+install_file "$SRC/php/srcp-fpm-pool.conf" "/etc/php/$PHPV/fpm/pool.d/srcp.conf" 0644 && PHP_TOUCHED=1 || true
+install_file "$SRC/php/99-srcp.ini"        "/etc/php/$PHPV/fpm/conf.d/99-srcp.ini" 0644 && PHP_TOUCHED=1 || true
+install_file "$SRC/php/99-srcp.ini"        "/etc/php/$PHPV/cli/conf.d/99-srcp.ini" 0644 && PHP_TOUCHED=1 || true
+
+# The MyPOS pool and ini this replaces. Leaving the pool in place would keep a
+# second set of workers alive on a socket nothing routes to, holding memory and
+# confusing every future reading of `ps`.
+for stale in "/etc/php/$PHPV/fpm/pool.d/mypos.conf" \
+             "/etc/php/$PHPV/fpm/conf.d/99-mypos.ini" \
+             "/etc/php/$PHPV/cli/conf.d/99-mypos.ini"; do
+    [[ -e $stale ]] && { retire_file "$stale"; PHP_TOUCHED=1; }
+done
+
+if (( PHP_TOUCHED )) && ! (( DRY_RUN )); then
+    if ! php-fpm"$PHPV" -t 2>&1 | grep -q 'test is successful'; then
+        php-fpm"$PHPV" -t || true
+        restore_backup
+        die "php-fpm configuration is invalid — restored, nothing reloaded"
+    fi
+    ok "php-fpm configuration valid"
+fi
+
+#-----------------------------------------------------------------------------
+# 3. nginx — snippets first, then the site that includes them
+#-----------------------------------------------------------------------------
+log "nginx"
+run install -d -m 0755 /etc/nginx/snippets
+install_file "$SRC/nginx/srcp-proxy.conf"   /etc/nginx/snippets/srcp-proxy.conf   0644 && NGINX_TOUCHED=1 || true
+install_file "$SRC/nginx/srcp-fastcgi.conf" /etc/nginx/snippets/srcp-fastcgi.conf 0644 && NGINX_TOUCHED=1 || true
+install_file "$SRC/nginx/srcp-routes.conf"  /etc/nginx/snippets/srcp-routes.conf  0644 && NGINX_TOUCHED=1 || true
+install_file "$SRC/nginx/nginx-srcp.conf"   /etc/nginx/sites-available/srcp       0644 && NGINX_TOUCHED=1 || true
+
+if [[ ! -L /etc/nginx/sites-enabled/srcp ]]; then
+    run ln -sfn /etc/nginx/sites-available/srcp /etc/nginx/sites-enabled/srcp
+    printf '  → /etc/nginx/sites-enabled/srcp\n'
+    NGINX_TOUCHED=1; CHANGED=1
+fi
+
+# The site this replaces. Both declare `default_server` on :80 and :443, and
+# nginx refuses to start with two of those — so this is not tidiness, it is the
+# difference between a reload and an outage.
+for stale in /etc/nginx/sites-enabled/mypos /etc/nginx/sites-enabled/default; do
+    [[ -e $stale || -L $stale ]] && { retire_file "$stale"; NGINX_TOUCHED=1; }
+done
+
+if (( NGINX_TOUCHED )) && ! (( DRY_RUN )); then
+    if ! nginx -t; then
+        restore_backup
+        nginx -t || true
+        die "nginx configuration is invalid — restored, nothing reloaded"
+    fi
+    ok "nginx configuration valid"
+fi
+
+#-----------------------------------------------------------------------------
+# 4. systemd units
+#-----------------------------------------------------------------------------
+log "systemd"
+for unit in srcp-web.service srcp-admin.service srcp-horizon.service \
+            srcp-scheduler.service srcp-scheduler.timer srcp.target; do
+    install_file "$SRC/systemd/$unit" "/etc/systemd/system/$unit" 0644 && UNITS_TOUCHED=1 || true
+done
+
+install_file "$SRC/system/logrotate-srcp"      /etc/logrotate.d/srcp                     0644 || true
+install_file "$SRC/system/journald-srcp.conf"  /etc/systemd/journald.conf.d/srcp.conf    0644 && JOURNALD_TOUCHED=1 || true
+
+if (( UNITS_TOUCHED )) && ! (( DRY_RUN )); then
+    systemctl daemon-reload
+    # A warning here is normal — systemd objects to Documentation= URLs it
+    # cannot resolve — so only a hard failure stops the apply.
+    systemd-analyze verify /etc/systemd/system/srcp-*.service >/dev/null 2>&1 \
+        || warn "systemd-analyze reported issues; run it by hand to read them"
+    systemctl enable srcp-web.service srcp-admin.service srcp-horizon.service \
+                     srcp-scheduler.timer srcp.target >/dev/null 2>&1 || true
+    ok "units installed and enabled"
+fi
+
+#-----------------------------------------------------------------------------
+# 5. Reload what changed — nothing more
+#-----------------------------------------------------------------------------
+if (( DRY_RUN )); then
+    log "dry run: nothing was written"
+    exit 0
+fi
+
+if (( PHP_TOUCHED )); then
+    systemctl restart "php$PHPV-fpm"
+    ok "php$PHPV-fpm restarted"
+fi
+
+if (( NGINX_TOUCHED )); then
+    # reload, not restart: an open connection at a till does not need to be
+    # dropped so that a routing table can change.
+    systemctl reload nginx
+    ok "nginx reloaded"
+fi
+
+if [[ ${JOURNALD_TOUCHED:-0} -eq 1 ]]; then
+    systemctl restart systemd-journald
+    journalctl --vacuum-size=800M >/dev/null 2>&1 || true
+    ok "journald limits applied"
+fi
+
+systemd-tmpfiles --create /etc/tmpfiles.d/srcp.conf >/dev/null 2>&1 || true
+
+if (( CHANGED )); then
+    ok "applied — replaced files kept in $BACKUP"
+else
+    ok "already up to date, nothing changed"
+    rmdir "$BACKUP" 2>/dev/null || true
+fi

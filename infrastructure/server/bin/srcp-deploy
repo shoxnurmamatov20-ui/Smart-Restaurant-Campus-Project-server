@@ -1,0 +1,398 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-deploy — build a release, put it live, prove it works, keep the last one.
+#
+#   sudo srcp-deploy                      # copy the source tree as it stands
+#   sudo srcp-deploy --build              # reinstall dependencies and rebuild
+#   sudo srcp-deploy --build --migrate    # ...and run migrations
+#   sudo srcp-deploy --from /home/pos/srcp
+#
+# ---------------------------------------------------------------------
+# The shape
+#
+#   /srv/srcp/releases/20260814T142500Z/   an immutable build
+#   /srv/srcp/current -> releases/...      one symlink, swapped atomically
+#   /srv/srcp/shared/                      the things that must outlive a release
+#
+# Everything else follows from that. `current` is what nginx, php-fpm and every
+# unit file name, so going live is a rename and going back is a rename. Nothing
+# is ever built in place, which is the failure this replaces: a `git pull` on a
+# running tree serves half of the old release and half of the new one for as
+# long as the build takes, and there is no version to go back to afterwards.
+#
+# Releases are hardlinked against their predecessor (rsync --link-dest), so the
+# second and later releases cost only what actually changed — a few megabytes,
+# not the 1.4 GB the tree weighs.
+#
+# ---------------------------------------------------------------------
+# Privileges
+#
+# This runs as root because it writes /etc, restarts services and chowns a tree.
+# It runs nothing belonging to the application that way: composer, pnpm and
+# artisan are all invoked through `runuser -u srcp`. A composer plugin or a
+# postinstall script is arbitrary code from the internet, and there is no reason
+# for it to execute as root on the machine that holds the tills.
+#
+# Exit codes: 0 live and healthy, 1 failed (rolled back if a previous release
+# existed), 2 bad usage.
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-deploy
+readonly CONF=/etc/srcp/deploy.conf
+
+SRCP_ROOT=/srv/srcp
+SRCP_USER=srcp
+SRCP_SOURCE=/home/pos/srcp
+KEEP_RELEASES=5
+
+DO_BUILD=0
+DO_MIGRATE=0
+DO_APPLY=1
+DRY_RUN=0
+
+log()  { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+ok()   { printf '\033[0;32m[%s] ✓\033[0m %s\n' "$PROG" "$*"; }
+warn() { printf '\033[0;33m[%s] WARN\033[0m %s\n' "$PROG" "$*" >&2; }
+die()  { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit "${2:-1}"; }
+step() { printf '\n\033[1;36m▸ %s\033[0m\n' "$*"; }
+
+[[ -r $CONF ]] && . "$CONF"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --from)     SRCP_SOURCE=${2:?--from needs a directory}; shift 2 ;;
+        --keep)     KEEP_RELEASES=${2:?--keep needs a number}; shift 2 ;;
+        --build)    DO_BUILD=1; shift ;;
+        --migrate)  DO_MIGRATE=1; shift ;;
+        --no-apply) DO_APPLY=0; shift ;;
+        --dry-run)  DRY_RUN=1; shift ;;
+        -h|--help)  sed -n '2,45p' "$0"; exit 0 ;;
+        *)          die "unknown argument: $1" 2 ;;
+    esac
+done
+
+[[ $EUID -eq 0 ]] || die "must run as root (use sudo)"
+id -u "$SRCP_USER" >/dev/null 2>&1 || die "service account '$SRCP_USER' does not exist — run provision.sh first"
+[[ -d $SRCP_ROOT ]] || die "$SRCP_ROOT does not exist — run provision.sh first"
+
+# A wrong --from is the one mistake here that is both easy to make and expensive
+# to notice, because everything downstream succeeds against the wrong tree.
+[[ -f $SRCP_SOURCE/pnpm-workspace.yaml && -f $SRCP_SOURCE/apps/api/artisan ]] \
+    || die "$SRCP_SOURCE does not look like the SRCP monorepo"
+
+readonly RELEASES=$SRCP_ROOT/releases
+readonly SHARED=$SRCP_ROOT/shared
+readonly CURRENT=$SRCP_ROOT/current
+readonly STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+readonly RELEASE=$RELEASES/$STAMP
+
+PREVIOUS=""
+[[ -L $CURRENT ]] && PREVIOUS=$(readlink -f "$CURRENT")
+
+# Every application command goes through here. env -i is not used: composer and
+# pnpm both need a HOME to cache into, and srcp has no home directory of its own.
+as_srcp() {
+    runuser -u "$SRCP_USER" -- env \
+        HOME="$SHARED/home" \
+        COMPOSER_HOME="$SHARED/home/.composer" \
+        COMPOSER_ALLOW_SUPERUSER=0 \
+        PATH="/usr/local/lib/node24/bin:/usr/local/bin:/usr/bin:/bin" \
+        "$@"
+}
+
+if (( DRY_RUN )); then
+    log "dry run — nothing will be written"
+    printf '  source   : %s\n  release  : %s\n  previous : %s\n  build    : %s\n  migrate  : %s\n' \
+        "$SRCP_SOURCE" "$RELEASE" "${PREVIOUS:-none}" "$DO_BUILD" "$DO_MIGRATE"
+    exit 0
+fi
+
+#=============================================================================
+step "1/9  Copy the source tree into a new release"
+#=============================================================================
+mkdir -p "$RELEASE" "$SHARED"/{env,storage,next-cache/web,next-cache/admin,home}
+
+# What is deliberately not copied:
+#   .git          — 15 commits of history are not needed to serve a request, and
+#                   a release should not be something anyone can `git checkout`
+#                   into a different state while it is live.
+#   .env*         — secrets live in shared/env and are symlinked back in. A
+#                   release that carries its own copy is a release that ships a
+#                   stale database password the day someone rotates it.
+#   storage/logs  — the log directory is shared; copying it would duplicate
+#                   every line into a directory nothing reads.
+#   .next/cache   — rebuilt or shared; hundreds of megabytes of nothing.
+LINK_DEST=()
+[[ -n $PREVIOUS && -d $PREVIOUS ]] && LINK_DEST=(--link-dest="$PREVIOUS")
+
+# -rlptD rather than -a: dropping -o/-g means rsync does not try to preserve the
+# source tree's ownership, which is what lets it hardlink against a previous
+# release that is already owned by srcp. With -a every file differs by owner and
+# nothing is ever shared.
+rsync -rlptD --delete "${LINK_DEST[@]+"${LINK_DEST[@]}"}" \
+    --exclude='.git/' \
+    --exclude='.git*' \
+    --exclude='.turbo/' \
+    --exclude='node_modules/.cache/' \
+    --exclude='.next/cache/' \
+    --exclude='apps/api/storage/logs/' \
+    --exclude='apps/api/storage/framework/cache/data/' \
+    --exclude='apps/api/.env' \
+    --exclude='apps/*/.env.local' \
+    --exclude='*.log' \
+    "$SRCP_SOURCE/" "$RELEASE/"
+
+# du reports blocks actually allocated, so a hardlinked release reads as the few
+# megabytes it really costs rather than the 1.4 GB it appears to contain.
+log "release: $(du -sh --apparent-size "$RELEASE" | cut -f1) of files, $(du -sh "$RELEASE" | cut -f1) on disk"
+
+#=============================================================================
+step "2/9  Seed shared state, then link the release to it"
+#=============================================================================
+# First deploy only: the environment files come from whatever was running, so a
+# cutover cannot lose configuration that only ever existed in the old tree.
+seed_env() {
+    local from=$1 to=$2
+    if [[ ! -f $to && -f $from ]]; then
+        install -o "$SRCP_USER" -g "$SRCP_USER" -m 0640 "$from" "$to"
+        log "seeded $(basename "$to") from $from"
+    fi
+}
+seed_env "$SRCP_SOURCE/apps/api/.env"          "$SHARED/env/api.env"
+seed_env "$SRCP_SOURCE/apps/web/.env.local"    "$SHARED/env/web.env"
+seed_env "$SRCP_SOURCE/apps/admin/.env.local"  "$SHARED/env/admin.env"
+
+[[ -f $SHARED/env/api.env ]] || die "no shared/env/api.env and none to seed from — the API cannot start"
+
+# Laravel's storage directory holds uploads, framework caches and logs. It is
+# the one part of the application that must survive a release; everything else
+# is rebuilt.
+if [[ ! -d $SHARED/storage/app && -d $SRCP_SOURCE/apps/api/storage/app ]]; then
+    log "seeding shared/storage from the source tree"
+    cp -a "$SRCP_SOURCE/apps/api/storage/." "$SHARED/storage/"
+fi
+mkdir -p "$SHARED/storage"/{app/public,framework/{cache/data,sessions,testing,views},logs}
+
+link_shared() {
+    local target=$1 link=$2
+    rm -rf "$link"
+    mkdir -p "$(dirname "$link")"
+    ln -sfn "$target" "$link"
+}
+link_shared "$SHARED/env/api.env"         "$RELEASE/apps/api/.env"
+link_shared "$SHARED/env/web.env"         "$RELEASE/apps/web/.env.local"
+link_shared "$SHARED/env/admin.env"       "$RELEASE/apps/admin/.env.local"
+link_shared "$SHARED/storage"             "$RELEASE/apps/api/storage"
+link_shared "$SHARED/next-cache/web"      "$RELEASE/apps/web/.next/cache"
+link_shared "$SHARED/next-cache/admin"    "$RELEASE/apps/admin/.next/cache"
+ok "shared state linked"
+
+#=============================================================================
+step "3/9  Ownership and permissions"
+#=============================================================================
+chown -R "$SRCP_USER:$SRCP_USER" "$RELEASE" "$SHARED"
+
+# o= rather than o=rX: nothing outside the service account and its group has any
+# business reading a release. nginx reaches public/ because www-data is a member
+# of the srcp group, not because the tree is world-readable — which also means
+# every other account on this box, including a compromised one, cannot read the
+# application's source or its vendored keys.
+#
+# Capital X preserves the execute bit on directories and on files that already
+# had one, so node_modules/.bin and artisan keep working.
+chmod -R u=rwX,g=rX,o= "$RELEASE"
+chmod 0640 "$SHARED"/env/*.env
+
+# storage is written at runtime by php-fpm and by Horizon, both as srcp.
+chmod -R u=rwX,g=rwX,o= "$SHARED/storage" "$SHARED/next-cache"
+ok "owned by $SRCP_USER, group-readable for nginx, unreadable to everyone else"
+
+#=============================================================================
+step "4/9  Dependencies"
+#=============================================================================
+if (( DO_BUILD )); then
+    log "composer install --no-dev"
+    as_srcp composer install --no-dev --optimize-autoloader --no-interaction \
+        --no-progress --prefer-dist --working-dir="$RELEASE/apps/api"
+
+    log "pnpm install --frozen-lockfile"
+    ( cd "$RELEASE" && as_srcp pnpm install --frozen-lockfile --prod=false )
+
+    log "pnpm build (web + admin)"
+    ( cd "$RELEASE" && as_srcp pnpm build )
+else
+    # Even without a full build, the development dependencies have no business
+    # in a production release: pest, phpunit, rector, faker and larastan are
+    # ~50 MB of code that is reachable from a web request and never called by
+    # one. No packages are downloaded — composer only removes what --no-dev
+    # excludes, using the lock file that was copied in.
+    log "pruning development dependencies (no rebuild requested)"
+    if ! as_srcp composer install --no-dev --optimize-autoloader --no-interaction \
+            --no-progress --working-dir="$RELEASE/apps/api"; then
+        warn "composer could not prune dev dependencies — release keeps them, which is safe but larger"
+    fi
+fi
+
+# Package discovery has to be redone whenever the installed set changes, and it
+# changes here every time: bootstrap/cache/packages.php was copied in from a
+# tree that had the development packages, so it names service providers —
+# Collision's and Pail's among them — that --no-dev has just removed. Laravel
+# reads that file at boot and fails on the first class it cannot find. composer
+# regenerates it through post-autoload-dump; this makes sure of it either way.
+as_srcp php "$RELEASE/apps/api/artisan" package:discover --ansi >/dev/null \
+    || die "package discovery failed against the pruned dependency set — release not activated"
+
+ok "dependencies in place"
+
+#=============================================================================
+step "5/9  Laravel: caches, published assets, (optionally) migrations"
+#=============================================================================
+# `optimize` writes the config, route, event and view caches in one command.
+# Two of the four were missing on this box before: routes and events were
+# resolved from source on every single request, which for 236 routes is work
+# repeated a few hundred times a minute for no reason at all.
+as_srcp php "$RELEASE/apps/api/artisan" optimize
+
+# Horizon's dashboard assets are static files under public/vendor/horizon and
+# are served straight from disk by nginx. Publishing is idempotent.
+as_srcp php "$RELEASE/apps/api/artisan" horizon:publish >/dev/null 2>&1 \
+    || warn "horizon:publish failed — the dashboard will load without styling"
+
+as_srcp php "$RELEASE/apps/api/artisan" storage:link >/dev/null 2>&1 || true
+
+if (( DO_MIGRATE )); then
+    log "running migrations"
+    as_srcp php "$RELEASE/apps/api/artisan" migrate --force --no-interaction \
+        || die "migrations failed — release not activated, nothing changed"
+else
+    if as_srcp php "$RELEASE/apps/api/artisan" migrate:status 2>/dev/null | grep -q 'Pending'; then
+        warn "there are pending migrations. This deploy does not run them — re-run with --migrate."
+    fi
+fi
+
+# The last thing that can be checked before anything is live: a release whose
+# framework will not boot fails here, with the previous one still serving.
+as_srcp php "$RELEASE/apps/api/artisan" about --only=environment >/dev/null \
+    || die "the new release cannot boot Laravel — not activated"
+ok "release builds and boots"
+
+#=============================================================================
+step "6/9  Record what this release is"
+#=============================================================================
+{
+    printf 'release      %s\n' "$STAMP"
+    printf 'deployed_by  %s\n' "${SUDO_USER:-root}"
+    printf 'source       %s\n' "$SRCP_SOURCE"
+    printf 'previous     %s\n' "${PREVIOUS:-none}"
+    printf 'built        %s\n' "$( (( DO_BUILD )) && echo 'yes (composer + pnpm)' || echo 'no (artifacts copied)')"
+    printf 'migrated     %s\n' "$( (( DO_MIGRATE )) && echo yes || echo no)"
+    printf 'php          %s\n' "$(php -r 'echo PHP_VERSION;')"
+    printf 'node         %s\n' "$(/usr/local/lib/node24/bin/node -v 2>/dev/null || echo '-')"
+    if git -C "$SRCP_SOURCE" rev-parse --git-dir >/dev/null 2>&1; then
+        printf 'git_commit   %s\n' "$(git -C "$SRCP_SOURCE" rev-parse HEAD)"
+        printf 'git_branch   %s\n' "$(git -C "$SRCP_SOURCE" branch --show-current)"
+        local_dirty=$(git -C "$SRCP_SOURCE" status --porcelain | wc -l)
+        printf 'git_dirty    %s file(s) uncommitted at deploy time\n' "$local_dirty"
+        # A release built from an uncommitted tree cannot be reproduced from the
+        # repository alone, so the difference is stored beside it. This is a
+        # record, not a substitute for committing.
+        if (( local_dirty > 0 )); then
+            git -C "$SRCP_SOURCE" diff HEAD > "$RELEASE/UNCOMMITTED.patch" 2>/dev/null || true
+            printf 'git_patch    UNCOMMITTED.patch\n'
+        fi
+    fi
+} > "$RELEASE/RELEASE"
+chown "$SRCP_USER:$SRCP_USER" "$RELEASE/RELEASE"
+ok "manifest written"
+
+#=============================================================================
+step "7/9  Go live"
+#=============================================================================
+# ln -T onto a temporary name and then mv -T is the whole trick: `ln -sfn` over
+# an existing symlink is not atomic, and a request arriving in the gap gets a
+# path that does not exist. mv is a rename(2) — there is no gap.
+ln -sfnT "$RELEASE" "$CURRENT.new"
+mv -fT "$CURRENT.new" "$CURRENT"
+ok "current -> $STAMP"
+
+# Configuration first, services second, and in that order for a reason. Applying
+# the nginx site moves /api/v1 from the old `artisan serve` on :8010 to the
+# php-fpm pool, which is already up and already serving the new release — so the
+# API changes hands with no gap at all. Only the two Next.js consoles have to be
+# stopped and started, and they are the part a cutover can afford to blink.
+if (( DO_APPLY )); then
+    /usr/local/sbin/srcp-apply --from "$RELEASE" \
+        || die "configuration failed to apply — current already points at the new release; fix and re-run srcp-apply"
+fi
+
+# The units this deployment replaces. They hold ports 3000, 3010 and 8010, so
+# the new ones cannot start until these stop; and mypos-srcp-queue would go on
+# consuming the same Redis queue Horizon is about to work, with two workers
+# racing for every job. Disabled as well as stopped, or a reboot brings the old
+# stack back on top of the new one. The unit files stay on disk.
+LEGACY=(mypos-srcp-web mypos-srcp-admin mypos-srcp-api mypos-srcp-queue)
+for unit in "${LEGACY[@]}"; do
+    if systemctl list-unit-files "$unit.service" >/dev/null 2>&1 \
+       && [[ -f /etc/systemd/system/$unit.service ]]; then
+        systemctl disable --now "$unit.service" >/dev/null 2>&1 || true
+        log "retired $unit.service"
+    fi
+done
+
+PHPV=$(find /etc/php -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort -V | tail -1)
+
+# php-fpm must be restarted, not reloaded: opcache keys compiled files by
+# resolved realpath and the pool runs with validate_timestamps=0, so workers
+# would keep serving the previous release from memory indefinitely.
+systemctl restart "php$PHPV-fpm"
+systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
+systemctl start   srcp-scheduler.timer
+systemctl start   srcp.target 2>/dev/null || true
+ok "services restarted"
+
+#=============================================================================
+step "8/9  Prove it works — or go back"
+#=============================================================================
+# Services need a moment to bind. Next.js in particular answers the port before
+# it answers a request, so a check that runs immediately measures nothing.
+sleep 6
+
+if /usr/local/sbin/srcp-health --quiet; then
+    ok "healthy"
+else
+    warn "the new release is not healthy"
+    if [[ -n $PREVIOUS && -d $PREVIOUS ]]; then
+        warn "rolling back to $(basename "$PREVIOUS")"
+        ln -sfnT "$PREVIOUS" "$CURRENT.new"
+        mv -fT "$CURRENT.new" "$CURRENT"
+        systemctl restart "php$PHPV-fpm"
+        systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
+        sleep 6
+        if /usr/local/sbin/srcp-health --quiet; then
+            die "rolled back to $(basename "$PREVIOUS"), which is healthy. The failed release is kept at $RELEASE — run srcp-health for the detail."
+        fi
+        die "rolled back to $(basename "$PREVIOUS") and it is ALSO unhealthy. Something outside the release is wrong — run srcp-health."
+    fi
+    die "no previous release to roll back to. The release is live and failing — run srcp-health."
+fi
+
+#=============================================================================
+step "9/9  Prune old releases"
+#=============================================================================
+# Never the live one, never the one before it. Hardlinking means the older
+# releases cost little, but "little" is not "nothing" and an unbounded
+# releases/ directory is a disk-full outage with a very long fuse.
+mapfile -t all_releases < <(find "$RELEASES" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort)
+if (( ${#all_releases[@]} > KEEP_RELEASES )); then
+    for old in "${all_releases[@]:0:$((${#all_releases[@]} - KEEP_RELEASES))}"; do
+        [[ $RELEASES/$old == "$(readlink -f "$CURRENT")" ]] && continue
+        [[ $RELEASES/$old == "$PREVIOUS" ]] && continue
+        rm -rf "${RELEASES:?}/$old"
+        log "pruned $old"
+    done
+fi
+
+printf '\n'
+ok "deployed $STAMP — $(( $(find "$RELEASES" -maxdepth 1 -mindepth 1 -type d | wc -l) )) release(s) kept"
+printf '   rollback with: sudo srcp-rollback\n'

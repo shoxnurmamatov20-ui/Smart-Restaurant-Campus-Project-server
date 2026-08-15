@@ -1,0 +1,31 @@
+# Smart Restaurant Campus — log rotation.
+#
+# Installed to /etc/logrotate.d/srcp by srcp-apply.
+#
+# Only php-fpm's two logs are here. Laravel's own logs are not: LOG_STACK=daily
+# means the framework opens a new file per day and deletes beyond its retention
+# itself, and pointing logrotate at the same directory produces two rotators
+# renaming each other's files. nginx's srcp.*.log are covered by the distro's
+# /etc/logrotate.d/nginx, which already keeps 14 compressed days.
+
+/var/log/srcp/*.log {
+    daily
+    rotate 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 root adm
+    su root adm
+    sharedscripts
+
+    # php-fpm holds its log files open. Without this it keeps writing to the
+    # renamed inode and the fresh file stays empty — the failure mode where
+    # everything looks fine until someone needs the log and finds nothing in it.
+    # SIGUSR1 is reopen-logs; it does not interrupt a request in flight.
+    postrotate
+        if [ -r /run/php/php8.4-fpm.pid ]; then
+            kill -USR1 "$(cat /run/php/php8.4-fpm.pid)" 2>/dev/null || true
+        fi
+    endscript
+}

@@ -16,6 +16,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
@@ -88,10 +89,63 @@ return Application::configure(basePath: dirname(__DIR__))
             Authorize::class,
         ]);
 
+        /*
+         * Where a guest is sent, and why the default could not stay.
+         *
+         * ApplicationBuilder::withMiddleware() installs
+         * `redirectGuestsTo(fn () => route('login'))` before this callback runs.
+         * There is no route named `login` in this application — signing in is a
+         * Next.js page that posts to its own handler — so Authenticate resolved
+         * that closure and threw RouteNotFoundException from inside the
+         * middleware, long before the exception handler could turn a missing
+         * session into a 401.
+         *
+         * The result was a 500, with a stack trace logged, every time an
+         * unauthenticated request arrived without `Accept: application/json`.
+         * The consoles always send that header and were answered correctly,
+         * which is why this survived: it only ever fired for a browser opened on
+         * an API URL, an uptime probe, or curl — 27 of them in one day's log.
+         *
+         * A path rather than a route name: `/login` is served by the staff
+         * console through nginx, so a person who lands on a guarded HTML page
+         * gets the actual sign-in screen. API callers never reach it — the
+         * exception handler answers them in JSON first. See withExceptions below;
+         * both halves are needed, and fixing only one leaves the 500 in place.
+         */
+        $middleware->redirectGuestsTo('/login');
+
         // Trust X-Forwarded-* headers (behind Nginx)
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Sentry, error formatting, etc. — to be configured later
+        /*
+         * Answer an unauthenticated request. Do not try to redirect it.
+         *
+         * Laravel's Authenticate middleware sends a guest to route('login')
+         * whenever the request does not look like it wants JSON. There is no
+         * `login` route in this application — signing in belongs to the Next.js
+         * consoles, which post to their own route handler — so that redirect
+         * throws RouteNotFoundException and the caller is told 500.
+         *
+         * It stayed hidden because the consoles send `Accept: application/json`
+         * and were answered 401 exactly as they should be. Everything else —
+         * a browser opened on an API URL, an uptime probe, curl with no header —
+         * got "500 Internal Server Error" for the ordinary condition of not
+         * being signed in, and wrote a stack trace for each: 22 in one day's log
+         * when this was found. A monitor reading that cannot tell "nobody is
+         * logged in" from "the server is broken", which is the real cost.
+         *
+         * Scoped to the paths Laravel serves here rather than switched on
+         * globally: Horizon, Telescope and Pulse are HTML dashboards and their
+         * error pages should stay HTML.
+         */
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request, Throwable $e): bool => $request->is(
+                'api/*',
+                'sanctum/*',
+                'broadcasting/*',
+                'up',
+            ) || $request->expectsJson(),
+        );
     })
     ->create();

@@ -1,0 +1,29 @@
+# Fires srcp-scheduler.service once a minute, which is the contract Laravel's
+# scheduler is written against: `schedule:run` decides for itself which of the
+# declared jobs are due this minute, so the tick must be minute-aligned and
+# must not be skipped.
+#
+# OnCalendar rather than OnUnitActiveSec: the latter counts from the end of the
+# previous run, so a tick that takes four seconds pushes every later tick four
+# seconds further from the minute boundary, and a job declared for 03:30 starts
+# arriving at 03:30:40. AccuracySec=1s stops systemd from batching this with
+# other timers to save wakeups — a power optimisation that is worth nothing on
+# a server and costs the alignment this needs.
+
+[Unit]
+Description=SRCP Laravel scheduler (every minute)
+Documentation=file:///srv/srcp/current/infrastructure/server/systemd/srcp-scheduler.service
+
+[Timer]
+OnCalendar=*:0/1
+AccuracySec=1s
+Unit=srcp-scheduler.service
+
+# Deliberately false. Persistent=true would fire every minute the box was
+# switched off, all at once, the moment it came back. The scheduled work here is
+# a relay and two cleanups; running yesterday's missed minutes now buys nothing
+# and would hammer the queue on every boot.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

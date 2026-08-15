@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { apiBase, SESSION_COOKIE, SESSION_MAX_AGE } from '@/lib/server-session';
+import {
+  apiBase,
+  SESSION_COOKIE,
+  SESSION_COOKIE_SECURE,
+  SESSION_MAX_AGE,
+} from '@/lib/server-session';
 
 /**
  * The platform door, from this console's own origin.
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set(SESSION_COOKIE, data.token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: SESSION_COOKIE_SECURE,
     path: '/',
     // Matched to the token's own expiry so the cookie never outlives what it
     // carries. A cookie that survives its token buys a 401, not a session.

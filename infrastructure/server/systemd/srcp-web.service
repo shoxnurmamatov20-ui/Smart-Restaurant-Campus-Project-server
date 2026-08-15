@@ -1,0 +1,90 @@
+# Smart Restaurant Campus — staff console (Next.js).
+#
+# Serves `/` through nginx. Named srcp-* rather than mypos-* now that this box
+# has a sudoers rule of its own; the old mypos-srcp-* units are disabled by
+# provision.sh and left on disk for one release as a rollback.
+
+[Unit]
+Description=SRCP staff console (Next.js, 127.0.0.1:3000)
+Documentation=file:///srv/srcp/current/docs/deployment/pos26-uzcloud.md
+After=network-online.target
+Wants=network-online.target
+PartOf=srcp.target
+
+# StartLimit* belong in [Unit], not [Service]. systemd moved them in v229 and
+# this box runs 249, where `StartLimitIntervalSec` under [Service] is parsed as
+# an unknown key, logged once and ignored — leaving the 10-second default in
+# force and the intent silently unmet. Exactly the class of mistake that
+# `StopSignal=` was in the unit this file replaces, and `systemd-analyze verify`
+# is what catches both.
+#
+# Five failures inside a minute means the release is broken, not that the
+# process was unlucky. Stopping is better than a restart loop that fills the
+# journal and hides the first error under ten thousand copies of the last.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+User=srcp
+Group=srcp
+WorkingDirectory=/srv/srcp/current/apps/web
+
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/lib/node24/bin:/usr/local/bin:/usr/bin:/bin
+
+# -H 127.0.0.1 is not cosmetic. Next.js binds 0.0.0.0 by default, which put the
+# console on every interface of this box: anyone on the LAN could reach it on
+# :3000 directly, skipping nginx and with it the forwarded-proto handling, the
+# security headers and the access log. nginx is the only thing that should be
+# able to talk to this process.
+ExecStart=/usr/local/lib/node24/bin/node \
+    /srv/srcp/current/apps/web/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3000
+
+Restart=always
+RestartSec=3
+
+# ---------------------------------------------------------------------
+# Sandbox
+#
+# ProtectSystem=strict makes the entire filesystem read-only, so the one
+# writable path has to be named. Next.js writes its image-optimisation and
+# fetch caches under .next/cache, which srcp-deploy points at /srv/srcp/shared
+# so the cache survives a release rather than starting cold on every deploy.
+#
+# MemoryDenyWriteExecute is absent on purpose: V8 compiles JavaScript to machine
+# code at runtime and needs pages that are writable and then executable. Setting
+# it here does not harden the service, it stops it from starting.
+# ---------------------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/srcp/shared
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+# A ceiling, not a target. Node grows its heap until something stops it; without
+# this the console and the queue race each other into swap and the box stops
+# answering anything at all, which is much harder to diagnose than one service
+# being killed and restarted.
+MemoryMax=1G
+TasksMax=512
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

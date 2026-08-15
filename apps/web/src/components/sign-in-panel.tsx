@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useMessages } from 'next-intl';
 
 import type { Messages } from '@/i18n';
+import { SESSION_ENDPOINT } from '@/lib/base-path';
 
 /**
  * The three doors into the product, as the design draws them (§3.12).
@@ -103,7 +104,7 @@ export function SignInPanel({ live = false }: { live?: boolean }) {
        * token in JavaScript, invisible to every server-rendered screen, and
        * would need a CSRF round trip first — see lib/server-session.ts.
        */
-      const response = await fetch('/api/auth/session', {
+      const response = await fetch(SESSION_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

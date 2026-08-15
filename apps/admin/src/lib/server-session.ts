@@ -15,6 +15,19 @@
  */
 export const SESSION_COOKIE = 'restaurant-campus-admin-session';
 
+/**
+ * Whether the session cookie is marked `Secure` — see the longer note in
+ * apps/web/src/lib/server-session.ts. Short version: `NODE_ENV` remains the
+ * default, but a host serving over plain http has to say so, or the browser
+ * discards the cookie silently and the login form simply reappears.
+ */
+export const SESSION_COOKIE_SECURE: boolean =
+  process.env.SESSION_COOKIE_SECURE === 'false'
+    ? false
+    : process.env.SESSION_COOKIE_SECURE === 'true'
+      ? true
+      : process.env.NODE_ENV === 'production';
+
 /** Thirty minutes, as the design specifies for the platform console. */
 export const SESSION_MAX_AGE = 60 * 30;
 

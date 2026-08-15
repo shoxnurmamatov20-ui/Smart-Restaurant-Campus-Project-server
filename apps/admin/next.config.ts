@@ -1,7 +1,16 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const nextConfig: NextConfig = {/* config options here */};
+const nextConfig: NextConfig = {
+  /**
+   * The staff console holds `/` on this host, so the platform console is
+   * mounted under a prefix and nginx proxies `/admin` here. Next rewrites its
+   * own links and asset URLs to match; it does not rewrite a hand-written
+   * `fetch` to an absolute path, which is what src/lib/base-path.ts is for.
+   * Keep this literal in step with NEXT_PUBLIC_BASE_PATH in .env.local.
+   */
+  basePath: '/admin',
+};
 
 /**
  * next-intl, pointed at the request config in src/i18n.

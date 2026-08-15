@@ -1,0 +1,42 @@
+# Smart Restaurant Campus — unprivileged operation of a privileged deployment.
+#
+# Installed to /etc/sudoers.d/91-srcp, mode 0440, by provision.sh — which runs
+# `visudo -c -f` against it first. A syntax error in any file under
+# /etc/sudoers.d breaks sudo for the whole machine, including the sudo needed to
+# fix it, so this file is never copied into place unvalidated.
+#
+# The existing 90-pos-mypos drop-in is left untouched. It grants the same shape
+# of access for the mypos-* unit names this deployment used to carry, and
+# keeping it means the previous units can still be stopped during a rollback.
+#
+# What is deliberately NOT here: a general `systemctl` or a shell. Every entry
+# is a fixed path to a root-owned script, or one systemctl verb against one unit
+# glob. `pos` already holds full `(ALL : ALL) ALL` sudo with a password; the
+# point of this file is not to widen that, it is to let deploys and restarts
+# happen from automation and from a session that has no terminal to type a
+# password into.
+
+Cmnd_Alias SRCP_TOOLS = /usr/local/sbin/srcp-deploy,  \
+                        /usr/local/sbin/srcp-rollback, \
+                        /usr/local/sbin/srcp-apply,    \
+                        /usr/local/sbin/srcp-health
+
+Cmnd_Alias SRCP_UNITS = /usr/bin/systemctl start srcp-*,    \
+                        /usr/bin/systemctl stop srcp-*,     \
+                        /usr/bin/systemctl restart srcp-*,  \
+                        /usr/bin/systemctl enable srcp-*,   \
+                        /usr/bin/systemctl disable srcp-*,  \
+                        /usr/bin/systemctl start srcp.target,   \
+                        /usr/bin/systemctl stop srcp.target,    \
+                        /usr/bin/systemctl restart srcp.target, \
+                        /usr/bin/systemctl status *,        \
+                        /usr/bin/systemctl daemon-reload,   \
+                        /usr/bin/journalctl -u srcp-*
+
+Cmnd_Alias SRCP_EDGE  = /usr/bin/systemctl restart php8.4-fpm, \
+                        /usr/bin/systemctl reload php8.4-fpm,  \
+                        /usr/bin/systemctl reload nginx,       \
+                        /usr/bin/systemctl restart nginx,      \
+                        /usr/sbin/nginx -t
+
+pos ALL=(root) NOPASSWD: SRCP_TOOLS, SRCP_UNITS, SRCP_EDGE

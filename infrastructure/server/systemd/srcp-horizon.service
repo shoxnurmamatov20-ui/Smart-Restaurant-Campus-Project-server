@@ -1,0 +1,82 @@
+# Smart Restaurant Campus — queue supervisor (Laravel Horizon).
+#
+# This replaces a bare `artisan queue:work`. Horizon is already a production
+# dependency in composer.json and config/horizon.php already declares a
+# `production` supervisor with maxProcesses: 10, so the box was carrying the
+# cost of Horizon while running the thing Horizon exists to replace.
+#
+# What the swap buys, concretely: workers balanced across queues instead of one
+# fixed process, a failed-job list that can be retried from the dashboard
+# instead of by hand, wait-time metrics, and — the one that matters on deploy —
+# `horizon:terminate`, which lets a job finish before the process exits. A
+# `queue:work` killed mid-job leaves the job to time out and retry, which for a
+# payment callback means charging twice.
+
+[Unit]
+Description=SRCP queue supervisor (Horizon)
+Documentation=https://laravel.com/docs/horizon
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+Requires=redis-server.service
+PartOf=srcp.target
+
+# In [Unit], not [Service] — see srcp-web.service for why systemd 249 ignores
+# these when they sit in the wrong section.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+User=srcp
+Group=srcp
+WorkingDirectory=/srv/srcp/current/apps/api
+
+ExecStart=/usr/bin/php /srv/srcp/current/apps/api/artisan horizon
+
+# Ask the master to stop accepting work and let in-flight jobs finish, rather
+# than signalling the whole control group at once. TimeoutStopSec has to be
+# longer than the longest job or systemd's SIGKILL undoes the graceful part.
+ExecStop=/usr/bin/php /srv/srcp/current/apps/api/artisan horizon:terminate --wait
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=120
+
+Restart=always
+RestartSec=5
+
+# ---------------------------------------------------------------------
+# Sandbox
+#
+# The release tree is read-only at runtime, which is the point of building it
+# once and never writing to it again. Laravel needs exactly two writable
+# places: storage/ — a symlink into shared/ — and the log directory.
+# ---------------------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/srcp/shared /var/log/srcp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+# Ten workers at ~80 MB plus the master. Set as a ceiling so a job that loads a
+# year of orders into memory kills one service instead of the machine.
+MemoryMax=1500M
+TasksMax=256
+
+[Install]
+WantedBy=multi-user.target
