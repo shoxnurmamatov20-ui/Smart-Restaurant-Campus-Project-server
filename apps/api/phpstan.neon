@@ -1,6 +1,22 @@
 includes:
     - vendor/larastan/larastan/extension.neon
 
+    # The 721 errors that existed the first time this configuration actually
+    # ran. Recorded rather than fixed in one sitting, so the gate becomes useful
+    # today: anything NEW fails the build, while the existing set is a debt with
+    # a number on it instead of a wall that makes the tool worth switching off.
+    #
+    # 593 of them are `property.notFound` on Eloquent models — PHPStan cannot see
+    # columns that have no @property docblock. `composer ide-helper` generates
+    # those and would clear most of the baseline in one pass; it rewrites every
+    # model file, which is a change worth making deliberately rather than
+    # sneaking in beside a deployment.
+    #
+    # To burn it down: delete entries, run, fix what surfaces. Never regenerate
+    # it to make a new error disappear — that is the one move that turns this
+    # file from a debt register into a place bugs go to hide.
+    - phpstan-baseline.neon
+
 parameters:
     level: 6
     paths:
@@ -13,5 +29,31 @@ parameters:
         - bootstrap/cache
         - storage
         - Modules/*/vendor
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
+    # These two were `checkMissingIterableValueType: false` and
+    # `checkGenericClassInNonGenericObjectType: false`, which PHPStan removed in
+    # 2.0. larastan ^3.0 requires PHPStan ^2.0, so every run since that
+    # dependency was chosen died with "Invalid configuration: Unexpected item"
+    # before analysing a single file — the quality gate was not failing, it was
+    # not running.
+    #
+    # 2.0 replaced both flags with error identifiers, so the intent is expressed
+    # by ignoring those identifiers instead. Same effect, and a `array` without a
+    # value type still shows up under `--error-format=table` if the ignore is
+    # ever lifted.
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+        - identifier: missingType.generics
+
+        # larastan only recognises the application's own `config/` directory, so
+        # every module's config file is reported as an env() call made outside
+        # config — which would indeed return null once the config is cached.
+        #
+        # Checked before suppressing, rather than assumed: with the cache in
+        # place, `config('pos')` resolves 28 keys and none of them is null,
+        # because ServiceProvider::mergeConfigFrom() skips the merge entirely
+        # when the configuration is cached, so the values baked in at cache time
+        # are the ones served. These files are config; they are just not in the
+        # one directory larastan looks at.
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: Modules/*/config/*.php

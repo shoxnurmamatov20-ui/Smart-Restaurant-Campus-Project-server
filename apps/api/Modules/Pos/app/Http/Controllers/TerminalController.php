@@ -134,6 +134,19 @@ final class TerminalController extends Controller
      */
     public function heartbeat(Request $request): JsonResponse
     {
+        /*
+         * Sanctum hands back whichever model owns the presented token, and a
+         * Terminal owns its own: it is Authenticatable, uses HasApiTokens, and
+         * TerminalPairing mints the token against it.
+         *
+         * Without this annotation static analysis infers User|null from the
+         * provider model in config/auth.php, concludes the guard below can never
+         * pass, and reports everything after it as unreachable — as though this
+         * endpoint always answered 403. It does not. The inferred type was
+         * simply narrower than the truth.
+         *
+         * @var \Modules\Pos\Models\Terminal|\App\Models\User|null $terminal
+         */
         $terminal = $request->user();
 
         if (! $terminal instanceof Terminal) {

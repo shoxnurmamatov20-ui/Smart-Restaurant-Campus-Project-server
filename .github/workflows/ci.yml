@@ -101,6 +101,19 @@ jobs:
         working-directory: apps/api
         run: vendor/bin/pint --test
 
+      # larastan at level 6. New as a step, because the tool was never wired in:
+      # phpstan.neon still carried checkMissingIterableValueType and
+      # checkGenericClassInNonGenericObjectType, both removed in PHPStan 2.0, so
+      # every invocation died on "Invalid configuration" before reading a single
+      # file — and nothing invoked it, so nothing ever said so.
+      #
+      # It passes today against phpstan-baseline.neon, which records the 721
+      # errors that were already there. New ones fail here. Do not regenerate the
+      # baseline to turn this step green; fix what it is pointing at.
+      - name: Run PHPStan (static analysis)
+        working-directory: apps/api
+        run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
       # Creates the twelve module schemas and lands every table in its own —
       # see ADR-0010. The step also proves migrations run clean on a database
       # that has never seen them.

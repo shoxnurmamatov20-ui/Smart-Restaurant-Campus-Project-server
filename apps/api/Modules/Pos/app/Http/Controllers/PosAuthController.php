@@ -165,6 +165,14 @@ final class PosAuthController extends Controller
 
     private function terminalFrom(Request $request): ?Terminal
     {
+        /*
+         * Either identity can hold a token on these routes: a till is a
+         * Terminal, a person is a User. See TerminalController::heartbeat for
+         * why the annotation is needed — what Sanctum returns is wider than
+         * what the container's provider model implies.
+         *
+         * @var \Modules\Pos\Models\Terminal|\App\Models\User|null $authenticated
+         */
         $authenticated = $request->user();
 
         return $authenticated instanceof Terminal ? $authenticated : null;
