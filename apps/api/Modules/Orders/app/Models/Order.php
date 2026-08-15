@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Orders\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Support\Events\EventBus;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Orders\Database\Factories\OrderFactory;
 use Modules\Orders\Events\OrderPaid;
 use Spatie\Activitylog\LogOptions;
@@ -21,13 +26,75 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * A single bill, whatever channel it came from.
-
+ *
  * Cross-module references (restaurant_table_id, customer_id) are stored as
  * plain IDs without a foreign key: modules own their own schema, and a hard FK
  * would make Orders undeployable without Tables. The denormalised
  * `table_label` is a snapshot so a renamed table never rewrites history.
  *
- * @method static OrderFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property string $number Human-facing bill number, unique per tenant
+ * @property string $channel dine_in
+ * @property string $status
+ * @property int|null $restaurant_table_id Tables module id, no FK on purpose
+ * @property string|null $table_label Snapshot at order time
+ * @property int|null $waiter_user_id
+ * @property int|null $customer_id CRM module id, no FK on purpose
+ * @property int $guests_count
+ * @property int $subtotal Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $discount_total Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $service_charge Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $total Amount in tiyin (1 UZS = 100 tiyin)
+ * @property Carbon|null $placed_at
+ * @property Carbon|null $closed_at
+ * @property string|null $note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $branch_id
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read bool $is_open
+ * @property-read Collection<int, OrderItem> $items
+ * @property-read int|null $items_count
+ * @property-read Tenant|null $tenant
+ * @property-read float $total_uzs
+ *
+ * @method static \Modules\Orders\Database\Factories\OrderFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Order newModelQuery()
+ * @method static Builder<static>|Order newQuery()
+ * @method static Builder<static>|Order ofChannel(string $channel)
+ * @method static Builder<static>|Order onlyTrashed()
+ * @method static Builder<static>|Order open()
+ * @method static Builder<static>|Order query()
+ * @method static Builder<static>|Order today()
+ * @method static Builder<static>|Order whereBranchId($value)
+ * @method static Builder<static>|Order whereChannel($value)
+ * @method static Builder<static>|Order whereClosedAt($value)
+ * @method static Builder<static>|Order whereCreatedAt($value)
+ * @method static Builder<static>|Order whereCustomerId($value)
+ * @method static Builder<static>|Order whereDeletedAt($value)
+ * @method static Builder<static>|Order whereDiscountTotal($value)
+ * @method static Builder<static>|Order whereGuestsCount($value)
+ * @method static Builder<static>|Order whereId($value)
+ * @method static Builder<static>|Order whereNote($value)
+ * @method static Builder<static>|Order whereNumber($value)
+ * @method static Builder<static>|Order wherePlacedAt($value)
+ * @method static Builder<static>|Order whereRestaurantTableId($value)
+ * @method static Builder<static>|Order whereServiceCharge($value)
+ * @method static Builder<static>|Order whereStatus($value)
+ * @method static Builder<static>|Order whereSubtotal($value)
+ * @method static Builder<static>|Order whereTableLabel($value)
+ * @method static Builder<static>|Order whereTenantId($value)
+ * @method static Builder<static>|Order whereTotal($value)
+ * @method static Builder<static>|Order whereUpdatedAt($value)
+ * @method static Builder<static>|Order whereWaiterUserId($value)
+ * @method static Builder<static>|Order withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Order withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Order extends Model
 {

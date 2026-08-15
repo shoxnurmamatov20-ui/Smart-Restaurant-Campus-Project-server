@@ -1,20 +1,23 @@
 includes:
     - vendor/larastan/larastan/extension.neon
 
-    # The 721 errors that existed the first time this configuration actually
-    # ran. Recorded rather than fixed in one sitting, so the gate becomes useful
-    # today: anything NEW fails the build, while the existing set is a debt with
-    # a number on it instead of a wall that makes the tool worth switching off.
+    # 128 errors, down from the 721 this configuration reported the first time it
+    # actually ran. The difference is `ide-helper:models --write` across all 44
+    # models in app/ and Modules/*/app/: 593 of the original errors were
+    # `property.notFound`, which is PHPStan saying it cannot see a column that has
+    # no @property docblock rather than anything being wrong.
     #
-    # 593 of them are `property.notFound` on Eloquent models — PHPStan cannot see
-    # columns that have no @property docblock. `composer ide-helper` generates
-    # those and would clear most of the baseline in one pass; it rewrites every
-    # model file, which is a change worth making deliberately rather than
-    # sneaking in beside a deployment.
+    # What is left was read, not just counted. Roughly half is `nullsafe.neverNull`
+    # — `?->` on something the schema says is NOT NULL — and most of the rest is
+    # defensive code the annotations have now made provably redundant, such as
+    # `$this->expires_at !== null` on a non-nullable column. Checked against
+    # information_schema rather than assumed: the annotation is right and the
+    # check is dead, which is harmless and stays until someone makes that column
+    # nullable and needs it again.
     #
-    # To burn it down: delete entries, run, fix what surfaces. Never regenerate
-    # it to make a new error disappear — that is the one move that turns this
-    # file from a debt register into a place bugs go to hide.
+    # To burn the rest down: delete entries, run, fix what surfaces. Never
+    # regenerate this file to make a new error disappear — that is the one move
+    # that turns a debt register into a place bugs go to hide.
     - phpstan-baseline.neon
 
 parameters:

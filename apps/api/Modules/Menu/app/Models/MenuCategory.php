@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Menu\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasTranslations;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Menu\Database\Factories\MenuCategoryFactory;
 use Modules\Menu\Models\Concerns\InvalidatesMenuCache;
 use Spatie\Activitylog\LogOptions;
@@ -27,14 +31,50 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $id
  * @property int|null $tenant_id
  * @property int|null $parent_id
- * @property string $slug
- * @property array<string, string> $name
- * @property array<string, string>|null $description
- * @property string|null $icon
+ * @property string $slug URL-safe key, unique per tenant
+ * @property array<array-key, mixed> $name {"uz": "...", "ru": "...", "en": "..."}
+ * @property array<array-key, mixed>|null $description
+ * @property string|null $icon Lucide icon key for the UI
+ * @property string|null $image_url
  * @property int $sort_order
  * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, MenuCategory> $children
+ * @property-read int|null $children_count
+ * @property-read Collection<int, MenuItem> $items
+ * @property-read int|null $items_count
+ * @property-read MenuCategory|null $parent
+ * @property-read Tenant|null $tenant
+ * @property-read string|null $title
  *
- * @method static MenuCategoryFactory factory(int $count = null, array $state = [])
+ * @method static Builder<static>|MenuCategory active()
+ * @method static \Modules\Menu\Database\Factories\MenuCategoryFactory factory($count = null, $state = [])
+ * @method static Builder<static>|MenuCategory newModelQuery()
+ * @method static Builder<static>|MenuCategory newQuery()
+ * @method static Builder<static>|MenuCategory onlyTrashed()
+ * @method static Builder<static>|MenuCategory query()
+ * @method static Builder<static>|MenuCategory root()
+ * @method static Builder<static>|MenuCategory whereCreatedAt($value)
+ * @method static Builder<static>|MenuCategory whereDeletedAt($value)
+ * @method static Builder<static>|MenuCategory whereDescription($value)
+ * @method static Builder<static>|MenuCategory whereIcon($value)
+ * @method static Builder<static>|MenuCategory whereId($value)
+ * @method static Builder<static>|MenuCategory whereImageUrl($value)
+ * @method static Builder<static>|MenuCategory whereIsActive($value)
+ * @method static Builder<static>|MenuCategory whereName($value)
+ * @method static Builder<static>|MenuCategory whereParentId($value)
+ * @method static Builder<static>|MenuCategory whereSlug($value)
+ * @method static Builder<static>|MenuCategory whereSortOrder($value)
+ * @method static Builder<static>|MenuCategory whereTenantId($value)
+ * @method static Builder<static>|MenuCategory whereUpdatedAt($value)
+ * @method static Builder<static>|MenuCategory withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|MenuCategory withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class MenuCategory extends Model
 {

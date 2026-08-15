@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Modules\Pos\Database\Factories\DrawerMovementFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -18,7 +22,52 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Cash physically entering or leaving a drawer.
  *
- * @method static DrawerMovementFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $terminal_id
+ * @property int $session_id
+ * @property int $user_id
+ * @property int $cash_shift_id finance.cash_shifts id — no FK
+ * @property int|null $finance_expense_id finance.expenses id written for an outgoing movement
+ * @property string $kind opening_float|cash_in|cash_out|collection|tip_out|correction
+ * @property int $amount Tiyin, always positive
+ * @property string $direction in|out
+ * @property string $reason
+ * @property int|null $approval_id
+ * @property Carbon $occurred_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read PosApproval|null $approval
+ * @property-read int $signed_amount
+ * @property-read Tenant|null $tenant
+ * @property-read Terminal|null $terminal
+ * @property-read User $user
+ *
+ * @method static \Modules\Pos\Database\Factories\DrawerMovementFactory factory($count = null, $state = [])
+ * @method static Builder<static>|DrawerMovement forShift(int $cashShiftId)
+ * @method static Builder<static>|DrawerMovement newModelQuery()
+ * @method static Builder<static>|DrawerMovement newQuery()
+ * @method static Builder<static>|DrawerMovement outgoing()
+ * @method static Builder<static>|DrawerMovement query()
+ * @method static Builder<static>|DrawerMovement whereAmount($value)
+ * @method static Builder<static>|DrawerMovement whereApprovalId($value)
+ * @method static Builder<static>|DrawerMovement whereCashShiftId($value)
+ * @method static Builder<static>|DrawerMovement whereCreatedAt($value)
+ * @method static Builder<static>|DrawerMovement whereDirection($value)
+ * @method static Builder<static>|DrawerMovement whereFinanceExpenseId($value)
+ * @method static Builder<static>|DrawerMovement whereId($value)
+ * @method static Builder<static>|DrawerMovement whereKind($value)
+ * @method static Builder<static>|DrawerMovement whereOccurredAt($value)
+ * @method static Builder<static>|DrawerMovement whereReason($value)
+ * @method static Builder<static>|DrawerMovement whereSessionId($value)
+ * @method static Builder<static>|DrawerMovement whereTenantId($value)
+ * @method static Builder<static>|DrawerMovement whereTerminalId($value)
+ * @method static Builder<static>|DrawerMovement whereUpdatedAt($value)
+ * @method static Builder<static>|DrawerMovement whereUserId($value)
+ *
+ * @mixin \Eloquent
  */
 final class DrawerMovement extends Model
 {

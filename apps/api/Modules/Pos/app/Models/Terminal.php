@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
 use Modules\Pos\Database\Factories\TerminalFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -31,7 +37,62 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * counter are not three products — they are three orders of the same steps, and
  * the terminal says which one it is running.
  *
- * @method static TerminalFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int|null $branch_id Filial id — no FK: branches are not owned by Pos
+ * @property string $code Kassa kodi, restoran ichida yagona: KASSA-1
+ * @property string $name
+ * @property string $mode table_service|quick_service|bar|counter
+ * @property string $status active|disabled|maintenance
+ * @property string|null $pairing_code_hash sha256 of the one-time code — never the code itself
+ * @property Carbon|null $pairing_expires_at
+ * @property Carbon|null $paired_at
+ * @property string|null $device_fingerprint
+ * @property string|null $app_version
+ * @property Carbon|null $last_seen_at
+ * @property int|null $pos_layout_id Tez tugmalar maketi — pos.layouts, set in a later migration
+ * @property array<array-key, mixed>|null $settings printer routing, drawer, fiscal serial, rounding, per-role discount limits
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read bool $is_online
+ * @property-read bool $is_paired
+ * @property-read Tenant|null $tenant
+ * @property-read Collection<int, PersonalAccessToken> $tokens
+ * @property-read int|null $tokens_count
+ *
+ * @method static Builder<static>|Terminal active()
+ * @method static \Modules\Pos\Database\Factories\TerminalFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Terminal inMode(string $mode)
+ * @method static Builder<static>|Terminal newModelQuery()
+ * @method static Builder<static>|Terminal newQuery()
+ * @method static Builder<static>|Terminal onlyTrashed()
+ * @method static Builder<static>|Terminal query()
+ * @method static Builder<static>|Terminal whereAppVersion($value)
+ * @method static Builder<static>|Terminal whereBranchId($value)
+ * @method static Builder<static>|Terminal whereCode($value)
+ * @method static Builder<static>|Terminal whereCreatedAt($value)
+ * @method static Builder<static>|Terminal whereDeletedAt($value)
+ * @method static Builder<static>|Terminal whereDeviceFingerprint($value)
+ * @method static Builder<static>|Terminal whereId($value)
+ * @method static Builder<static>|Terminal whereLastSeenAt($value)
+ * @method static Builder<static>|Terminal whereMode($value)
+ * @method static Builder<static>|Terminal whereName($value)
+ * @method static Builder<static>|Terminal wherePairedAt($value)
+ * @method static Builder<static>|Terminal wherePairingCodeHash($value)
+ * @method static Builder<static>|Terminal wherePairingExpiresAt($value)
+ * @method static Builder<static>|Terminal wherePosLayoutId($value)
+ * @method static Builder<static>|Terminal whereSettings($value)
+ * @method static Builder<static>|Terminal whereStatus($value)
+ * @method static Builder<static>|Terminal whereTenantId($value)
+ * @method static Builder<static>|Terminal whereUpdatedAt($value)
+ * @method static Builder<static>|Terminal withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Terminal withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Terminal extends Model implements AuthenticatableContract
 {

@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Suppliers\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Suppliers\Database\Factories\PurchaseOrderItemFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -17,7 +21,43 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * One line of a purchase order.
  *
- * @method static PurchaseOrderItemFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $purchase_order_id
+ * @property int|null $ingredient_id Inventory module id, no FK on purpose
+ * @property string $name
+ * @property int $quantity
+ * @property int $unit_price Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $total_price Amount in tiyin (1 UZS = 100 tiyin)
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read PurchaseOrder|null $purchaseOrder
+ * @property-read Tenant|null $tenant
+ *
+ * @method static \Modules\Suppliers\Database\Factories\PurchaseOrderItemFactory factory($count = null, $state = [])
+ * @method static Builder<static>|PurchaseOrderItem newModelQuery()
+ * @method static Builder<static>|PurchaseOrderItem newQuery()
+ * @method static Builder<static>|PurchaseOrderItem ofOrder(int $orderId)
+ * @method static Builder<static>|PurchaseOrderItem onlyTrashed()
+ * @method static Builder<static>|PurchaseOrderItem query()
+ * @method static Builder<static>|PurchaseOrderItem whereCreatedAt($value)
+ * @method static Builder<static>|PurchaseOrderItem whereDeletedAt($value)
+ * @method static Builder<static>|PurchaseOrderItem whereId($value)
+ * @method static Builder<static>|PurchaseOrderItem whereIngredientId($value)
+ * @method static Builder<static>|PurchaseOrderItem whereName($value)
+ * @method static Builder<static>|PurchaseOrderItem wherePurchaseOrderId($value)
+ * @method static Builder<static>|PurchaseOrderItem whereQuantity($value)
+ * @method static Builder<static>|PurchaseOrderItem whereTenantId($value)
+ * @method static Builder<static>|PurchaseOrderItem whereTotalPrice($value)
+ * @method static Builder<static>|PurchaseOrderItem whereUnitPrice($value)
+ * @method static Builder<static>|PurchaseOrderItem whereUpdatedAt($value)
+ * @method static Builder<static>|PurchaseOrderItem withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|PurchaseOrderItem withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class PurchaseOrderItem extends Model
 {

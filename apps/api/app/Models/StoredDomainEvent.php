@@ -9,6 +9,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * One row of the outbox.
@@ -19,19 +20,46 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property string $event_id
- * @property int|null $tenant_id
- * @property string $name
+ * @property int|null $tenant_id Which restaurant this happened in; null for platform-wide events
+ * @property string $name Past tense, dotted: orders.paid, kitchen.ticket_ready
  * @property string $module
  * @property int $schema_version
- * @property int|null $actor_id
+ * @property int|null $actor_id The person behind it; null for system-driven events
  * @property string|null $aggregate_type
  * @property int|null $aggregate_id
- * @property array<string, mixed> $payload
+ * @property array<array-key, mixed> $payload
  * @property CarbonImmutable $occurred_at
  * @property CarbonImmutable|null $published_at
  * @property CarbonImmutable|null $available_at
  * @property int $attempts
  * @property string|null $last_error
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
+ * @method static Builder<static>|StoredDomainEvent abandoned()
+ * @method static Builder<static>|StoredDomainEvent newModelQuery()
+ * @method static Builder<static>|StoredDomainEvent newQuery()
+ * @method static Builder<static>|StoredDomainEvent pending()
+ * @method static Builder<static>|StoredDomainEvent query()
+ * @method static Builder<static>|StoredDomainEvent whereActorId($value)
+ * @method static Builder<static>|StoredDomainEvent whereAggregateId($value)
+ * @method static Builder<static>|StoredDomainEvent whereAggregateType($value)
+ * @method static Builder<static>|StoredDomainEvent whereAttempts($value)
+ * @method static Builder<static>|StoredDomainEvent whereAvailableAt($value)
+ * @method static Builder<static>|StoredDomainEvent whereCreatedAt($value)
+ * @method static Builder<static>|StoredDomainEvent whereEventId($value)
+ * @method static Builder<static>|StoredDomainEvent whereId($value)
+ * @method static Builder<static>|StoredDomainEvent whereLastError($value)
+ * @method static Builder<static>|StoredDomainEvent whereModule($value)
+ * @method static Builder<static>|StoredDomainEvent whereName($value)
+ * @method static Builder<static>|StoredDomainEvent whereOccurredAt($value)
+ * @method static Builder<static>|StoredDomainEvent wherePayload($value)
+ * @method static Builder<static>|StoredDomainEvent wherePublishedAt($value)
+ * @method static Builder<static>|StoredDomainEvent whereSchemaVersion($value)
+ * @method static Builder<static>|StoredDomainEvent whereTenantId($value)
+ * @method static Builder<static>|StoredDomainEvent whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 #[Fillable([
     'event_id', 'tenant_id', 'name', 'module', 'schema_version', 'actor_id',

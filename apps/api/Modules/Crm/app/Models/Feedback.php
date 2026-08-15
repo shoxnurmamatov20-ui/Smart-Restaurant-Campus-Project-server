@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Crm\Database\Factories\FeedbackFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -17,7 +21,50 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * What a guest thought. One-star reviews are cheap to read; the pattern in the three-star ones is not.
  *
- * @method static FeedbackFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int|null $customer_id
+ * @property int|null $order_id
+ * @property int $score 1..5
+ * @property string|null $comment
+ * @property string|null $aspect food
+ * @property string $source bot
+ * @property bool $is_urgent Food safety, injury or abuse — a manager must see it now
+ * @property string $status new
+ * @property Carbon|null $resolved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Customer|null $customer
+ * @property-read Tenant|null $tenant
+ *
+ * @method static \Modules\Crm\Database\Factories\FeedbackFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Feedback negative()
+ * @method static Builder<static>|Feedback newModelQuery()
+ * @method static Builder<static>|Feedback newQuery()
+ * @method static Builder<static>|Feedback onlyTrashed()
+ * @method static Builder<static>|Feedback query()
+ * @method static Builder<static>|Feedback unresolved()
+ * @method static Builder<static>|Feedback whereAspect($value)
+ * @method static Builder<static>|Feedback whereComment($value)
+ * @method static Builder<static>|Feedback whereCreatedAt($value)
+ * @method static Builder<static>|Feedback whereCustomerId($value)
+ * @method static Builder<static>|Feedback whereDeletedAt($value)
+ * @method static Builder<static>|Feedback whereId($value)
+ * @method static Builder<static>|Feedback whereIsUrgent($value)
+ * @method static Builder<static>|Feedback whereOrderId($value)
+ * @method static Builder<static>|Feedback whereResolvedAt($value)
+ * @method static Builder<static>|Feedback whereScore($value)
+ * @method static Builder<static>|Feedback whereSource($value)
+ * @method static Builder<static>|Feedback whereStatus($value)
+ * @method static Builder<static>|Feedback whereTenantId($value)
+ * @method static Builder<static>|Feedback whereUpdatedAt($value)
+ * @method static Builder<static>|Feedback withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Feedback withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Feedback extends Model
 {

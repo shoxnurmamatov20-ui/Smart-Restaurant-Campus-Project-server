@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\Tables\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Tables\Database\Factories\ReservationFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -20,7 +25,54 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * A booked table. A no-show costs the same as an empty table, so status matters.
  *
- * @method static ReservationFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int|null $restaurant_table_id
+ * @property string $guest_name
+ * @property string $guest_phone
+ * @property int $guests_count
+ * @property Carbon $starts_at
+ * @property Carbon|null $ends_at
+ * @property string $status pending
+ * @property string $source phone
+ * @property string|null $note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $branch_id
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read bool $is_upcoming
+ * @property-read RestaurantTable|null $restaurantTable
+ * @property-read Tenant|null $tenant
+ *
+ * @method static \Modules\Tables\Database\Factories\ReservationFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Reservation forDay(string $date)
+ * @method static Builder<static>|Reservation newModelQuery()
+ * @method static Builder<static>|Reservation newQuery()
+ * @method static Builder<static>|Reservation onlyTrashed()
+ * @method static Builder<static>|Reservation query()
+ * @method static Builder<static>|Reservation upcoming()
+ * @method static Builder<static>|Reservation whereBranchId($value)
+ * @method static Builder<static>|Reservation whereCreatedAt($value)
+ * @method static Builder<static>|Reservation whereDeletedAt($value)
+ * @method static Builder<static>|Reservation whereEndsAt($value)
+ * @method static Builder<static>|Reservation whereGuestName($value)
+ * @method static Builder<static>|Reservation whereGuestPhone($value)
+ * @method static Builder<static>|Reservation whereGuestsCount($value)
+ * @method static Builder<static>|Reservation whereId($value)
+ * @method static Builder<static>|Reservation whereNote($value)
+ * @method static Builder<static>|Reservation whereRestaurantTableId($value)
+ * @method static Builder<static>|Reservation whereSource($value)
+ * @method static Builder<static>|Reservation whereStartsAt($value)
+ * @method static Builder<static>|Reservation whereStatus($value)
+ * @method static Builder<static>|Reservation whereTenantId($value)
+ * @method static Builder<static>|Reservation whereUpdatedAt($value)
+ * @method static Builder<static>|Reservation withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Reservation withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Reservation extends Model
 {

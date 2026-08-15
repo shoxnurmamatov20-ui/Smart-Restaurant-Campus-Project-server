@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Menu\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasTranslations;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,20 +31,82 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $id
  * @property int|null $tenant_id
  * @property int $menu_category_id
- * @property string $sku
- * @property array<string, string> $name
- * @property array<string, string>|null $description
- * @property string $kind
- * @property int $price Price in tiyin
- * @property int|null $cost_price Theoretical food cost in tiyin
+ * @property string $sku Kitchen/POS code, unique per tenant, e.g. OSH-001
+ * @property array<array-key, mixed> $name {"uz": "...", "ru": "...", "en": "..."}
+ * @property array<array-key, mixed>|null $description
+ * @property string $kind food|drink|combo|other
+ * @property int $price Menu price in tiyin
+ * @property int|null $cost_price Theoretical food cost in tiyin, recalculated from the recipe
  * @property string $currency
  * @property int $cook_time_minutes
- * @property string $station
+ * @property string $station Kitchen station: hot|cold|grill|bar|pastry
+ * @property int|null $weight_grams
+ * @property int|null $calories
+ * @property array<array-key, mixed>|null $allergens ["gluten","nuts","dairy",...]
+ * @property bool $is_halal
+ * @property bool $is_vegetarian
+ * @property int $spice_level 0..3
  * @property bool $is_available
- * @property Carbon|null $stopped_until
- * @property string $status
+ * @property Carbon|null $stopped_until When set, the item auto-returns to the menu at this time
+ * @property string $status draft|active|archived
+ * @property string|null $image_url
+ * @property int $sort_order
+ * @property array<array-key, mixed>|null $channels Where it is sold: ["dine_in","takeaway","delivery","aggregator"]
+ * @property array<array-key, mixed>|null $metadata
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read MenuCategory|null $category
+ * @property-read bool $is_orderable
+ * @property-read float|null $margin_percent
+ * @property-read float $price_uzs
+ * @property-read Tenant|null $tenant
+ * @property-read string|null $title
  *
- * @method static MenuItemFactory factory(int $count = null, array $state = [])
+ * @method static Builder<static>|MenuItem active()
+ * @method static \Modules\Menu\Database\Factories\MenuItemFactory factory($count = null, $state = [])
+ * @method static Builder<static>|MenuItem forChannel(string $channel)
+ * @method static Builder<static>|MenuItem newModelQuery()
+ * @method static Builder<static>|MenuItem newQuery()
+ * @method static Builder<static>|MenuItem ofCategory(int $categoryId)
+ * @method static Builder<static>|MenuItem ofStation(string $station)
+ * @method static Builder<static>|MenuItem onlyTrashed()
+ * @method static Builder<static>|MenuItem orderable()
+ * @method static Builder<static>|MenuItem query()
+ * @method static Builder<static>|MenuItem whereAllergens($value)
+ * @method static Builder<static>|MenuItem whereCalories($value)
+ * @method static Builder<static>|MenuItem whereChannels($value)
+ * @method static Builder<static>|MenuItem whereCookTimeMinutes($value)
+ * @method static Builder<static>|MenuItem whereCostPrice($value)
+ * @method static Builder<static>|MenuItem whereCreatedAt($value)
+ * @method static Builder<static>|MenuItem whereCurrency($value)
+ * @method static Builder<static>|MenuItem whereDeletedAt($value)
+ * @method static Builder<static>|MenuItem whereDescription($value)
+ * @method static Builder<static>|MenuItem whereId($value)
+ * @method static Builder<static>|MenuItem whereImageUrl($value)
+ * @method static Builder<static>|MenuItem whereIsAvailable($value)
+ * @method static Builder<static>|MenuItem whereIsHalal($value)
+ * @method static Builder<static>|MenuItem whereIsVegetarian($value)
+ * @method static Builder<static>|MenuItem whereKind($value)
+ * @method static Builder<static>|MenuItem whereMenuCategoryId($value)
+ * @method static Builder<static>|MenuItem whereMetadata($value)
+ * @method static Builder<static>|MenuItem whereName($value)
+ * @method static Builder<static>|MenuItem wherePrice($value)
+ * @method static Builder<static>|MenuItem whereSku($value)
+ * @method static Builder<static>|MenuItem whereSortOrder($value)
+ * @method static Builder<static>|MenuItem whereSpiceLevel($value)
+ * @method static Builder<static>|MenuItem whereStation($value)
+ * @method static Builder<static>|MenuItem whereStatus($value)
+ * @method static Builder<static>|MenuItem whereStoppedUntil($value)
+ * @method static Builder<static>|MenuItem whereTenantId($value)
+ * @method static Builder<static>|MenuItem whereUpdatedAt($value)
+ * @method static Builder<static>|MenuItem whereWeightGrams($value)
+ * @method static Builder<static>|MenuItem withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|MenuItem withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class MenuItem extends Model
 {

@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Modules\Pos\Database\Factories\TerminalSessionFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -29,7 +33,47 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * unattended, `takeover` means somebody else logged in over the top, and
  * `shift_close` means the money was counted.
  *
- * @method static TerminalSessionFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $terminal_id
+ * @property int $user_id
+ * @property int|null $cash_shift_id finance.cash_shifts id — no FK, another module owns it
+ * @property int|null $access_token_id
+ * @property Carbon $opened_at
+ * @property Carbon $last_activity_at
+ * @property Carbon|null $closed_at
+ * @property string|null $closed_reason logout|timeout|takeover|shift_close
+ * @property string|null $ip
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read bool $is_open
+ * @property-read Tenant|null $tenant
+ * @property-read Terminal|null $terminal
+ * @property-read User $user
+ *
+ * @method static \Modules\Pos\Database\Factories\TerminalSessionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|TerminalSession newModelQuery()
+ * @method static Builder<static>|TerminalSession newQuery()
+ * @method static Builder<static>|TerminalSession onTerminal(int $terminalId)
+ * @method static Builder<static>|TerminalSession open()
+ * @method static Builder<static>|TerminalSession query()
+ * @method static Builder<static>|TerminalSession whereAccessTokenId($value)
+ * @method static Builder<static>|TerminalSession whereCashShiftId($value)
+ * @method static Builder<static>|TerminalSession whereClosedAt($value)
+ * @method static Builder<static>|TerminalSession whereClosedReason($value)
+ * @method static Builder<static>|TerminalSession whereCreatedAt($value)
+ * @method static Builder<static>|TerminalSession whereId($value)
+ * @method static Builder<static>|TerminalSession whereIp($value)
+ * @method static Builder<static>|TerminalSession whereLastActivityAt($value)
+ * @method static Builder<static>|TerminalSession whereOpenedAt($value)
+ * @method static Builder<static>|TerminalSession whereTenantId($value)
+ * @method static Builder<static>|TerminalSession whereTerminalId($value)
+ * @method static Builder<static>|TerminalSession whereUpdatedAt($value)
+ * @method static Builder<static>|TerminalSession whereUserId($value)
+ *
+ * @mixin \Eloquent
  */
 final class TerminalSession extends Model
 {

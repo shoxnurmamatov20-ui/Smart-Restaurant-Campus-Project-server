@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Modules\Pos\Database\Factories\PosPinFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -27,7 +31,38 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * rather than seconds. The hash is bcrypt via Hash::make; the plain digits never
  * exist outside a single request.
  *
- * @method static PosPinFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $user_id
+ * @property string $pin_hash
+ * @property int $failed_attempts
+ * @property Carbon|null $locked_until
+ * @property Carbon|null $last_used_at
+ * @property Carbon|null $rotated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read bool $is_locked
+ * @property-read Tenant|null $tenant
+ * @property-read User $user
+ *
+ * @method static \Modules\Pos\Database\Factories\PosPinFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereFailedAttempts($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereLastUsedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereLockedUntil($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin wherePinHash($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereRotatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereTenantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PosPin whereUserId($value)
+ *
+ * @mixin \Eloquent
  */
 final class PosPin extends Model
 {

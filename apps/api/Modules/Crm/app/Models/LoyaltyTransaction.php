@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Crm\Database\Factories\LoyaltyTransactionFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -17,7 +21,43 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Immutable ledger of every point earned, spent or corrected.
  *
- * @method static LoyaltyTransactionFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $customer_id
+ * @property string $kind earn
+ * @property int $points Signed
+ * @property int $balance_after
+ * @property int|null $order_id
+ * @property string|null $note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Customer|null $customer
+ * @property-read Tenant|null $tenant
+ *
+ * @method static \Modules\Crm\Database\Factories\LoyaltyTransactionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|LoyaltyTransaction newModelQuery()
+ * @method static Builder<static>|LoyaltyTransaction newQuery()
+ * @method static Builder<static>|LoyaltyTransaction ofKind(string $kind)
+ * @method static Builder<static>|LoyaltyTransaction onlyTrashed()
+ * @method static Builder<static>|LoyaltyTransaction query()
+ * @method static Builder<static>|LoyaltyTransaction whereBalanceAfter($value)
+ * @method static Builder<static>|LoyaltyTransaction whereCreatedAt($value)
+ * @method static Builder<static>|LoyaltyTransaction whereCustomerId($value)
+ * @method static Builder<static>|LoyaltyTransaction whereDeletedAt($value)
+ * @method static Builder<static>|LoyaltyTransaction whereId($value)
+ * @method static Builder<static>|LoyaltyTransaction whereKind($value)
+ * @method static Builder<static>|LoyaltyTransaction whereNote($value)
+ * @method static Builder<static>|LoyaltyTransaction whereOrderId($value)
+ * @method static Builder<static>|LoyaltyTransaction wherePoints($value)
+ * @method static Builder<static>|LoyaltyTransaction whereTenantId($value)
+ * @method static Builder<static>|LoyaltyTransaction whereUpdatedAt($value)
+ * @method static Builder<static>|LoyaltyTransaction withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|LoyaltyTransaction withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class LoyaltyTransaction extends Model
 {

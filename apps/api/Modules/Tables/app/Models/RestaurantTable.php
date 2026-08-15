@@ -4,25 +4,75 @@ declare(strict_types=1);
 
 namespace Modules\Tables\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Tables\Database\Factories\RestaurantTableFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * One table on the floor.
-
+ *
  * Named RestaurantTable rather than Table because "tables" is far too generic
  * a class name to import next to Eloquent's own schema vocabulary.
  *
- * @method static RestaurantTableFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $hall_id
+ * @property string $label What the guests and waiters call it, e.g. A-7
+ * @property int $seats
+ * @property string $kind regular
+ * @property string $status free
+ * @property string|null $qr_token Opens the public QR menu for this table
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $branch_id
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read Hall|null $hall
+ * @property-read Collection<int, Reservation> $reservations
+ * @property-read int|null $reservations_count
+ * @property-read Tenant|null $tenant
+ *
+ * @method static Builder<static>|RestaurantTable active()
+ * @method static \Modules\Tables\Database\Factories\RestaurantTableFactory factory($count = null, $state = [])
+ * @method static Builder<static>|RestaurantTable free()
+ * @method static Builder<static>|RestaurantTable newModelQuery()
+ * @method static Builder<static>|RestaurantTable newQuery()
+ * @method static Builder<static>|RestaurantTable ofHall(int $hallId)
+ * @method static Builder<static>|RestaurantTable onlyTrashed()
+ * @method static Builder<static>|RestaurantTable query()
+ * @method static Builder<static>|RestaurantTable whereBranchId($value)
+ * @method static Builder<static>|RestaurantTable whereCreatedAt($value)
+ * @method static Builder<static>|RestaurantTable whereDeletedAt($value)
+ * @method static Builder<static>|RestaurantTable whereHallId($value)
+ * @method static Builder<static>|RestaurantTable whereId($value)
+ * @method static Builder<static>|RestaurantTable whereIsActive($value)
+ * @method static Builder<static>|RestaurantTable whereKind($value)
+ * @method static Builder<static>|RestaurantTable whereLabel($value)
+ * @method static Builder<static>|RestaurantTable whereQrToken($value)
+ * @method static Builder<static>|RestaurantTable whereSeats($value)
+ * @method static Builder<static>|RestaurantTable whereStatus($value)
+ * @method static Builder<static>|RestaurantTable whereTenantId($value)
+ * @method static Builder<static>|RestaurantTable whereUpdatedAt($value)
+ * @method static Builder<static>|RestaurantTable withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|RestaurantTable withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class RestaurantTable extends Model
 {

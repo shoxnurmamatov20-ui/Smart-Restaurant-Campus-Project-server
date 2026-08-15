@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Orders\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Orders\Database\Factories\OrderItemFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -18,7 +22,53 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * One line on a bill — a snapshot, not a live reference to the menu.
  *
- * @method static OrderItemFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $order_id
+ * @property int|null $menu_item_id Menu module id, no FK on purpose
+ * @property string $sku
+ * @property string $title Dish name as printed on the bill
+ * @property string $station
+ * @property int $quantity
+ * @property int $unit_price Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $total_price Amount in tiyin (1 UZS = 100 tiyin)
+ * @property string $status pending
+ * @property string|null $note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Order|null $order
+ * @property-read Tenant|null $tenant
+ * @property-read float $total_uzs
+ *
+ * @method static \Modules\Orders\Database\Factories\OrderItemFactory factory($count = null, $state = [])
+ * @method static Builder<static>|OrderItem newModelQuery()
+ * @method static Builder<static>|OrderItem newQuery()
+ * @method static Builder<static>|OrderItem ofStation(string $station)
+ * @method static Builder<static>|OrderItem onlyTrashed()
+ * @method static Builder<static>|OrderItem pending()
+ * @method static Builder<static>|OrderItem query()
+ * @method static Builder<static>|OrderItem whereCreatedAt($value)
+ * @method static Builder<static>|OrderItem whereDeletedAt($value)
+ * @method static Builder<static>|OrderItem whereId($value)
+ * @method static Builder<static>|OrderItem whereMenuItemId($value)
+ * @method static Builder<static>|OrderItem whereNote($value)
+ * @method static Builder<static>|OrderItem whereOrderId($value)
+ * @method static Builder<static>|OrderItem whereQuantity($value)
+ * @method static Builder<static>|OrderItem whereSku($value)
+ * @method static Builder<static>|OrderItem whereStation($value)
+ * @method static Builder<static>|OrderItem whereStatus($value)
+ * @method static Builder<static>|OrderItem whereTenantId($value)
+ * @method static Builder<static>|OrderItem whereTitle($value)
+ * @method static Builder<static>|OrderItem whereTotalPrice($value)
+ * @method static Builder<static>|OrderItem whereUnitPrice($value)
+ * @method static Builder<static>|OrderItem whereUpdatedAt($value)
+ * @method static Builder<static>|OrderItem withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|OrderItem withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class OrderItem extends Model
 {

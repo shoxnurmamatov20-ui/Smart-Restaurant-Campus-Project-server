@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\Staff\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Staff\Database\Factories\AttendanceFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -20,7 +25,51 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Actual clock-in and clock-out — what payroll is computed from.
  *
- * @method static AttendanceFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $staff_member_id
+ * @property Carbon $checked_in_at
+ * @property Carbon|null $checked_out_at
+ * @property string $method face
+ * @property int $minutes_worked
+ * @property bool $is_late
+ * @property string|null $note
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $branch_id
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read int $earned_tiyin
+ * @property-read bool $is_open
+ * @property-read StaffMember|null $member
+ * @property-read Tenant|null $tenant
+ *
+ * @method static \Modules\Staff\Database\Factories\AttendanceFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Attendance newModelQuery()
+ * @method static Builder<static>|Attendance newQuery()
+ * @method static Builder<static>|Attendance onlyTrashed()
+ * @method static Builder<static>|Attendance open()
+ * @method static Builder<static>|Attendance query()
+ * @method static Builder<static>|Attendance today()
+ * @method static Builder<static>|Attendance whereBranchId($value)
+ * @method static Builder<static>|Attendance whereCheckedInAt($value)
+ * @method static Builder<static>|Attendance whereCheckedOutAt($value)
+ * @method static Builder<static>|Attendance whereCreatedAt($value)
+ * @method static Builder<static>|Attendance whereDeletedAt($value)
+ * @method static Builder<static>|Attendance whereId($value)
+ * @method static Builder<static>|Attendance whereIsLate($value)
+ * @method static Builder<static>|Attendance whereMethod($value)
+ * @method static Builder<static>|Attendance whereMinutesWorked($value)
+ * @method static Builder<static>|Attendance whereNote($value)
+ * @method static Builder<static>|Attendance whereStaffMemberId($value)
+ * @method static Builder<static>|Attendance whereTenantId($value)
+ * @method static Builder<static>|Attendance whereUpdatedAt($value)
+ * @method static Builder<static>|Attendance withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Attendance withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Attendance extends Model
 {

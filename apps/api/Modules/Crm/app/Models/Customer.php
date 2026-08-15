@@ -4,24 +4,80 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Models;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Crm\Database\Factories\CustomerFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * A guest we know by phone.
-
+ *
  * Loyalty points live on the customer rather than in a separate account table:
  * one restaurant, one balance, and every read of a guest needs it anyway.
  *
- * @method static CustomerFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property string $phone
+ * @property string|null $name
+ * @property Carbon|null $birthday
+ * @property int $points
+ * @property string $tier bronze
+ * @property int $cashback Amount in tiyin (1 UZS = 100 tiyin)
+ * @property int $visits_count
+ * @property int $total_spent Amount in tiyin (1 UZS = 100 tiyin)
+ * @property array<array-key, mixed>|null $allergens
+ * @property string|null $note
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read int $average_cheque
+ * @property-read bool $birthday_is_today
+ * @property-read Collection<int, Feedback> $feedbacks
+ * @property-read int|null $feedbacks_count
+ * @property-read Collection<int, LoyaltyTransaction> $loyaltyTransactions
+ * @property-read int|null $loyalty_transactions_count
+ * @property-read Tenant|null $tenant
+ *
+ * @method static Builder<static>|Customer active()
+ * @method static Builder<static>|Customer birthdayToday()
+ * @method static \Modules\Crm\Database\Factories\CustomerFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Customer newModelQuery()
+ * @method static Builder<static>|Customer newQuery()
+ * @method static Builder<static>|Customer onlyTrashed()
+ * @method static Builder<static>|Customer query()
+ * @method static Builder<static>|Customer whereAllergens($value)
+ * @method static Builder<static>|Customer whereBirthday($value)
+ * @method static Builder<static>|Customer whereCashback($value)
+ * @method static Builder<static>|Customer whereCreatedAt($value)
+ * @method static Builder<static>|Customer whereDeletedAt($value)
+ * @method static Builder<static>|Customer whereId($value)
+ * @method static Builder<static>|Customer whereIsActive($value)
+ * @method static Builder<static>|Customer whereName($value)
+ * @method static Builder<static>|Customer whereNote($value)
+ * @method static Builder<static>|Customer wherePhone($value)
+ * @method static Builder<static>|Customer wherePoints($value)
+ * @method static Builder<static>|Customer whereTenantId($value)
+ * @method static Builder<static>|Customer whereTier($value)
+ * @method static Builder<static>|Customer whereTotalSpent($value)
+ * @method static Builder<static>|Customer whereUpdatedAt($value)
+ * @method static Builder<static>|Customer whereVisitsCount($value)
+ * @method static Builder<static>|Customer withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Customer withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class Customer extends Model
 {

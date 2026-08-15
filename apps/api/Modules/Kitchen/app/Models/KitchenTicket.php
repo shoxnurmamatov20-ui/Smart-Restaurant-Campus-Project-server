@@ -4,25 +4,82 @@ declare(strict_types=1);
 
 namespace Modules\Kitchen\Models;
 
+use App\Models\Activity;
+use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Modules\Kitchen\Database\Factories\KitchenTicketFactory;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * What a cook actually looks at: one order, one station.
-
+ *
  * The lines are a JSON snapshot rather than a join, because a ticket must keep
  * reading correctly even if the bill is edited afterwards — and because the KDS
  * screen refreshes every few seconds and cannot afford an N+1.
  *
- * @method static KitchenTicketFactory factory(int $count = null, array $state = [])
+ * @property int $id
+ * @property int|null $tenant_id
+ * @property int $order_id Orders module id, no FK on purpose
+ * @property string $order_number
+ * @property string $station
+ * @property string|null $table_label
+ * @property string $channel
+ * @property string $status new
+ * @property array<array-key, mixed>|null $lines [{sku,title,quantity,note}]
+ * @property int $sla_minutes
+ * @property Carbon|null $started_at
+ * @property Carbon|null $ready_at
+ * @property Carbon|null $served_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $branch_id
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
+ * @property-read int $elapsed_minutes
+ * @property-read bool $is_late
+ * @property-read Tenant|null $tenant
+ *
+ * @method static Builder<static>|KitchenTicket active()
+ * @method static \Modules\Kitchen\Database\Factories\KitchenTicketFactory factory($count = null, $state = [])
+ * @method static Builder<static>|KitchenTicket late()
+ * @method static Builder<static>|KitchenTicket newModelQuery()
+ * @method static Builder<static>|KitchenTicket newQuery()
+ * @method static Builder<static>|KitchenTicket ofStation(string $station)
+ * @method static Builder<static>|KitchenTicket onlyTrashed()
+ * @method static Builder<static>|KitchenTicket query()
+ * @method static Builder<static>|KitchenTicket whereBranchId($value)
+ * @method static Builder<static>|KitchenTicket whereChannel($value)
+ * @method static Builder<static>|KitchenTicket whereCreatedAt($value)
+ * @method static Builder<static>|KitchenTicket whereDeletedAt($value)
+ * @method static Builder<static>|KitchenTicket whereId($value)
+ * @method static Builder<static>|KitchenTicket whereLines($value)
+ * @method static Builder<static>|KitchenTicket whereOrderId($value)
+ * @method static Builder<static>|KitchenTicket whereOrderNumber($value)
+ * @method static Builder<static>|KitchenTicket whereReadyAt($value)
+ * @method static Builder<static>|KitchenTicket whereServedAt($value)
+ * @method static Builder<static>|KitchenTicket whereSlaMinutes($value)
+ * @method static Builder<static>|KitchenTicket whereStartedAt($value)
+ * @method static Builder<static>|KitchenTicket whereStation($value)
+ * @method static Builder<static>|KitchenTicket whereStatus($value)
+ * @method static Builder<static>|KitchenTicket whereTableLabel($value)
+ * @method static Builder<static>|KitchenTicket whereTenantId($value)
+ * @method static Builder<static>|KitchenTicket whereUpdatedAt($value)
+ * @method static Builder<static>|KitchenTicket withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|KitchenTicket withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 final class KitchenTicket extends Model
 {

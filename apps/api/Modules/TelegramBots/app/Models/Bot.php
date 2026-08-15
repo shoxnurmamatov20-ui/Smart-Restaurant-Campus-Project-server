@@ -5,12 +5,78 @@ declare(strict_types=1);
 namespace Modules\TelegramBots\Models;
 
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
+/**
+ * @property int $id
+ * @property string $key matches registry key, e.g. "guest"
+ * @property string|null $telegram_username @OshMarkaziGuestBot
+ * @property string $name_uz
+ * @property string $name_ru
+ * @property string $name_en
+ * @property string $purpose
+ * @property string $audience
+ * @property string|null $module
+ * @property string $phase
+ * @property array<array-key, mixed>|null $commands
+ * @property bool $enabled
+ * @property bool $requires_phone
+ * @property bool $requires_login
+ * @property string|null $encrypted_token Bot token, encrypted via APP_KEY
+ * @property string|null $webhook_secret
+ * @property Carbon|null $last_synced_at
+ * @property array<array-key, mixed>|null $metadata
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $tenant_id
+ * @property-read Collection<int, BotUser> $botUsers
+ * @property-read int|null $bot_users_count
+ * @property-read Collection<int, CommandLog> $commandLogs
+ * @property-read int|null $command_logs_count
+ * @property-read Collection<int, Message> $messages
+ * @property-read int|null $messages_count
+ * @property-read Tenant|null $tenant
+ * @property string|null $token
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereAudience($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereCommands($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereEnabled($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereEncryptedToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereLastSyncedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereMetadata($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereModule($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereNameEn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereNameRu($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereNameUz($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot wherePhase($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot wherePurpose($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereRequiresLogin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereRequiresPhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereTelegramUsername($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereTenantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot whereWebhookSecret($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Bot withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 final class Bot extends Model
 {
     use BelongsToTenant;

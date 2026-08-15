@@ -29,14 +29,43 @@ use Illuminate\Support\Carbon;
  * @property int $tenant_id
  * @property string $name
  * @property string $slug
- * @property string|null $code
+ * @property string|null $code Short human code used on receipts and in exports, e.g. CHZ
  * @property string|null $city
  * @property string|null $address
  * @property string|null $phone
  * @property string $timezone
- * @property string $status
+ * @property string $status active | suspended | archived
  * @property Carbon|null $opened_at
- * @property array<string, mixed>|null $settings
+ * @property array<array-key, mixed>|null $settings
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Tenant $tenant
+ *
+ * @method static \Database\Factories\BranchFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereCity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereOpenedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereTenantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereTimezone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Branch withoutTrashed()
+ *
+ * @mixin \Eloquent
  */
 #[Fillable([
     'tenant_id', 'name', 'slug', 'code', 'city', 'address',
