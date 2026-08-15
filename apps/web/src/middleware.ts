@@ -6,6 +6,7 @@ import {
   MODULE_PATHS,
   roleOrDefault,
   SURFACE_ACCESS,
+  SURFACE_PATHS,
   type ModuleKey,
   type Role,
 } from '@/lib/roles';
@@ -37,12 +38,17 @@ const GUARDED_ROUTES: readonly (readonly [string, ModuleKey])[] = (
   .map(([module, path]) => [path, module] as const)
   .sort((a, b) => b[0].length - a[0].length);
 
-/** The full-bleed surfaces, which are not sidebar rows. */
-const GUARDED_SURFACES = [
-  ['/pos', SURFACE_ACCESS.pos],
-  ['/mobile', SURFACE_ACCESS.mobile],
-  ['/platform', SURFACE_ACCESS.super],
-] as const;
+/**
+ * The full-bleed surfaces, which are not sidebar rows.
+ *
+ * Paths come from SURFACE_PATHS rather than being written again here, because
+ * app/robots.ts needs the same list to keep crawlers out of them and a surface
+ * that appeared in one copy and not the other is a screen that is either
+ * unguarded or unlisted, with nothing to say which.
+ */
+const GUARDED_SURFACES = (Object.keys(SURFACE_ACCESS) as (keyof typeof SURFACE_ACCESS)[]).map(
+  (key) => [SURFACE_PATHS[key], SURFACE_ACCESS[key]] as const,
+);
 
 /**
  * Whether this role may open this path.

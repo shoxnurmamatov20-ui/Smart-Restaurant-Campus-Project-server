@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Inter_Tight, JetBrains_Mono } from 'next/font/google';
 import { Providers } from '@/components/providers';
+import { siteUrl } from '@/lib/site-url';
 import './globals.css';
 
 /*
@@ -36,6 +37,18 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  /*
+   * Every relative URL Next emits into <head> is resolved against this: the
+   * openGraph image, the canonical link, the alternates. Without it Next warns
+   * at build time and falls back to localhost, which is how a production page
+   * ends up telling Facebook its preview image lives on the developer's laptop.
+   *
+   * Read from SITE_URL rather than written down, because this deployment
+   * answers on a different host than the one the project was named for, and a
+   * baked-in host is a bug that only shows up on the deployment nobody tested.
+   * See lib/site-url.ts for why it is not the NEXT_PUBLIC_ form.
+   */
+  metadataBase: new URL(siteUrl()),
   title: {
     default: 'Smart Restaurant Campus — Restoran boshqaruv platformasi',
     template: '%s · Restaurant Campus',

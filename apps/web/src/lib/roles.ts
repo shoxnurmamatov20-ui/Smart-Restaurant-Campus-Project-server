@@ -419,6 +419,24 @@ export const SURFACE_ACCESS: Readonly<Record<'pos' | 'mobile' | 'super', readonl
 };
 
 /**
+ * Where each of those surfaces lives.
+ *
+ * Separate from SURFACE_ACCESS because the key and the path disagree exactly
+ * once — `super` is served at `/platform` — and that single mismatch is the
+ * reason this cannot be `/${key}`.
+ *
+ * Two callers need it and they need different halves: middleware pairs each
+ * path with its role list to decide who may enter, while app/robots.ts needs
+ * only the paths, to keep a crawler out of screens that answer 200 to anyone.
+ * Written once so a surface added later cannot appear in one and not the other.
+ */
+export const SURFACE_PATHS: Readonly<Record<'pos' | 'mobile' | 'super', string>> = {
+  pos: '/pos',
+  mobile: '/mobile',
+  super: '/platform',
+};
+
+/**
  * Sidebar row to route.
  *
  * Seven of the nineteen are views of a module rather than modules of their own,
