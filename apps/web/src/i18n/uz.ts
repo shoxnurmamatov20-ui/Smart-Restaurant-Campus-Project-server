@@ -1341,6 +1341,22 @@ export const uz = {
       idleLinkUp: 'Server javob beradi',
       idleLinkDown: 'Server javob bermayapti',
       idleOffline: 'Aloqa yo‘q — oxirgi ma‘lumot {time} da olingan',
+
+      // ---- Kim ishlayapti (P3) ----
+      whoTitle: 'Kim ishlayapti',
+      whoBack: 'Kutish ekraniga qaytish',
+      whoNote:
+        'Kartani bosing va PIN kodni kiriting. Smenada bo‘lmagan xodim kira olmaydi — menejer avval uni smenaga qo‘shishi kerak.',
+      whoEmpty: 'Bu terminalda hali birorta xodimga PIN berilmagan',
+      whoLocked: 'Qulflangan',
+      whoLoading: 'Yuklanmoqda…',
+      whoUnavailable: 'Xodimlar ro‘yxatini o‘qib bo‘lmadi — aloqani tekshiring',
+      pinTitle: 'PIN kodni kiriting',
+      pinWrong: 'PIN noto‘g‘ri',
+      pinClear: 'Tozalash',
+      pinDelete: 'O‘chirish',
+      pinCancel: 'Bekor qilish',
+      pinWorking: 'Tekshirilmoqda…',
     },
     mobile: {
       title: 'Telefon',

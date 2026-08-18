@@ -1323,6 +1323,22 @@ export const en: WebMessages = {
       idleLinkUp: 'The server is answering',
       idleLinkDown: 'The server is not answering',
       idleOffline: 'No link — showing data from {time}',
+
+      // ---- Who is working (P3) ----
+      whoTitle: 'Who is working',
+      whoBack: 'Back to the idle screen',
+      whoNote:
+        'Tap your card and enter your PIN. Someone not on shift cannot sign in — a manager adds them to the shift first.',
+      whoEmpty: 'Nobody on this terminal has been given a PIN yet',
+      whoLocked: 'Locked',
+      whoLoading: 'Loading…',
+      whoUnavailable: 'The staff list could not be read — check the link',
+      pinTitle: 'Enter your PIN',
+      pinWrong: 'Wrong PIN',
+      pinClear: 'Clear',
+      pinDelete: 'Delete',
+      pinCancel: 'Cancel',
+      pinWorking: 'Checking…',
     },
     mobile: {
       title: 'Phone',

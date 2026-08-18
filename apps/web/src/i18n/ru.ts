@@ -1323,6 +1323,22 @@ export const ru: WebMessages = {
       idleLinkUp: 'Сервер отвечает',
       idleLinkDown: 'Сервер не отвечает',
       idleOffline: 'Нет связи — данные на {time}',
+
+      // ---- Кто работает (P3) ----
+      whoTitle: 'Кто работает',
+      whoBack: 'Вернуться к экрану ожидания',
+      whoNote:
+        'Нажмите карточку и введите PIN. Сотрудник не на смене войти не сможет — менеджер сначала добавляет его в смену.',
+      whoEmpty: 'На этом терминале ещё никому не выдан PIN',
+      whoLocked: 'Заблокирован',
+      whoLoading: 'Загрузка…',
+      whoUnavailable: 'Не удалось прочитать список сотрудников — проверьте связь',
+      pinTitle: 'Введите PIN',
+      pinWrong: 'Неверный PIN',
+      pinClear: 'Очистить',
+      pinDelete: 'Удалить',
+      pinCancel: 'Отмена',
+      pinWorking: 'Проверяем…',
     },
     mobile: {
       title: 'Телефон',

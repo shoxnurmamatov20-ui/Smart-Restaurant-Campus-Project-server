@@ -71,6 +71,39 @@ export async function pairedTerminal(): Promise<PairedTerminal | null> {
   return { token, tenantSlug };
 }
 
+/**
+ * The shift session token — who is standing at the till right now.
+ *
+ * The third credential on this tablet and deliberately not merged with either
+ * of the others. The device token says WHICH till and lasts a year; this says
+ * WHO and lasts one person's turn at it. A waiter handing over to a cashier
+ * replaces this and touches neither the pairing nor anybody's password, which
+ * is the whole reason a shift change takes one second.
+ *
+ * Short-lived on purpose: the API closes an idle session after fifteen minutes
+ * (pos.pin.session_idle_minutes), and a cookie that outlived it would send a
+ * dead token and get a refusal the screen would have to explain. Twelve hours
+ * covers the longest realistic turn; the server is what actually decides.
+ */
+export const POS_SHIFT_COOKIE = 'restaurant-campus-shift';
+
+export const POS_SHIFT_MAX_AGE = 60 * 60 * 12;
+
+/** Who the till believes is standing at it, or null if nobody has signed in. */
+export async function shiftToken(): Promise<string | null> {
+  const store = await cookies();
+
+  return store.get(POS_SHIFT_COOKIE)?.value ?? null;
+}
+
+/** One person the till will let sign in, as GET /v1/pos/auth/staff answers. */
+export type PosStaff = {
+  user_id: number;
+  name: string;
+  roles: string[];
+  is_locked: boolean;
+};
+
 /** What the idle screen needs, exactly as GET /v1/pos/idle answers it. */
 export type IdleScreen = {
   terminal: { code: string; name: string; mode: string; app_version: string | null };
