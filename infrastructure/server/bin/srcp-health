@@ -206,11 +206,26 @@ swap_used=$(free -m | awk '/^Swap:/ {print $3}')
 # Thrashing is swap ACTIVITY: pages moving in and out right now. vmstat's second
 # sample is the live one — the first is an average since boot and would carry
 # that same build forever.
+#
+# si/so are KILOBYTES per second, and getting that wrong cost a deploy. Reported
+# as MB/s with the threshold set at 1024 *KB*, this called 18 MB/s of paging
+# "18692MB/s — the box is thrashing" during a release, srcp-deploy read the
+# critical as "not serving", and rolled back a release that was answering every
+# probe in under 30ms.
 read -r swap_in swap_out < <(vmstat 1 2 2>/dev/null | tail -1 | awk '{print $7, $8}')
-swap_rate=$(( ${swap_in:-0} + ${swap_out:-0} ))
+swap_rate_mb=$(( (${swap_in:-0} + ${swap_out:-0}) / 1024 ))
 
-if   (( swap_rate > 1024 )); then
-    crit "memory" "${mem_pct}% used, paging ${swap_rate}MB/s — the box is thrashing"
+# And it is a WARNING, never a critical.
+#
+# `crit` means "the platform is not serving and something must be done now", and
+# srcp-deploy keeps or rolls back a release on exactly that word. Memory
+# pressure does not belong in it: a box in a genuine death spiral fails the
+# three HTTP probes above, which is the honest measure of serving, while a box
+# merely paging during a composer install serves every request and is not worth
+# throwing a good release away for. This check exists to tell a person where to
+# look, not to decide what is live.
+if   (( swap_rate_mb >= 20 )); then
+    warn "memory" "${mem_pct}% used, paging ${swap_rate_mb}MB/s — under real pressure"
 elif (( mem_pct >= 90 )); then
     warn "memory" "${mem_pct}% used, only ${mem_avail}MB available"
 elif (( swap_used > 512 )); then
