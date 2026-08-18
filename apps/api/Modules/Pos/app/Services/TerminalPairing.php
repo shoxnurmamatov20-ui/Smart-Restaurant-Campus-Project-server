@@ -141,6 +141,14 @@ final class TerminalPairing
             abilities: ['pos:terminal'],
         );
 
+        // The branch is loaded HERE, inside the cross-tenant window, and not by
+        // the controller afterwards. The pairing route resolves no tenant — it
+        // cannot, that is the whole point — so once this method returns, the
+        // connection is closed again and `public.branches` is invisible. Loaded
+        // outside, the response came back with `branch: null` and the tablet
+        // painted a till with no venue name on it.
+        $terminal->load('branch');
+
         return ['terminal' => $terminal, 'token' => $token];
     }
 

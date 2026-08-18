@@ -1298,6 +1298,31 @@ export const en: WebMessages = {
       toastDiscount: 'Discount applied',
       needsApproval: 'Needs a manager approval',
       sent: 'Sent',
+
+      // ---- Pairing (P2) ----
+      pairTitle: 'Turn this tablet into a till',
+      pairSub:
+        'A manager creates the till in the console and reads out an eight-character code. It lasts ten minutes.',
+      pairLabel: 'Pairing code',
+      pairHint: 'Eight characters — letters and digits',
+      pairSubmit: 'Pair',
+      pairWorking: 'Pairing…',
+      pairPaired: '{code} · {branch} — paired',
+      pairAgain: 'Enter a different code',
+      pairHelp: 'No code? Ask a manager for a fresh one — the old one stops working at once.',
+
+      // ---- Idle screen (P2) ----
+      idleEnter: 'Sign in',
+      idleSettings: 'Terminal settings',
+      idleHelp: 'Support +998 71 200 40 40',
+      idleOccupied: 'Occupied',
+      idleFree: 'Free',
+      idleOnShift: 'On shift',
+      idleSales: 'Sales today',
+      idleLink: 'Link',
+      idleLinkUp: 'The server is answering',
+      idleLinkDown: 'The server is not answering',
+      idleOffline: 'No link — showing data from {time}',
     },
     mobile: {
       title: 'Phone',

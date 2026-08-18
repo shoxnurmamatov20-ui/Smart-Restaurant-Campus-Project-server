@@ -6,6 +6,7 @@ import {
   formatCurrency,
   formatNumber,
   formatTiyin,
+  formatTiyinCompact,
   formatTiyinAmount,
   keys,
   truncate,
@@ -115,5 +116,29 @@ describe('typed Object helpers', () => {
       ['osh', 4500000],
       ['somsa', 1200000],
     ]);
+  });
+});
+
+describe('formatTiyinCompact', () => {
+  it('shortens millions the way the design does', () => {
+    // 18 420 000 so'm — the idle screen's takings tile. Uzbek and Russian both
+    // write the decimal with a comma; English attaches the M.
+    expect(formatTiyinCompact(1_842_000_000)).toBe('18,4 mln');
+    expect(formatTiyinCompact(1_842_000_000, 'ru')).toBe('18,4 млн');
+    expect(formatTiyinCompact(1_842_000_000, 'en')).toBe('18.4M');
+  });
+
+  it('prints small amounts in full', () => {
+    // A quiet morning. "0,2 mln" is both uglier and less useful than the
+    // figure, and a quiet start is exactly when somebody is watching it.
+    expect(digits(formatTiyinCompact(24_000_000))).toBe('240000');
+    expect(formatTiyinCompact(24_000_000)).not.toContain('mln');
+    expect(formatTiyinCompact(0)).toBe('0');
+  });
+
+  it('takes tiyin, not so’m', () => {
+    // The whole reason these helpers exist: a hundredfold price is the bug a
+    // guest notices before anybody else.
+    expect(formatTiyinCompact(100_000_000)).toBe('1 mln');
   });
 });

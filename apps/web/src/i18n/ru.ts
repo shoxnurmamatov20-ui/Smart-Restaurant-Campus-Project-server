@@ -1298,6 +1298,31 @@ export const ru: WebMessages = {
       toastDiscount: 'Скидка применена',
       needsApproval: 'Нужно подтверждение менеджера',
       sent: 'Отправлено',
+
+      // ---- Подключение (P2) ----
+      pairTitle: 'Сделайте планшет кассой',
+      pairSub:
+        'Менеджер создаёт кассу в консоли и читает восьмизначный код. Код живёт десять минут.',
+      pairLabel: 'Код подключения',
+      pairHint: 'Восемь символов — буквы и цифры',
+      pairSubmit: 'Подключить',
+      pairWorking: 'Подключаем…',
+      pairPaired: '{code} · {branch} — подключено',
+      pairAgain: 'Ввести другой код',
+      pairHelp: 'Нет кода? Попросите у менеджера новый — старый сразу перестаёт действовать.',
+
+      // ---- Экран ожидания (P2) ----
+      idleEnter: 'Войти',
+      idleSettings: 'Настройки терминала',
+      idleHelp: 'Поддержка +998 71 200 40 40',
+      idleOccupied: 'Занято',
+      idleFree: 'Свободно',
+      idleOnShift: 'На смене',
+      idleSales: 'Продажи',
+      idleLink: 'Связь',
+      idleLinkUp: 'Сервер отвечает',
+      idleLinkDown: 'Сервер не отвечает',
+      idleOffline: 'Нет связи — данные на {time}',
     },
     mobile: {
       title: 'Телефон',

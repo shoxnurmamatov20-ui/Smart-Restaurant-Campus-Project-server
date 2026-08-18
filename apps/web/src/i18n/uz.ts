@@ -1316,6 +1316,31 @@ export const uz = {
       toastDiscount: 'Chegirma qo‘llandi',
       needsApproval: 'Menejer tasdig‘i kerak',
       sent: 'Yuborilgan',
+
+      // ---- Ulash (P2) ----
+      pairTitle: 'Planshetni kassaga aylantiring',
+      pairSub:
+        'Menejer konsolda kassa yaratadi va sakkiz belgili kodni o‘qib beradi. Kod o‘n daqiqada tugaydi.',
+      pairLabel: 'Ulash kodi',
+      pairHint: 'Sakkiz belgi — harf va raqam',
+      pairSubmit: 'Ulash',
+      pairWorking: 'Ulanmoqda…',
+      pairPaired: '{code} · {branch} — ulandi',
+      pairAgain: 'Boshqa kod kiritish',
+      pairHelp: 'Kod yo‘qmi? Menejerdan yangisini so‘rang — eskisi shu zahoti kuchini yo‘qotadi.',
+
+      // ---- Kutish ekrani (P2) ----
+      idleEnter: 'Kirish',
+      idleSettings: 'Terminal sozlamalari',
+      idleHelp: 'Yordam +998 71 200 40 40',
+      idleOccupied: 'Band stol',
+      idleFree: 'Bo‘sh',
+      idleOnShift: 'Smenada',
+      idleSales: 'Bugungi savdo',
+      idleLink: 'Aloqa',
+      idleLinkUp: 'Server javob beradi',
+      idleLinkDown: 'Server javob bermayapti',
+      idleOffline: 'Aloqa yo‘q — oxirgi ma‘lumot {time} da olingan',
     },
     mobile: {
       title: 'Telefon',

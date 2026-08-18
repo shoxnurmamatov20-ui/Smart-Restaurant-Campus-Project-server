@@ -323,6 +323,35 @@ final class TerminalPairingTest extends TestCase
         ])->assertCreated();
     }
 
+    public function test_pairing_hands_back_the_venue_name(): void
+    {
+        // The tablet paints "POS-3 · Chilonzor" the instant it pairs, before it
+        // has asked anything else — so the branch has to come with the pairing
+        // response, not from a second call it cannot yet make.
+        //
+        // Worth its own test because this is where it goes wrong: the pairing
+        // route resolves no tenant by design, so anything read AFTER the
+        // cross-tenant window closes comes back empty. Loaded in the controller
+        // instead of inside that window, this answered `branch: null` and the
+        // till showed a venue with no name.
+        $this->signIn();
+        $chilonzor = $this->makeBranch($this->mine, 'Chilonzor', 'chilonzor');
+
+        $created = $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-3', 'name' => 'Kirish', 'mode' => 'counter',
+            'branch_id' => $chilonzor->id,
+        ])->assertCreated();
+
+        $this->postJson('/api/v1/pos/terminals/pair', [
+            'code' => $created->json('pairing.code'),
+            'device_fingerprint' => 'ipad-eshik-01',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('terminal.code', 'POS-3')
+            ->assertJsonPath('terminal.branch.name', 'Chilonzor')
+            ->assertJsonPath('tenant.slug', 'osh-markazi');
+    }
+
     public function test_the_same_branch_cannot_reuse_a_terminal_code(): void
     {
         $this->signIn();

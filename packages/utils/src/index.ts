@@ -80,6 +80,44 @@ export function formatTiyinAmount(tiyin: number, locale: 'uz' | 'ru' | 'en' = 'u
   return formatNumber(tiyin / 100, locale);
 }
 
+/**
+ * How each language shortens a million.
+ *
+ * English attaches it — 18.4M — and the other two take a space, because `mln`
+ * and `млн` are abbreviated words rather than symbols. The design writes both
+ * forms in exactly this way.
+ */
+const MILLIONS = { uz: ' mln', ru: ' млн', en: 'M' } as const;
+
+/**
+ * The same amount, short enough for a tile.
+ *
+ * The POS idle screen gives today's takings a 112px box beside three
+ * two-digit counts; "18 420 000" does not fit and shrinking the type to make
+ * it fit would make the one figure that matters the hardest to read. The
+ * design shortens it — `(n / 1e6).toFixed(1) + "M"` — and this is that rule,
+ * with the word in the reader's language.
+ *
+ * Below a million it prints in full, which the design's own rule does not do
+ * and should: `0.2M` at eleven in the morning is both uglier and less useful
+ * than `240 000`, and a quiet start to the day is exactly when somebody is
+ * watching this number.
+ *
+ * Takes tiyin, like every other formatter here, so no caller divides by 100
+ * on the way in.
+ */
+export function formatTiyinCompact(tiyin: number, locale: 'uz' | 'ru' | 'en' = 'uz'): string {
+  const som = tiyin / 100;
+
+  if (Math.abs(som) < 1_000_000) {
+    return formatNumber(Math.round(som), locale);
+  }
+
+  // One decimal, and the separator the language uses for one — 18,4 млн in
+  // Russian is as wrong with a full stop as 18.4 mln is with a comma.
+  return `${formatNumber(Math.round(som / 100_000) / 10, locale)}${MILLIONS[locale]}`;
+}
+
 /** What each currency is written as, and which side of the figure it sits on. */
 const CURRENCIES = {
   UZS: { symbol: "so'm", leading: false },

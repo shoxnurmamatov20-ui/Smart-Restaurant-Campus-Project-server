@@ -121,9 +121,10 @@ final class TerminalController extends Controller
 
         return response()->json([
             'token' => $token->plainTextToken,
-            // With the branch: the tablet paints "POS-3 · Chilonzor" the
-            // instant it pairs, before it has asked anything else.
-            'terminal' => (new TerminalResource($terminal->load('branch')))->resolve($request),
+            // The branch came with it — TerminalPairing loads it inside the
+            // cross-tenant window, because by the time we are here the
+            // connection is closed again and branches are invisible.
+            'terminal' => (new TerminalResource($terminal))->resolve($request),
             // The till sends this back as X-Tenant on every later request: a
             // device token is not a user, so ResolveTenant cannot infer the
             // restaurant from it.
