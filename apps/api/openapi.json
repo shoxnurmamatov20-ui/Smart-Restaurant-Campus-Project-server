@@ -8281,6 +8281,13 @@
             "message_ru": "Внутренний токен для ботов не настроен.",
             "message_en": "The internal bot token is not configured."
         },
+        "bots.unknown_key": {
+            "status": 404,
+            "retryable": false,
+            "message_uz": "Bunday bot kaliti yo'q yoki restoran faol emas.",
+            "message_ru": "Такого ключа бота нет, или ресторан неактивен.",
+            "message_en": "No such bot key, or its restaurant is not active."
+        },
         "branch.mismatch": {
             "status": 403,
             "retryable": false,

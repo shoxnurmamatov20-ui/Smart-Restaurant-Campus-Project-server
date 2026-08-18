@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Services;
 
+use App\Support\Tenancy\DatabaseTenancy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\NewAccessToken;
@@ -29,6 +30,8 @@ final class TerminalPairing
 {
     /** No I, O, 0 or 1 — this code gets read out loud and typed on a tablet. */
     private const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+    public function __construct(private readonly DatabaseTenancy $tenancy) {}
 
     /**
      * Issue a fresh code, invalidating any previous one.
@@ -75,47 +78,70 @@ final class TerminalPairing
      */
     public function redeem(string $code, string $deviceFingerprint, ?string $appVersion = null): array
     {
-        return DB::transaction(function () use ($code, $deviceFingerprint, $appVersion): array {
-            /** @var Terminal|null $terminal */
-            $terminal = Terminal::query()
-                ->withoutGlobalScope('tenant')   // nobody is signed in yet
-                ->where('pairing_code_hash', $this->hash($code))
-                ->lockForUpdate()
-                ->first();
+        return DB::transaction(fn (): array => $this->tenancy->withoutTenancy(
+            fn (): array => $this->redeemAcrossTenants($code, $deviceFingerprint, $appVersion),
+        ));
+    }
 
-            if ($terminal === null || $terminal->pairing_expires_at === null) {
-                $this->refuse();
-            }
+    /**
+     * The body of redeem(), running with every restaurant visible.
+     *
+     * Both belts have to come off for this one query, and for the same reason:
+     * a tablet holding nothing but an eight-character code cannot say which
+     * restaurant it belongs to, so the code has to be findable before the
+     * tenant is known. `withoutGlobalScope('tenant')` takes off Eloquent's;
+     * `withoutTenancy()` takes off the database's, which row-level security
+     * added — without it the policies answered NO ROWS and every pairing
+     * attempt in production came back "Ulash kodi noto'g'ri", with a code that
+     * had been issued thirty seconds earlier.
+     *
+     * The exception is one query wide and put back by the closure's finally.
+     *
+     * @return array{terminal: Terminal, token: NewAccessToken}
+     *
+     * @throws ValidationException
+     */
+    private function redeemAcrossTenants(string $code, string $deviceFingerprint, ?string $appVersion): array
+    {
+        /** @var Terminal|null $terminal */
+        $terminal = Terminal::query()
+            ->withoutGlobalScope('tenant')   // nobody is signed in yet
+            ->where('pairing_code_hash', $this->hash($code))
+            ->lockForUpdate()
+            ->first();
 
-            if ($terminal->pairing_expires_at->isPast()) {
-                $this->refuse('Ulash kodining muddati tugagan. Menejerdan yangi kod so\'rang.');
-            }
+        if ($terminal === null || $terminal->pairing_expires_at === null) {
+            $this->refuse();
+        }
 
-            if ($terminal->status !== 'active') {
-                $this->refuse('Bu terminal o\'chirilgan.');
-            }
+        if ($terminal->pairing_expires_at->isPast()) {
+            $this->refuse('Ulash kodining muddati tugagan. Menejerdan yangi kod so\'rang.');
+        }
 
-            // Pairing a device replaces the previous one: a till that is being
-            // re-paired is usually a till that was lost or reimaged, and the old
-            // token must stop working at that moment, not at its expiry.
-            $terminal->tokens()->delete();
+        if ($terminal->status !== 'active') {
+            $this->refuse('Bu terminal o\'chirilgan.');
+        }
 
-            $terminal->forceFill([
-                'pairing_code_hash' => null,
-                'pairing_expires_at' => null,
-                'paired_at' => now(),
-                'device_fingerprint' => $deviceFingerprint,
-                'app_version' => $appVersion,
-                'last_seen_at' => now(),
-            ])->save();
+        // Pairing a device replaces the previous one: a till that is being
+        // re-paired is usually a till that was lost or reimaged, and the old
+        // token must stop working at that moment, not at its expiry.
+        $terminal->tokens()->delete();
 
-            $token = $terminal->createToken(
-                name: 'pos-terminal-'.$terminal->code,
-                abilities: ['pos:terminal'],
-            );
+        $terminal->forceFill([
+            'pairing_code_hash' => null,
+            'pairing_expires_at' => null,
+            'paired_at' => now(),
+            'device_fingerprint' => $deviceFingerprint,
+            'app_version' => $appVersion,
+            'last_seen_at' => now(),
+        ])->save();
 
-            return ['terminal' => $terminal, 'token' => $token];
-        });
+        $token = $terminal->createToken(
+            name: 'pos-terminal-'.$terminal->code,
+            abilities: ['pos:terminal'],
+        );
+
+        return ['terminal' => $terminal, 'token' => $token];
     }
 
     /** Deterministic on purpose — see the class docblock. */

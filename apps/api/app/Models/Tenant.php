@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -53,6 +55,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['name', 'slug', 'country_code', 'locale', 'timezone', 'status', 'settings'])]
 final class Tenant extends Model
 {
+    /** @use HasFactory<TenantFactory> */
+    use HasFactory;
+
     protected function casts(): array
     {
         return [

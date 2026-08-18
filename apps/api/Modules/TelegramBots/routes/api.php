@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\RefineLocale;
+use App\Http\Middleware\ResolveBranch;
+use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 use Modules\TelegramBots\Http\Controllers\BotApiController;
 
@@ -33,7 +36,28 @@ use Modules\TelegramBots\Http\Controllers\BotApiController;
 */
 
 // ============ Internal endpoints (called by apps/telegram-bots) ============
-Route::middleware(['internal.bots'])
+Route::middleware([
+    'internal.bots',
+
+    /*
+     * The same tenant resolution every other route gets, and for the same
+     * reason: `X-Tenant` names the restaurant, and with row-level security
+     * live, a request that never says which restaurant it is reads nothing.
+     * These routes had none, so every bot endpoint answered 404 on a key that
+     * exists.
+     *
+     * `ResolveBranch` and `RefineLocale` come along because a bot serves one
+     * venue and one guest's language; `EnsureIdempotency` deliberately does
+     * not — the aiogram client does not send a key yet, and turning that on
+     * here would refuse every write the bots make. That exemption is recorded
+     * in IdempotencyCoverageTest with the same reason.
+     */
+    ResolveTenant::class,
+    ResolveBranch::class,
+    RefineLocale::class,
+
+    'bots.tenant',
+])
     ->prefix('v1/bots/{botKey}')
     ->name('api.v1.bots.')
     ->group(function () {

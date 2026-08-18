@@ -10,6 +10,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\BranchContext;
+use App\Support\Tenancy\DatabaseTenancy;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,8 @@ use Illuminate\Validation\ValidationException;
  */
 final class AuthController extends Controller
 {
+    public function __construct(private readonly DatabaseTenancy $database) {}
+
     /**
      * Sign a new restaurant up.
      *
@@ -59,6 +62,20 @@ final class AuthController extends Controller
                     'channels' => ['dine_in', 'takeaway', 'delivery'],
                 ],
             ]);
+
+            /*
+             * The request now has a restaurant, so say so before writing
+             * anything that belongs to it.
+             *
+             * Registration is the one request that arrives with no tenant and
+             * legitimately ends with one. Everything after this line — the
+             * owner's row, their role, and the audit entries the model events
+             * write for both — belongs to the restaurant that was just created;
+             * without the claim, row-level security refuses the audit insert
+             * and a sign-up answers 500 after having created the tenant.
+             */
+            $this->database->focus($tenant->id);
+            app(TenantContext::class)->set($tenant);
 
             $user = User::query()->create([
                 'tenant_id' => $tenant->id,

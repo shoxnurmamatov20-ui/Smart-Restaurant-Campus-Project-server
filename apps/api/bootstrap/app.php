@@ -8,6 +8,7 @@ use App\Http\Middleware\RefineLocale;
 use App\Http\Middleware\ResolveBranch;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\StartTenancyClosed;
 use App\Support\Errors\ExceptionRenderer;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -44,6 +45,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // Language is decided for every API request, public ones included —
         // a guest scanning a QR menu has no account to read a preference from.
         $middleware->appendToGroup('api', [
+            /*
+             * First, and on every API request: shut the database's tenancy off
+             * so the request has to claim one. Without it "closed" was merely
+             * what a php-fpm worker happened to rest at, while a PHPUnit
+             * process rested on bypass — so the whole suite ran with row-level
+             * security off. See the class docblock for what that hid.
+             */
+            StartTenancyClosed::class,
+
             SetLocale::class,
         ]);
 
@@ -89,6 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ThrottleRequestsWithRedis::class,
             AuthenticatesSessions::class,
 
+            StartTenancyClosed::class,
             SetLocale::class,
             ResolveTenant::class,
             ResolveBranch::class,

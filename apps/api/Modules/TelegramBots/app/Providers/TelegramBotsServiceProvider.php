@@ -12,6 +12,7 @@ use Modules\TelegramBots\Console\CheckConfigCommand;
 use Modules\TelegramBots\Console\RotateInternalTokenCommand;
 use Modules\TelegramBots\Console\SyncBotRegistryCommand;
 use Modules\TelegramBots\Http\Middleware\InternalBotsAuth;
+use Modules\TelegramBots\Http\Middleware\ResolveBotTenant;
 use Symfony\Component\HttpFoundation\Response;
 
 class TelegramBotsServiceProvider extends ApiModuleServiceProvider
@@ -54,6 +55,10 @@ class TelegramBotsServiceProvider extends ApiModuleServiceProvider
         // Register internal-bots auth middleware
         $router = $this->app['router'];
         $router->aliasMiddleware('internal.bots', InternalBotsAuth::class);
+
+        // The bot key names the restaurant — see the class for why that has to
+        // be a middleware rather than a lookup repeated in every controller.
+        $router->aliasMiddleware('bots.tenant', ResolveBotTenant::class);
     }
 
     /**
@@ -89,6 +94,13 @@ class TelegramBotsServiceProvider extends ApiModuleServiceProvider
                 'Ichki token noto\'g\'ri.',
                 'Неверный внутренний токен.',
                 'That internal token is not valid.',
+            ),
+            new ApiError(
+                'bots.unknown_key',
+                Response::HTTP_NOT_FOUND,
+                'Bunday bot kaliti yo\'q yoki restoran faol emas.',
+                'Такого ключа бота нет, или ресторан неактивен.',
+                'No such bot key, or its restaurant is not active.',
             ),
         );
     }

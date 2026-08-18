@@ -93,6 +93,17 @@ final readonly class ResolveTenant
             $this->database->focus($requested->id);
         } elseif ($isPlatformOperator) {
             $this->database->bypass();
+        } else {
+            // Said out loud rather than left to whatever the process happened
+            // to be in. This branch used to do nothing, which was accidentally
+            // right in production (a web process rests fail-closed) and wrong
+            // under tests, where a console process rests on BYPASS — so every
+            // feature test ran with row-level security effectively off, and a
+            // whole class of RLS bug was invisible to the suite. It cost a
+            // real one: pairing a terminal reads across tenants by design, the
+            // policies refused it in production, and 624 green tests said
+            // nothing.
+            $this->database->close();
         }
 
         try {

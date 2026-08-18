@@ -99,11 +99,19 @@ final class PublicMenuCacheTest extends TestCase
             ->count();
 
         $this->assertSame(0, $menuQueries, 'The cached menu still queried the menu tables.');
-        // Three, not two: tenant lookup, the set_config that scopes row-level
-        // security to that tenant, and the cache read. The budget exists to
-        // catch a cache that silently stopped caching — not to forbid the
-        // isolation layer its one round trip.
-        $this->assertLessThanOrEqual(3, $queries, "A cached menu cost {$queries} queries.");
+        // Four here, one of which production does not pay.
+        //
+        // The tenant lookup and the cache read are two. The other two are
+        // row-level security bookkeeping: the request opens by closing the
+        // connection and then focuses it on the restaurant. Under php-fpm the
+        // worker is already closed between requests, so the first of those is
+        // skipped and a live request pays one — see DatabaseTenancy::apply().
+        // A PHPUnit process rests on bypass instead, so it pays both.
+        //
+        // The budget is here to catch a cache that silently stopped caching,
+        // which is what the assertion above measures exactly; this one just
+        // stops the per-request overhead growing unnoticed.
+        $this->assertLessThanOrEqual(4, $queries, "A cached menu cost {$queries} queries.");
     }
 
     public function test_a_returning_phone_is_told_nothing_changed(): void

@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace Tests;
 
 use App\Http\Middleware\EnsureIdempotency;
+use App\Models\Tenant;
+use App\Models\User;
 use App\Support\Errors\ErrorCatalogue;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -96,6 +101,69 @@ abstract class TestCase extends BaseTestCase
 
         if (config('cache.default') !== 'array') {
             Cache::flush();
+        }
+    }
+
+    /**
+     * Signing in as somebody also puts you in their restaurant.
+     *
+     * `actingAs()` set the authenticated user and nothing else, so a test that
+     * signed in a chef and then made a dish produced a dish stamped with NO
+     * tenant — the TenantContext was still empty. That was invisible while
+     * BelongsToTenant's scope treated "no tenant" as "no filter", and it is a
+     * hole by this project's own rule: an empty tenant_id is readable by
+     * nobody and, before row-level security, by everybody.
+     *
+     * Over HTTP the tenant middleware does this from the token. A test that
+     * builds fixtures BEFORE the first request has no middleware to do it, so
+     * the harness does — which is also what the reader expects: you are in the
+     * restaurant you signed into.
+     *
+     * A test that means to cross restaurants still sets the context itself
+     * afterwards, and wins.
+     */
+    public function actingAs(Authenticatable $user, $guard = null)
+    {
+        parent::actingAs($user, $guard);
+
+        if ($user instanceof User && $user->tenant_id !== null) {
+            $tenant = Tenant::query()->find($user->tenant_id);
+
+            if ($tenant !== null) {
+                app(TenantContext::class)->set($tenant);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * A simulated request must not take the test's restaurant with it.
+     *
+     * ResolveTenant clears the TenantContext in a finally, which is right under
+     * php-fpm — a worker that kept the last request's restaurant would serve it
+     * to the next one. In a test the surrounding method has its own restaurant
+     * and expects it to still be there afterwards.
+     *
+     * Without this, a test that made a request and then built more fixtures
+     * stamped them with NO tenant. That was invisible while an empty context
+     * meant "no filter"; with row-level security it means the rows belong to
+     * nobody, and the failure looks like the feature under test being broken —
+     * the kitchen's redispatch test lost a line and read as a duplicate-ticket
+     * bug.
+     *
+     * @param  UploadedFile[]  $files
+     */
+    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $tenant = app(TenantContext::class)->tenant();
+
+        try {
+            return parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+        } finally {
+            if ($tenant !== null) {
+                app(TenantContext::class)->set($tenant);
+            }
         }
     }
 

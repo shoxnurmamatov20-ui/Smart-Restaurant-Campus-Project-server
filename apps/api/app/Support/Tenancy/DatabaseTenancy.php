@@ -34,7 +34,18 @@ use Illuminate\Support\Facades\DB;
  */
 final class DatabaseTenancy
 {
+    /** Nothing has claimed this connection yet — the resting state. */
     private const UNSET = 'unset';
+
+    /**
+     * Claimed and deliberately shut.
+     *
+     * Distinct from UNSET because a reconnect must not reopen it. `reapply()`
+     * treats an unclaimed console connection as "open it" — which is what lets
+     * migrations and seeders work — and that would silently undo a close if the
+     * two states were the same value.
+     */
+    private const CLOSED = 'closed';
 
     private const TENANT = 'tenant';
 
@@ -44,6 +55,21 @@ final class DatabaseTenancy
 
     private ?int $tenantId = null;
 
+    /**
+     * What the connection was last actually told, or null if nothing yet.
+     *
+     * The GUCs are session-scoped and this class is their only writer, so
+     * re-sending a value the session already holds is a wasted round trip.
+     * With the request now opening on close() and closing on reset(), an
+     * unguarded apply() spent three round trips per request on bookkeeping —
+     * the public menu's query budget caught it at five queries for a cached
+     * page. A reconnect makes this stale, which is exactly what reapply()
+     * exists for, and it forces.
+     *
+     * @var array{string, int|null}|null
+     */
+    private ?array $applied = null;
+
     public function __construct(private readonly bool $runningInConsole) {}
 
     /** Scope every policy-guarded table to one restaurant. */
@@ -51,13 +77,27 @@ final class DatabaseTenancy
     {
         if ($tenantId === null) {
             // "No tenant" is not a wider view — it is no view.
-            $this->mode = self::UNSET;
-            $this->tenantId = null;
-        } else {
-            $this->mode = self::TENANT;
-            $this->tenantId = $tenantId;
+            $this->close();
+
+            return;
         }
 
+        $this->mode = self::TENANT;
+        $this->tenantId = $tenantId;
+        $this->apply();
+    }
+
+    /**
+     * No tenant, no rows — whatever the process's resting state is.
+     *
+     * Distinct from reset(): that one returns to the resting state, which in a
+     * console process is bypass. This one CLOSES, and is what a request with no
+     * resolvable tenant needs regardless of where it is running.
+     */
+    public function close(): void
+    {
+        $this->mode = self::CLOSED;
+        $this->tenantId = null;
         $this->apply();
     }
 
@@ -92,10 +132,48 @@ final class DatabaseTenancy
     }
 
     /**
+     * Run one piece of work with every tenant visible, then put it back.
+     *
+     * For the reads that genuinely cannot know their tenant yet. There is
+     * exactly one today — pairing a terminal looks a code up across the whole
+     * platform, because the device has no credentials and the code is the only
+     * thing it can offer. `TerminalPairing` already drops the Eloquent tenant
+     * scope for that reason; this is the same exception at the database level.
+     *
+     * Narrow on purpose: it takes a closure rather than being a pair of
+     * open/close calls, so an early return or a thrown exception cannot leave a
+     * request running with the whole platform visible.
+     *
+     * @template TReturn
+     *
+     * @param  \Closure(): TReturn  $work
+     * @return TReturn
+     */
+    public function withoutTenancy(\Closure $work): mixed
+    {
+        $mode = $this->mode;
+        $tenantId = $this->tenantId;
+
+        $this->bypass();
+
+        try {
+            return $work();
+        } finally {
+            $this->mode = $mode;
+            $this->tenantId = $tenantId;
+            $this->apply();
+        }
+    }
+
+    /**
      * Re-issue the current state, for a connection that was just (re)made.
      */
     public function reapply(): void
     {
+        // A new connection holds none of the old session's settings, so this is
+        // the one caller that must write even when nothing changed.
+        $this->applied = null;
+
         if ($this->mode === self::UNSET && $this->runningInConsole) {
             // A console process starts open — this is what lets migrate,
             // db:seed and the queue see the whole platform without every
@@ -108,8 +186,14 @@ final class DatabaseTenancy
         $this->apply();
     }
 
-    private function apply(): void
+    private function apply(bool $force = false): void
     {
+        if (! $force && $this->applied === [$this->mode, $this->tenantId]) {
+            return;
+        }
+
+        $this->applied = [$this->mode, $this->tenantId];
+
         // One round trip for both settings. Session-scoped (is_local = false):
         // request lifecycles are longer than any one transaction, and the
         // reset()/reapply() pair owns the boundaries.

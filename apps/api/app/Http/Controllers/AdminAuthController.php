@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Support\Auth\TwoFactor;
+use App\Support\Tenancy\DatabaseTenancy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,8 @@ use Illuminate\Validation\ValidationException;
  */
 final class AdminAuthController extends Controller
 {
+    public function __construct(private readonly DatabaseTenancy $database) {}
+
     /**
      * How long a platform session lasts.
      *
@@ -91,16 +94,33 @@ final class AdminAuthController extends Controller
 
         $user->forceFill(['last_login_at' => now()])->save();
 
-        // Written to the audit log the design promises the restaurant owner can
-        // read. `identity.user` is the log name /api/v1/audit filters on.
-        activity('identity.user')
-            ->performedOn($user)
-            ->causedBy($user)
-            ->withProperties([
-                'ip' => $request->ip(),
-                'user_agent' => (string) $request->userAgent(),
-            ])
-            ->log('platform.signed-in');
+        /*
+         * The platform operator's own record, which belongs to no restaurant.
+         *
+         * That is the whole point of the account — and it is why this needs
+         * the tenancy claim said out loud. The audit row carries tenant_id
+         * NULL, and row-level security refuses an unstamped row on a guarded
+         * table: without this the sign-in answered 500 AFTER minting the
+         * token, so the operator was logged in and told they were not.
+         *
+         * Widening the policy to allow NULL rows would have been the other
+         * way, and it is worse: it would let any request that simply forgot
+         * its tenant write audit entries no restaurant can ever read, putting
+         * holes in the one trail that exists to be complete. This says
+         * "platform operation" instead, and only here.
+         */
+        $this->database->withoutTenancy(function () use ($user, $request): void {
+            // Written to the audit log the design promises the restaurant owner
+            // can read. `identity.user` is the log name /api/v1/audit filters on.
+            activity('identity.user')
+                ->performedOn($user)
+                ->causedBy($user)
+                ->withProperties([
+                    'ip' => $request->ip(),
+                    'user_agent' => (string) $request->userAgent(),
+                ])
+                ->log('platform.signed-in');
+        });
 
         return response()->json([
             'token' => $token->plainTextToken,

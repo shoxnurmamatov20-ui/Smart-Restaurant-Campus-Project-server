@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\StoredDomainEvent;
+use App\Support\Tenancy\DatabaseTenancy;
 use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -162,8 +163,22 @@ final class HealthController extends Controller
             }, critical: false),
 
             'outbox' => $this->probe(static function (): string {
-                $abandoned = StoredDomainEvent::query()->abandoned()->count();
-                $pending = StoredDomainEvent::query()->pending()->count();
+                /*
+                 * Across every restaurant, and it has to be.
+                 *
+                 * The outbox is guarded by row-level security like any other
+                 * tenanted table, and a health request names no restaurant —
+                 * so this counted zero of everything and reported a healthy
+                 * outbox during a thousand-row backlog, on every run. "Is the
+                 * relay draining?" is a platform question, not a restaurant's,
+                 * and a check that cannot fail is not a check.
+                 */
+                [$abandoned, $pending] = app(DatabaseTenancy::class)->withoutTenancy(
+                    static fn (): array => [
+                        StoredDomainEvent::query()->abandoned()->count(),
+                        StoredDomainEvent::query()->pending()->count(),
+                    ],
+                );
 
                 if ($abandoned > 0) {
                     // Every one of these is a side effect that silently did not
@@ -181,7 +196,7 @@ final class HealthController extends Controller
     }
 
     /**
-     * @param array<string, array{ok: bool, detail: string, ms: float, critical: bool}> $checks
+     * @param  array<string, array{ok: bool, detail: string, ms: float, critical: bool}>  $checks
      */
     private function respond(array $checks, bool $detailed): JsonResponse
     {
@@ -225,8 +240,7 @@ final class HealthController extends Controller
      * reachable without auth, and connection errors carry hostnames, usernames
      * and ports.
      *
-     * @param callable(): string $check
-     *
+     * @param  callable(): string  $check
      * @return array{ok: bool, detail: string, ms: float, critical: bool}
      */
     private function probe(callable $check, bool $critical = true): array
