@@ -59,7 +59,29 @@ final readonly class ResolveTenant
         }
 
         if ($requested === null && config('tenancy.require_tenant')) {
-            return ErrorResponse::code('tenant.required');
+            // The platform operator is the one identity that legitimately
+            // stands outside every restaurant: tenant_id null, super-admin
+            // role, signed in through /admin/login. Refusing them here would
+            // break the only two tenantless calls that exist — their logout
+            // (leaving revoked-in-name-only tokens alive) and the platform
+            // console's own endpoints, which are cross-tenant by definition.
+            //
+            // Everyone else without a tenant is exactly who this flag exists
+            // to stop: a till that forgot its header must not read the whole
+            // platform. Note the order — a super-admin who DID name a tenant
+            // resolved above and is scoped like anybody else.
+            $isPlatformOperator = $user instanceof User
+                && $ownTenantId === null
+                && $user->hasRole('super-admin');
+
+            if (! $isPlatformOperator) {
+                return ErrorResponse::code('tenant.required');
+            }
+
+            // Fall through to set(null) below rather than returning early:
+            // the try/finally is what stops one request's tenant leaking into
+            // the next when the container survives between them, as it does
+            // under tests — and the operator must get that hygiene too.
         }
 
         $this->context->set($requested);
