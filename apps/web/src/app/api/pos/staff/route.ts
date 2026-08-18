@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 import { apiBase } from '@/lib/server-session';
-import { pairedTerminal, type PosStaff } from '@/lib/pos-session';
+import { pairedTerminalFrom, type PosStaff } from '@/lib/pos-session';
 
 /**
  * Who this till will let sign in.
@@ -14,8 +14,10 @@ import { pairedTerminal, type PosStaff } from '@/lib/pos-session';
  * else. That restraint is the point: this list is on a screen anybody in the
  * building can read, so it must not be worth reading.
  */
-export async function GET() {
-  const terminal = await pairedTerminal();
+export async function GET(request: NextRequest) {
+  // Off the request, not the ambient store — see pairedTerminalFrom for why a
+  // route handler should not reach for `cookies()`.
+  const terminal = pairedTerminalFrom(request);
 
   if (terminal === null) {
     return NextResponse.json({ error: 'not_paired' }, { status: 409 });
