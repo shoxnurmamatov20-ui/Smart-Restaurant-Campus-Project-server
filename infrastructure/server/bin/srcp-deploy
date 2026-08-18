@@ -249,13 +249,30 @@ else
     #
     # Compared against the release being replaced rather than against git, so
     # it holds however the source arrived.
+    #
+    # Only what the compiler actually reads. A first version compared whole app
+    # directories and would have refused every fast deploy: `.env.local` is
+    # symlinked from shared and legitimately differs, and `.turbo/*.log` changes
+    # on any local build. A check that always fires is one people learn to route
+    # around, which is worse than the bug it was written for.
     if [[ -n "${PREVIOUS:-}" && -d "$PREVIOUS" ]]; then
-        for app in apps/web apps/admin packages; do
-            if ! diff -rq --exclude=node_modules --exclude=.next \
-                    "$PREVIOUS/$app" "$RELEASE/$app" >/dev/null 2>&1; then
-                die "$app changed but --build was not given: the release would carry the previous build and any new page or route handler would 404. Re-run with --build."
+        stale=""
+
+        while IFS= read -r path; do
+            rel=${path#"$RELEASE"/}
+
+            if ! diff -rq "$PREVIOUS/$rel" "$path" >/dev/null 2>&1; then
+                stale="$rel"
+                break
             fi
-        done
+        done < <(
+            find "$RELEASE/apps/web" "$RELEASE/apps/admin" "$RELEASE/packages" \
+                -maxdepth 2 -type d -name src 2>/dev/null
+            find "$RELEASE/apps/web" "$RELEASE/apps/admin" -maxdepth 1 \
+                \( -name 'next.config.*' -o -name 'package.json' -o -name 'tsconfig.json' \) 2>/dev/null
+        )
+
+        [[ -z $stale ]] || die "$stale changed but --build was not given: the release would carry the previous build, and any new page or route handler would 404 in production while every step here printed a green tick. Re-run with --build."
     fi
 
     log "pruning development dependencies (no rebuild requested)"
