@@ -59,7 +59,7 @@ final class PublicMenuCacheTest extends TestCase
     }
 
     /**
-     * @param  array<string, string>  $headers
+     * @param array<string, string> $headers
      */
     private function menu(array $headers = [])
     {

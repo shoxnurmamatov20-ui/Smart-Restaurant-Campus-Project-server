@@ -36,7 +36,7 @@ final class ResolveBotTenant
     public const ATTRIBUTE = 'bots.bot';
 
     /**
-     * @param  Closure(Request): Response  $next
+     * @param Closure(Request): Response $next
      */
     public function handle(Request $request, Closure $next): Response
     {

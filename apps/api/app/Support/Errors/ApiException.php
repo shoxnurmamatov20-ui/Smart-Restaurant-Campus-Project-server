@@ -54,7 +54,7 @@ final class ApiException extends RuntimeException
      * naming the dish that is sold out, the branch that is closed. Everything
      * else still comes from the catalogue, so the code and status stay stable.
      *
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $meta
      */
     public static function detailed(
         string $code,

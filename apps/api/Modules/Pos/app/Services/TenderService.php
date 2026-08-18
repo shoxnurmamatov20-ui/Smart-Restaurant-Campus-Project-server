@@ -36,7 +36,8 @@ final class TenderService
     ) {}
 
     /**
-     * @param  array<int, array{method: string, amount: int, reference?: string|null}>  $tenders
+     * @param array<int, array{method: string, amount: int, reference?: string|null}> $tenders
+     *
      * @return array{bill: array<string, mixed>, payment_ids: array<int, int>, change: int, settled: bool}
      */
     public function settle(Terminal $terminal, int $billId, int $shiftId, array $tenders): array

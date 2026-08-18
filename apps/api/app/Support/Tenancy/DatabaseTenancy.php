@@ -146,7 +146,8 @@ final class DatabaseTenancy
      *
      * @template TReturn
      *
-     * @param  \Closure(): TReturn  $work
+     * @param \Closure(): TReturn $work
+     *
      * @return TReturn
      */
     public function withoutTenancy(\Closure $work): mixed

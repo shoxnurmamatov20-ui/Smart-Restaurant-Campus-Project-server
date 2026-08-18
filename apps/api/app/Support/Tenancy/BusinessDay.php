@@ -97,7 +97,8 @@ final class BusinessDay
      * computing `date()` for every row on the table.
      *
      * @param  Builder<*>  $query
-     * @param  array{0: CarbonImmutable, 1: CarbonImmutable}  $window
+     * @param array{0: CarbonImmutable, 1: CarbonImmutable} $window
+     *
      * @return Builder<*>
      */
     public function constrain(Builder $query, string $column, array $window): Builder

@@ -35,7 +35,8 @@ final readonly class ApiError
     /**
      * The envelope body, without the wrapper.
      *
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $meta
+     *
      * @return array<string, mixed>
      */
     public function toArray(?string $field = null, array $meta = []): array

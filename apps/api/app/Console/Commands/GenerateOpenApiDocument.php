@@ -134,7 +134,8 @@ final class GenerateOpenApiDocument extends Command
     }
 
     /**
-     * @param  list<string>  $middleware
+     * @param list<string> $middleware
+     *
      * @return array<string, mixed>
      */
     private function operation(CompiledRoute $route, string $method, array $middleware): array

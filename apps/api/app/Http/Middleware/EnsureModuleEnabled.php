@@ -31,7 +31,7 @@ final readonly class EnsureModuleEnabled
     ) {}
 
     /**
-     * @param  Closure(Request): Response  $next
+     * @param Closure(Request): Response $next
      */
     public function handle(Request $request, Closure $next): Response
     {

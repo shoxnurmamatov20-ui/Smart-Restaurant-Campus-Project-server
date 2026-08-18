@@ -29,9 +29,9 @@ final class BranchCounters
     /**
      * Take the next value of a counter, creating it at 1 on first use.
      *
-     * @param  string  $key  what is being counted — `order.number`, `zreport.number`
-     * @param  int|null  $branchId  null = one count for the whole restaurant
-     * @param  string  $period  '' = never resets; a Y-m-d date = that day's count
+     * @param string $key what is being counted — `order.number`, `zreport.number`
+     * @param int|null $branchId null = one count for the whole restaurant
+     * @param string $period '' = never resets; a Y-m-d date = that day's count
      */
     public function next(string $key, ?int $branchId = null, string $period = ''): int
     {

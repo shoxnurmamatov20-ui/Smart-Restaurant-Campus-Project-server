@@ -152,7 +152,7 @@ abstract class TestCase extends BaseTestCase
      * the kitchen's redispatch test lost a line and read as a duplicate-ticket
      * bug.
      *
-     * @param  UploadedFile[]  $files
+     * @param UploadedFile[] $files
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {

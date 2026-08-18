@@ -35,8 +35,8 @@ final class ApprovalGate
     /**
      * Does this person need an authorisation for this act?
      *
-     * @param  int  $amount  Tiyin at stake — a 2% discount on a coffee is not a
-     *                       2% discount on a wedding.
+     * @param int $amount Tiyin at stake — a 2% discount on a coffee is not a
+     *                    2% discount on a wedding.
      */
     public function requires(Terminal $terminal, User $actor, string $action, int $amount = 0, int $subtotal = 0): bool
     {

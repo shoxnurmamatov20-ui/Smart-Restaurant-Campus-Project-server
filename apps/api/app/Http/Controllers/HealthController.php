@@ -196,7 +196,7 @@ final class HealthController extends Controller
     }
 
     /**
-     * @param  array<string, array{ok: bool, detail: string, ms: float, critical: bool}>  $checks
+     * @param array<string, array{ok: bool, detail: string, ms: float, critical: bool}> $checks
      */
     private function respond(array $checks, bool $detailed): JsonResponse
     {
@@ -240,7 +240,8 @@ final class HealthController extends Controller
      * reachable without auth, and connection errors carry hostnames, usernames
      * and ports.
      *
-     * @param  callable(): string  $check
+     * @param callable(): string $check
+     *
      * @return array{ok: bool, detail: string, ms: float, critical: bool}
      */
     private function probe(callable $check, bool $critical = true): array

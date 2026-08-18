@@ -236,8 +236,8 @@ final class BillController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  callable(): array<string, mixed>  $work
+     * @param array<string, mixed> $payload
+     * @param callable(): array<string, mixed> $work
      */
     private function idempotent(
         Request $request,

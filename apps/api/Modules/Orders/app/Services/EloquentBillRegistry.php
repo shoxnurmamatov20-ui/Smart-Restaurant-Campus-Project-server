@@ -206,7 +206,7 @@ final class EloquentBillRegistry implements BillRegistry
     }
 
     /**
-     * @param  array<int, int>  $lineIds
+     * @param array<int, int> $lineIds
      */
     public function split(int $billId, array $lineIds): Bill
     {

@@ -48,7 +48,8 @@ final class BotApiTest extends TestCase
     }
 
     /**
-     * @param  array<string, string>  $extra
+     * @param array<string, string> $extra
+     *
      * @return array<string, string>
      */
     private function internal(array $extra = []): array

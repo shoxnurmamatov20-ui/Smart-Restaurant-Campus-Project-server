@@ -53,6 +53,7 @@ trait HasBusinessDate
      * Rows belonging to one trading day.
      *
      * @param  Builder<*>  $query
+     *
      * @return Builder<*>
      */
     public function scopeForBusinessDate(Builder $query, string $date): Builder
@@ -64,6 +65,7 @@ trait HasBusinessDate
      * Rows belonging to the trading day in progress.
      *
      * @param  Builder<*>  $query
+     *
      * @return Builder<*>
      */
     public function scopeForCurrentBusinessDate(Builder $query): Builder
