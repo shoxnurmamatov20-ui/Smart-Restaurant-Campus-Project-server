@@ -190,7 +190,7 @@ final class ModuleRegistryTest extends TestCase
         $this->getJson('/api/v1/tables/tables')
             ->assertStatus(403)
             ->assertApiError('module.disabled')
-            ->assertJsonPath('module', 'tables');
+            ->assertJsonPath('error.module', 'tables');
     }
 
     public function test_switching_one_module_off_leaves_the_others_alone(): void

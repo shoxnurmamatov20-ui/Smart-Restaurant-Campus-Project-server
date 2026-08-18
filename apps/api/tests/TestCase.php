@@ -14,12 +14,68 @@ use PHPUnit\Framework\Assert;
 
 abstract class TestCase extends BaseTestCase
 {
+    /** Whether this process has already proved it is aimed at the test database. */
+    private static bool $aimedAtTestDatabase = false;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->refuseToRunAgainstAnythingButTheTestDatabase();
         $this->registerErrorAssertions();
         $this->forgetRateLimits();
+    }
+
+    /**
+     * The suite once ran against the live database, and nothing said so.
+     *
+     * A `bootstrap/cache/config.php` was left in the checkout from when this
+     * tree served production. When that file exists Laravel loads neither .env
+     * nor the config files — so every `env()` call inside them, including the
+     * ones phpunit.xml feeds DB_DATABASE through, simply never ran. The suite
+     * connected to the production database with APP_ENV=production, and the
+     * only thing between RefreshDatabase's `migrate:fresh` and the day's real
+     * orders was the production confirmation prompt declining silently.
+     *
+     * The tests did not crash. They ran, inside transactions, against live
+     * data — and the only symptom was assertions counting rows the test never
+     * created. That is why this check exists as code and not as a note: the
+     * failure mode looks like flaky tests, not like danger.
+     *
+     * Checked once per process, before the first test's transaction opens.
+     */
+    private function refuseToRunAgainstAnythingButTheTestDatabase(): void
+    {
+        if (self::$aimedAtTestDatabase) {
+            return;
+        }
+
+        $cached = $this->app->getCachedConfigPath();
+
+        if (file_exists($cached)) {
+            Assert::fail(
+                "A cached config exists at {$cached} — it silences phpunit.xml's"
+                .' environment entirely, so these tests would run against whatever'
+                .' database the cache names. Run `php artisan config:clear` first.'
+            );
+        }
+
+        $intended = $_ENV['DB_DATABASE'] ?? '';
+        $actual = (string) config('database.connections.'.config('database.default').'.database');
+
+        if ($intended === '' || $actual !== $intended || ! str_ends_with($actual, '_test')) {
+            Assert::fail(
+                "The suite is connected to '{$actual}' but phpunit.xml says"
+                ." '{$intended}'. A test database name must end in '_test';"
+                .' refusing to run a single test against anything else.'
+            );
+        }
+
+        if (config('app.env') !== 'testing') {
+            Assert::fail('APP_ENV resolved to '.config('app.env').', not testing.');
+        }
+
+        self::$aimedAtTestDatabase = true;
     }
 
     /**

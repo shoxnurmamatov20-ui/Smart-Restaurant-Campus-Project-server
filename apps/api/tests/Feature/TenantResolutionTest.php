@@ -47,13 +47,11 @@ final class TenantResolutionTest extends TestCase
     {
         config(['tenancy.require_tenant' => true]);
 
+        // The old ad-hoc {code, message} pair predates the one envelope;
+        // asserting the code also asserts the status the catalogue assigns it.
         $this
             ->getJson('/tenant-probe')
-            ->assertBadRequest()
-            ->assertJson([
-                'code' => 'TENANT_REQUIRED',
-                'message' => 'Tenant context is required.',
-            ]);
+            ->assertApiError('tenant.required');
     }
 
     public function test_ignores_empty_header_value(): void
