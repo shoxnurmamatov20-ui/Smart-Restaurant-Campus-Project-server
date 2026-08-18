@@ -61,10 +61,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class LoyaltyTransaction extends Model
 {
-    /** @use HasFactory<LoyaltyTransactionFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<LoyaltyTransactionFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
 

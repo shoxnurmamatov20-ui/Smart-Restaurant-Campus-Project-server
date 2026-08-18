@@ -6,6 +6,7 @@ namespace Modules\Finance\Models;
 
 use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,12 +72,20 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Payment extends Model
 {
-    /** @use HasFactory<PaymentFactory> */
     use BelongsToTenant;
+    use HasBusinessDate;
 
+    /** @use HasFactory<PaymentFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
+
+    /** The trading day for this row is taken from `paid_at`. */
+    protected static function businessDateSource(): string
+    {
+        return 'paid_at';
+    }
 
     protected $table = 'finance.payments';
 
@@ -85,6 +94,7 @@ final class Payment extends Model
     public const STATUSES = ['captured', 'refunded'];
 
     protected $fillable = [
+        'business_date',
         'tenant_id',
         'cash_shift_id',
         'order_id',
@@ -101,6 +111,7 @@ final class Payment extends Model
     protected function casts(): array
     {
         return [
+            'business_date' => 'date',
             'paid_at' => 'datetime',
             'refunded_at' => 'datetime',
             'amount' => 'integer',

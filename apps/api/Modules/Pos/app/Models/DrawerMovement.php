@@ -71,10 +71,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class DrawerMovement extends Model
 {
-    /** @use HasFactory<DrawerMovementFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<DrawerMovementFactory> */
     use HasFactory;
+
     use LogsActivity;
 
     protected $table = 'pos.drawer_movements';

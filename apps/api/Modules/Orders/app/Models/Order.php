@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
 use App\Support\Events\EventBus;
 use App\Support\Orders\OrderState;
@@ -99,7 +100,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Order extends Model
 {
-    use BelongsToBranch;
+    use BelongsToBranch, HasBusinessDate;
     use BelongsToTenant;
 
     /** @use HasFactory<OrderFactory> */
@@ -107,6 +108,12 @@ final class Order extends Model
 
     use LogsActivity;
     use SoftDeletes;
+
+    /** The trading day for this row is taken from `placed_at`. */
+    protected static function businessDateSource(): string
+    {
+        return 'placed_at';
+    }
 
     protected $table = 'orders.orders';
 
@@ -132,6 +139,7 @@ final class Order extends Model
     ];
 
     protected $fillable = [
+        'business_date',
         'tenant_id',
         'number',
         'channel',
@@ -153,6 +161,7 @@ final class Order extends Model
     protected function casts(): array
     {
         return [
+            'business_date' => 'date',
             'placed_at' => 'datetime',
             'closed_at' => 'datetime',
             'guests_count' => 'integer',

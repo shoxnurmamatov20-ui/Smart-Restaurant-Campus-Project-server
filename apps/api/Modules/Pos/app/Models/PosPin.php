@@ -66,10 +66,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class PosPin extends Model
 {
-    /** @use HasFactory<PosPinFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<PosPinFactory> */
     use HasFactory;
+
     use LogsActivity;
 
     protected $table = 'pos.pins';

@@ -81,10 +81,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Customer extends Model
 {
-    /** @use HasFactory<CustomerFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<CustomerFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
 

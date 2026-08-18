@@ -6,6 +6,7 @@ namespace Modules\Inventory\Models;
 
 use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -64,18 +65,27 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class StockMovement extends Model
 {
-    /** @use HasFactory<StockMovementFactory> */
     use BelongsToTenant;
+    use HasBusinessDate;
 
+    /** @use HasFactory<StockMovementFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
+
+    /** The trading day for this row is taken from `happened_at`. */
+    protected static function businessDateSource(): string
+    {
+        return 'happened_at';
+    }
 
     protected $table = 'inventory.stock_movements';
 
     public const KINDS = ['receipt', 'consumption', 'write_off', 'transfer', 'stock_take'];
 
     protected $fillable = [
+        'business_date',
         'tenant_id',
         'ingredient_id',
         'kind',
@@ -89,6 +99,7 @@ final class StockMovement extends Model
     protected function casts(): array
     {
         return [
+            'business_date' => 'date',
             'happened_at' => 'datetime',
             'quantity' => 'integer',
             'balance_after' => 'integer',

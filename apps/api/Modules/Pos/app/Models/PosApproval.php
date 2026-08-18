@@ -85,10 +85,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class PosApproval extends Model
 {
-    /** @use HasFactory<PosApprovalFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<PosApprovalFactory> */
     use HasFactory;
+
     use LogsActivity;
 
     protected $table = 'pos.approvals';

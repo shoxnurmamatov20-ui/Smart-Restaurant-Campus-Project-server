@@ -68,10 +68,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Feedback extends Model
 {
-    /** @use HasFactory<FeedbackFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<FeedbackFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
 

@@ -81,10 +81,11 @@ final class MenuCategory extends Model
     /** Lives in the `menu` schema — see the 0000_01_01_000000 migration. */
     protected $table = 'menu.menu_categories';
 
-    /** @use HasFactory<MenuCategoryFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<MenuCategoryFactory> */
     use HasFactory;
+
     use HasTranslations;
     use InvalidatesMenuCache;
     use LogsActivity;

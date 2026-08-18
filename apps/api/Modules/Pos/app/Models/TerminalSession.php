@@ -77,10 +77,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class TerminalSession extends Model
 {
-    /** @use HasFactory<TerminalSessionFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<TerminalSessionFactory> */
     use HasFactory;
+
     use LogsActivity;
 
     protected $table = 'pos.terminal_sessions';

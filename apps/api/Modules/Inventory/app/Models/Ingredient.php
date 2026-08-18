@@ -77,10 +77,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Ingredient extends Model
 {
-    /** @use HasFactory<IngredientFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<IngredientFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
 

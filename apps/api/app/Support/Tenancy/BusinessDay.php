@@ -34,7 +34,10 @@ final class BusinessDay
     /** Used when a restaurant has not said otherwise. */
     private const DEFAULT_START = '06:00';
 
-    public function __construct(private readonly TenantContext $tenants) {}
+    public function __construct(
+        private readonly TenantContext $tenants,
+        private readonly BranchContext $branches,
+    ) {}
 
     /**
      * The business day that `$at` (default: now) falls inside.
@@ -94,8 +97,7 @@ final class BusinessDay
      * computing `date()` for every row on the table.
      *
      * @param  Builder<*>  $query
-     * @param array{0: CarbonImmutable, 1: CarbonImmutable} $window
-     *
+     * @param  array{0: CarbonImmutable, 1: CarbonImmutable}  $window
      * @return Builder<*>
      */
     public function constrain(Builder $query, string $column, array $window): Builder
@@ -105,23 +107,58 @@ final class BusinessDay
         return $query->where($column, '>=', $start)->where($column, '<', $end);
     }
 
-    /** The restaurant's timezone, or the application's when there is no tenant. */
+    /**
+     * The venue's timezone, then the restaurant's, then the application's.
+     *
+     * A chain with branches in Tashkent and Termiz shares one tenant and one
+     * clock today; they are in the same zone, so nothing breaks — but the
+     * moment a franchise crosses a border, "today" has to be asked of the
+     * building, not the company.
+     */
     public function timezone(): string
     {
-        $timezone = $this->tenants->tenant()?->timezone;
+        foreach ([$this->branches->branch()?->timezone, $this->tenants->tenant()?->timezone] as $candidate) {
+            if (is_string($candidate) && $candidate !== '') {
+                return $candidate;
+            }
+        }
 
-        return is_string($timezone) && $timezone !== ''
-            ? $timezone
-            : (string) config('app.timezone', 'UTC');
+        return (string) config('app.timezone', 'UTC');
     }
 
-    /** `HH:MM` at which the restaurant's trading day begins. */
+    /**
+     * `HH:MM` at which the trading day begins — a BRANCH setting, per
+     * DECISIONS Q3, falling back to the restaurant and then to 06:00.
+     *
+     * Q3 is explicit that this is not a global constant: "Filialning ish vaqti
+     * Sozlamalarda o'zgartirilsa, chegara ham o'zgarishi kerak." A branch that
+     * closes at 04:00 and one that opens at 08:00 cannot share a boundary
+     * without one of them splitting an evening across two reports.
+     */
     public function startsAt(): string
     {
-        $configured = $this->tenants->tenant()?->setting('business_day_starts_at');
+        $candidates = [
+            $this->branches->branch()?->setting('business_day_starts_at'),
+            $this->tenants->tenant()?->setting('business_day_starts_at'),
+        ];
 
-        return is_string($configured) && preg_match('/^\d{1,2}:\d{2}$/', $configured) === 1
-            ? $configured
-            : self::DEFAULT_START;
+        foreach ($candidates as $configured) {
+            if (is_string($configured) && preg_match('/^\d{1,2}:\d{2}$/', $configured) === 1) {
+                return $configured;
+            }
+        }
+
+        return self::DEFAULT_START;
+    }
+
+    /**
+     * The business date `$at` falls inside, as `Y-m-d` in the venue's own
+     * timezone — the value stored on the row and grouped by in every report.
+     */
+    public function dateFor(?CarbonImmutable $at = null): string
+    {
+        [$start] = $this->window($at);
+
+        return $start->setTimezone($this->timezone())->format('Y-m-d');
     }
 }

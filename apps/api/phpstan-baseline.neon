@@ -19,24 +19,6 @@ parameters:
 			path: Modules/Crm/app/Models/Customer.php
 
 		-
-			message: '#^The @use tag of class Modules\\Crm\\Models\\Customer describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Crm/app/Models/Customer.php
-
-		-
-			message: '#^The @use tag of class Modules\\Crm\\Models\\Feedback describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Crm/app/Models/Feedback.php
-
-		-
-			message: '#^The @use tag of class Modules\\Crm\\Models\\LoyaltyTransaction describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Crm/app/Models/LoyaltyTransaction.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -55,18 +37,6 @@ parameters:
 			path: Modules/Finance/app/Http/Resources/CashShiftResource.php
 
 		-
-			message: '#^The @use tag of class Modules\\Finance\\Models\\Expense describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Finance/app/Models/Expense.php
-
-		-
-			message: '#^The @use tag of class Modules\\Finance\\Models\\Payment describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Finance/app/Models/Payment.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -83,18 +53,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: Modules/Inventory/app/Models/Ingredient.php
-
-		-
-			message: '#^The @use tag of class Modules\\Inventory\\Models\\Ingredient describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Inventory/app/Models/Ingredient.php
-
-		-
-			message: '#^The @use tag of class Modules\\Inventory\\Models\\StockMovement describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Inventory/app/Models/StockMovement.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
@@ -151,20 +109,8 @@ parameters:
 			path: Modules/Menu/app/Models/MenuCategory.php
 
 		-
-			message: '#^The @use tag of class Modules\\Menu\\Models\\MenuCategory describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Menu/app/Models/MenuCategory.php
-
-		-
 			message: '#^Call to function property_exists\(\) with \$this\(Modules\\Menu\\Models\\MenuItem\) and ''translatable'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
-			count: 1
-			path: Modules/Menu/app/Models/MenuItem.php
-
-		-
-			message: '#^The @use tag of class Modules\\Menu\\Models\\MenuItem describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
 			count: 1
 			path: Modules/Menu/app/Models/MenuItem.php
 
@@ -203,12 +149,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: Modules/Orders/app/Http/Controllers/OrderController.php
-
-		-
-			message: '#^The @use tag of class Modules\\Orders\\Models\\OrderItem describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Orders/app/Models/OrderItem.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
@@ -295,21 +235,9 @@ parameters:
 			path: Modules/Pos/app/Http/Resources/TerminalSessionResource.php
 
 		-
-			message: '#^The @use tag of class Modules\\Pos\\Models\\DrawerMovement describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Pos/app/Models/DrawerMovement.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between Illuminate\\Support\\Carbon and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 2
-			path: Modules/Pos/app/Models/PosApproval.php
-
-		-
-			message: '#^The @use tag of class Modules\\Pos\\Models\\PosApproval describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
 			path: Modules/Pos/app/Models/PosApproval.php
 
 		-
@@ -317,18 +245,6 @@ parameters:
 			identifier: property.phpDocType
 			count: 1
 			path: Modules/Pos/app/Models/PosPin.php
-
-		-
-			message: '#^The @use tag of class Modules\\Pos\\Models\\PosPin describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Pos/app/Models/PosPin.php
-
-		-
-			message: '#^The @use tag of class Modules\\Pos\\Models\\PosSyncEntry describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Pos/app/Models/PosSyncEntry.php
 
 		-
 			message: '#^PHPDoc type array\<int, string\> of property Modules\\Pos\\Models\\Terminal\:\:\$hidden is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$hidden\.$#'
@@ -339,12 +255,6 @@ parameters:
 		-
 			message: '#^Strict comparison using \!\=\= between Illuminate\\Support\\Carbon and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: Modules/Pos/app/Models/TerminalSession.php
-
-		-
-			message: '#^The @use tag of class Modules\\Pos\\Models\\TerminalSession describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
 			count: 1
 			path: Modules/Pos/app/Models/TerminalSession.php
 
@@ -425,24 +335,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 2
 			path: Modules/Staff/database/seeders/StaffShiftSeeder.php
-
-		-
-			message: '#^The @use tag of class Modules\\Suppliers\\Models\\PurchaseOrder describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Suppliers/app/Models/PurchaseOrder.php
-
-		-
-			message: '#^The @use tag of class Modules\\Suppliers\\Models\\PurchaseOrderItem describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Suppliers/app/Models/PurchaseOrderItem.php
-
-		-
-			message: '#^The @use tag of class Modules\\Suppliers\\Models\\Supplier describes Illuminate\\Database\\Eloquent\\Factories\\HasFactory but the class uses App\\Models\\Concerns\\BelongsToTenant\.$#'
-			identifier: generics.wrongParent
-			count: 1
-			path: Modules/Suppliers/app/Models/Supplier.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'

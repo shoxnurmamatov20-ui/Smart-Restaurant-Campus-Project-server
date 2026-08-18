@@ -61,10 +61,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class PurchaseOrderItem extends Model
 {
-    /** @use HasFactory<PurchaseOrderItemFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<PurchaseOrderItemFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
 

@@ -59,9 +59,9 @@ use Modules\Pos\Database\Factories\PosSyncEntryFactory;
  */
 final class PosSyncEntry extends Model
 {
-    /** @use HasFactory<PosSyncEntryFactory> */
     use BelongsToTenant;
 
+    /** @use HasFactory<PosSyncEntryFactory> */
     use HasFactory;
 
     protected $table = 'pos.sync_entries';

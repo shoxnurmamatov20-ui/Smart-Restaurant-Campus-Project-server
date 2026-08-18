@@ -6,6 +6,7 @@ namespace Modules\Finance\Models;
 
 use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
@@ -63,18 +64,27 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Expense extends Model
 {
-    /** @use HasFactory<ExpenseFactory> */
     use BelongsToTenant;
+    use HasBusinessDate;
 
+    /** @use HasFactory<ExpenseFactory> */
     use HasFactory;
+
     use LogsActivity;
     use SoftDeletes;
+
+    /** The trading day for this row is taken from `spent_at`. */
+    protected static function businessDateSource(): string
+    {
+        return 'spent_at';
+    }
 
     protected $table = 'finance.expenses';
 
     public const CATEGORIES = ['rent', 'utilities', 'payroll', 'purchase', 'marketing', 'repair', 'other'];
 
     protected $fillable = [
+        'business_date',
         'tenant_id',
         'cash_shift_id',
         'category',
@@ -87,6 +97,7 @@ final class Expense extends Model
     protected function casts(): array
     {
         return [
+            'business_date' => 'date',
             'spent_at' => 'datetime',
             'amount' => 'integer',
             'paid_in_cash' => 'boolean',
