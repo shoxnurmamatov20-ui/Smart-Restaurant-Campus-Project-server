@@ -137,6 +137,69 @@ sudo srcp-health
 
 ---
 
+## Planshetni kassaga ulash
+
+Kassa `https://mypos.tashmedunitf.uz/pos` manzilida ochiladi. Planshet
+qiladigan yagona ish — menejer ekranidan o'qilgan **sakkiz belgili kod**ni
+kiritish; qolganini tizim o'zi bajaradi.
+
+### 1. Menejer kassani yaratadi
+
+Konsolda kassa qo'shiladi (kod, nom, rejim, filial), va javobda **bir marta**
+ulash kodi ko'rinadi. Kod o'n daqiqada tugaydi va ishlatilgach yo'q qilinadi.
+Yangisini har doim so'rash mumkin — eski shu zahoti kuchini yo'qotadi.
+
+Demo bazada bu seeder bilan tayyor:
+
+```bash
+php artisan db:seed --class="Modules\Pos\Database\Seeders\PosDatabaseSeeder"
+```
+
+### 2. Planshetda ichki sertifikatni o'rnatish
+
+**Faqat LAN orqali kirganda kerak** (`https://40.47.1.225`). Tashqi domen
+orqali — `https://mypos.tashmedunitf.uz` — bu qadam **kerak emas**: u yerdagi
+sertifikat chekka proksida turadi va uni har qanday brauzer taniydi.
+
+Nega kerak: sessiya cookie'si `Secure` bilan belgilangan, va brauzer
+ishonmagan ulanishda `Secure` cookie'ni **jimgina tashlab yuboradi** — kirish
+200 qaytaradi, lekin forma qaytadan ochiladi va hech qayerda sabab yozilmaydi.
+
+```bash
+# Serverdan sertifikatni olish
+scp pos@40.47.1.225:/etc/ssl/srcp/ca.crt ./srcp-ca.crt
+```
+
+- **iPad / iPhone:** faylni pochta yoki AirDrop bilan yuboring →
+  _Sozlamalar → Profil yuklab olindi → O'rnatish_ → keyin **muhim**:
+  _Sozlamalar → Umumiy → Ma'lumot → Sertifikatga ishonch sozlamalari_ da shu
+  sertifikatni yoqing. Bu ikkinchi qadamsiz iOS uni o'rnatadi-yu, ishonmaydi.
+- **Android:** _Sozlamalar → Xavfsizlik → Shifrlash → Sertifikat o'rnatish →
+  CA sertifikati_.
+- **Windows / macOS brauzeri:** tizim ishonch do'koniga qo'shing.
+
+### 3. Kodni kiritish
+
+Planshetda `/pos` ochiladi va sakkizta katak ko'rinadi. Kod kiritilgach
+so'rov o'zi jo'naydi — sakkizinchi belgidan keyin tugmani bosish shart emas,
+chunki planshetni ushlab turgan odamning qo'li band bo'ladi.
+
+Muvaffaqiyatdan keyin planshet **kutish ekrani**ga o'tadi: soat, restoran
+nomi, filial manzili va zal ko'rsatkichlari. Qurilma tokeni `httpOnly`
+cookie'da saqlanadi — sahifadagi hech qanday skript uni o'qiy olmaydi.
+
+### Muammolar
+
+| Ko'rinishi                                          | Sabab va yechim                                                                                          |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| «Ulash kodi noto'g'ri yoki ishlatib bo'lingan»      | Kod allaqachon ishlatilgan yoki boshqa restoranga tegishli. Menejerdan yangisini so'rang.                |
+| «Ulash kodining muddati tugagan»                    | O'n daqiqa o'tdi. Yangi kod so'rang.                                                                     |
+| «Bu terminal o'chirilgan»                           | Kassa back office'da `disabled` qilingan. Menejer uni qayta yoqadi.                                      |
+| Kirish 200 qaytaradi, lekin forma qaytadan ochiladi | `Secure` cookie tashlangan — 2-qadam bajarilmagan yoki `http://` orqali kirilgan.                        |
+| Kutish ekrani qizil «Aloqa» chirog'i                | Planshet serverga yetolmayapti. Soat ishlashda davom etadi; ko'rsatkichlar oxirgi ma'lum holatda qoladi. |
+
+---
+
 ## Ilk o'rnatish (yoki yangi serverda)
 
 ```bash
