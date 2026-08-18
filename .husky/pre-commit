@@ -1,1 +1,14 @@
 pnpm lint-staged
+
+# eslint is deliberately not here.
+#
+# lint-staged runs from the repository root and passes absolute paths. There is
+# no root eslint.config.js — each of the nine packages carries its own — so
+# `eslint` exited 1 on every commit that touched a .ts file, and the hook took
+# the whole commit down with it. The effect was that nobody could commit
+# TypeScript from the root at all.
+#
+# Per-package linting is what `pnpm lint` does (turbo fans it out across all
+# nine), and CI runs it on every push. That is the right place for it: a
+# monorepo whose configs live per package cannot be linted from one root call.
+# prettier stays, because formatting IS root-wide and has a root config.
