@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Tables\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 
-class TablesServiceProvider extends ModuleServiceProvider
+class TablesServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

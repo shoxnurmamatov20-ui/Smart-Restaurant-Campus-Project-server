@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Menu\Providers;
 
 use App\Contracts\Menu\MenuCatalog;
+use App\Support\Modules\ApiModuleServiceProvider;
 use Modules\Menu\Services\EloquentMenuCatalog;
-use Nwidart\Modules\Support\ModuleServiceProvider;
 
-class MenuServiceProvider extends ModuleServiceProvider
+class MenuServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

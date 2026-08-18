@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Staff\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 
-class StaffServiceProvider extends ModuleServiceProvider
+class StaffServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

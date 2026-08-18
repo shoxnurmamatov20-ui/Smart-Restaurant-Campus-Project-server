@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Finance\Providers;
 
 use App\Contracts\Finance\TillLedger;
+use App\Support\Modules\ApiModuleServiceProvider;
 use Modules\Finance\Services\EloquentTillLedger;
-use Nwidart\Modules\Support\ModuleServiceProvider;
 
-class FinanceServiceProvider extends ModuleServiceProvider
+class FinanceServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

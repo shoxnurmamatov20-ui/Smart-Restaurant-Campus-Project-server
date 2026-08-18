@@ -7,11 +7,11 @@ namespace Modules\Orders\Providers;
 use App\Contracts\Orders\BillRegistry;
 use App\Support\Errors\ApiError;
 use App\Support\Errors\ErrorCatalogue;
+use App\Support\Modules\ApiModuleServiceProvider;
 use Modules\Orders\Services\EloquentBillRegistry;
-use Nwidart\Modules\Support\ModuleServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 
-class OrdersServiceProvider extends ModuleServiceProvider
+class OrdersServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

@@ -6,11 +6,11 @@ namespace Modules\Pos\Providers;
 
 use App\Support\Errors\ApiError;
 use App\Support\Errors\ErrorCatalogue;
+use App\Support\Modules\ApiModuleServiceProvider;
 use Modules\Pos\Http\Middleware\RequireTerminalSession;
-use Nwidart\Modules\Support\ModuleServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 
-class PosServiceProvider extends ModuleServiceProvider
+class PosServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

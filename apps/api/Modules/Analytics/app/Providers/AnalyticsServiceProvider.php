@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Analytics\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 
-class AnalyticsServiceProvider extends ModuleServiceProvider
+class AnalyticsServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

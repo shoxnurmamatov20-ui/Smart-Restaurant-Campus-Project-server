@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Suppliers\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 
-class SuppliersServiceProvider extends ModuleServiceProvider
+class SuppliersServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

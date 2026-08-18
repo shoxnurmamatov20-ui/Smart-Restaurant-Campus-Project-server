@@ -6,10 +6,10 @@ namespace Modules\Inventory\Providers;
 
 use App\Support\Errors\ApiError;
 use App\Support\Errors\ErrorCatalogue;
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 
-class InventoryServiceProvider extends ModuleServiceProvider
+class InventoryServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.

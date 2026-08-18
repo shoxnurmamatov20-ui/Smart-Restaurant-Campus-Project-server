@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
+use App\Support\Modules\ApiModuleServiceProvider;
 
-class CrmServiceProvider extends ModuleServiceProvider
+class CrmServiceProvider extends ApiModuleServiceProvider
 {
     /**
      * The name of the module.
