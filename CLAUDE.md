@@ -5,11 +5,13 @@
 
 ## Loyiha holati (Status)
 
-- **Status:** Poydevor + konsol tugallandi — 8 rol o'z ish maydoniga ega
+- **Status:** Poydevor + konsol tugallandi; **POS rejasi P1–P2 yakunlandi**,
+  P3 boshlandi. Planshet haqiqiy API'ga qarshi sakkiz belgili kod bilan kassaga
+  aylanadi, kutish ekrani va PIN bilan kirish jonli ishlaydi.
 - **Code:** Monorepo tayyor — Laravel API (12 modul), web/admin (Next.js),
   AI xizmatlari (FastAPI), Telegram botlar (aiogram, 50 bot), Docker/K8s/monitoring
-- **Testlar:** 557 PHP testi / 2236 assertion + 118 frontend testi (web 49,
-  ui 29, admin 27, utils 13) — barchasi yashil.
+- **Testlar:** 627 PHP testi / 3114 assertion + 124 frontend testi (web 66,
+  ui 29, admin 27, utils 16) — barchasi yashil.
   `pnpm type-check`, `pnpm lint`, `pnpm test`, `pnpm build`, `pnpm format:check`,
   `vendor/bin/pint --test` — hammasi toza. `pnpm lint` endi to'qqizala
   paketni ham qamraydi (ilgari faqat uchta ilova linted edi).
@@ -36,6 +38,26 @@
 | Arxitektura testlar | Modul chegaralari, `tenant_id`, hodisa nomlari — CI'da tekshiriladi | `tests/Architecture/`                       |
 | Salomatlik          | `/api/health`, `/health/live`, `/health/ready` + `health:check`     | `app/Http/Controllers/HealthController.php` |
 | O'rnatish           | `db:seed` → 11 hisob; `restaurant:create-owner` → real restoran     | `database/seeders/UserSeeder.php`           |
+
+### POS rejasi (`docs/PLAN-POS-FIRST.md`)
+
+| Bosqich | Nima                                                                                                                                                       | Holat                                                    |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **P1**  | Shartnoma qatlami: bitta xato konverti, idempotentlik, 13 holatli zinapoya, `business_date`, `branch_counters`, **RLS**, `TENANCY_REQUIRE_TENANT`, OpenAPI | ✅                                                       |
+| **P2**  | Terminal juftlash (8 belgi), qurilma tokeni, **kutish ekrani**, `PosDatabaseSeeder`                                                                        | ✅                                                       |
+| **P3**  | Kassada kim turibdi: xodim kartalari, PIN, smena                                                                                                           | 🚧 kirish ishlaydi; kassa smenasi (`shifts/open`) qolgan |
+| P4–P13  | Savat, KDS, printer, to'lov, kun yopish, fiskal, oflayn, qarz                                                                                              | —                                                        |
+
+**Uchta hisob ma'lumoti, uchta cookie** — ataylab aralashtirilmaydi:
+
+| Cookie                       | Nima deydi                       | Qancha yashaydi                     |
+| ---------------------------- | -------------------------------- | ----------------------------------- |
+| `restaurant-campus-session`  | konsolga kirgan odam             | 8 soat                              |
+| `restaurant-campus-terminal` | **qaysi** kassa (qurilma tokeni) | 1 yil                               |
+| `restaurant-campus-shift`    | **kim** kassada turibdi          | 12 soat (server 15 daqiqada yopadi) |
+
+`/pos` uchta holatni cookie'lardan hal qiladi: token yo'q → juftlash paneli;
+token bor, smena yo'q → kutish ekrani; ikkalasi ham bor → ish ekrani.
 
 ## Sakkiz rol (dizayn handoff §1.2–1.4)
 
