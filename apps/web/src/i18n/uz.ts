@@ -1357,6 +1357,8 @@ export const uz = {
       pinDelete: 'O‘chirish',
       pinCancel: 'Bekor qilish',
       pinWorking: 'Tekshirilmoqda…',
+      lock: 'Kassani topshirish',
+      lockConfirm: 'Smenani yopmasdan chiqasizmi? Ochiq hisoblar joyida qoladi.',
     },
     mobile: {
       title: 'Telefon',

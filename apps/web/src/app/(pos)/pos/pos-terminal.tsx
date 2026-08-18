@@ -524,14 +524,91 @@ function PosHeader({
         >
           {m.kitchenView}
         </Link>
-        <Link
-          href="/dashboard"
-          className="bg-bg-muted text-fg-muted flex h-11 items-center rounded-md px-3.5 text-sm font-semibold"
-        >
-          {m.back}
-        </Link>
+        {/*
+         * Hand the till back, not "return to console".
+         *
+         * This used to link to /dashboard, which a waiter on a paired tablet
+         * cannot reach: they have a shift token, not a console session, so the
+         * link bounced them to a sign-in form they have no password for. What
+         * they actually need is the opposite of signing in — drop the shift so
+         * the next person can put their own PIN in.
+         *
+         * The shift is dropped locally; the API's session times out on its own
+         * fifteen minutes later. Open bills are untouched and stay on the floor,
+         * which is what the confirmation says: handing the till over is not
+         * closing the day.
+         */}
+        <LockButton label={m.lock} confirm={m.lockConfirm} cancel={m.pinCancel} />
       </div>
     </header>
+  );
+}
+
+/**
+ * The way out of a shift, for somebody who cannot reach the console.
+ *
+ * Its own component so the header can stay a plain function: this is the only
+ * thing in it that talks to the network.
+ */
+function LockButton({
+  label,
+  confirm,
+  cancel,
+}: {
+  label: string;
+  confirm: string;
+  cancel: string;
+}) {
+  const [asking, setAsking] = useState(false);
+
+  async function lock() {
+    await fetch('/api/pos/pin', { method: 'DELETE' });
+
+    // A reload rather than a router push: the page decides what to show from
+    // the cookies, and the cookie this just cleared is read on the next
+    // request, not this one.
+    window.location.assign('/pos');
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAsking(true)}
+        className="bg-bg-muted text-fg-muted flex h-11 items-center rounded-md px-3.5 text-sm font-semibold"
+      >
+        {label}
+      </button>
+
+      {asking ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-5"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-surface w-full max-w-[420px] rounded-[20px] p-6">
+            <p className="text-md leading-normal font-semibold">{confirm}</p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setAsking(false)}
+                className="border-border text-md h-12 flex-1 rounded-[12px] border font-semibold"
+              >
+                {cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => void lock()}
+                className="bg-brand-500 text-md h-12 flex-1 rounded-[12px] font-semibold text-white"
+              >
+                {label}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

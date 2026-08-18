@@ -1339,6 +1339,8 @@ export const en: WebMessages = {
       pinDelete: 'Delete',
       pinCancel: 'Cancel',
       pinWorking: 'Checking…',
+      lock: 'Hand the till back',
+      lockConfirm: 'Leave without closing the shift? Open bills stay where they are.',
     },
     mobile: {
       title: 'Phone',

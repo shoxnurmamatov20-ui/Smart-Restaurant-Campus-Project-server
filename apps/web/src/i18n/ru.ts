@@ -1339,6 +1339,8 @@ export const ru: WebMessages = {
       pinDelete: 'Удалить',
       pinCancel: 'Отмена',
       pinWorking: 'Проверяем…',
+      lock: 'Передать кассу',
+      lockConfirm: 'Выйти, не закрывая смену? Открытые счета останутся на месте.',
     },
     mobile: {
       title: 'Телефон',
