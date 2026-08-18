@@ -10,6 +10,7 @@ use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
+use App\Support\Counters\BranchCounters;
 use App\Support\Events\EventBus;
 use App\Support\Orders\OrderState;
 use App\Support\Tenancy\BusinessDay;
@@ -286,11 +287,17 @@ final class Order extends Model
     }
 
     /** Next free bill number for this restaurant, e.g. A-1042. */
+    /**
+     * The next human-facing bill number, taken from the tenant's counter.
+     *
+     * This was `max(id) + 1`: two simultaneous opens read the same max and one
+     * died on the unique index, and the id sequence is global so one tenant's
+     * volume made another's numbers jump. The counter is atomic per tenant —
+     * see BranchCounters for the guarantee and its price.
+     */
     public static function nextNumber(): string
     {
-        $last = self::withTrashed()->max('id');
-
-        return sprintf('A-%04d', ((int) $last) + 1);
+        return sprintf('A-%04d', app(BranchCounters::class)->next('order.number'));
     }
 
     // ============ Scopes ============

@@ -17,7 +17,9 @@ final class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'number' => 'A-'.$this->faker->unique()->numerify('####'),
+            // 9-prefixed so factory numbers can never collide with the ones
+            // BranchCounters issues from 1 upwards in the same test.
+            'number' => 'A-9'.$this->faker->unique()->numerify('####'),
             'channel' => 'dine_in',
             'status' => 'placed',
             'table_label' => strtoupper($this->faker->bothify('?-#')),
