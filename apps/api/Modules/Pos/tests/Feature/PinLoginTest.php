@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Tests\Feature;
 
+use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
@@ -156,6 +157,30 @@ final class PinLoginTest extends TestCase
     }
 
     // ============ Signing in ============
+
+    public function test_the_session_names_the_venue_not_just_the_till(): void
+    {
+        // Every screen that names a till writes it "Chilonzor · POS-3", and the
+        // POS header reads it straight off this response. Loaded without the
+        // branch it said "POS-3" alone — which is ambiguous the moment a chain
+        // has a POS-3 in two districts, and that is the normal case rather than
+        // an edge one.
+        $branch = Branch::query()->create([
+            'tenant_id' => $this->mine->id, 'name' => 'Chilonzor', 'slug' => 'chilonzor',
+            'timezone' => 'Asia/Tashkent', 'status' => 'active',
+        ]);
+        $this->terminal->forceFill(['branch_id' => $branch->id])->save();
+
+        $user = $this->staffMember();
+
+        $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
+            'user_id' => $user->id,
+            'pin' => '4821',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('session.terminal.code', 'KASSA-1')
+            ->assertJsonPath('session.terminal.branch.name', 'Chilonzor');
+    }
 
     public function test_a_correct_pin_opens_a_session(): void
     {

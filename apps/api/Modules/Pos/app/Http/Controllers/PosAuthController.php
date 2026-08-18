@@ -81,7 +81,12 @@ final class PosAuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'session' => (new TerminalSessionResource($session->load(['user', 'terminal'])))->resolve($request),
+            // `terminal.branch`, not just `terminal`: every screen that names
+            // a till writes it as "Chilonzor · POS-3", and TerminalResource
+            // only emits the branch when it has been loaded. Without this the
+            // POS header read "POS-3" alone — which is ambiguous the moment a
+            // chain has a POS-3 in two districts, and that is the normal case.
+            'session' => (new TerminalSessionResource($session->load(['user', 'terminal.branch'])))->resolve($request),
         ], Response::HTTP_CREATED);
     }
 
@@ -93,7 +98,7 @@ final class PosAuthController extends Controller
         /** @var TerminalSession $session */
         $session = $request->attributes->get(RequireTerminalSession::ATTRIBUTE_SESSION);
 
-        return new TerminalSessionResource($session->load(['user', 'terminal']));
+        return new TerminalSessionResource($session->load(['user', 'terminal.branch']));
     }
 
     /**
