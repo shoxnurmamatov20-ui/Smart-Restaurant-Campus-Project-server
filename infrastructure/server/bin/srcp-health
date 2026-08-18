@@ -186,9 +186,32 @@ else                            pass "disk /" "${disk_use}% used, $((disk_avail/
 read -r mem_total mem_avail < <(free -m | awk '/^Mem:/ {print $2, $7}')
 mem_pct=$(( (mem_total - mem_avail) * 100 / mem_total ))
 swap_used=$(free -m | awk '/^Swap:/ {print $3}')
-if   (( swap_used > 512 )); then crit "memory" "${mem_pct}% used, ${swap_used}MB in swap — the box is thrashing"
-elif (( mem_pct >= 90 ));  then warn "memory" "${mem_pct}% used, ${mem_avail}MB available"
-else                            pass "memory" "${mem_pct}% used, ${mem_avail}MB available"; fi
+
+# Swap OCCUPANCY is not thrashing, and reporting it as such is worse than not
+# reporting it at all.
+#
+# This read `swap_used > 512` and called it critical. A release build pushes a
+# gigabyte into swap and Linux never proactively pages it back — so a box that
+# swapped once during a deploy, recovered, and has four gigabytes free reads as
+# "thrashing" forever, on every run, until someone reboots. Two runs of that and
+# the whole report gets ignored, which costs more than the check ever saved.
+#
+# Thrashing is swap ACTIVITY: pages moving in and out right now. vmstat's second
+# sample is the live one — the first is an average since boot and would carry
+# that same build forever.
+read -r swap_in swap_out < <(vmstat 1 2 2>/dev/null | tail -1 | awk '{print $7, $8}')
+swap_rate=$(( ${swap_in:-0} + ${swap_out:-0} ))
+
+if   (( swap_rate > 1024 )); then
+    crit "memory" "${mem_pct}% used, paging ${swap_rate}MB/s — the box is thrashing"
+elif (( mem_pct >= 90 )); then
+    warn "memory" "${mem_pct}% used, only ${mem_avail}MB available"
+elif (( swap_used > 512 )); then
+    # Occupied but quiet: worth knowing, not worth waking anyone for.
+    warn "memory" "${mem_pct}% used, ${mem_avail}MB available, ${swap_used}MB sitting in swap"
+else
+    pass "memory" "${mem_pct}% used, ${mem_avail}MB available"
+fi
 
 rel_count=$(find /srv/srcp/releases -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l)
 pass "releases kept" "$rel_count in /srv/srcp/releases ($(du -sh /srv/srcp/releases 2>/dev/null | cut -f1))"

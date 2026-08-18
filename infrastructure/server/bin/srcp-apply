@@ -97,6 +97,37 @@ install_file() {
     return 0
 }
 
+# Install one of the four operator tools into /usr/local/sbin.
+#
+# Separate from install_file for one reason: srcp-apply installs srcp-apply, and
+# it is running while it does. `install` opens the destination with O_TRUNC,
+# which rewrites the SAME inode — and bash reads a script incrementally, so the
+# running shell would carry on reading from a file whose contents had changed
+# underneath it and execute a fragment of a line. Writing beside the target and
+# renaming over it swaps only the directory entry; the running process keeps the
+# old inode until it exits.
+install_tool() {
+    local src=$1 name=$2 dst=/usr/local/sbin/$2
+    [[ -f $src ]] || die "missing tool: $src"
+
+    if [[ -f $dst ]] && cmp -s "$src" "$dst"; then
+        return 1
+    fi
+
+    if [[ -e $dst ]]; then
+        run mkdir -p "$BACKUP$(dirname "$dst")"
+        run cp -a "$dst" "$BACKUP$dst"
+    else
+        ADDED+=("$dst")
+    fi
+
+    run install -o root -g root -m 0755 "$src" "$dst.apply-new"
+    run mv -f "$dst.apply-new" "$dst"
+    printf '  \u2192 %s\n' "$dst"
+    CHANGED=1
+    return 0
+}
+
 # Retire a file the previous deployment installed. Moved, never deleted: a
 # rollback needs it, and "where did that file go" is a bad question to have to
 # answer during an outage.
@@ -219,7 +250,23 @@ if (( UNITS_TOUCHED )) && ! (( DRY_RUN )); then
 fi
 
 #-----------------------------------------------------------------------------
-# 5. Reload what changed — nothing more
+# 5. The operator tools themselves
+#
+# These used to be installed only by provision.sh, which is the once-per-box
+# bootstrap. So a fix to srcp-health — the script that decides whether a deploy
+# is kept or rolled back — sat in the repository doing nothing, and the only way
+# to ship it was to re-run the whole provisioner. Worse, the report kept saying
+# the old thing, so the fix looked like it had not worked.
+#
+# They belong here: /usr/local/sbin is deployment configuration like /etc is.
+#-----------------------------------------------------------------------------
+log "operator tools"
+for tool in srcp-deploy srcp-rollback srcp-apply srcp-health; do
+    install_tool "$SRC/bin/$tool" "$tool" || true
+done
+
+#-----------------------------------------------------------------------------
+# 6. Reload what changed — nothing more
 #-----------------------------------------------------------------------------
 if (( DRY_RUN )); then
     log "dry run: nothing was written"
