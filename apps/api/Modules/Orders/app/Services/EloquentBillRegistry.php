@@ -195,15 +195,18 @@ final class EloquentBillRegistry implements BillRegistry
                 throw new RuntimeException('Hisobni yuborib bo\'lmadi.');
             }
 
-            $order->refresh();
-            $order->transitionTo('in_kitchen');
+            // Firing leaves the bill at `placed` — which is exactly what the
+            // kitchen screen labels "Yangi". Moving it on is the cook's job:
+            // `accepted` when they take the ticket, `cooking` when they start.
+            // The old code did both here, so every ticket arrived already
+            // claimed and the KDS's first column was permanently empty.
 
             return $this->toBill($order->refresh());
         });
     }
 
     /**
-     * @param array<int, int> $lineIds
+     * @param  array<int, int>  $lineIds
      */
     public function split(int $billId, array $lineIds): Bill
     {

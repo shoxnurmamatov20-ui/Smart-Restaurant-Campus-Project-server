@@ -141,7 +141,8 @@ final class SellFlowTest extends TestCase
         $sent = $this->till()->postJson("/api/v1/pos/bills/{$bill['id']}/send")
             ->assertOk()->json('data');
 
-        $this->assertSame('in_kitchen', $sent['status']);
+        // Firing leaves the bill at `placed`; the cook moves it on from the KDS.
+        $this->assertSame('placed', $sent['status']);
     }
 
     public function test_the_client_cannot_name_the_waiter(): void

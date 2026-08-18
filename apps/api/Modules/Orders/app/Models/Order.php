@@ -10,6 +10,7 @@ use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
 use App\Support\Events\EventBus;
+use App\Support\Orders\OrderState;
 use App\Support\Tenancy\BusinessDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -111,9 +112,24 @@ final class Order extends Model
 
     public const CHANNELS = ['dine_in', 'takeaway', 'delivery', 'aggregator'];
 
-    public const STATUSES = ['draft', 'placed', 'in_kitchen', 'ready', 'served', 'on_the_way', 'delivered', 'paid', 'cancelled'];
+    /**
+     * The canonical ladder, defined once in App\Support\Orders\OrderState and
+     * mirrored in packages/i18n so the four surfaces that render it cannot
+     * drift from the API that emits it. Kept as a constant because Eloquent
+     * validation rules and a hundred call sites read it as an array of strings.
+     *
+     * @var list<string>
+     */
+    public const STATUSES = [
+        'draft', 'placed', 'accepted', 'cooking', 'ready', 'served',
+        'enroute', 'handed', 'topay', 'paid', 'voided', 'refunded', 'comped',
+    ];
 
-    public const OPEN_STATUSES = ['draft', 'placed', 'in_kitchen', 'ready', 'served', 'on_the_way'];
+    /** @var list<string> */
+    public const OPEN_STATUSES = [
+        'draft', 'placed', 'accepted', 'cooking', 'ready', 'served',
+        'enroute', 'handed', 'topay',
+    ];
 
     protected $fillable = [
         'tenant_id',
@@ -192,15 +208,24 @@ final class Order extends Model
     /**
      * Move the order forward. Returns false on an illegal jump instead of
      * throwing, so a double-tap in the POS is a no-op rather than a 500.
+     *
+     * The ladder is now enforced, not merely listed. Before this, any value in
+     * STATUSES was accepted from any other, so a bill could go from `draft`
+     * straight to `paid` with no kitchen ticket ever existing — the only thing
+     * stopping it was that no screen offered the button. A client is not a
+     * safeguard.
      */
     public function transitionTo(string $status): bool
     {
-        if (! in_array($status, self::STATUSES, true)) {
+        $next = OrderState::tryFrom($status);
+        $current = OrderState::tryFrom($this->status);
+
+        if ($next === null || $current === null) {
             return false;
         }
 
-        if (in_array($this->status, ['paid', 'cancelled'], true)) {
-            return false; // closed bills are immutable
+        if (! $current->canMoveTo($next)) {
+            return false;
         }
 
         $attributes = ['status' => $status];
@@ -209,7 +234,7 @@ final class Order extends Model
             $attributes['placed_at'] = now();
         }
 
-        if (in_array($status, ['paid', 'cancelled'], true)) {
+        if ($next->isTerminal()) {
             $attributes['closed_at'] = now();
         }
 
@@ -228,14 +253,24 @@ final class Order extends Model
         return true;
     }
 
+    /**
+     * Void a bill: nothing was paid, so nothing moves back.
+     *
+     * DECISIONS Q8 keeps this apart from a refund (money returns, revenue goes
+     * negative) and a comp (money never moved, stock was consumed, and the
+     * cost books as marketing). They used to be one `cancelled` value, which
+     * made the loss-prevention screen and the P&L both wrong.
+     */
     public function cancel(?string $reason = null): bool
     {
-        if (in_array($this->status, ['paid', 'cancelled'], true)) {
+        $current = OrderState::tryFrom($this->status);
+
+        if ($current === null || ! $current->canMoveTo(OrderState::Voided)) {
             return false;
         }
 
         return $this->update([
-            'status' => 'cancelled',
+            'status' => OrderState::Voided->value,
             'closed_at' => now(),
             'note' => trim(($this->note ?? '').' | Bekor qilindi: '.($reason ?? '—')),
         ]);

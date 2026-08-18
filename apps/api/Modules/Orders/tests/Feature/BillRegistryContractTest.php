@@ -226,7 +226,8 @@ final class BillRegistryContractTest extends TestCase
         $bill = $this->bills->addLine($this->bills->open('dine_in')->id, $dish->id, 1);
 
         $bill = $this->bills->send($bill->id);
-        $this->assertSame('in_kitchen', $bill->status);
+        // Firing leaves the bill at `placed` — the kitchen's own "Yangi" column.
+        $this->assertSame('placed', $bill->status);
 
         $bill = $this->bills->close($bill->id);
         $this->assertSame('paid', $bill->status);

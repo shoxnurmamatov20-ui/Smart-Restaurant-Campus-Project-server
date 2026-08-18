@@ -196,7 +196,7 @@ final class BotApiController extends Controller
                     'id' => 1,
                     'number' => 'A-1042',
                     'channel' => 'dine_in',
-                    'status' => 'in_kitchen',
+                    'status' => 'cooking',
                     'table_label' => 'A-7',
                     'total_tiyin' => 12700000,
                     'placed_at' => now()->subMinutes(12)->toIso8601String(),
