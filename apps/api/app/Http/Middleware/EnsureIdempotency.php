@@ -91,8 +91,11 @@ final class EnsureIdempotency
                 return ErrorResponse::code('request.idempotency_key_reused', field: self::HEADER);
             }
 
-            return response()
-                ->json($replay['body'], $replay['status'])
+            // The stored bytes go back untouched — json'ing them again would
+            // re-escape and reorder, which is the diff this column's type was
+            // chosen to prevent.
+            return response($replay['body'], $replay['status'])
+                ->header('Content-Type', 'application/json')
                 ->header('Idempotent-Replay', 'true');
         }
 
@@ -121,8 +124,11 @@ final class EnsureIdempotency
         }
 
         $content = $response->getContent();
-        $body = $content === false || $content === '' ? null : json_decode($content, true);
 
-        $this->store->complete($key, $response->getStatusCode(), $body);
+        $this->store->complete(
+            $key,
+            $response->getStatusCode(),
+            $content === false ? '' : $content,
+        );
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Menu\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorResponse;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,10 +32,7 @@ final class PublicMenuController extends Controller
     public function __invoke(Request $request, TenantContext $context, MenuCache $cache): JsonResponse
     {
         if (! $context->hasTenant()) {
-            return response()->json([
-                'message' => 'Restoran aniqlanmadi.',
-                'code' => 'TENANT_REQUIRED',
-            ], Response::HTTP_BAD_REQUEST);
+            return ErrorResponse::code('tenant.required');
         }
 
         $channel = (string) $request->query('channel', 'dine_in');

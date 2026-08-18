@@ -6,7 +6,6 @@ namespace App\Support\Idempotency;
 
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 /**
  * "Have I already done this one?"
@@ -23,7 +22,17 @@ use Throwable;
  */
 final class IdempotencyStore
 {
-    public const TABLE = 'public.idempotency_keys';
+    /**
+     * No `public.` prefix.
+     *
+     * The schema is first in the connection's search_path, and the query
+     * builder reads a dotted prefix as a CONNECTION name — `DB::table(
+     * 'public.idempotency_keys')` throws "Database connection [public] not
+     * configured". Migrations are the exception: Schema::create() does take
+     * the qualified name, which is why the table is declared with it and
+     * queried without it.
+     */
+    public const TABLE = 'idempotency_keys';
 
     /** DATABASE.md §6.4 — long enough for a night offline, short enough to stay small. */
     public const RETENTION_HOURS = 48;
@@ -81,12 +90,20 @@ final class IdempotencyStore
         return ['claimed' => true, 'response' => null, 'conflict' => false];
     }
 
-    /** Remember what was answered, so the next arrival gets the same thing. */
-    public function complete(string $key, int $status, mixed $body): void
+    /**
+     * Remember what was answered, verbatim.
+     *
+     * The raw response text, not a decode/encode round trip: the column is
+     * `text` precisely so the bytes that left the first time are the bytes
+     * that leave the second time. jsonb was tried and rejected — it reorders
+     * keys into its own canonical form, and a replay that reorders is a diff
+     * a client has to explain.
+     */
+    public function complete(string $key, int $status, string $body): void
     {
         DB::table(self::TABLE)->where('key', $key)->update([
             'status_code' => $status,
-            'response_body' => json_encode($body, JSON_UNESCAPED_UNICODE),
+            'response_body' => $body,
         ]);
     }
 
@@ -122,7 +139,7 @@ final class IdempotencyStore
         return $row;
     }
 
-    /** @return array{status: int, body: mixed}|null */
+    /** @return array{status: int, body: string}|null */
     private function replay(object $row): ?array
     {
         // A claim with no response yet: the first request is still running.
@@ -132,12 +149,6 @@ final class IdempotencyStore
             return null;
         }
 
-        try {
-            $body = json_decode((string) $row->response_body, true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
-            return null;
-        }
-
-        return ['status' => (int) $row->status_code, 'body' => $body];
+        return ['status' => (int) $row->status_code, 'body' => (string) $row->response_body];
     }
 }

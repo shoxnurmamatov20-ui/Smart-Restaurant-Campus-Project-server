@@ -11,7 +11,6 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The capability manifest — GET /api/v1/modules.
@@ -99,10 +98,7 @@ final class ModuleController extends Controller
         $tenant = $context->tenant();
 
         if ($tenant === null) {
-            return response()->json([
-                'message' => 'Restoran aniqlanmadi.',
-                'code' => 'TENANT_REQUIRED',
-            ], Response::HTTP_BAD_REQUEST);
+            return ErrorResponse::code('tenant.required');
         }
 
         if ($module->required && $validated['enabled'] === false) {

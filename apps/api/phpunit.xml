@@ -67,6 +67,8 @@
         <env name="DB_URL" value=""/>
         <!-- Never reach for MinIO/S3 from a test: a network round-trip that
              times out turns one slow test into a two-minute suite. -->
+        <!-- Never reach for MinIO/S3 from a test: a network round-trip that
+             times out turns one slow test into a two-minute suite. -->
         <env name="FILESYSTEM_DISK" value="local"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

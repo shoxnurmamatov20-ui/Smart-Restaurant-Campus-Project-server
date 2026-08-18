@@ -33,7 +33,12 @@ final class UpdateBranchRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:120'],
             'slug' => [
                 'sometimes', 'required', 'string', 'max:64', 'regex:/^[a-z0-9-]+$/',
-                Rule::unique('public.branches', 'slug')
+                // Unqualified on purpose: the validator reads a dotted name as
+                // "connection.table", so 'public.branches' asked for a database
+                // connection called [public] and threw a 500 on the first
+                // request that ever reached this rule. search_path resolves the
+                // bare name to the same table.
+                Rule::unique('branches', 'slug')
                     ->ignore($branchId)
                     ->where(fn (Builder $query) => $query->where('tenant_id', $tenantId))
                     ->whereNull('deleted_at'),

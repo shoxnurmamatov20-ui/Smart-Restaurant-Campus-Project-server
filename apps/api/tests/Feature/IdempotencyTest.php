@@ -8,6 +8,8 @@ use App\Http\Middleware\EnsureIdempotency;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Idempotency\IdempotencyStore;
+use App\Support\Tenancy\TenantContext;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,8 +30,16 @@ final class IdempotencyTest extends TestCase
     {
         parent::setUp();
 
-        $tenant = Tenant::factory()->create();
-        $this->user = User::factory()->for($tenant)->create();
+        $this->seed(RolesAndPermissionsSeeder::class);
+
+        $tenant = Tenant::query()->create([
+            'name' => 'Osh Markazi', 'slug' => 'osh-markazi', 'country_code' => 'UZ',
+            'locale' => 'uz', 'timezone' => 'Asia/Tashkent', 'status' => 'active',
+        ]);
+
+        app(TenantContext::class)->set($tenant);
+
+        $this->user = User::factory()->create(['tenant_id' => $tenant->id]);
         $this->user->givePermissionTo('branches.manage');
     }
 
@@ -68,7 +78,7 @@ final class IdempotencyTest extends TestCase
         $this->assertSame($first->json(), $second->json());
         $second->assertHeader('Idempotent-Replay', 'true');
 
-        $this->assertSame(1, DB::table('public.branches')->where('code', $payload['code'])->count());
+        $this->assertSame(1, DB::table('branches')->where('slug', $payload['slug'])->count());
     }
 
     #[Test]
@@ -124,9 +134,12 @@ final class IdempotencyTest extends TestCase
     /** @return array<string, string> */
     private function branch(): array
     {
+        $suffix = Str::lower(Str::random(6));
+
         return [
             'name' => 'Chilonzor',
-            'code' => 'CHI-'.Str::upper(Str::random(4)),
+            'slug' => 'chilonzor-'.$suffix,
+            'code' => 'CHI'.Str::upper(Str::random(3)),
             'city' => 'Toshkent',
         ];
     }

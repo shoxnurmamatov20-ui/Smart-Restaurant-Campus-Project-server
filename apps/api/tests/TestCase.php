@@ -7,6 +7,7 @@ namespace Tests;
 use App\Http\Middleware\EnsureIdempotency;
 use App\Support\Errors\ErrorCatalogue;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
@@ -18,6 +19,28 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->registerErrorAssertions();
+        $this->forgetRateLimits();
+    }
+
+    /**
+     * Start each test with an empty cache.
+     *
+     * CACHE_STORE is `array`, which is per-PROCESS, and PHPUnit runs the whole
+     * suite in one process — so a rate-limit counter set by one test is still
+     * there for the next, and the fiftieth test to hit `throttle:auth` gets a
+     * 429 for something it never did. RefreshDatabase resets the database
+     * between tests and nothing was resetting this.
+     *
+     * The symptom is order-dependent, which is the worst kind: the suite passes
+     * when run one file at a time and fails when run whole.
+     */
+    private function forgetRateLimits(): void
+    {
+        Cache::store('array')->flush();
+
+        if (config('cache.default') !== 'array') {
+            Cache::flush();
+        }
     }
 
     /**
@@ -93,9 +116,13 @@ abstract class TestCase extends BaseTestCase
          * from `password` failing — so they are asserted, but through the
          * envelope's `error.errors` bag rather than the old top-level one.
          */
-        TestResponse::macro('assertApiValidationErrors', function (array $fields): TestResponse {
+        TestResponse::macro('assertApiValidationErrors', function (array|string $fields): TestResponse {
             /** @var TestResponse $this */
             $this->assertApiError('request.validation_failed');
+
+            // Laravel's own assertJsonValidationErrors takes either, and the
+            // call sites that moved here were written against it.
+            $fields = is_string($fields) ? [$fields] : $fields;
 
             $bag = $this->json('error.errors');
             Assert::assertIsArray($bag);
