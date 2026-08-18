@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Errors\ErrorResponse;
+use App\Support\Tenancy\DatabaseTenancy;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -30,7 +31,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final readonly class ResolveTenant
 {
-    public function __construct(private TenantContext $context) {}
+    public function __construct(
+        private TenantContext $context,
+        private DatabaseTenancy $database,
+    ) {}
 
     /**
      * @param  Closure(Request): Response  $next
@@ -58,38 +62,44 @@ final readonly class ResolveTenant
             }
         }
 
-        if ($requested === null && config('tenancy.require_tenant')) {
-            // The platform operator is the one identity that legitimately
-            // stands outside every restaurant: tenant_id null, super-admin
-            // role, signed in through /admin/login. Refusing them here would
-            // break the only two tenantless calls that exist — their logout
-            // (leaving revoked-in-name-only tokens alive) and the platform
-            // console's own endpoints, which are cross-tenant by definition.
-            //
+        // The platform operator is the one identity that legitimately stands
+        // outside every restaurant: tenant_id null, super-admin role, signed
+        // in through /admin/login. Refusing them under require_tenant would
+        // break their logout (leaving revoked-in-name-only tokens alive) and
+        // every platform console endpoint, which are cross-tenant by
+        // definition. Note the order — a super-admin who DID name a tenant
+        // resolved above and is scoped like anybody else.
+        $isPlatformOperator = $requested === null
+            && $user instanceof User
+            && $ownTenantId === null
+            && $user->hasRole('super-admin');
+
+        if ($requested === null && ! $isPlatformOperator && config('tenancy.require_tenant')) {
             // Everyone else without a tenant is exactly who this flag exists
             // to stop: a till that forgot its header must not read the whole
-            // platform. Note the order — a super-admin who DID name a tenant
-            // resolved above and is scoped like anybody else.
-            $isPlatformOperator = $user instanceof User
-                && $ownTenantId === null
-                && $user->hasRole('super-admin');
-
-            if (! $isPlatformOperator) {
-                return ErrorResponse::code('tenant.required');
-            }
-
-            // Fall through to set(null) below rather than returning early:
-            // the try/finally is what stops one request's tenant leaking into
-            // the next when the container survives between them, as it does
-            // under tests — and the operator must get that hygiene too.
+            // platform.
+            return ErrorResponse::code('tenant.required');
         }
 
         $this->context->set($requested);
+
+        // The database now learns the same answer the application did. For a
+        // resolved tenant the RLS policies scope every guarded table to it;
+        // for the platform operator they open (their reads are cross-tenant
+        // by definition); for anything else they stay closed, so a query that
+        // reaches the database without a tenant reads nothing rather than
+        // everything.
+        if ($requested !== null) {
+            $this->database->focus($requested->id);
+        } elseif ($isPlatformOperator) {
+            $this->database->bypass();
+        }
 
         try {
             return $next($request);
         } finally {
             $this->context->clear();
+            $this->database->reset();
         }
     }
 

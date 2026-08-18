@@ -13,8 +13,10 @@ use App\Contracts\Orders\UnavailableBillRegistry;
 use App\Support\Events\EventBus;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\BranchContext;
+use App\Support\Tenancy\DatabaseTenancy;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -36,6 +38,13 @@ class AppServiceProvider extends ServiceProvider
         // unstamped, and an unstamped branch_id means "every branch".
         $this->app->scoped(TenantContext::class);
         $this->app->scoped(BranchContext::class);
+
+        // The database-side twin of TenantContext — it writes the GUCs the
+        // row-level-security policies read. A singleton, not scoped: it must
+        // remember what it applied across a reconnect inside one request.
+        $this->app->singleton(DatabaseTenancy::class, fn (): DatabaseTenancy => new DatabaseTenancy(
+            $this->app->runningInConsole(),
+        ));
         $this->app->scoped(ModuleRegistry::class);
         $this->app->scoped(EventBus::class);
 
@@ -57,6 +66,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+
+        // Session GUCs die with their connection. Whenever one is (re)made —
+        // process start, a dropped link, a reconnect mid-request — hand it the
+        // tenancy state the request already established, or the console
+        // default. Without this, a reconnect silently downgrades a scoped
+        // request to fail-closed and every query answers empty.
+        $this->app['events']->listen(ConnectionEstablished::class, function (): void {
+            $this->app->make(DatabaseTenancy::class)->reapply();
+        });
     }
 
     /**

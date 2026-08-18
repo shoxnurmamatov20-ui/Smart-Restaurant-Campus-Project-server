@@ -98,6 +98,34 @@ final class IdempotencyTest extends TestCase
     }
 
     #[Test]
+    public function another_restaurants_key_is_never_replayed_to_you(): void
+    {
+        $key = (string) Str::uuid();
+        $payload = $this->branch();
+
+        // Osh Markazi claims the key and gets its branch created.
+        $this->actingAs($this->user)
+            ->postJson('/api/v1/branches', $payload, [EnsureIdempotency::HEADER => $key])
+            ->assertCreated();
+
+        // A different restaurant presents the SAME key with the SAME body —
+        // small fixed payloads make identical bodies likely, so the hash
+        // alone cannot tell the tenants apart. Handing back the stored
+        // response would hand them Osh Markazi's data.
+        $rival = Tenant::query()->create([
+            'name' => 'Lagmon Uyi', 'slug' => 'lagmon-uyi', 'country_code' => 'UZ',
+            'locale' => 'uz', 'timezone' => 'Asia/Tashkent', 'status' => 'active',
+        ]);
+        $rivalUser = User::factory()->create(['tenant_id' => $rival->id]);
+        $rivalUser->givePermissionTo('branches.manage');
+
+        $this->actingAs($rivalUser)
+            ->withHeaders(['X-Tenant' => $rival->slug])
+            ->postJson('/api/v1/branches', $payload, [EnsureIdempotency::HEADER => $key])
+            ->assertApiError('request.idempotency_key_reused');
+    }
+
+    #[Test]
     public function a_rejected_write_does_not_burn_its_key(): void
     {
         $key = (string) Str::uuid();

@@ -59,7 +59,7 @@ final class PublicMenuCacheTest extends TestCase
     }
 
     /**
-     * @param array<string, string> $headers
+     * @param  array<string, string>  $headers
      */
     private function menu(array $headers = [])
     {
@@ -99,7 +99,11 @@ final class PublicMenuCacheTest extends TestCase
             ->count();
 
         $this->assertSame(0, $menuQueries, 'The cached menu still queried the menu tables.');
-        $this->assertLessThanOrEqual(2, $queries, "A cached menu cost {$queries} queries.");
+        // Three, not two: tenant lookup, the set_config that scopes row-level
+        // security to that tenant, and the cache read. The budget exists to
+        // catch a cache that silently stopped caching — not to forbid the
+        // isolation layer its one round trip.
+        $this->assertLessThanOrEqual(3, $queries, "A cached menu cost {$queries} queries.");
     }
 
     public function test_a_returning_phone_is_told_nothing_changed(): void

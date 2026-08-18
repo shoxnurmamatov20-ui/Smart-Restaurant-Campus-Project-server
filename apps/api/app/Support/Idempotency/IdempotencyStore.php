@@ -47,6 +47,18 @@ final class IdempotencyStore
         $existing = $this->find($key);
 
         if ($existing !== null) {
+            // A key belongs to the tenant that claimed it. Another tenant
+            // presenting the same key — even with an identical body, which
+            // small fixed payloads make likely — must not receive the stored
+            // response: that response is the first tenant's data. Treated as
+            // a conflict, exactly like a body mismatch, because from the
+            // caller's side it is the same event: this key is not yours to
+            // replay. (Row-level security hides the row too; this check keeps
+            // the answer a clean 409 rather than a duplicate-key 500.)
+            if ((int) $existing->tenant_id !== (int) $tenantId) {
+                return ['claimed' => false, 'response' => null, 'conflict' => true];
+            }
+
             // Same key, different body: a client bug. Replaying the first
             // response would hide it and answer for the wrong amount.
             if ($existing->request_hash !== $hash) {
@@ -61,23 +73,31 @@ final class IdempotencyStore
         }
 
         try {
-            DB::table(self::TABLE)->insert([
+            // Inside its own savepoint so a duplicate key aborts only this
+            // insert, not whatever transaction the caller is standing in —
+            // under tests that wrapper is the whole test.
+            DB::transaction(static fn () => DB::table(self::TABLE)->insert([
                 'key' => $key,
                 'tenant_id' => $tenantId,
                 'endpoint' => $endpoint,
                 'method' => $method,
                 'request_hash' => $hash,
                 'created_at' => now(),
-            ]);
+            ]));
         } catch (UniqueConstraintViolationException) {
-            // Two copies arrived at once and the other claimed it. Whatever it
-            // produces is the answer for both.
+            // The row exists — the unique index just said so — so somebody
+            // holds this key right now.
             $winner = $this->find($key);
 
             if ($winner === null) {
-                // Claimed and then released — the winner failed. Let this one
-                // through to try the work itself.
-                return ['claimed' => true, 'response' => null, 'conflict' => false];
+                // Exists, but this tenant cannot see it: row-level security is
+                // hiding another restaurant's claim. That is a conflict, the
+                // same answer the visible-row path gives a foreign tenant —
+                // NOT a licence to run the work fresh, which is what this
+                // branch used to do. (A winner that released between our
+                // insert and this read also lands here; the caller retries
+                // with the same key and succeeds, which is what a retry is.)
+                return ['claimed' => false, 'response' => null, 'conflict' => true];
             }
 
             return [
