@@ -164,9 +164,10 @@ final class RowLevelSecurityTest extends TestCase
 
         $names = array_map(static fn (object $row): string => (string) $row->name, $unguarded);
 
-        // users is exempt because auth:sanctum resolves the token's user
-        // before any GUC exists — guarded, every login on the platform fails.
-        $this->assertSame(['public.users'], $names, sprintf(
+        // Two exemptions, both identity tables that auth:sanctum reads before
+        // any GUC exists: guarded, `users` makes every login on the platform
+        // fail and `terminals` makes every paired tablet answer 401.
+        $this->assertSame(['pos.terminals', 'public.users'], $names, sprintf(
             'Tables carrying tenant_id without forced row-level security: %s',
             implode(', ', $names),
         ));

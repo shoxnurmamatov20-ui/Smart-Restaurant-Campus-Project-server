@@ -30,14 +30,27 @@ use Illuminate\Support\Facades\DB;
  * suite (RowLevelSecurityTest) is what catches a new table that appears after
  * this migration ran.
  *
- * The one exemption is `public.users`, and it is load-bearing: auth:sanctum
- * resolves the token's user BEFORE the tenant middleware has set any GUC.
- * Guarded, that lookup finds no one and every login on the platform fails.
- * Users stay under the Eloquent scope alone.
+ * The exemptions are `public.users` and `pos.terminals`, and both are
+ * load-bearing: auth:sanctum resolves a token's owner BEFORE the tenant
+ * middleware has set any GUC. Guarded, the first makes every login on the
+ * platform fail and the second makes every paired tablet answer 401. Both stay
+ * under the Eloquent scope alone.
  */
 return new class extends Migration
 {
-    private const EXEMPT = ['public.users'];
+    /**
+     * Tables that authentication itself has to read.
+     *
+     * Both are identity, and both are read by `auth:sanctum` before any
+     * middleware has established which restaurant the request is for — so a
+     * policy that authentication is what establishes cannot guard them. Users
+     * for a person's token, terminals for a device's. Guarded, the first makes
+     * every sign-in fail and the second makes every paired tablet 401.
+     *
+     * Neither holds money, guest data or personal data, and both keep the
+     * Eloquent BelongsToTenant scope on every query the application makes.
+     */
+    private const EXEMPT = ['public.users', 'pos.terminals'];
 
     private const POLICY = 'tenant_isolation';
 
