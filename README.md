@@ -84,8 +84,7 @@ smart-restaurant-campus/
 │   ├── types/            # TS types
 │   ├── config/           # ESLint (flat) va TSConfig presetlari
 │   ├── i18n/             # uz/ru/en tarjimalar
-│   ├── utils/            # Helpers (cn, pul formatlash)
-│   └── sdk/              # API SDK
+│   └── utils/            # Helpers (cn, pul formatlash)
 ├── infrastructure/       # Docker, K8s, Nginx, scripts, monitoring
 ├── docs/                 # Hujjatlar
 ├── tools/                # Ichki skriptlar (PWA ikonkalarini generatsiya qilish)

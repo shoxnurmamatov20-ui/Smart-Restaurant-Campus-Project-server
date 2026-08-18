@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { moduleMetadata } from '../../module-page';
 import { ACTION_PRIMARY, PageHead } from '../../screen';
 import { STAFF } from '../staff-data';
-import { getRota } from './shifts-data';
+import { getRota } from './shifts-server';
 
 export const generateMetadata = () => moduleMetadata('shifts');
 
@@ -43,7 +43,7 @@ const DAYS = [
  * the Staff screen already shows, so a manager reading both sees one rota.
  *
  * The fallback, when there is no session. The API's week comes from
- * ./shifts-data.ts and arrives already in this shape.
+ * ./shifts-server.ts and arrives already in this shape.
  */
 const ROTA: Record<string, readonly (string | null)[]> = {
   aziza: ['09–18', '09–18', '09–18', null, '09–18', '10–19', null],

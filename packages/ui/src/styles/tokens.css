@@ -162,6 +162,15 @@
   --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.06), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
   --shadow-lg: 0 12px 16px -4px rgba(16, 24, 40, 0.06), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
   --shadow-xl: 0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
+  /*
+    FOUNDATIONS §3 lists this beside the other five, and §5 requires a 3 px ring
+    on everything focusable. It was the one shadow never declared, so any rule
+    reaching for it resolved to nothing — a focus ring that silently fails to
+    draw is the accessibility defect no screenshot catches.
+    Declared once here rather than per theme: --focus-ring is already a semantic
+    token, so the ring follows light and dark without a second definition.
+  */
+  --shadow-focus: 0 0 0 3px var(--focus-ring);
 
   /* ---- Motion ---- */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -475,8 +484,18 @@
   --color-brand-600: var(--brand-600);
   --color-brand-700: var(--brand-700);
   --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
   --color-accent-500: var(--accent-500);
   --color-accent-600: var(--accent-600);
+  /*
+    Declared at the top of this file since the ramp was written, but never
+    mapped here — so Tailwind emitted no `.text-accent-700` at all and the two
+    call sites that ask for it (console/status.tsx's `accent` tone and
+    console/kpi.tsx) rendered in inherited ink instead of the accent green.
+    Invisible until the `accepted` state ships, which is exactly when a status
+    chip losing its colour matters.
+  */
+  --color-accent-700: var(--accent-700);
   --color-success-50: var(--success-50);
   --color-success-500: var(--success-500);
   --color-success-600: var(--success-600);

@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🧹 Changed — The tree now says what is real (2026-08-16)
+
+A structural audit found three places where two generations lived side by side
+and nothing said which one was current. All quality gates green after each step
+(pint, phpstan, type-check, 118 frontend tests, lint, format; live API and both
+consoles answering throughout).
+
+- **Design prototypes moved to `docs/design/source/`.** Two near-identical
+  handoff bundles sat at the repo root under space-laden names, one a "(1)"
+  copy of the other, each duplicating its own files again in a nested folder.
+  One canonical copy of each artefact survives (`Smart Restaurant OS.dc.html`,
+  the marketing prototype, `support.js`, uploads); everything else — 2.3 MB of
+  byte-identical duplicates — is gone. The docblocks in `roles.ts`,
+  `(dashboard)/layout.tsx` and `(marketing)/page.tsx` now name the path.
+- **nwidart scaffold leftovers removed from all 12 modules**: per-module
+  `package.json` + `vite.config.js` (never installed — modules are not pnpm
+  workspace members), `resources/views/` blade files and `resources/assets/`
+  (no provider registers views; zero `view()` calls). Module `README.md`s are
+  real documentation and stay; `routes/web.php` stays because its emptiness is
+  deliberate and explained in the file.
+- **The dead client chain deleted, `packages/sdk` with it.** Two API clients
+  existed: the live one (`app/api/auth/session` route handler → httpOnly
+  cookie → `lib/api-server.ts`) and a scaffold-era one
+  (`lib/auth.ts` → `lib/api.ts` → `@restaurant/sdk`; in admin,
+  `lib/auth/index.ts` → `lib/api/client.ts`) that no page had called since
+  server sessions shipped. A newcomer could not tell which was real. The dead
+  chain is gone; the one thing still referenced from it — the `AuthContext`
+  type — moved into `server-session.ts`, narrowed to the fields the console
+  actually reads. The SDK returns when it is generated from OpenAPI
+  (`docs/api/README.md`), not before.
+- **Compose-era deploy files marked as history**: `infrastructure/nginx/` (a
+  site for a domain that never existed) and `infrastructure/scripts/` moved to
+  `infrastructure/legacy/` with a README naming what replaced them —
+  `docs/deployment/pos26-uzcloud.md` for the live box,
+  `infrastructure/server/` for the systemd path.
+- **The `*-data.ts` / `*-server.ts` rule now holds everywhere.** The rule said
+  types and fixtures live in `*-data.ts` and server calls in a sibling only
+  server components import; only `tables` obeyed it, and six wired screens
+  kept `apiGet` inside their data files — a landmine that would detonate the
+  first time a client component imported one (`next/headers` cannot be
+  bundled for the browser; `tables` was split for exactly that reason).
+  `menu`, `orders`, `kitchen`, `inventory` and `finance/till` each gained a
+  `*-server.ts`; `staff/shifts`'s file was pure server code with no fixtures,
+  so it was renamed `shifts-server.ts` rather than split.
+
 ### ⚡ Fixed — Queries that would have stalled a busy restaurant (2026-08-11)
 
 **403 tests, 1383 assertions, all green on PostgreSQL.**

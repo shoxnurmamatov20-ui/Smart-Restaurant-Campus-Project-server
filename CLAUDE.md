@@ -16,7 +16,7 @@
 - **Kanonik modul:** `apps/api/Modules/Menu` — to'liq implementatsiya (model,
   migratsiya, factory, request, resource, controller, RBAC route, seeder, testlar).
   Qolgan 9 modul aynan shu shaklni takrorlaydi.
-- **Pending:** qolgan ekranlarni API'ga ulash (namuna: `menu/menu-data.ts`) —
+- **Pending:** qolgan ekranlarni API'ga ulash (namuna: `menu/menu-server.ts`) —
   ko'pi uchun avval backend kerak: bo'sh jadvallar to'ldirilishi yoki
   endpoint ustunlari kengaytirilishi shart; 1-modulni chuqurlashtirish,
   fiskal modul integratsiyasi, production secret manager, K8s overlay'lari
@@ -106,7 +106,9 @@ matn i18n katalogida (`console.roles`).
     qiladi, `api-server.ts` esa `next/headers` ishlatadi. Shuning uchun tikuv
     alohida `tables-server.ts`da. **Qoida:** tip va fixture — `*-data.ts`da,
     serverga murojaat — faqat server komponentlari import qiladigan qo'shni
-    faylda.
+    `*-server.ts`da. 2026-08-16 dan boshlab bu bo'linish yettala jonli
+    ekranda ham bajarilgan — endi istalgan `*-data.ts`ni client komponent
+    bemalol import qila oladi.
 - **KDS chiptalari `KitchenTicketSeeder` bilan yaratiladi** — mavjud
   buyurtmalardan, sex bo'yicha guruhlab (bitta buyurtma → har bir sexga bitta
   chipta). `DatabaseSeeder`da **eng oxirida** turadi, chunki u

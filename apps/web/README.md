@@ -41,6 +41,7 @@ Open <http://localhost:3000>. The API must be running on
   UI chrome strings live in `@restaurant/i18n`.
 - **Tenant** — every API call carries the restaurant via the `X-Tenant` header;
   see `src/lib/constants.ts`.
-- Shared code comes from `@restaurant/ui`, `@restaurant/types`, `@restaurant/sdk`.
+- Shared code comes from `@restaurant/ui`, `@restaurant/i18n`, `@restaurant/utils`.
+  API reads go through `src/lib/api-server.ts` (token off the httpOnly cookie).
 - Live screens (KDS, floor map, revenue tiles) subscribe to Laravel Reverb
   channels `tenant.{id}.kitchen`, `.floor`, `.cashdesk`, `.management`.

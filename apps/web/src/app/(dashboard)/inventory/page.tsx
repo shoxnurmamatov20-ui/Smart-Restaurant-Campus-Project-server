@@ -3,7 +3,8 @@ import { formatNumber, formatTiyinAmount } from '@restaurant/utils';
 
 import { moduleMetadata } from '../module-page';
 import { ACTION, ACTION_PRIMARY, PageHead, Pill, Rail, Row, StatStrip, TableCard } from '../screen';
-import { getStockRows, LEVEL_RAIL, LEVEL_TONE, levelOf, STOCK_SUMMARY } from './inventory-data';
+import { LEVEL_RAIL, LEVEL_TONE, levelOf, STOCK_SUMMARY } from './inventory-data';
+import { getStockRows } from './inventory-server';
 
 export const generateMetadata = () => moduleMetadata('inventory');
 

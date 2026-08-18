@@ -22,12 +22,18 @@ php artisan l5-swagger:generate
 
 ## Auto-generated TypeScript SDK
 
-OpenAPI'dan TypeScript types va clientni `packages/sdk/` ga auto-generate qilish rejada:
+OpenAPI'dan TypeScript types va clientni auto-generate qilish rejada. Ilgari
+`packages/sdk/` da qo'lda yozilgan taxminiy client turgan edi; uni hech bir
+ilova import qilmasdi va generator baribir ustidan yozardi, shuning uchun paket
+olib tashlandi (tarixi git'da). Generator sozlanganda paket qaytadan, lekin
+generatsiya natijasi sifatida tug'iladi:
 
 ```bash
-cd packages/sdk
-pnpm openapi-typescript ../../apps/api/storage/api-docs/api-docs.json -o src/schema.ts
+pnpm openapi-typescript apps/api/storage/api-docs/api-docs.json -o packages/sdk/src/schema.ts
 ```
+
+Konsollarning bugungi jonli yo'li — `apps/web/src/lib/api-server.ts`
+(httpOnly cookie'dagi token bilan server komponentdan o'qish).
 
 ## API konventsiyalar
 

@@ -14,7 +14,7 @@ import {
   StatusChip,
 } from '@restaurant/ui';
 
-import { getTill } from './till-data';
+import { getTill } from './till-server';
 
 export async function generateMetadata() {
   const t = await getTranslations('console.nav');
@@ -29,7 +29,7 @@ export async function generateMetadata() {
  * read an X report, count and close with a Z.
  *
  * The expected figure is derived from the movements rather than stored, which
- * is `till-data.ts`'s doing and is the point: the number a cashier is counted
+ * is `till-server.ts`'s doing and is the point: the number a cashier is counted
  * against has to be one the ledger can reproduce line by line, or a variance is
  * an argument rather than a finding.
  *

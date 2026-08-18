@@ -15,6 +15,23 @@ import type { Messages } from '@/i18n';
 
 type Marketing = Messages['marketing'];
 
+/**
+ * Where Kirish goes — a route, not a section of this page.
+ *
+ * Every other destination in the header is an anchor into this document:
+ * `#product`, `#roles`, `#pricing`, `#faq`, `#contact`. Sign-in is the one that
+ * leaves, and following the pattern instead of the meaning is exactly what went
+ * wrong: both Kirish links pointed at `#login`, which scrolls to the
+ * illustration in the sign-in section — a card whose fields are uncontrolled
+ * and whose button, at the time, did nothing whatever. The site's front door
+ * led to a picture of a door, silently, and the report was "I cannot log in"
+ * while every part of the login stack was working.
+ *
+ * Named here so the two call sites cannot disagree, and so
+ * site-data.test.ts can check the route still exists on disk.
+ */
+export const SIGN_IN_HREF = '/login';
+
 export const STATS: readonly { key: keyof Marketing['stats']; value: string }[] = [
   { key: 'restaurants', value: '42' },
   { key: 'branches', value: '118' },

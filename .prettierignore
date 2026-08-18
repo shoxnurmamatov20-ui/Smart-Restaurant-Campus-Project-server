@@ -35,7 +35,17 @@ __pycache__
 # renumbers checkboxes and reflows prose mid-task for no benefit.
 docs/superpowers
 
-# Design handoff bundles exported from claude.ai/design. Vendor artefacts, not
-# our source: reformatting them would turn every re-export into a diff and
-# would edit files the designer owns.
-Restaurant form scope questions-handoff*
+# Design prototypes exported from claude.ai/design, archived under docs.
+# Vendor artefacts, not our source: reformatting them would turn every
+# re-export into a diff and would edit files the designer owns.
+docs/design/source
+
+# Design handoff packages as they arrive, before they are filed under docs.
+# They land at the repo root under whatever name the export gave them, and
+# they are read-only source of truth — the package's own rule is that when a
+# document and a design file disagree, the file wins, which only holds if
+# nothing here rewrites them. `pnpm format` reflowed the v2 package's markdown
+# once before this rule existed; the content survived because prettier never
+# touches fenced code, but the designer owns those bytes and we should not.
+Restaurant form scope questions*
+design_handoff_*

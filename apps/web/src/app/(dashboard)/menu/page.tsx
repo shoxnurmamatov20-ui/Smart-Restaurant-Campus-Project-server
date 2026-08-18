@@ -3,7 +3,8 @@ import { formatTiyinAmount } from '@restaurant/utils';
 
 import { moduleMetadata } from '../module-page';
 import { ACTION, ACTION_PRIMARY, PageHead, Pill, Row, TableCard } from '../screen';
-import { getMenuRows, marginOf } from './menu-data';
+import { marginOf } from './menu-data';
+import { getMenuRows } from './menu-server';
 
 export const generateMetadata = () => moduleMetadata('menu');
 

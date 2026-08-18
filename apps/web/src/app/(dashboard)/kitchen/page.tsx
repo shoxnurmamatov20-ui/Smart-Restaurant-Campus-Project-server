@@ -1,15 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
 import { moduleMetadata } from '../module-page';
-import {
-  ageTone,
-  COLUMNS,
-  KITCHEN_SUMMARY,
-  STATIONS,
-  STOPPABLE,
-  getTickets,
-  type Ticket,
-} from './kds-data';
+import { ageTone, COLUMNS, KITCHEN_SUMMARY, STATIONS, STOPPABLE, type Ticket } from './kds-data';
+import { getTickets } from './kds-server';
 
 export const generateMetadata = () => moduleMetadata('kitchen');
 

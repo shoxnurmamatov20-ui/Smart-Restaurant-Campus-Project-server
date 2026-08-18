@@ -1,5 +1,3 @@
-import type { AuthContext } from './auth';
-
 /**
  * The token, held where the browser cannot read it.
  *
@@ -64,6 +62,24 @@ export function apiBase(): string {
  * the endpoint that opens it.
  */
 export const SESSION_MAX_AGE = 60 * 60 * 8;
+
+/**
+ * What `GET /api/v1/auth/context` answers, narrowed to what the console reads.
+ *
+ * The endpoint sends the whole user resource; the shell needs the name, the
+ * roles, and whether the person is pinned to a branch. Typing only that keeps
+ * this module free of the API's user shape — the server stays the single
+ * authority on what a user is, and a field the console never reads cannot
+ * drift out of date here.
+ */
+export type AuthContext = {
+  user: { name: string };
+  tenant: { id: number; name: string; slug: string; locale: string; timezone: string };
+  branch: { id: number; name: string } | null;
+  branch_pinned: boolean;
+  roles: string[];
+  permissions: string[];
+};
 
 /**
  * Ask the API who this token belongs to.

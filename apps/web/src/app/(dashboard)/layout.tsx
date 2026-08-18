@@ -23,7 +23,8 @@ import {
 /**
  * The product shell.
  *
- * Built to `Smart Restaurant OS.dc.html` at its own measurements: a 252px
+ * Built to `docs/design/source/Smart Restaurant OS.dc.html` at its own
+ * measurements: a 252px
  * sidebar over a surface, a 64px top bar carrying the screen's name, search,
  * notifications, branch, language, theme and the one action worth a filled
  * button, then a 44px status strip and a scrolling main. The page sits on

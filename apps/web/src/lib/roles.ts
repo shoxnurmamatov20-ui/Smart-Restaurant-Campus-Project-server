@@ -1,7 +1,7 @@
 /**
  * The eight roles, copied across from the design rather than invented here.
  *
- * `Smart Restaurant OS.dc.html` carries a `ROLES` array and a `MATRIX` of
+ * `docs/design/source/Smart Restaurant OS.dc.html` carries a `ROLES` array and a `MATRIX` of
  * twenty actions against those roles. Both are reproduced below at their own
  * values: the same ids, the same nav allowlists, the same permission ceilings.
  * A console that agrees with the prototype about what a waiter can see is a

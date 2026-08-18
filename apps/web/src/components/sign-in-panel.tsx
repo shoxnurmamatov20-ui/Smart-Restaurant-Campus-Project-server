@@ -39,8 +39,13 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '←'] as c
 const LABEL = 'block text-sm font-semibold';
 const FIELD =
   'border-border-strong bg-surface text-fg mt-[7px] h-11 w-full rounded-md border px-[13px] font-sans text-md';
+/**
+ * Centred explicitly because this shape is worn by a `<button>` in live mode
+ * and by an `<a>` in demonstration mode, and only the button centres its own
+ * text. One declaration so the two cannot drift apart visually.
+ */
 const SUBMIT =
-  'mt-5 h-[46px] w-full cursor-pointer rounded-[11px] border-0 text-md font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60';
+  'mt-5 flex h-[46px] w-full cursor-pointer items-center justify-center rounded-[11px] border-0 text-md font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60';
 const NOTE = 'text-fg-subtle mt-3.5 text-xs leading-[1.5]';
 const HEADING = 'font-display text-[21px] font-bold tracking-[-.02em]';
 const SUBHEADING = 'text-fg-subtle mt-[5px] text-sm';
@@ -243,14 +248,29 @@ export function SignInPanel({ live = false }: { live?: boolean }) {
             </p>
           ) : null}
 
-          {/* TODO(api): POST /login (Sanctum SPA) — see apps/web/src/lib/auth.ts */}
-          <button
-            type={live ? 'submit' : 'button'}
-            disabled={submitting}
-            className={`${SUBMIT} bg-brand-500`}
-          >
-            {submitting ? m.signingIn : m.enter}
-          </button>
+          {live ? (
+            <button type="submit" disabled={submitting} className={`${SUBMIT} bg-brand-500`}>
+              {submitting ? m.signingIn : m.enter}
+            </button>
+          ) : (
+            /*
+             * The demonstration's one working part.
+             *
+             * Everything above it here is a picture — the fields are
+             * uncontrolled and submitEmail returns on `!live`. This used to be
+             * a `type="button"` with no handler, so pressing it did nothing at
+             * all: no navigation, no error, no sign that the form was an
+             * illustration. Someone who filled it in was simply stuck, and the
+             * header's Kirish linked straight to this card.
+             *
+             * A card that shows what signing in looks like should still let
+             * you do it. The button keeps its shape and becomes the way to the
+             * door that works.
+             */
+            <Link href="/login" className={`${SUBMIT} bg-brand-500`}>
+              {m.enter}
+            </Link>
+          )}
 
           <p className={NOTE}>{m.emailNote}</p>
         </form>

@@ -14,7 +14,17 @@ import {
 import { SignInPanel } from '@/components/sign-in-panel';
 import { CONTACT, CONTACT_TEL } from '@/lib/constants';
 
-import { COMPLIANCE, DOORS, FEATURES, MOCK_BARS, PLANS, QUOTES, ROLES, STATS } from './site-data';
+import {
+  COMPLIANCE,
+  DOORS,
+  FEATURES,
+  MOCK_BARS,
+  PLANS,
+  QUOTES,
+  ROLES,
+  SIGN_IN_HREF,
+  STATS,
+} from './site-data';
 
 import './marketing.css';
 import { FaqList } from './faq-list';
@@ -22,7 +32,8 @@ import { FaqList } from './faq-list';
 /**
  * Smart Restaurant Cloud — the public site.
  *
- * Built to match `Smart Restaurant Cloud - Sayt.dc.html` rather than to
+ * Built to match `docs/design/source/Smart Restaurant Cloud - Sayt.dc.html`
+ * rather than to
  * resemble it: every measure, radius and type size below is the prototype's own
  * value, read off its markup.
  *
@@ -142,7 +153,7 @@ function MarketingSite({ locale, onLocale }: { locale: Locale; onLocale: (next: 
           <a
             data-hidesm
             data-btn-quiet
-            href="#login"
+            href={SIGN_IN_HREF}
             className="border-border-strong bg-surface text-fg inline-flex h-[38px] items-center rounded-md border px-[15px] text-[14px] font-semibold whitespace-nowrap"
           >
             {m.nav.login}
@@ -586,7 +597,7 @@ function MarketingSite({ locale, onLocale }: { locale: Locale; onLocale: (next: 
             {[
               { href: '#top', label: m.footer.terms },
               { href: '#top', label: m.footer.privacy },
-              { href: '#login', label: m.nav.login },
+              { href: SIGN_IN_HREF, label: m.nav.login },
             ].map((link) => (
               <a
                 key={link.label}

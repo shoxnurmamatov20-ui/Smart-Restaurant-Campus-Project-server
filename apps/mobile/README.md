@@ -31,4 +31,5 @@ Web va mobile ulashiladi:
 - `@restaurant/types` — TS types (User, ApiResponse, etc.)
 - `@restaurant/utils` — helper funktsiyalar
 - `@restaurant/i18n` — tarjimalar
-- `@restaurant/sdk` — API client (axios)
+- API client — OpenAPI'dan generatsiya qilinadi (`docs/api/README.md`ga qarang;
+  ilgari `packages/sdk` deb rejalashtirilgan edi)

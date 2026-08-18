@@ -1,5 +1,12 @@
 # Deployment
 
+> **Eslatma (2026-08-16).** Bu hujjat Docker-Compose davrida yozilgan reja va u
+> hech qachon amalga oshmagan — `restaurant-campus.uz` domeni ham. Jonli
+> o'rnatma **[`pos26-uzcloud.md`](pos26-uzcloud.md)** da tasvirlangan; systemd +
+> php-fpm deploy yo'li **[`infrastructure/server/`](../../infrastructure/server/README.md)**
+> da yozilgan. Quyidagi skriptlar `infrastructure/legacy/` ga ko'chirilgan va
+> ma'lumot uchun saqlanadi.
+
 ## Production server
 
 | Parametr | Qiymat                              |
@@ -20,7 +27,7 @@ ssh root@<server-ip>
 git clone https://github.com/<owner>/smart-restaurant-campus.git /tmp/restaurant-campus-bootstrap
 
 # 3. Setup skriptini ishga tushiring
-sudo bash /tmp/restaurant-campus-bootstrap/infrastructure/scripts/setup-server.sh
+sudo bash /tmp/restaurant-campus-bootstrap/infrastructure/legacy/scripts/setup-server.sh
 # Bu: Docker, UFW, fail2ban, user "restaurant" yaratadi, /srv/restaurant-campus papkasini tayyorlaydi
 
 # 4. Loyiha foydalanuvchisi sifatida
@@ -49,7 +56,7 @@ sudo certbot --nginx -d restaurant-campus.uz -d www.restaurant-campus.uz -d admi
 
 ```bash
 cd /srv/restaurant-campus
-bash infrastructure/scripts/deploy.sh
+bash infrastructure/legacy/scripts/deploy.sh
 ```
 
 Yoki avtomatik (GitHub Actions orqali):
@@ -63,7 +70,7 @@ Avtomatik kunlik backup:
 
 ```bash
 # Crontab
-0 3 * * * /srv/restaurant-campus/infrastructure/scripts/backup.sh
+0 3 * * * /srv/restaurant-campus/infrastructure/legacy/scripts/backup.sh
 ```
 
 Backup joyi: `/srv/restaurant-campus/backups/` (postgres + minio + redis snapshot)

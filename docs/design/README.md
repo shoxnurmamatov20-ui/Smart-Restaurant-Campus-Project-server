@@ -3,6 +3,30 @@
 Bu hujjat ikki tomonlama shartnoma: **dizaynerga nima beriladi** va **qaytgan
 dizayn kodga qanday tushadi**.
 
+Prototiplarning o'zi [`source/`](source/) da turadi: `Smart Restaurant OS.dc.html`
+(konsol — 8 rol, rollar matritsasi shu fayldan ko'chirilgan) va
+`Smart Restaurant Cloud - Sayt.dc.html` (marketing sahifa). Ular claude.ai/design
+eksporti — vendor artefakt, qo'lda tahrirlanmaydi va prettier ularga tegmaydi.
+
+**Nega bitta nusxa, ilgari ikkita papka bo'lsa ham.** Repo ildizida ikkita
+handoff to'plami turardi (biri `… (1)` bilan). Ular dizaynning ikki
+**versiyasi emas** — ikki **eksport seansi**: 30 fayl, ichida atigi 11 xil
+mazmun. Ikkala to'plamdagi `.dc.html`, `support.js` va rasmlar blob darajasida
+aynan bir xil; yagona farq har to'plamning ildizidagi
+«CODING AGENTS: READ THIS FIRST» qolipida bo'lgan — u eksport paytida qaysi
+fayl ochiq turganini aytadi:
+
+| To'plam    | O'sha qolip «asosiy» degan fayl         |
+| ---------- | --------------------------------------- |
+| birinchisi | `Smart Restaurant OS.dc.html`           |
+| `… (1)`    | `Smart Restaurant Cloud - Sayt.dc.html` |
+
+Ya'ni konsol bir marta, sayt bir marta eksport qilingan. `source/README.md` —
+o'sha qoliplardan biri emas, ikkala to'plamda bir xil bo'lgan **haqiqiy dizayn
+hujjati** (32 KB, ikkala mahsulotni ham qamraydi). Qoliplarning o'zi kerak
+bo'lsa git tarixidan olinadi: `git show 30ed902:"Restaurant form scope
+questions-handoff/restaurant-form-scope-questions/README.md"`.
+
 ---
 
 ## 1. Tizim hozir nima

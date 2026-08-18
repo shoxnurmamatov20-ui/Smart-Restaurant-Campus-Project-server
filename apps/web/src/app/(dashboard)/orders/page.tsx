@@ -3,7 +3,8 @@ import { formatTiyinAmount } from '@restaurant/utils';
 
 import { ORDER_STATUS_TONE } from '../dashboard/overview-data';
 import { moduleMetadata } from '../module-page';
-import { getOrderRows, ORDER_TABS, type OrderRow } from './orders-data';
+import { ORDER_TABS, type OrderRow } from './orders-data';
+import { getOrderRows } from './orders-server';
 
 export const generateMetadata = () => moduleMetadata('orders');
 
