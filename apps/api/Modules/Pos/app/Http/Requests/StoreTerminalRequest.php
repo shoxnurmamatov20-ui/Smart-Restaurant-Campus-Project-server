@@ -31,16 +31,40 @@ final class StoreTerminalRequest extends FormRequest
                 // which is exactly why config/database.php lists every module
                 // schema on it.
                 //
-                // Scoped by tenant by hand, because two restaurants may both
-                // call their first till KASSA-1.
+                // Scoped by tenant AND branch by hand, matching the unique
+                // index: two restaurants may both call their first till
+                // KASSA-1, and so may two branches of one restaurant. A code is
+                // something people say out loud inside one venue.
                 Rule::unique('terminals', 'code')
                     ->where('tenant_id', $this->user()?->tenant_id)
+                    ->where('branch_id', $this->input('branch_id'))
                     ->whereNull('deleted_at'),
             ],
             'name' => ['required', 'string', 'max:120'],
             'mode' => ['required', 'string', Rule::in(Terminal::MODES)],
             'status' => ['sometimes', 'string', Rule::in(Terminal::STATUSES)],
-            'branch_id' => ['nullable', 'integer', 'min:1'],
+
+            /*
+             * The branch has to exist AND belong to this restaurant.
+             *
+             * It was `['nullable','integer','min:1']` — no existence check at
+             * all, so `branch_id: 4` attached a till to whatever branch 4
+             * happened to be, including another restaurant's. Row-level
+             * security does not catch it: the terminal row is legitimately
+             * ours, it is the id inside it that points somewhere it should not.
+             * The receipts, the shift and the takings would then be filed
+             * against a branch belonging to somebody else.
+             *
+             * The tenant clause is stated even though RLS already scopes the
+             * branches table, because this rule also runs from console
+             * commands, where the bypass is on.
+             */
+            'branch_id' => [
+                'nullable', 'integer', 'min:1',
+                Rule::exists('branches', 'id')
+                    ->where('tenant_id', $this->user()?->tenant_id)
+                    ->whereNull('deleted_at'),
+            ],
             'settings' => ['sometimes', 'array'],
             'settings.currency' => ['sometimes', 'string', 'size:3'],
             'settings.cash_rounding_tiyin' => ['sometimes', 'integer', 'min:1', 'max:100000'],
@@ -55,7 +79,8 @@ final class StoreTerminalRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.unique' => 'Bu restoranda shu kodli kassa allaqachon bor.',
+            'code.unique' => 'Bu filialda shu kodli kassa allaqachon bor.',
+            'branch_id.exists' => 'Bunday filial topilmadi.',
             'mode.in' => 'Rejim quyidagilardan biri bo\'lishi kerak: table_service, quick_service, bar, counter.',
         ];
     }

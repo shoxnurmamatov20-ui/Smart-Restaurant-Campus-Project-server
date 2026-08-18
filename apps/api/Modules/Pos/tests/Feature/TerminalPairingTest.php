@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Tests\Feature;
 
+use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
@@ -46,6 +47,15 @@ final class TerminalPairingTest extends TestCase
         return Tenant::query()->create([
             'name' => $name, 'slug' => $slug, 'country_code' => 'UZ',
             'locale' => 'uz', 'timezone' => 'Asia/Tashkent', 'status' => 'active',
+        ]);
+    }
+
+    /** A branch of whichever restaurant is named. */
+    private function makeBranch(Tenant $tenant, string $name, string $slug): Branch
+    {
+        return Branch::query()->create([
+            'tenant_id' => $tenant->id, 'name' => $name, 'slug' => $slug,
+            'timezone' => 'Asia/Tashkent', 'status' => 'active',
         ]);
     }
 
@@ -313,16 +323,100 @@ final class TerminalPairingTest extends TestCase
         ])->assertCreated();
     }
 
-    public function test_the_same_restaurant_cannot_reuse_a_terminal_code(): void
+    public function test_the_same_branch_cannot_reuse_a_terminal_code(): void
+    {
+        $this->signIn();
+        $chilonzor = $this->makeBranch($this->mine, 'Chilonzor', 'chilonzor');
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Asosiy', 'mode' => 'counter',
+            'branch_id' => $chilonzor->id,
+        ])->assertCreated();
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Ikkinchi', 'mode' => 'counter',
+            'branch_id' => $chilonzor->id,
+        ])->assertStatus(422)->assertApiValidationErrors('code');
+    }
+
+    public function test_two_branches_of_one_restaurant_may_both_have_a_pos_1(): void
+    {
+        // The design draws POS-1 at Chilonzor, POS-1 at Yunusobod and POS-1 at
+        // Sergeli in one table. A code is said out loud inside one venue, so
+        // forcing it unique across fifty branches means the fortieth till is
+        // called POS-40 — which nobody says and nobody remembers.
+        $this->signIn();
+        $chilonzor = $this->makeBranch($this->mine, 'Chilonzor', 'chilonzor');
+        $yunusobod = $this->makeBranch($this->mine, 'Yunusobod', 'yunusobod');
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Asosiy kassa', 'mode' => 'table_service',
+            'branch_id' => $chilonzor->id,
+        ])->assertCreated();
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Asosiy kassa', 'mode' => 'table_service',
+            'branch_id' => $yunusobod->id,
+        ])->assertCreated();
+    }
+
+    public function test_unassigned_tills_still_cannot_share_a_code(): void
+    {
+        // NULLS NOT DISTINCT on the index. Without it every branch_id NULL row
+        // counts as unique and a restaurant could hold ten unassigned tills all
+        // called POS-1 — the exact collision the index exists to stop.
+        $this->signIn();
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Hali joylashtirilmagan', 'mode' => 'counter',
+        ])->assertCreated();
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Ikkinchisi', 'mode' => 'counter',
+        ])->assertStatus(422)->assertApiValidationErrors('code');
+    }
+
+    // ============ Whose branch is it ============
+
+    public function test_a_till_cannot_be_attached_to_another_restaurants_branch(): void
+    {
+        // `branch_id` used to be validated as `integer|min:1` and nothing else,
+        // so this request succeeded: our terminal, filed against their branch.
+        // Row-level security cannot see it — the terminal row is legitimately
+        // ours; it is the id inside it that points somewhere it must not. Their
+        // branch would then carry our receipts, our shift and our takings.
+        $this->signIn();
+        $theirBranch = $this->makeBranch($this->theirs, 'Ularning filiali', 'ularning-filiali');
+
+        $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-9', 'name' => 'O\'g\'irlangan filial', 'mode' => 'counter',
+            'branch_id' => $theirBranch->id,
+        ])->assertStatus(422)->assertApiValidationErrors('branch_id');
+    }
+
+    public function test_a_till_cannot_be_moved_to_another_restaurants_branch(): void
+    {
+        $this->signIn();
+        $ours = $this->makeBranch($this->mine, 'Chilonzor', 'chilonzor');
+        $theirs = $this->makeBranch($this->theirs, 'Ularning filiali', 'ularning-filiali');
+
+        $terminal = $this->postJson('/api/v1/pos/terminals', [
+            'code' => 'POS-1', 'name' => 'Asosiy', 'mode' => 'counter',
+            'branch_id' => $ours->id,
+        ])->assertCreated()->json('data');
+
+        $this->patchJson("/api/v1/pos/terminals/{$terminal['id']}", [
+            'branch_id' => $theirs->id,
+        ])->assertStatus(422)->assertApiValidationErrors('branch_id');
+    }
+
+    public function test_a_till_cannot_be_attached_to_a_branch_that_does_not_exist(): void
     {
         $this->signIn();
 
         $this->postJson('/api/v1/pos/terminals', [
-            'code' => 'KASSA-1', 'name' => 'Asosiy', 'mode' => 'counter',
-        ])->assertCreated();
-
-        $this->postJson('/api/v1/pos/terminals', [
-            'code' => 'KASSA-1', 'name' => 'Ikkinchi', 'mode' => 'counter',
-        ])->assertStatus(422)->assertApiValidationErrors('code');
+            'code' => 'POS-9', 'name' => 'Yo\'q filial', 'mode' => 'counter',
+            'branch_id' => 987654,
+        ])->assertStatus(422)->assertApiValidationErrors('branch_id');
     }
 }

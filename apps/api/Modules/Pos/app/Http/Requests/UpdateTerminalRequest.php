@@ -30,13 +30,26 @@ final class UpdateTerminalRequest extends FormRequest
                 // StoreTerminalRequest for the full reasoning.
                 Rule::unique('terminals', 'code')
                     ->where('tenant_id', $terminal->tenant_id)
+                    // The branch it is *moving to* if one was sent, otherwise
+                    // the one it already stands in — a rename must be checked
+                    // against the same branch the row will end up in.
+                    ->where('branch_id', $this->has('branch_id')
+                        ? $this->input('branch_id')
+                        : $terminal->branch_id)
                     ->whereNull('deleted_at')
                     ->ignore($terminal->id),
             ],
             'name' => ['sometimes', 'string', 'max:120'],
             'mode' => ['sometimes', 'string', Rule::in(Terminal::MODES)],
             'status' => ['sometimes', 'string', Rule::in(Terminal::STATUSES)],
-            'branch_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            // Must exist and be ours — see StoreTerminalRequest for why an
+            // unchecked branch_id is a cross-tenant hole rather than a typo.
+            'branch_id' => [
+                'sometimes', 'nullable', 'integer', 'min:1',
+                Rule::exists('branches', 'id')
+                    ->where('tenant_id', $terminal->tenant_id)
+                    ->whereNull('deleted_at'),
+            ],
             'pos_layout_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'settings' => ['sometimes', 'array'],
             'settings.currency' => ['sometimes', 'string', 'size:3'],

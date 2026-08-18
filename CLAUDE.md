@@ -272,4 +272,9 @@ To'liq 30 modullik vizion: [`docs/RESTAURANT_30_MODULLAR.md`](docs/RESTAURANT_30
   o'tadi.
 - **psql/pgAdmin'da qo'lda so'rov yozganda** schema'ni ko'rsating —
   `select * from menu.menu_items` — chunki `search_path` faqat ilovada o'rnatiladi.
+- **Va endi tenant'ni ham ko'rsating.** RLS yoqilgan (39 jadval, `FORCE`), shuning
+  uchun `app.tenant_id` ham, `app.bypass_tenancy` ham qo'yilmagan seansda har bir
+  so'rov **nol qator** qaytaradi — jadval bo'sh emas, siz ko'rmaysiz. Boshida:
+  `set app.bypass_tenancy='on';` (hammasi) yoki `set app.tenant_id='1';` (bitta
+  restoran). «Jadval bo'sh» degan xulosaga bormang — avval shuni tekshiring.
 - **Python:** `uv run pytest` — `apps/telegram-bots` va `apps/ai-services` uchun.
