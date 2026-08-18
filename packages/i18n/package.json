@@ -10,16 +10,20 @@
     ".": "./src/index.ts",
     "./messages/uz": "./messages/uz.json",
     "./messages/ru": "./messages/ru.json",
-    "./messages/en": "./messages/en.json"
+    "./messages/en": "./messages/en.json",
+    "./order-state": "./src/order-state.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@restaurant/config": "workspace:*",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.1.10"
   }
 }

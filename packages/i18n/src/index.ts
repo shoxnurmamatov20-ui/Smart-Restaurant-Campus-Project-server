@@ -17,3 +17,14 @@ export const localeLabels: Record<Locale, string> = {
 };
 
 export type Messages = typeof uz;
+
+export {
+  ORDER_STATES,
+  ORDER_STATE_SPECS,
+  isOrderState,
+  orderStateSpecs,
+  stateAppliesTo,
+  stateLabel,
+  statesForChannel,
+} from './order-state';
+export type { OrderChannel, OrderState, OrderStateSpec, StateAudience } from './order-state';
