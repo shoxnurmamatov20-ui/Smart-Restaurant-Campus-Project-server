@@ -314,7 +314,10 @@ final class BillRegistryContractTest extends TestCase
 
         $this->assertSame(13_500_000, $merged->total);
         $this->assertCount(2, $merged->lines);
-        $this->assertSame('cancelled', $this->bills->find($a->id)?->status);
+        // `voided`, not `cancelled`: the canonical ladder split the one old
+        // `cancelled` value into void / refund / comp, and a merged-away source
+        // is a void — nothing was paid for it, so nothing moves back.
+        $this->assertSame('voided', $this->bills->find($a->id)?->status);
     }
 
     public function test_a_bill_cannot_be_merged_into_itself(): void

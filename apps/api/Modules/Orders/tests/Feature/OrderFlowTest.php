@@ -213,14 +213,16 @@ final class OrderFlowTest extends TestCase
         $this->actingAsWaiter();
         $order = Order::factory()->paid()->create();
 
+        // Both refusals are 409s from the catalogue, not 422s: the request is
+        // well-formed, it is the bill's state that forbids it.
         $this->postJson("/api/v1/orders/orders/{$order->id}/status", ['status' => 'placed'])
-            ->assertStatus(422);
+            ->assertApiError('order.invalid_transition');
 
         $dish = $this->dish();
         $this->postJson("/api/v1/orders/orders/{$order->id}/items", [
             'menu_item_id' => $dish->id,
             'quantity' => 1,
-        ])->assertStatus(422);
+        ])->assertApiError('order.closed');
     }
 
     public function test_cancelling_requires_a_reason_and_closes_the_bill(): void
@@ -234,7 +236,9 @@ final class OrderFlowTest extends TestCase
 
         $this->postJson("/api/v1/orders/orders/{$order->id}/cancel", ['reason' => 'Mehmon ketdi'])
             ->assertOk()
-            ->assertJsonPath('data.status', 'cancelled');
+            // `voided`, not `cancelled`: the ladder split the old value three
+            // ways, and a cancel with nothing paid is a void.
+            ->assertJsonPath('data.status', 'voided');
 
         $this->assertNotNull($order->refresh()->closed_at);
         $this->assertStringContainsString('Mehmon ketdi', (string) $order->note);

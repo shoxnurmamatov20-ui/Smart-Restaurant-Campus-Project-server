@@ -99,21 +99,57 @@ enum OrderState: string
      * The three closing moves are reachable from anywhere still open, because
      * a manager voids a bill at whatever point the guest walked out.
      *
+     * So are the two settling moves, and that needs saying because the first
+     * version of this table did not allow them. It put `paid` at the end of the
+     * fulfilment chain — reachable only from `served`, `handed` or `topay` —
+     * which is table service and nothing else. At a counter the guest pays
+     * before a single pan is hot, and `Modules/Pos` names fast food and bar as
+     * two of its four modes, so pay-first is not an edge case here; for two of
+     * four modes it is the only case. A bill fired and paid in one action moved
+     * `draft → placed → paid`, and that second step was refused: ten till tests
+     * and four bill-registry tests failed on `Hisobni yopib bo'lmadi`, which
+     * read as a broken till rather than as this table having an opinion about
+     * when money arrives.
+     *
+     * Paying early does not lose the food. Fulfilment is tracked on the kitchen
+     * ticket, which carries its own status and its own lifecycle; the design
+     * file says the same thing by giving `paid`, `topay`, `handed` and `enroute`
+     * a null kitchen label — the kitchen audience never renders the bill's
+     * payment state, because the kitchen is not waiting on it. An order at
+     * `paid` with a ticket still `cooking` is the normal state of every fast
+     * food counter in the world.
+     *
+     * What is still enforced is the fulfilment order itself: no `placed → ready`
+     * with nothing cooked, no `draft → served`, no going back once refunded. The
+     * ladder's job is to refuse the impossible, not to encode one venue's
+     * payment policy — and which point in the meal money arrives at is policy.
+     *
+     * `topay` follows the same rule for a smaller reason: the design file's own
+     * staff pipeline is placed → accepted → cooking → ready → topay → paid,
+     * which skips `served` entirely. A table that refused `ready → topay` was
+     * refusing the sequence its own screens draw.
+     *
+     * `draft` is the one open state with no path to money, and that is not an
+     * oversight: a draft has not been fired, so its lines are not confirmed, and
+     * presenting a bill for it would be asking to be paid for an order nobody
+     * has agreed to yet. The till fires first — one action, two steps.
+     *
      * @return list<OrderState>
      */
     public function allowedNext(): array
     {
         $closing = [self::Voided, self::Comped];
+        $settling = [self::ToPay, self::Paid, ...$closing];
 
         return match ($this) {
             self::Draft => [self::Placed, ...$closing],
-            self::Placed => [self::Accepted, self::Cooking, ...$closing],
-            self::Accepted => [self::Cooking, ...$closing],
-            self::Cooking => [self::Ready, ...$closing],
-            self::Ready => [self::Served, self::Enroute, self::Handed, ...$closing],
-            self::Served => [self::ToPay, self::Paid, ...$closing],
-            self::Enroute => [self::Handed, ...$closing],
-            self::Handed => [self::Paid, ...$closing],
+            self::Placed => [self::Accepted, self::Cooking, ...$settling],
+            self::Accepted => [self::Cooking, ...$settling],
+            self::Cooking => [self::Ready, ...$settling],
+            self::Ready => [self::Served, self::Enroute, self::Handed, ...$settling],
+            self::Served => $settling,
+            self::Enroute => [self::Handed, ...$settling],
+            self::Handed => $settling,
             self::ToPay => [self::Paid, ...$closing],
             // Paid is not the end of the story: money can still come back.
             self::Paid => [self::Refunded],

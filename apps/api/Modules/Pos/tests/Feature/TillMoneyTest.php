@@ -243,8 +243,8 @@ final class TillMoneyTest extends TestCase
         $this->assertSame(4_500_000, $this->till()->getJson("/api/v1/pos/bills/{$billId}")
             ->assertOk()->json('data.total'));
 
-        $this->assertNotNull($refusal->json('approval_id'));
-        $this->assertSame('pending', PosApproval::query()->findOrFail($refusal->json('approval_id'))->status);
+        $this->assertNotNull($refusal->json('error.approval_id'));
+        $this->assertSame('pending', PosApproval::query()->findOrFail($refusal->json('error.approval_id'))->status);
     }
 
     public function test_an_approved_request_lets_the_void_through_once(): void
@@ -255,7 +255,7 @@ final class TillMoneyTest extends TestCase
 
         $approvalId = $this->till()->deleteJson("/api/v1/pos/bills/{$billId}/lines/{$lineId}", [
             'reason' => 'Mehmon fikridan qaytdi',
-        ])->assertStatus(403)->json('approval_id');
+        ])->assertStatus(403)->json('error.approval_id');
 
         // The manager walks over and signs it.
         $manager = $this->staff('branch-manager', '9999');
@@ -282,7 +282,7 @@ final class TillMoneyTest extends TestCase
 
         $approvalId = $this->till()->deleteJson("/api/v1/pos/bills/{$billId}/lines/{$lineId}", [
             'reason' => 'sabab', 'reason2' => null,
-        ] + ['reason' => 'Mehmon fikridan qaytdi'])->assertStatus(403)->json('approval_id');
+        ] + ['reason' => 'Mehmon fikridan qaytdi'])->assertStatus(403)->json('error.approval_id');
 
         $manager = $this->staff('branch-manager', '9999');
         $managerSession = $this->signIn($manager, '9999');

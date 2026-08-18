@@ -87,6 +87,53 @@ final class OrderStateLadderTest extends TestCase
     }
 
     #[Test]
+    public function a_counter_can_take_the_money_before_the_food_is_ready(): void
+    {
+        // Fast food and bar are two of the POS's four modes, and in both the
+        // guest pays before anything is cooked. A ladder that only allowed
+        // `paid` after `served` was describing table service and calling it
+        // the rule.
+        $this->assertTrue(OrderState::Placed->canMoveTo(OrderState::Paid));
+        $this->assertTrue(OrderState::Cooking->canMoveTo(OrderState::Paid));
+
+        // But a draft has not been fired, so there is no agreed order to be
+        // paid for. The till fires and settles in one action, not one step.
+        $this->assertFalse(OrderState::Draft->canMoveTo(OrderState::Paid));
+        $this->assertFalse(OrderState::Draft->canMoveTo(OrderState::ToPay));
+    }
+
+    #[Test]
+    public function the_bill_can_be_presented_wherever_the_design_file_presents_it(): void
+    {
+        // The design file's staff pipeline is placed → accepted → cooking →
+        // ready → topay → paid. It skips `served`, so `ready → topay` has to
+        // work or the ladder refuses the sequence its own screens draw.
+        $this->assertTrue(OrderState::Ready->canMoveTo(OrderState::ToPay));
+        $this->assertTrue(OrderState::Served->canMoveTo(OrderState::ToPay));
+
+        // Presenting a bill is not the same as being paid for it.
+        $this->assertFalse(OrderState::ToPay->canMoveTo(OrderState::Served));
+    }
+
+    #[Test]
+    public function paying_early_does_not_reopen_the_fulfilment_chain(): void
+    {
+        // The reason paying early is safe is that the kitchen tracks its own
+        // ticket. What must not happen is the bill itself walking backwards:
+        // once settled the only way out is a refund.
+        foreach (OrderState::cases() as $state) {
+            if ($state === OrderState::Refunded) {
+                continue;
+            }
+
+            $this->assertFalse(
+                OrderState::Paid->canMoveTo($state),
+                "A paid bill must not move to {$state->value}",
+            );
+        }
+    }
+
+    #[Test]
     public function an_open_bill_can_always_be_voided_or_comped(): void
     {
         foreach (OrderState::cases() as $state) {

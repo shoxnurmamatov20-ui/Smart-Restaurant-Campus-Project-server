@@ -103,7 +103,11 @@ final class TenderController extends Controller
                     subjectId: $payment,
                 );
 
-                return ErrorResponse::code('pos.approval_required');
+                // Same as the void path in BillController: a refusal without
+                // the id tells the till to wait without telling it what for.
+                return ErrorResponse::code('pos.approval_required', meta: [
+                    'approval_id' => $approval->getKey(),
+                ]);
             }
 
             try {

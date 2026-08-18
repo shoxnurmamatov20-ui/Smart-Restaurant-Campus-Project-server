@@ -35,8 +35,8 @@ final class ApprovalGate
     /**
      * Does this person need an authorisation for this act?
      *
-     * @param int $amount Tiyin at stake — a 2% discount on a coffee is not a
-     *                    2% discount on a wedding.
+     * @param  int  $amount  Tiyin at stake — a 2% discount on a coffee is not a
+     *                       2% discount on a wedding.
      */
     public function requires(Terminal $terminal, User $actor, string $action, int $amount = 0, int $subtotal = 0): bool
     {
@@ -91,6 +91,29 @@ final class ApprovalGate
     ): PosApproval {
         if (! in_array($action, PosApproval::ACTIONS, true)) {
             throw new RuntimeException("Noma'lum tasdiq turi: {$action}");
+        }
+
+        // One live request per thing being asked about.
+        //
+        // A cashier who taps Void and is refused taps it again — that is what
+        // anyone does when a screen says no. Each tap used to write another
+        // pending row, so the manager's queue filled with identical requests
+        // for one line and approving the wrong one left the cashier still
+        // blocked. The subject, action and amount together are what is being
+        // asked; asking twice is the same question.
+        $existing = PosApproval::query()
+            ->where('session_id', $session->getKey())
+            ->where('action', $action)
+            ->where('subject_type', $subjectType)
+            ->where('subject_id', $subjectId)
+            ->where('amount', $amount > 0 ? $amount : null)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where('expires_at', '>', now())
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
         }
 
         return PosApproval::create([

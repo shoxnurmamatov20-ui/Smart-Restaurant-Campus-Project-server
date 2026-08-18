@@ -36,8 +36,7 @@ final class TenderService
     ) {}
 
     /**
-     * @param array<int, array{method: string, amount: int, reference?: string|null}> $tenders
-     *
+     * @param  array<int, array{method: string, amount: int, reference?: string|null}>  $tenders
      * @return array{bill: array<string, mixed>, payment_ids: array<int, int>, change: int, settled: bool}
      */
     public function settle(Terminal $terminal, int $billId, int $shiftId, array $tenders): array
@@ -99,6 +98,22 @@ final class TenderService
             }
 
             $settled = $offered >= $due;
+
+            // A bill taken at a counter is fired and settled in one action, so
+            // it can still be `draft` when the money arrives — and closing a
+            // draft used to fail with "Hisobni yopib bo'lmadi", which told the
+            // cashier the till was broken and told nobody why.
+            //
+            // Firing it here rather than widening the state ladder is the point:
+            // `draft` means the lines are not confirmed and no kitchen ticket
+            // exists. Settle it without firing and the guest has paid for food
+            // that no station will ever see — the drawer balances and the order
+            // is simply lost. So the money and the ticket are created in the
+            // same transaction, and if the bill is empty `send` refuses it,
+            // which is the right answer to being paid for nothing.
+            if ($settled && $bill->status === 'draft') {
+                $bill = $this->bills->send($bill->id);
+            }
 
             // Underpaying is legitimate — a deposit, or one guest of four paying
             // early — so the bill simply stays open rather than being refused.

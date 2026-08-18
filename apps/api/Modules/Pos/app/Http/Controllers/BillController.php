@@ -212,7 +212,15 @@ final class BillController extends Controller
                 amount: $amount,
             );
 
-            return ErrorResponse::code('pos.approval_required');
+            // The id matters as much as the refusal. Without it the till knows
+            // only that a manager must sign something — it cannot show which
+            // request, cannot poll it, and cannot send the same id back when
+            // the signature arrives. It went into the meta channel rather than
+            // alongside the envelope because the envelope has one shape, and
+            // `detail` two branches down already travels this way.
+            return ErrorResponse::code('pos.approval_required', meta: [
+                'approval_id' => $approval->getKey(),
+            ]);
         }
 
         try {
