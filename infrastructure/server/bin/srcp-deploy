@@ -93,7 +93,12 @@ PREVIOUS=""
 # Every application command goes through here. env -i is not used: composer and
 # pnpm both need a HOME to cache into, and srcp has no home directory of its own.
 as_srcp() {
+    # CI=true because nothing here has a TTY and every tool must know it.
+    # The one that did not was pnpm: finding a node_modules it wanted to
+    # rebuild, it asked for confirmation, got no terminal to ask on, and
+    # aborted the whole deploy with "ABORTED_REMOVE_MODULES_DIR_NO_TTY".
     runuser -u "$SRCP_USER" -- env \
+        CI=true \
         HOME="$SHARED/home" \
         COMPOSER_HOME="$SHARED/home/.composer" \
         COMPOSER_ALLOW_SUPERUSER=0 \
