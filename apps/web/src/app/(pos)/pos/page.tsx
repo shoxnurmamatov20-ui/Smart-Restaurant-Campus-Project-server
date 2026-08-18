@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { fetchIdleScreen, pairedTerminal } from '@/lib/pos-session';
+import { fetchIdleScreen, pairedTerminal, shiftToken } from '@/lib/pos-session';
 
 import './pos.css';
 import { getPosBoard } from './pos-data';
@@ -31,20 +31,22 @@ export async function generateMetadata() {
  */
 export default async function PosPage() {
   /*
-   * The till boots in three steps, and this is the first two.
+   * One route, three states, and which one shows is decided by what this
+   * tablet is holding rather than by where it navigated from.
    *
-   * A tablet with no device token is not a till yet: it shows the pairing panel
-   * and nothing else. A paired one shows the idle screen — the venue's name, a
-   * clock and the room's figures — until somebody presses Kirish.
+   *   no device token   → the pairing panel. Not a till yet.
+   *   device, no shift  → the idle screen. A till with nobody at it.
+   *   device and shift  → the work.
    *
-   * The order matters. Reaching the order screen without pairing would mean a
-   * waiter taking an order the API cannot accept, so the gate is the first
-   * thing the page does rather than something the order screen recovers from.
+   * Deciding it from the cookies rather than from the navigation is what makes
+   * the back button, a reload and a tablet woken from sleep all land on the
+   * same screen — and the last of those is the normal case, because this
+   * device is left on a counter for eight hours.
    *
-   * `idle` being null does NOT mean unpaired — it means the API could not be
-   * read this render. The screen handles that itself: last figures, red link
-   * light, clock still running. Only a missing cookie sends anyone back to
-   * pairing.
+   * The order of the two gates matters. Reaching the work without a device
+   * token would mean a waiter taking an order the API cannot accept; reaching
+   * it without a shift would mean an order attributed to nobody, which is the
+   * thing every void and every discount is later traced through.
    */
   const terminal = await pairedTerminal();
 
@@ -52,19 +54,23 @@ export default async function PosPage() {
     return <PairPanel />;
   }
 
-  const idle = await fetchIdleScreen();
+  if ((await shiftToken()) === null) {
+    /*
+     * `idle` being null does NOT mean unpaired — it means the API could not be
+     * read this render. The screen handles that itself: last figures, red link
+     * light, clock still running. Only a missing cookie sends anyone back to
+     * pairing.
+     */
+    return <IdleScreen initial={await fetchIdleScreen()} />;
+  }
 
-  return <IdleScreen initial={idle} />;
-}
-
-/**
- * The order screen, once somebody has signed in.
- *
- * Still reached through the same route for now — P3 gives the PIN screen its
- * own step between the idle screen and this one, and the board becomes a live
- * read rather than the fixtures it is today.
- */
-export async function OrderSurface() {
+  /*
+   * The board is still fixtures, and that is P4's work rather than an oversight
+   * here: the live read needs the menu, the stop list and the floor, and the
+   * first two want the realtime channel that arrives with them. What is real
+   * today is everything around it — this tablet is a known terminal, and the
+   * person at it signed in with a PIN against a session the API is holding.
+   */
   const board = await getPosBoard();
 
   return <PosTerminal menu={board.menu} tables={board.tables} />;
