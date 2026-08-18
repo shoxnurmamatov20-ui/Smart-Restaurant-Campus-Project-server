@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Errors\ErrorResponse;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ final readonly class ResolveTenant
     public function __construct(private TenantContext $context) {}
 
     /**
-     * @param Closure(Request): Response $next
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -43,10 +44,7 @@ final readonly class ResolveTenant
 
         if ($ownTenantId !== null) {
             if ($requested !== null && $requested->id !== $ownTenantId) {
-                return response()->json([
-                    'message' => 'Siz boshqa restoran ma\'lumotiga kira olmaysiz.',
-                    'code' => 'TENANT_MISMATCH',
-                ], Response::HTTP_FORBIDDEN);
+                return ErrorResponse::code('tenant.mismatch');
             }
 
             // No header, or a header naming their own restaurant: use theirs.
@@ -56,18 +54,12 @@ final readonly class ResolveTenant
                 ->first();
 
             if ($requested === null) {
-                return response()->json([
-                    'message' => 'Restoran faol emas.',
-                    'code' => 'TENANT_INACTIVE',
-                ], Response::HTTP_FORBIDDEN);
+                return ErrorResponse::code('tenant.inactive');
             }
         }
 
         if ($requested === null && config('tenancy.require_tenant')) {
-            return response()->json([
-                'message' => 'Tenant context is required.',
-                'code' => 'TENANT_REQUIRED',
-            ], Response::HTTP_BAD_REQUEST);
+            return ErrorResponse::code('tenant.required');
         }
 
         $this->context->set($requested);

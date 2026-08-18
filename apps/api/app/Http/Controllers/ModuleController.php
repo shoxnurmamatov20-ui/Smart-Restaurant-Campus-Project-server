@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\Errors\ErrorResponse;
 use App\Support\Modules\ModuleDescriptor;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\TenantContext;
@@ -92,10 +93,7 @@ final class ModuleController extends Controller
         $module = $registry->find($key);
 
         if ($module === null) {
-            return response()->json([
-                'message' => 'Bunday modul mavjud emas.',
-                'code' => 'MODULE_NOT_FOUND',
-            ], Response::HTTP_NOT_FOUND);
+            return ErrorResponse::code('module.not_found');
         }
 
         $tenant = $context->tenant();

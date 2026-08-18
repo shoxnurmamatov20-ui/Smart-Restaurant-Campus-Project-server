@@ -189,7 +189,7 @@ final class ModuleRegistryTest extends TestCase
         // A flag that only hides a menu entry is decoration. This is the point.
         $this->getJson('/api/v1/tables/tables')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'MODULE_DISABLED')
+            ->assertApiError('module.disabled')
             ->assertJsonPath('module', 'tables');
     }
 
@@ -234,7 +234,7 @@ final class ModuleRegistryTest extends TestCase
         // A restaurant without a menu or orders is not a restaurant.
         $this->patchJson('/api/v1/modules/menu', ['enabled' => false])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('enabled');
+            ->assertApiValidationErrors('enabled');
 
         $this->patchJson('/api/v1/modules/orders', ['enabled' => false])
             ->assertStatus(422);
@@ -255,8 +255,7 @@ final class ModuleRegistryTest extends TestCase
         $this->signIn('owner');
 
         $this->patchJson('/api/v1/modules/karaoke', ['enabled' => false])
-            ->assertStatus(404)
-            ->assertJsonPath('code', 'MODULE_NOT_FOUND');
+            ->assertApiError('module.not_found');
     }
 
     public function test_the_switch_needs_an_explicit_value(): void
@@ -265,7 +264,7 @@ final class ModuleRegistryTest extends TestCase
 
         $this->patchJson('/api/v1/modules/tables', [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('enabled');
+            ->assertApiValidationErrors('enabled');
     }
 
     // ============ Isolation ============

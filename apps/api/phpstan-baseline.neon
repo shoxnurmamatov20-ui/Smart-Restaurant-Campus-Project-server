@@ -223,12 +223,6 @@ parameters:
 			path: Modules/Orders/tests/Feature/OrderFlowTest.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Support\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Pos/app/Http/Controllers/BillController.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>lines" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1

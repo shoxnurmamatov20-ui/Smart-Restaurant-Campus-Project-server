@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Branch;
 use App\Models\User;
+use App\Support\Errors\ErrorResponse;
 use App\Support\Tenancy\BranchContext;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -43,17 +44,14 @@ final readonly class ResolveBranch
     ) {}
 
     /**
-     * @param Closure(Request): Response $next
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $requested = $this->resolveFromHeader($request);
 
         if ($requested === false) {
-            return response()->json([
-                'message' => 'Bunday filial topilmadi.',
-                'code' => 'BRANCH_NOT_FOUND',
-            ], Response::HTTP_NOT_FOUND);
+            return ErrorResponse::code('branch.not_found');
         }
 
         $user = $request->user();
@@ -61,10 +59,7 @@ final readonly class ResolveBranch
 
         if ($ownBranchId !== null) {
             if ($requested !== null && $requested->id !== $ownBranchId) {
-                return response()->json([
-                    'message' => 'Siz boshqa filial ma\'lumotiga kira olmaysiz.',
-                    'code' => 'BRANCH_MISMATCH',
-                ], Response::HTTP_FORBIDDEN);
+                return ErrorResponse::code('branch.mismatch');
             }
 
             $requested ??= Branch::query()->whereKey($ownBranchId)->first();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Errors\ApiError;
+use App\Support\Errors\ErrorResponse;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -29,18 +31,25 @@ final readonly class EnsureModuleEnabled
     ) {}
 
     /**
-     * @param Closure(Request): Response $next
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $module = $this->registry->findByClass($this->controllerClass($request));
 
         if ($module !== null && ! $this->registry->isAvailable($module, $this->tenants->tenant())) {
-            return response()->json([
-                'message' => "\"{$module->title()}\" moduli bu restoran uchun yoqilmagan.",
-                'code' => 'MODULE_DISABLED',
-                'module' => $module->key,
-            ], Response::HTTP_FORBIDDEN);
+            // The module's own title makes the sentence specific — a
+            // manager reads which module, not that "a module" is off.
+            return ErrorResponse::make(
+                new ApiError(
+                    'module.disabled',
+                    Response::HTTP_FORBIDDEN,
+                    "\"{$module->title()}\" moduli bu restoran uchun yoqilmagan.",
+                    "Модуль \"{$module->title()}\" не подключён для этого ресторана.",
+                    "The \"{$module->title()}\" module is not enabled for this restaurant.",
+                ),
+                meta: ['module' => $module->key],
+            );
         }
 
         return $next($request);

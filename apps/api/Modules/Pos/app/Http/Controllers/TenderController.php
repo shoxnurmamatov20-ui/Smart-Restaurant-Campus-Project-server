@@ -6,9 +6,10 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Contracts\Finance\TillLedger;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorCatalogue;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Modules\Pos\Http\Controllers\Concerns\ResolvesTillContext;
 use Modules\Pos\Services\ApprovalGate;
@@ -48,10 +49,7 @@ final class TenderController extends Controller
         $shiftId = $session->cash_shift_id ?? $this->till->openShiftFor((int) $session->user_id);
 
         if ($shiftId === null) {
-            return response()->json([
-                'message' => 'Ochiq smena yo\'q. Avval smenani oching.',
-                'code' => 'POS_NO_OPEN_SHIFT',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::code('pos.no_open_shift');
         }
 
         try {
@@ -69,10 +67,10 @@ final class TenderController extends Controller
                 ),
             );
         } catch (RuntimeException $failure) {
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_TENDER_REFUSED',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.tender_refused'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return response()->json(['data' => $applied['result'], 'replayed' => $applied['replayed']]);
@@ -105,30 +103,26 @@ final class TenderController extends Controller
                     subjectId: $payment,
                 );
 
-                return response()->json([
-                    'message' => 'Menejer tasdig\'i kerak.',
-                    'code' => 'POS_APPROVAL_REQUIRED',
-                    'approval_id' => $approval->id,
-                ], Response::HTTP_FORBIDDEN);
+                return ErrorResponse::code('pos.approval_required');
             }
 
             try {
                 $this->approvals->consume((int) $validated['approval_id'], 'refund', 'payment', $payment);
             } catch (RuntimeException $failure) {
-                return response()->json([
-                    'message' => $failure->getMessage(),
-                    'code' => 'POS_APPROVAL_INVALID',
-                ], Response::HTTP_FORBIDDEN);
+                return ErrorResponse::make(
+                    ErrorCatalogue::get('pos.approval_invalid'),
+                    meta: ['detail' => $failure->getMessage()],
+                );
             }
         }
 
         try {
             $this->till->refund($payment, (string) $validated['reason']);
         } catch (RuntimeException $failure) {
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_TENDER_REFUSED',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.tender_refused'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return response()->json(['message' => 'To\'lov qaytarildi.']);

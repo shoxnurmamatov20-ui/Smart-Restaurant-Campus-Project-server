@@ -6,6 +6,8 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Contracts\Finance\TillLedger;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorCatalogue;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -119,17 +121,14 @@ final class ShiftController extends Controller
 
     private function noOpenShift(): JsonResponse
     {
-        return response()->json([
-            'message' => 'Ochiq smena yo\'q. Avval smenani oching.',
-            'code' => 'POS_NO_OPEN_SHIFT',
-        ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        return ErrorResponse::code('pos.no_open_shift');
     }
 
     private function refused(RuntimeException $failure): JsonResponse
     {
-        return response()->json([
-            'message' => $failure->getMessage(),
-            'code' => 'POS_SHIFT_REFUSED',
-        ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        return ErrorResponse::make(
+            ErrorCatalogue::get('pos.shift_refused'),
+            meta: ['detail' => $failure->getMessage()],
+        );
     }
 }

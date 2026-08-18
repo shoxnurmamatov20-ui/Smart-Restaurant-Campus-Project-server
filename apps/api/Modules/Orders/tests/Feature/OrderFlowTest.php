@@ -103,7 +103,7 @@ final class OrderFlowTest extends TestCase
 
         $this->postJson('/api/v1/orders/orders', ['number' => 'A-0001'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('number');
+            ->assertApiValidationErrors('number');
     }
 
     // ============ Bill lines and money ============
@@ -230,7 +230,7 @@ final class OrderFlowTest extends TestCase
 
         $this->postJson("/api/v1/orders/orders/{$order->id}/cancel", [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('reason');
+            ->assertApiValidationErrors('reason');
 
         $this->postJson("/api/v1/orders/orders/{$order->id}/cancel", ['reason' => 'Mehmon ketdi'])
             ->assertOk()
@@ -294,7 +294,7 @@ final class OrderFlowTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/orders/orders')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 
     public function test_order_lines_are_reachable_for_the_kitchen(): void

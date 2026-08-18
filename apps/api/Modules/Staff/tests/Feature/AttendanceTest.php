@@ -94,7 +94,7 @@ final class AttendanceTest extends TestCase
             'hired_at' => now()->addWeek()->toDateString(),
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('hired_at');
+            ->assertApiValidationErrors('hired_at');
     }
 
     public function test_an_unknown_position_is_rejected(): void
@@ -106,7 +106,7 @@ final class AttendanceTest extends TestCase
             'first_name' => 'A', 'last_name' => 'B', 'position' => 'sommelier',
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('position');
+            ->assertApiValidationErrors('position');
     }
 
     public function test_an_expired_sanitary_book_is_flagged(): void
@@ -202,7 +202,7 @@ final class AttendanceTest extends TestCase
             'ends_at' => now()->addDay()->setTime(10, 0)->toIso8601String(),
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('ends_at');
+            ->assertApiValidationErrors('ends_at');
     }
 
     public function test_planned_hours_are_derived_from_the_slot(): void
@@ -280,6 +280,6 @@ final class AttendanceTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/staff/members')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

@@ -48,8 +48,7 @@ final class BotApiTest extends TestCase
     }
 
     /**
-     * @param array<string, string> $extra
-     *
+     * @param  array<string, string>  $extra
      * @return array<string, string>
      */
     private function internal(array $extra = []): array
@@ -196,7 +195,7 @@ final class BotApiTest extends TestCase
         $this->withHeaders($this->internal())
             ->postJson('/api/v1/bots/guest/users/link', ['telegram_id' => 'not-a-number'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['telegram_id', 'phone', 'full_name']);
+            ->assertApiValidationErrors(['telegram_id', 'phone', 'full_name']);
     }
 
     // ============ Looking a linked account up ============
@@ -345,7 +344,7 @@ final class BotApiTest extends TestCase
             $this->withHeaders($this->internal())
                 ->getJson("/api/v1/bots/guest/{$path}")
                 ->assertStatus(501)
-                ->assertJsonPath('code', 'FEATURE_NOT_IMPLEMENTED');
+                ->assertApiError('bots.feature_not_implemented');
         }
     }
 
@@ -356,7 +355,7 @@ final class BotApiTest extends TestCase
         $this->withHeaders($this->internal())
             ->postJson('/api/v1/bots/guest/feedback', ['score' => 9])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('score');
+            ->assertApiValidationErrors('score');
     }
 
     // ============ Tenant isolation ============

@@ -6,6 +6,7 @@ namespace Modules\Orders\Http\Controllers;
 
 use App\Contracts\Menu\MenuCatalog;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ApiException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
@@ -100,7 +101,7 @@ final class OrderController extends Controller
     public function addItem(Request $request, Order $order, MenuCatalog $menu): OrderItemResource
     {
         if (! $order->is_open) {
-            abort(422, "Yopilgan buyurtmaga taom qo'shib bo'lmaydi.");
+            throw ApiException::of('order.closed');
         }
 
         $validated = $request->validate([
@@ -115,11 +116,11 @@ final class OrderController extends Controller
         $dish = $menu->find((int) $validated['menu_item_id']);
 
         if ($dish === null) {
-            abort(422, 'Bunday taom menyuda yo\'q.');
+            throw ApiException::of('order.item_not_found', field: 'menu_item_id');
         }
 
         if (! $dish->isOrderable) {
-            abort(422, 'Bu taom hozir sotuvda yo\'q (stop-list).');
+            throw ApiException::of('stop_list.item_unavailable', field: 'menu_item_id');
         }
 
         $quantity = (int) $validated['quantity'];
@@ -145,7 +146,7 @@ final class OrderController extends Controller
     public function removeItem(Order $order, OrderItem $item): Response
     {
         if (! $order->is_open) {
-            abort(422, "Yopilgan buyurtmadan taom o'chirib bo'lmaydi.");
+            throw ApiException::of('order.closed');
         }
 
         abort_unless($item->order_id === $order->id, 404);
@@ -162,8 +163,16 @@ final class OrderController extends Controller
             'status' => ['required', Rule::in(Order::STATUSES)],
         ]);
 
+        $from = $order->status;
+
         if (! $order->transitionTo($validated['status'])) {
-            abort(422, "Bu holatga o'tish mumkin emas.");
+            // `from` and `to` ride along so a client can say which move was
+            // refused without a second round trip — the offline queue shows
+            // exactly this pair on a conflict card.
+            throw ApiException::of('order.invalid_transition', field: 'status', meta: [
+                'from' => $from,
+                'to' => $validated['status'],
+            ]);
         }
 
         return new OrderResource($order->refresh()->load('items'));
@@ -176,7 +185,7 @@ final class OrderController extends Controller
         ]);
 
         if (! $order->cancel($validated['reason'])) {
-            abort(422, 'Yopilgan buyurtmani bekor qilib bo\'lmaydi.');
+            throw ApiException::of('order.closed');
         }
 
         return new OrderResource($order->refresh());

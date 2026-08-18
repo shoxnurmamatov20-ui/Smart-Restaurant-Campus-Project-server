@@ -88,7 +88,7 @@ final class PurchaseFlowTest extends TestCase
 
         $this->postJson('/api/v1/suppliers/suppliers', ['code' => 'SUP-001', 'name' => 'Boshqa'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('code');
+            ->assertApiValidationErrors('code');
     }
 
     public function test_in_debt_filter_finds_who_we_owe(): void
@@ -248,6 +248,6 @@ final class PurchaseFlowTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/suppliers/suppliers')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

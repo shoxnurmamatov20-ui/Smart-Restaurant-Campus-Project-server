@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -150,10 +151,7 @@ final class TerminalController extends Controller
         $terminal = $request->user();
 
         if (! $terminal instanceof Terminal) {
-            return response()->json([
-                'message' => 'Bu endpoint faqat terminal tokeni bilan ishlaydi.',
-                'code' => 'TERMINAL_TOKEN_REQUIRED',
-            ], Response::HTTP_FORBIDDEN);
+            return ErrorResponse::code('pos.terminal_token_required');
         }
 
         $terminal->forceFill([

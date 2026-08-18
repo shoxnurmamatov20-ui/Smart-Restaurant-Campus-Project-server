@@ -92,7 +92,7 @@ final class StockControlTest extends TestCase
 
         $this->postJson('/api/v1/inventory/ingredients', ['sku' => 'ING-0001', 'name' => 'Boshqa'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('sku');
+            ->assertApiValidationErrors('sku');
     }
 
     public function test_an_unknown_unit_is_rejected(): void
@@ -103,7 +103,7 @@ final class StockControlTest extends TestCase
             'sku' => 'ING-X', 'name' => 'Test', 'unit' => 'barrel',
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('unit');
+            ->assertApiValidationErrors('unit');
     }
 
     // ============ Movements ============
@@ -167,7 +167,7 @@ final class StockControlTest extends TestCase
             'quantity' => -500,
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('reason');
+            ->assertApiValidationErrors('reason');
 
         $this->postJson("/api/v1/inventory/ingredients/{$ingredient->id}/movements", [
             'kind' => 'write_off',
@@ -186,7 +186,7 @@ final class StockControlTest extends TestCase
             'quantity' => 0,
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('quantity');
+            ->assertApiValidationErrors('quantity');
     }
 
     public function test_the_running_balance_always_matches_the_movement_history(): void
@@ -274,6 +274,6 @@ final class StockControlTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/inventory/ingredients')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

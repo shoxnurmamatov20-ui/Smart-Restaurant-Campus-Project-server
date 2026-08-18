@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Middleware;
 
 use App\Models\User;
+use App\Support\Errors\ErrorResponse;
 use Closure;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -31,7 +32,7 @@ final class RequireTerminalSession
     public const ATTRIBUTE_TERMINAL = 'pos.terminal';
 
     /**
-     * @param Closure(Request): Response $next
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -39,7 +40,7 @@ final class RequireTerminalSession
 
         if (! $user instanceof User) {
             // A device token on its own is not a person. Type a PIN.
-            return $this->refuse('Kassa sessiyasi talab qilinadi.', 'POS_SESSION_REQUIRED');
+            return $this->refuse('pos.session_required');
         }
 
         $token = $user->currentAccessToken();
@@ -48,7 +49,7 @@ final class RequireTerminalSession
         if ($tokenId === null) {
             // Signed in, but not with a token this module minted — a cookie
             // session from the back office, or a general-purpose API token.
-            return $this->refuse('Bu token kassa sessiyasiga bog\'lanmagan.', 'POS_SESSION_TOKEN_REQUIRED');
+            return $this->refuse('pos.session_token_required');
         }
 
         /** @var TerminalSession|null $session */
@@ -59,17 +60,17 @@ final class RequireTerminalSession
             ->first();
 
         if ($session === null) {
-            return $this->refuse('Kassa sessiyasi topilmadi yoki yopilgan.', 'POS_SESSION_CLOSED');
+            return $this->refuse('pos.session_closed');
         }
 
         if ($session->hasExpired((int) config('pos.pin.session_idle_minutes', 15))) {
             $session->close('timeout');
 
-            return $this->refuse('Sessiya harakatsizlikdan yopildi. PIN kiriting.', 'POS_SESSION_TIMEOUT');
+            return $this->refuse('pos.session_timeout');
         }
 
         if ($session->terminal === null || $session->terminal->status !== 'active') {
-            return $this->refuse('Terminal faol emas.', 'POS_TERMINAL_INACTIVE');
+            return $this->refuse('pos.terminal_inactive');
         }
 
         $session->touchActivity();
@@ -80,8 +81,14 @@ final class RequireTerminalSession
         return $next($request);
     }
 
-    private function refuse(string $message, string $code): Response
+    /**
+     * Every refusal here is 403, not 401: the device token IS valid, and it is
+     * the human session behind it that is missing or timed out. A 401 would
+     * send a paired terminal back through pairing; a 403 sends the waiter back
+     * to the PIN pad, which is what actually needs to happen.
+     */
+    private function refuse(string $code): Response
     {
-        return response()->json(['message' => $message, 'code' => $code], Response::HTTP_FORBIDDEN);
+        return ErrorResponse::code($code);
     }
 }

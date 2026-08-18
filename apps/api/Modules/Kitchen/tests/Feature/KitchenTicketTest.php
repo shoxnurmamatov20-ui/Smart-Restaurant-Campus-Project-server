@@ -246,7 +246,7 @@ final class KitchenTicketTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/kitchen/tickets')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 
     public function test_dispatch_snapshots_the_dish_titles(): void

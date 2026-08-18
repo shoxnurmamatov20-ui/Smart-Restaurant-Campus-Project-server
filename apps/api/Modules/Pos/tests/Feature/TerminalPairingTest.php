@@ -257,7 +257,7 @@ final class TerminalPairingTest extends TestCase
 
         $this->postJson('/api/v1/pos/terminals/pair', [
             'code' => app(TerminalPairing::class)->issueCode($terminal),
-        ])->assertStatus(422)->assertJsonValidationErrors('device_fingerprint');
+        ])->assertStatus(422)->assertApiValidationErrors('device_fingerprint');
     }
 
     // ============ Heartbeat ============
@@ -286,8 +286,7 @@ final class TerminalPairingTest extends TestCase
         $this->signIn();
 
         $this->postJson('/api/v1/pos/terminals/heartbeat')
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'TERMINAL_TOKEN_REQUIRED');
+            ->assertApiError('pos.terminal_token_required');
     }
 
     // ============ Tenancy ============
@@ -324,6 +323,6 @@ final class TerminalPairingTest extends TestCase
 
         $this->postJson('/api/v1/pos/terminals', [
             'code' => 'KASSA-1', 'name' => 'Ikkinchi', 'mode' => 'counter',
-        ])->assertStatus(422)->assertJsonValidationErrors('code');
+        ])->assertStatus(422)->assertApiValidationErrors('code');
     }
 }

@@ -88,7 +88,7 @@ final class LoyaltyTest extends TestCase
 
         $this->postJson('/api/v1/crm/customers', ['phone' => '+998901112233'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('phone');
+            ->assertApiValidationErrors('phone');
     }
 
     public function test_average_cheque_is_derived_from_visits(): void
@@ -195,7 +195,7 @@ final class LoyaltyTest extends TestCase
 
         $this->postJson('/api/v1/crm/feedbacks', ['score' => 9])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('score');
+            ->assertApiValidationErrors('score');
     }
 
     public function test_negative_feedback_can_be_filtered_and_resolved(): void
@@ -259,6 +259,6 @@ final class LoyaltyTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/crm/customers')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Middleware\RefineLocale;
 use App\Http\Middleware\ResolveBranch;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SetLocale;
+use App\Support\Errors\ExceptionRenderer;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Contracts\Session\Middleware\AuthenticatesSessions;
@@ -146,6 +147,23 @@ return Application::configure(basePath: dirname(__DIR__))
                 'broadcasting/*',
                 'up',
             ) || $request->expectsJson(),
+        );
+
+        /*
+         * One envelope for every failure — API.md §1.
+         *
+         * Fourteen surfaces in three languages read this API, and until this
+         * ran they read three different error shapes: Laravel's validation
+         * bag, its bare `{"message": "Unauthenticated."}`, and hand-written
+         * `{message, code}` pairs in the tenancy middleware — each of them
+         * Uzbek-only or English-only, none carrying a stable code.
+         *
+         * Registered last so it sees everything, including the exceptions
+         * nobody wrote a throw site for: a route-model binding that misses,
+         * a rate limiter that trips, a method that does not exist there.
+         */
+        $exceptions->render(
+            fn (Throwable $e, Request $request) => ExceptionRenderer::render($e, $request),
         );
     })
     ->create();

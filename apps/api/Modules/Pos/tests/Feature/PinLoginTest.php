@@ -182,7 +182,7 @@ final class PinLoginTest extends TestCase
 
         $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
             'user_id' => $user->id, 'pin' => '0000',
-        ])->assertStatus(422)->assertJsonValidationErrors('pin');
+        ])->assertStatus(422)->assertApiValidationErrors('pin');
 
         $this->assertSame(1, PosPin::query()->where('user_id', $user->id)->value('failed_attempts'));
     }
@@ -266,7 +266,7 @@ final class PinLoginTest extends TestCase
 
         $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
             'user_id' => $marketer->id, 'pin' => '4821',
-        ])->assertStatus(422)->assertJsonValidationErrors('pin');
+        ])->assertStatus(422)->assertApiValidationErrors('pin');
     }
 
     public function test_signing_in_requires_a_device_token(): void
@@ -316,8 +316,7 @@ final class PinLoginTest extends TestCase
         $this->travel((int) config('pos.pin.session_idle_minutes') + 1)->minutes();
 
         $this->asSession($token)->getJson('/api/v1/pos/auth/session')
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'POS_SESSION_TIMEOUT');
+            ->assertApiError('pos.session_timeout');
 
         $this->assertSame('timeout', TerminalSession::query()->where('user_id', $user->id)->value('closed_reason'));
     }
@@ -344,8 +343,7 @@ final class PinLoginTest extends TestCase
         $this->terminal->update(['status' => 'disabled']);
 
         $this->asSession($token)->getJson('/api/v1/pos/auth/session')
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'POS_TERMINAL_INACTIVE');
+            ->assertApiError('pos.terminal_inactive');
     }
 
     // ============ Changing a PIN ============
@@ -369,8 +367,7 @@ final class PinLoginTest extends TestCase
 
         $this->forgetGuardsAndActAs($cashier)->withHeader('X-Tenant', $this->mine->slug)
             ->postJson('/api/v1/pos/auth/pin/rotate', ['user_id' => $other->id, 'pin' => '5150'])
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'POS_PIN_FORBIDDEN');
+            ->assertApiError('pos.pin_forbidden');
     }
 
     public function test_changing_your_own_pin_needs_the_current_one(): void
@@ -379,8 +376,7 @@ final class PinLoginTest extends TestCase
 
         $this->forgetGuardsAndActAs($cashier)->withHeader('X-Tenant', $this->mine->slug)
             ->postJson('/api/v1/pos/auth/pin/rotate', ['pin' => '5150'])
-            ->assertStatus(422)
-            ->assertJsonPath('code', 'POS_PIN_MISMATCH');
+            ->assertApiError('pos.pin_mismatch');
 
         $this->forgetGuardsAndActAs($cashier)->withHeader('X-Tenant', $this->mine->slug)
             ->postJson('/api/v1/pos/auth/pin/rotate', ['pin' => '5150', 'current_pin' => '4821'])
@@ -394,6 +390,6 @@ final class PinLoginTest extends TestCase
         $this->forgetGuardsAndActAs($cashier)->withHeader('X-Tenant', $this->mine->slug)
             ->postJson('/api/v1/pos/auth/pin/rotate', ['pin' => '1234', 'current_pin' => '4821'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('pin');
+            ->assertApiValidationErrors('pin');
     }
 }

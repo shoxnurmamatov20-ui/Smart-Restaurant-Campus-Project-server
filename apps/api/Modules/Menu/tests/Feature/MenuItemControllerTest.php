@@ -176,7 +176,7 @@ final class MenuItemControllerTest extends TestCase
 
         $this->postJson('/api/v1/menu/items', $this->validPayload())
             ->assertStatus(422)
-            ->assertJsonValidationErrors('sku');
+            ->assertApiValidationErrors('sku');
     }
 
     public function test_validation_requires_uzbek_name(): void
@@ -187,7 +187,7 @@ final class MenuItemControllerTest extends TestCase
             'name' => ['ru' => 'Плов'],
         ]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors('name.uz');
+            ->assertApiValidationErrors('name.uz');
     }
 
     public function test_validation_rejects_cost_price_above_menu_price(): void
@@ -199,7 +199,7 @@ final class MenuItemControllerTest extends TestCase
             'cost_price' => 2000000,
         ]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors('cost_price');
+            ->assertApiValidationErrors('cost_price');
     }
 
     public function test_validation_rejects_unknown_station(): void
@@ -210,7 +210,7 @@ final class MenuItemControllerTest extends TestCase
             'station' => 'teleport',
         ]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors('station');
+            ->assertApiValidationErrors('station');
     }
 
     // ============ Update & delete ============
@@ -386,6 +386,6 @@ final class MenuItemControllerTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/menu/items')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

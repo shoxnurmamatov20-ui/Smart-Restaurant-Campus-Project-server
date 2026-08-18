@@ -87,7 +87,7 @@ final class AuthTest extends TestCase
             'password_confirmation' => 'short',
         ]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors('password');
+            ->assertApiValidationErrors('password');
     }
 
     public function test_registration_rejects_a_mismatched_confirmation(): void
@@ -96,7 +96,7 @@ final class AuthTest extends TestCase
             'password_confirmation' => 'boshqacha1234',
         ]))
             ->assertStatus(422)
-            ->assertJsonValidationErrors('password');
+            ->assertApiValidationErrors('password');
     }
 
     public function test_a_failed_registration_creates_neither_tenant_nor_user(): void
@@ -159,7 +159,7 @@ final class AuthTest extends TestCase
             'password' => 'notoq',
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('email');
+            ->assertApiValidationErrors('email');
     }
 
     public function test_an_unknown_account_fails_the_same_way_as_a_wrong_password(): void
@@ -196,7 +196,7 @@ final class AuthTest extends TestCase
     {
         $this->postJson('/api/v1/auth/login', ['password' => 'parol1234'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['email', 'phone']);
+            ->assertApiValidationErrors(['email', 'phone']);
     }
 
     public function test_signing_in_again_on_the_same_device_replaces_its_token(): void
@@ -294,7 +294,7 @@ final class AuthTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/auth/context')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 
     public function test_a_users_own_tenant_resolves_without_any_header(): void
@@ -323,7 +323,7 @@ final class AuthTest extends TestCase
 
         $this->getJson('/api/v1/auth/context')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_INACTIVE');
+            ->assertApiError('tenant.inactive');
     }
 
     // ============ Health ============

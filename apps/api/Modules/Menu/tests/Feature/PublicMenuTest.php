@@ -37,7 +37,7 @@ final class PublicMenuTest extends TestCase
     {
         $this->getJson('/api/v1/public/menu')
             ->assertStatus(400)
-            ->assertJsonPath('code', 'TENANT_REQUIRED');
+            ->assertApiError('tenant.required');
     }
 
     public function test_guest_sees_active_sections_and_sellable_items(): void

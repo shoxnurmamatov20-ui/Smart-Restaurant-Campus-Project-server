@@ -94,7 +94,7 @@ final class CashShiftTest extends TestCase
 
         $this->postJson('/api/v1/finance/payments', ['method' => 'cash', 'amount' => 0])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('amount');
+            ->assertApiValidationErrors('amount');
     }
 
     public function test_an_unknown_payment_method_is_rejected(): void
@@ -103,7 +103,7 @@ final class CashShiftTest extends TestCase
 
         $this->postJson('/api/v1/finance/payments', ['method' => 'bitcoin', 'amount' => 1000])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('method');
+            ->assertApiValidationErrors('method');
     }
 
     public function test_a_refund_keeps_the_row_visible(): void
@@ -136,7 +136,7 @@ final class CashShiftTest extends TestCase
 
         $this->postJson("/api/v1/finance/payments/{$payment->id}/refund", [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('reason');
+            ->assertApiValidationErrors('reason');
     }
 
     // ============ Z-report ============
@@ -228,6 +228,6 @@ final class CashShiftTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/finance/payments')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

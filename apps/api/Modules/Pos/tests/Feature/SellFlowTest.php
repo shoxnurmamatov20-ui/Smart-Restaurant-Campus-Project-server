@@ -216,7 +216,7 @@ final class SellFlowTest extends TestCase
         $this->bearer($this->sessionToken)
             ->postJson('/api/v1/pos/bills', ['channel' => 'dine_in'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('X-Pos-Local-Id');
+            ->assertApiValidationErrors('X-Pos-Local-Id');
     }
 
     public function test_a_refused_write_leaves_no_claim_behind(): void
@@ -260,8 +260,7 @@ final class SellFlowTest extends TestCase
         // to retry something that will never succeed.
         $this->till(token: $managerSession)
             ->postJson("/api/v1/pos/bills/{$bill['id']}/lines", ['menu_item_id' => $dish->id])
-            ->assertStatus(422)
-            ->assertJsonPath('code', 'POS_BILL_REFUSED');
+            ->assertApiError('pos.bill_refused');
     }
 
     public function test_an_empty_bill_cannot_go_to_the_kitchen(): void
@@ -285,14 +284,14 @@ final class SellFlowTest extends TestCase
 
         // No reason at all: rejected before anyone is asked to authorise it.
         $this->till()->deleteJson("/api/v1/pos/bills/{$bill['id']}/lines/{$lineId}")
-            ->assertStatus(422)->assertJsonValidationErrors('reason');
+            ->assertStatus(422)->assertApiValidationErrors('reason');
 
         // With a reason, a cashier still cannot void unsupervised — the request
         // goes into the manager's queue instead. TillMoneyTest carries that
         // story through to the signature.
         $this->till()->deleteJson("/api/v1/pos/bills/{$bill['id']}/lines/{$lineId}", [
             'reason' => 'Mehmon fikridan qaytdi',
-        ])->assertStatus(403)->assertJsonPath('code', 'POS_APPROVAL_REQUIRED');
+        ])->assertApiError('pos.approval_required');
     }
 
     // ============ Splitting and moving ============
@@ -344,7 +343,7 @@ final class SellFlowTest extends TestCase
         $this->bearer($this->deviceToken)
             ->postJson('/api/v1/pos/auth/pin', ['user_id' => $chef->id, 'pin' => '3333'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('pin');
+            ->assertApiValidationErrors('pin');
     }
 
     public function test_a_waiter_may_sell_but_not_cancel_a_bill(): void
@@ -368,8 +367,7 @@ final class SellFlowTest extends TestCase
         $this->bearer($this->deviceToken)
             ->withHeader('X-Pos-Local-Id', (string) Str::uuid())
             ->postJson('/api/v1/pos/bills', ['channel' => 'dine_in'])
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'POS_SESSION_REQUIRED');
+            ->assertApiError('pos.session_required');
     }
 
     // ============ Tenancy ============
@@ -388,7 +386,6 @@ final class SellFlowTest extends TestCase
         $context->set($this->tenant);
 
         $this->till()->getJson("/api/v1/pos/bills/{$theirBill->id}")
-            ->assertStatus(404)
-            ->assertJsonPath('code', 'POS_BILL_NOT_FOUND');
+            ->assertApiError('pos.bill_not_found');
     }
 }

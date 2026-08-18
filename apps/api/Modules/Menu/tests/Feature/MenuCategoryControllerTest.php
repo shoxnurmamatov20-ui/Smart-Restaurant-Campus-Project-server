@@ -73,7 +73,7 @@ final class MenuCategoryControllerTest extends TestCase
             'name' => ['uz' => 'Issiq taomlar'],
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('slug');
+            ->assertApiValidationErrors('slug');
     }
 
     public function test_validation_rejects_duplicate_slug(): void
@@ -86,7 +86,7 @@ final class MenuCategoryControllerTest extends TestCase
             'name' => ['uz' => 'Salatlar'],
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('slug');
+            ->assertApiValidationErrors('slug');
     }
 
     public function test_category_cannot_be_its_own_parent(): void
@@ -98,7 +98,7 @@ final class MenuCategoryControllerTest extends TestCase
             'parent_id' => $category->id,
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('parent_id');
+            ->assertApiValidationErrors('parent_id');
     }
 
     public function test_root_filter_returns_only_top_level_sections(): void

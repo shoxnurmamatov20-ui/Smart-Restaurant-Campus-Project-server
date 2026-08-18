@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ApiException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -100,7 +101,7 @@ final class IngredientController extends Controller
         ]);
 
         if ($validated['quantity'] < 0 && $ingredient->stock_quantity + $validated['quantity'] < 0) {
-            abort(422, 'Ombor qoldig\'idan ko\'p chiqim qilib bo\'lmaydi.');
+            throw ApiException::of('stock.insufficient', field: 'quantity');
         }
 
         $movement = $ingredient->move(

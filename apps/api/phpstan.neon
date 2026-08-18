@@ -60,3 +60,17 @@ parameters:
         -
             identifier: larastan.noEnvCallsOutsideOfConfig
             path: Modules/*/config/*.php
+
+        # The two error-envelope assertions are TestResponse macros, registered
+        # in Tests\TestCase. A macro is a closure in a static array reached
+        # through __call, so PHPStan cannot see it.
+        #
+        # A stub was tried first and rejected: a PHPStan stub REPLACES the class
+        # it names, and Illuminate\Testing\TestResponse is generic and
+        # implements ArrayAccess, so a two-method stub does not merge. Naming
+        # the two methods exactly — rather than silencing method.notFound on the
+        # whole file — keeps a misspelled assertion failing, which is the only
+        # thing this suppression could otherwise hide.
+        -
+            message: '#Call to an undefined method .*TestResponse::assertApi(Error|ValidationErrors)\(\)#'
+            path: Modules/*/tests/*

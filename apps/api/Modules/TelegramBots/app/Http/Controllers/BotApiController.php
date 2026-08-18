@@ -8,11 +8,14 @@ use App\Contracts\Menu\MenuCatalog;
 use App\Contracts\Menu\Section;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Errors\ApiError;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\TelegramBots\Models\Bot;
 use Modules\TelegramBots\Models\BotUser;
 use Modules\TelegramBots\Models\CommandLog;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Endpoints called BY the Python telegram-bots service (apps/telegram-bots).
@@ -292,11 +295,17 @@ final class BotApiController extends Controller
 
     private function notImplemented(string $feature, string $blockingModule): JsonResponse
     {
-        return response()->json([
-            'message' => "Bu funksiya hozircha yo'q. ({$blockingModule} kutilmoqda.)",
-            'code' => 'FEATURE_NOT_IMPLEMENTED',
-            'feature' => $feature,
-            'blocked_by' => $blockingModule,
-        ], 501);
+        // Which feature and which module is blocking it ride along, because
+        // a bot that says only "not yet" gives the operator nothing to chase.
+        return ErrorResponse::make(
+            new ApiError(
+                'bots.feature_not_implemented',
+                Response::HTTP_NOT_IMPLEMENTED,
+                "Bu funksiya hozircha yo'q. ({$blockingModule} kutilmoqda.)",
+                "Эта функция пока недоступна. (Ожидается {$blockingModule}.)",
+                "This is not built yet. (Waiting on {$blockingModule}.)",
+            ),
+            meta: ['feature' => $feature, 'blocked_by' => $blockingModule],
+        );
     }
 }

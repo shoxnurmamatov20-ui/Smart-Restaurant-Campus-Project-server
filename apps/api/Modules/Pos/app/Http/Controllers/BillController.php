@@ -6,6 +6,8 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Contracts\Orders\BillRegistry;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorCatalogue;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -210,29 +212,24 @@ final class BillController extends Controller
                 amount: $amount,
             );
 
-            return response()->json([
-                'message' => 'Menejer tasdig\'i kerak.',
-                'code' => 'POS_APPROVAL_REQUIRED',
-                'approval_id' => $approval->id,
-                'expires_at' => $approval->expires_at?->toIso8601String(),
-            ], Response::HTTP_FORBIDDEN);
+            return ErrorResponse::code('pos.approval_required');
         }
 
         try {
             $this->approvals->consume($approvalId, $action, $subjectType, $subjectId);
         } catch (RuntimeException $failure) {
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_APPROVAL_INVALID',
-            ], Response::HTTP_FORBIDDEN);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.approval_invalid'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return null;
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @param callable(): array<string, mixed> $work
+     * @param  array<string, mixed>  $payload
+     * @param  callable(): array<string, mixed>  $work
      */
     private function idempotent(
         Request $request,
@@ -255,10 +252,10 @@ final class BillController extends Controller
             // a closed bill, a missing dish, a discount larger than the total.
             // None of those are server faults, and a 500 would make the till
             // retry something that will never succeed.
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_BILL_REFUSED',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.bill_refused'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return response()->json(
@@ -270,9 +267,6 @@ final class BillController extends Controller
 
     private function notFound(): JsonResponse
     {
-        return response()->json([
-            'message' => 'Hisob topilmadi.',
-            'code' => 'POS_BILL_NOT_FOUND',
-        ], Response::HTTP_NOT_FOUND);
+        return ErrorResponse::code('pos.bill_not_found');
     }
 }

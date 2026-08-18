@@ -6,6 +6,8 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Contracts\Finance\TillLedger;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorCatalogue;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -61,10 +63,7 @@ final class DrawerController extends Controller
         $shiftId = $session->cash_shift_id ?? $this->till->openShiftFor((int) $session->user_id);
 
         if ($shiftId === null) {
-            return response()->json([
-                'message' => 'Ochiq smena yo\'q. Avval smenani oching.',
-                'code' => 'POS_NO_OPEN_SHIFT',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::code('pos.no_open_shift');
         }
 
         try {
@@ -77,10 +76,10 @@ final class DrawerController extends Controller
                 approvalId: isset($validated['approval_id']) ? (int) $validated['approval_id'] : null,
             );
         } catch (RuntimeException $failure) {
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_DRAWER_REFUSED',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.drawer_refused'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return (new DrawerMovementResource($movement->load('user')))

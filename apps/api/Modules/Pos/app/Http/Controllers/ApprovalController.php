@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ErrorCatalogue;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -67,10 +69,10 @@ final class ApprovalController extends Controller
                 amount: (int) ($validated['amount'] ?? 0),
             );
         } catch (RuntimeException $failure) {
-            return response()->json([
-                'message' => $failure->getMessage(),
-                'code' => 'POS_APPROVAL_INVALID',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::make(
+                ErrorCatalogue::get('pos.approval_invalid'),
+                meta: ['detail' => $failure->getMessage()],
+            );
         }
 
         return (new PosApprovalResource($approval->load('requestedBy')))
@@ -90,17 +92,11 @@ final class ApprovalController extends Controller
         // The person who asked can never be the person who agrees. Without this
         // line the whole table is decoration.
         if ((int) $approval->requested_by_user_id === (int) $manager->getKey()) {
-            return response()->json([
-                'message' => 'O\'z so\'rovingizni o\'zingiz tasdiqlay olmaysiz.',
-                'code' => 'POS_APPROVAL_SELF',
-            ], Response::HTTP_FORBIDDEN);
+            return ErrorResponse::code('pos.approval_self');
         }
 
         if (! $approval->decide($manager, (bool) $validated['approved'], (string) ($validated['method'] ?? 'pin'))) {
-            return response()->json([
-                'message' => 'Bu so\'rovga allaqachon javob berilgan yoki muddati o\'tgan.',
-                'code' => 'POS_APPROVAL_CLOSED',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ErrorResponse::code('pos.approval_closed');
         }
 
         return response()->json([

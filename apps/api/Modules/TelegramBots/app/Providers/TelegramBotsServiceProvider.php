@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Providers;
 
+use App\Support\Errors\ApiError;
+use App\Support\Errors\ErrorCatalogue;
 use Illuminate\Console\Scheduling\Schedule;
 use Modules\TelegramBots\Console\CheckConfigCommand;
 use Modules\TelegramBots\Console\RotateInternalTokenCommand;
 use Modules\TelegramBots\Console\SyncBotRegistryCommand;
 use Modules\TelegramBots\Http\Middleware\InternalBotsAuth;
 use Nwidart\Modules\Support\ModuleServiceProvider;
+use Symfony\Component\HttpFoundation\Response;
 
 class TelegramBotsServiceProvider extends ModuleServiceProvider
 {
@@ -60,4 +63,33 @@ class TelegramBotsServiceProvider extends ModuleServiceProvider
     // {
     //     $schedule->command('inspire')->hourly();
     // }
+
+    public function register(): void
+    {
+        parent::register();
+
+        ErrorCatalogue::register(
+            new ApiError(
+                'bots.token_not_configured',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                'Botlar uchun ichki token sozlanmagan.',
+                'Внутренний токен для ботов не настроен.',
+                'The internal bot token is not configured.',
+            ),
+            new ApiError(
+                'bots.feature_not_implemented',
+                Response::HTTP_NOT_IMPLEMENTED,
+                'Bu funksiya hozircha yo\'q.',
+                'Эта функция пока недоступна.',
+                'This is not built yet.',
+            ),
+            new ApiError(
+                'bots.invalid_token',
+                Response::HTTP_UNAUTHORIZED,
+                'Ichki token noto\'g\'ri.',
+                'Неверный внутренний токен.',
+                'That internal token is not valid.',
+            ),
+        );
+    }
 }

@@ -6,6 +6,7 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -125,30 +126,21 @@ final class PosAuthController extends Controller
         $isSelf = $targetId === (int) $actor->getKey();
 
         if (! $isSelf && ! $actor->can('pos.approve')) {
-            return response()->json([
-                'message' => 'Boshqa xodimning PIN kodini faqat menejer o\'zgartira oladi.',
-                'code' => 'POS_PIN_FORBIDDEN',
-            ], Response::HTTP_FORBIDDEN);
+            return ErrorResponse::code('pos.pin_forbidden');
         }
 
         /** @var User|null $target */
         $target = User::query()->whereKey($targetId)->first();
 
         if ($target === null || $target->tenant_id !== $actor->tenant_id) {
-            return response()->json([
-                'message' => 'Xodim topilmadi.',
-                'code' => 'POS_USER_NOT_FOUND',
-            ], Response::HTTP_NOT_FOUND);
+            return ErrorResponse::code('pos.user_not_found');
         }
 
         if ($isSelf) {
             $existing = PosPin::query()->where('user_id', $targetId)->first();
 
             if ($existing !== null && ! $this->currentPinMatches($request, $existing)) {
-                return response()->json([
-                    'message' => 'Joriy PIN noto\'g\'ri.',
-                    'code' => 'POS_PIN_MISMATCH',
-                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                return ErrorResponse::code('pos.pin_mismatch');
             }
         }
 
@@ -180,9 +172,6 @@ final class PosAuthController extends Controller
 
     private function terminalTokenRequired(): JsonResponse
     {
-        return response()->json([
-            'message' => 'Bu endpoint faqat terminal tokeni bilan ishlaydi.',
-            'code' => 'TERMINAL_TOKEN_REQUIRED',
-        ], Response::HTTP_FORBIDDEN);
+        return ErrorResponse::code('pos.terminal_token_required');
     }
 }

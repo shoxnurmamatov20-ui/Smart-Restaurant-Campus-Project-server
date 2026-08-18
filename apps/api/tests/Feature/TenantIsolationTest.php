@@ -176,7 +176,7 @@ final class TenantIsolationTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/menu/items')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 
     public function test_naming_our_own_restaurant_in_the_header_is_fine(): void

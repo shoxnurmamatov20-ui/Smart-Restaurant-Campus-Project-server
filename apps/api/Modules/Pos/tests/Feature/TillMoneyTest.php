@@ -149,7 +149,7 @@ final class TillMoneyTest extends TestCase
 
         $this->till()->postJson("/api/v1/pos/bills/{$bill['id']}/tenders", [
             'tenders' => [['method' => 'cash', 'amount' => 4_500_000]],
-        ])->assertStatus(422)->assertJsonPath('code', 'POS_NO_OPEN_SHIFT');
+        ])->assertApiError('pos.no_open_shift');
     }
 
     // ============ Tendering ============
@@ -199,7 +199,7 @@ final class TillMoneyTest extends TestCase
         // A card terminal is not a cash machine.
         $this->till()->postJson("/api/v1/pos/bills/{$billId}/tenders", [
             'tenders' => [['method' => 'card', 'amount' => 5_000_000]],
-        ])->assertStatus(422)->assertJsonPath('code', 'POS_TENDER_REFUSED');
+        ])->assertApiError('pos.tender_refused');
     }
 
     public function test_underpaying_leaves_the_bill_open(): void
@@ -237,7 +237,7 @@ final class TillMoneyTest extends TestCase
 
         $refusal = $this->till()->deleteJson("/api/v1/pos/bills/{$billId}/lines/{$lineId}", [
             'reason' => 'Mehmon fikridan qaytdi',
-        ])->assertStatus(403)->assertJsonPath('code', 'POS_APPROVAL_REQUIRED');
+        ])->assertApiError('pos.approval_required');
 
         // The bill is untouched — a refused void must change nothing.
         $this->assertSame(4_500_000, $this->till()->getJson("/api/v1/pos/bills/{$billId}")
@@ -296,7 +296,7 @@ final class TillMoneyTest extends TestCase
 
         $this->till()->deleteJson("/api/v1/pos/bills/{$billId}/lines/{$lineId}", [
             'reason' => 'Yana bir marta', 'approval_id' => $approvalId,
-        ])->assertStatus(403)->assertJsonPath('code', 'POS_APPROVAL_INVALID');
+        ])->assertApiError('pos.approval_invalid');
     }
 
     public function test_nobody_signs_off_their_own_request(): void
@@ -310,8 +310,7 @@ final class TillMoneyTest extends TestCase
 
         $this->till(token: $managerSession)
             ->postJson("/api/v1/pos/approvals/{$approval['id']}/decide", ['approved' => true])
-            ->assertStatus(403)
-            ->assertJsonPath('code', 'POS_APPROVAL_SELF');
+            ->assertApiError('pos.approval_self');
     }
 
     public function test_a_cashier_cannot_decide_anything(): void
@@ -368,7 +367,7 @@ final class TillMoneyTest extends TestCase
 
         $this->till()->postJson('/api/v1/pos/drawer/movements', [
             'kind' => 'collection', 'amount' => 5_000_000,
-        ])->assertStatus(422)->assertJsonValidationErrors('reason');
+        ])->assertStatus(422)->assertApiValidationErrors('reason');
     }
 
     public function test_a_waiter_cannot_touch_the_drawer(): void

@@ -96,7 +96,7 @@ final class TablesControllerTest extends TestCase
 
         $this->postJson('/api/v1/tables/halls', ['code' => 'MAIN', 'name' => 'Ikkinchi zal'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('code');
+            ->assertApiValidationErrors('code');
     }
 
     public function test_hall_listing_includes_table_counts(): void
@@ -143,7 +143,7 @@ final class TablesControllerTest extends TestCase
             'kind' => 'helipad',
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('kind');
+            ->assertApiValidationErrors('kind');
     }
 
     public function test_free_filter_excludes_busy_tables(): void
@@ -203,7 +203,7 @@ final class TablesControllerTest extends TestCase
             'starts_at' => now()->subHour()->toIso8601String(),
         ])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('starts_at');
+            ->assertApiValidationErrors('starts_at');
     }
 
     public function test_seating_a_reservation_also_occupies_the_table(): void
@@ -291,6 +291,6 @@ final class TablesControllerTest extends TestCase
         $this->withHeader('X-Tenant', 'city-cafe')
             ->getJson('/api/v1/tables/tables')
             ->assertStatus(403)
-            ->assertJsonPath('code', 'TENANT_MISMATCH');
+            ->assertApiError('tenant.mismatch');
     }
 }

@@ -146,7 +146,7 @@ final class BranchIsolationTest extends TestCase
         // A refusal, not an empty list: an empty list reads as "quiet day in
         // Termiz" and hides the fact that someone asked.
         $response->assertForbidden();
-        $response->assertJsonPath('code', 'BRANCH_MISMATCH');
+        $response->assertApiError('branch.mismatch');
     }
 
     public function test_an_unpinned_user_may_choose_a_venue(): void
@@ -196,7 +196,7 @@ final class BranchIsolationTest extends TestCase
             ->getJson('/api/v1/auth/context');
 
         $response->assertNotFound();
-        $response->assertJsonPath('code', 'BRANCH_NOT_FOUND');
+        $response->assertApiError('branch.not_found');
     }
 
     public function test_a_pinned_user_sees_only_their_own_venue_in_the_switcher(): void
