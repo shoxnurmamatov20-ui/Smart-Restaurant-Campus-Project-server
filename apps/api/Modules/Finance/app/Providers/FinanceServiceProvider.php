@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Finance\Providers;
 
+use App\Contracts\Finance\DayBook;
 use App\Contracts\Finance\TillLedger;
 use App\Support\Modules\ApiModuleServiceProvider;
+use Modules\Finance\Services\EloquentDayBook;
 use Modules\Finance\Services\EloquentTillLedger;
 
 class FinanceServiceProvider extends ApiModuleServiceProvider
@@ -42,5 +44,9 @@ class FinanceServiceProvider extends ApiModuleServiceProvider
         parent::register();
 
         $this->app->bind(TillLedger::class, EloquentTillLedger::class);
+
+        // The day's takings for surfaces that are not the cash desk — the POS
+        // idle screen first. Same override-the-fallback shape as the ledger.
+        $this->app->bind(DayBook::class, EloquentDayBook::class);
     }
 }

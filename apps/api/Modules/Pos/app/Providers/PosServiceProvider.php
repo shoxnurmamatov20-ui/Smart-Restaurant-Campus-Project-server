@@ -8,6 +8,7 @@ use App\Support\Errors\ApiError;
 use App\Support\Errors\ErrorCatalogue;
 use App\Support\Modules\ApiModuleServiceProvider;
 use Modules\Pos\Http\Middleware\RequireTerminalSession;
+use Modules\Pos\Http\Middleware\RequireTerminalToken;
 use Symfony\Component\HttpFoundation\Response;
 
 class PosServiceProvider extends ApiModuleServiceProvider
@@ -39,6 +40,11 @@ class PosServiceProvider extends ApiModuleServiceProvider
         // Every till write needs to know which terminal and which person, and
         // neither may come from the request body. See the middleware.
         $this->app['router']->aliasMiddleware('pos.session', RequireTerminalSession::class);
+
+        // The device-only gate: a paired, active terminal and no person yet.
+        // Used by the heartbeat and the idle screen, which both answer before
+        // anybody has typed a PIN.
+        $this->app['router']->aliasMiddleware('pos.device', RequireTerminalToken::class);
     }
 
     /**
@@ -97,6 +103,13 @@ class PosServiceProvider extends ApiModuleServiceProvider
                 'Terminal tokeni talab qilinadi.',
                 'Требуется токен терминала.',
                 'A terminal token is required.',
+            ),
+            new ApiError(
+                'pos.terminal_disabled',
+                Response::HTTP_FORBIDDEN,
+                'Bu terminal o\'chirilgan — menejerga murojaat qiling.',
+                'Этот терминал отключён — обратитесь к менеджеру.',
+                'This terminal has been switched off — speak to a manager.',
             ),
             new ApiError(
                 'pos.pin_forbidden',

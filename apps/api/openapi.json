@@ -5579,6 +5579,42 @@
                 }
             }
         },
+        "/v1/pos/idle": {
+            "get": {
+                "operationId": "api.v1.pos.idle",
+                "tags": [
+                    "pos"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/XTenant"
+                    },
+                    {
+                        "$ref": "#/components/parameters/XBranch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/XLocale"
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "Success shapes are resource-specific; every failure is the Error envelope with a code from x-error-catalogue.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/pos/payments/{payment}/refund": {
             "post": {
                 "operationId": "api.v1.pos.payments.refund",
@@ -8405,6 +8441,13 @@
             "message_uz": "To'lovni qabul qilib bo'lmadi.",
             "message_ru": "Оплату принять не удалось.",
             "message_en": "The payment could not be taken."
+        },
+        "pos.terminal_disabled": {
+            "status": 403,
+            "retryable": false,
+            "message_uz": "Bu terminal o'chirilgan — menejerga murojaat qiling.",
+            "message_ru": "Этот терминал отключён — обратитесь к менеджеру.",
+            "message_en": "This terminal has been switched off — speak to a manager."
         },
         "pos.terminal_inactive": {
             "status": 403,

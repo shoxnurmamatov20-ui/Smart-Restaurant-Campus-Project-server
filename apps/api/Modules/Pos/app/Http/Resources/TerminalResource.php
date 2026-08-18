@@ -21,6 +21,26 @@ final class TerminalResource extends JsonResource
         return [
             'id' => $this->id,
             'branch_id' => $this->branch_id,
+
+            /*
+             * The branch's NAME, not just its id.
+             *
+             * Every screen that lists a till writes it as "POS-3 · Chilonzor" —
+             * the design's terminal-health table, the receipt footer, the idle
+             * screen's identity line. An id forces each of them into a second
+             * request or a lookup table of its own, and a client-side lookup
+             * table of branch names is a client-side copy of the org chart.
+             *
+             * `whenLoaded`, so listing forty tills does not become forty-one
+             * queries. The controller eager-loads it; a caller who did not gets
+             * the id alone rather than a silent N+1.
+             */
+            'branch' => $this->whenLoaded('branch', fn (): ?array => $this->branch === null ? null : [
+                'id' => $this->branch->id,
+                'name' => $this->branch->name,
+                'slug' => $this->branch->slug,
+            ]),
+
             'code' => $this->code,
             'name' => $this->name,
             'mode' => $this->mode,

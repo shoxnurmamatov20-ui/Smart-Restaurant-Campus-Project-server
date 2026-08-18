@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Finance\DayBook;
 use App\Contracts\Finance\TillLedger;
+use App\Contracts\Finance\UnavailableDayBook;
 use App\Contracts\Finance\UnavailableTillLedger;
 use App\Contracts\Menu\MenuCatalog;
 use App\Contracts\Menu\UnavailableMenuCatalog;
 use App\Contracts\Orders\BillRegistry;
 use App\Contracts\Orders\UnavailableBillRegistry;
+use App\Contracts\Staff\Roster;
+use App\Contracts\Staff\UnavailableRoster;
+use App\Contracts\Tables\FloorBoard;
+use App\Contracts\Tables\UnavailableFloorBoard;
 use App\Support\Events\EventBus;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\BranchContext;
@@ -58,6 +64,14 @@ class AppServiceProvider extends ServiceProvider
         // running would take cash off guests with no record of it.
         $this->app->bindIf(BillRegistry::class, UnavailableBillRegistry::class);
         $this->app->bindIf(TillLedger::class, UnavailableTillLedger::class);
+
+        // The idle screen's three read contracts. These fallbacks answer zero
+        // rather than refusing, because their absence is a true state — a
+        // counter with no floor plan, a kiosk with no staff module — and the
+        // screen simply hides the figure.
+        $this->app->bindIf(FloorBoard::class, UnavailableFloorBoard::class);
+        $this->app->bindIf(Roster::class, UnavailableRoster::class);
+        $this->app->bindIf(DayBook::class, UnavailableDayBook::class);
     }
 
     /**

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Pos\Http\Controllers\ApprovalController;
 use Modules\Pos\Http\Controllers\BillController;
 use Modules\Pos\Http\Controllers\DrawerController;
+use Modules\Pos\Http\Controllers\IdleController;
 use Modules\Pos\Http\Controllers\PosAuthController;
 use Modules\Pos\Http\Controllers\PosController;
 use Modules\Pos\Http\Controllers\ShiftController;
@@ -51,9 +52,18 @@ Route::middleware(['auth:sanctum', 'tenant'])
         Route::post('terminals', [TerminalController::class, 'store'])
             ->middleware(PermissionMiddleware::using('pos.terminal'))->name('terminals.store');
 
-        // Declared before `terminals/{terminal}` so the literal segment wins.
-        Route::post('terminals/heartbeat', [TerminalController::class, 'heartbeat'])
-            ->name('terminals.heartbeat');
+        // ---- Device-only endpoints ----
+        // Both answer before anybody has typed a PIN, so `pos.device` is the
+        // guard: a paired, active terminal and no person. The heartbeat is
+        // declared before `terminals/{terminal}` so the literal segment wins.
+        Route::middleware('pos.device')->group(function (): void {
+            Route::post('terminals/heartbeat', [TerminalController::class, 'heartbeat'])
+                ->name('terminals.heartbeat');
+
+            // What a till shows all day when nobody is signed in: its identity,
+            // the room's two counts, who is on shift, today's takings.
+            Route::get('idle', IdleController::class)->name('idle');
+        });
 
         Route::get('terminals/{terminal}', [TerminalController::class, 'show'])
             ->middleware(PermissionMiddleware::using('pos.view'))->name('terminals.show');

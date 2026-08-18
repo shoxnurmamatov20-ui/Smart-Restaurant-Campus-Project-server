@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
+use Modules\Pos\Http\Middleware\RequireTerminalToken;
 use Modules\Pos\Http\Requests\PairTerminalRequest;
 use Modules\Pos\Http\Requests\StoreTerminalRequest;
 use Modules\Pos\Http\Requests\UpdateTerminalRequest;
@@ -39,7 +39,10 @@ final class TerminalController extends Controller
     {
         $perPage = min($request->integer('per_page', 50), self::MAX_PER_PAGE);
 
-        $terminals = QueryBuilder::for(Terminal::class)
+        // The eager load goes into the model query rather than onto the
+        // QueryBuilder: `->with()` is proxied through to Eloquent and returns
+        // ITS builder, so the Spatie-specific calls after it would be gone.
+        $terminals = QueryBuilder::for(Terminal::query()->with('branch'))
             ->allowedFilters([
                 AllowedFilter::exact('mode'),
                 AllowedFilter::exact('status'),
@@ -71,7 +74,7 @@ final class TerminalController extends Controller
         $terminal = Terminal::create($request->validated());
         $code = $this->pairing->issueCode($terminal);
 
-        return (new TerminalResource($terminal))
+        return (new TerminalResource($terminal->load('branch')))
             ->additional(['pairing' => [
                 'code' => $code,
                 'expires_at' => $terminal->fresh()?->pairing_expires_at?->toIso8601String(),
@@ -82,14 +85,14 @@ final class TerminalController extends Controller
 
     public function show(Terminal $terminal): TerminalResource
     {
-        return new TerminalResource($terminal);
+        return new TerminalResource($terminal->load('branch'));
     }
 
     public function update(UpdateTerminalRequest $request, Terminal $terminal): TerminalResource
     {
         $terminal->update($request->validated());
 
-        return new TerminalResource($terminal->fresh());
+        return new TerminalResource($terminal->fresh()?->load('branch'));
     }
 
     /**
@@ -118,7 +121,9 @@ final class TerminalController extends Controller
 
         return response()->json([
             'token' => $token->plainTextToken,
-            'terminal' => (new TerminalResource($terminal))->resolve($request),
+            // With the branch: the tablet paints "POS-3 · Chilonzor" the
+            // instant it pairs, before it has asked anything else.
+            'terminal' => (new TerminalResource($terminal->load('branch')))->resolve($request),
             // The till sends this back as X-Tenant on every later request: a
             // device token is not a user, so ResolveTenant cannot infer the
             // restaurant from it.
@@ -135,24 +140,12 @@ final class TerminalController extends Controller
      */
     public function heartbeat(Request $request): JsonResponse
     {
-        /*
-         * Sanctum hands back whichever model owns the presented token, and a
-         * Terminal owns its own: it is Authenticatable, uses HasApiTokens, and
-         * TerminalPairing mints the token against it.
-         *
-         * Without this annotation static analysis infers User|null from the
-         * provider model in config/auth.php, concludes the guard below can never
-         * pass, and reports everything after it as unreachable — as though this
-         * endpoint always answered 403. It does not. The inferred type was
-         * simply narrower than the truth.
-         *
-         * @var \Modules\Pos\Models\Terminal|\App\Models\User|null $terminal
-         */
-        $terminal = $request->user();
-
-        if (! $terminal instanceof Terminal) {
-            return ErrorResponse::code('pos.terminal_token_required');
-        }
+        // Resolved by `pos.device`. This used to read `$request->user()` and
+        // check the type by hand, under a comment saying a `@var` annotation
+        // had taught static analysis the truth — it had not, two baseline
+        // entries were hiding the "unreachable code" it still reported. The
+        // middleware makes the type honest at both ends.
+        $terminal = RequireTerminalToken::of($request);
 
         $terminal->forceFill([
             'last_seen_at' => now(),

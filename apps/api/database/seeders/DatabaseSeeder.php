@@ -18,6 +18,7 @@ use Modules\Kitchen\Database\Seeders\KitchenDatabaseSeeder;
 use Modules\Kitchen\Database\Seeders\KitchenTicketSeeder;
 use Modules\Menu\Database\Seeders\MenuDatabaseSeeder;
 use Modules\Orders\Database\Seeders\OrdersDatabaseSeeder;
+use Modules\Pos\Database\Seeders\PosDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffShiftSeeder;
 use Modules\Suppliers\Database\Seeders\SuppliersDatabaseSeeder;
@@ -111,6 +112,12 @@ final class DatabaseSeeder extends Seeder
                 // an expense is paid out of the shift FinanceDatabaseSeeder
                 // opened above.
                 FinancePaymentSeeder::class,
+
+                // The tills. After branches (a terminal stands in one) and
+                // after UserSeeder (a PIN belongs to a person), and it was
+                // simply never listed here — so `db:seed` produced a platform
+                // with zero terminals and the POS could not be opened at all.
+                PosDatabaseSeeder::class,
 
                 // The rota. Depends only on the hired staff above, but kept
                 // with the other derived seeders so the reading order matches

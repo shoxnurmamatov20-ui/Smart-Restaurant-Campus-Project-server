@@ -84,6 +84,7 @@ final class ModuleRouteGuardTest extends TestCase
         // with a PIN. Neither can hold a permission before it happens.
         'api/v1/pos/terminals/pair' => 'device pairing: no user yet',
         'api/v1/pos/terminals/heartbeat' => 'device liveness: no user yet',
+        'api/v1/pos/idle' => 'the idle screen: renders before any PIN, device token is the authorisation',
         'api/v1/pos/auth/pin' => 'the PIN keypad itself, throttled 20/min',
         'api/v1/pos/auth/staff' => 'who may sign in at this terminal',
         'api/v1/pos/auth/session' => 'the session the PIN opened',
