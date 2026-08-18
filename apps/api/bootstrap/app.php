@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureIdempotency;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\RefineLocale;
 use App\Http\Middleware\ResolveBranch;
@@ -54,6 +55,14 @@ return Application::configure(basePath: dirname(__DIR__))
             ResolveBranch::class,
             RefineLocale::class,
             EnsureModuleEnabled::class,
+
+            /*
+             * Last in the group, and deliberately so: the key is stored
+             * against the tenant, so the tenant has to be resolved first, and
+             * a request refused by any check above it never claims a key it
+             * will not use.
+             */
+            EnsureIdempotency::class,
         ]);
 
         /*
@@ -85,6 +94,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ResolveBranch::class,
             RefineLocale::class,
             EnsureModuleEnabled::class,
+            EnsureIdempotency::class,
 
             SubstituteBindings::class,
             Authorize::class,

@@ -36,3 +36,8 @@ Schedule::command('activitylog:clean')
  */
 Schedule::command('sanctum:prune-expired --hours=24')
     ->daily();
+
+// The replay window is 48 hours (DATABASE.md §6.4); anything older can never be
+// replayed, and this table is read by every write in the system — left alone it
+// grows by one row per write forever.
+Schedule::command('idempotency:prune')->hourly();

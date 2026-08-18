@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Http\Middleware\EnsureIdempotency;
 use App\Support\Errors\ErrorCatalogue;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
 
@@ -16,6 +18,29 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->registerErrorAssertions();
+    }
+
+    /**
+     * Give every mutating test request a one-time key.
+     *
+     * Production requires `Idempotency-Key` on every write, which is correct
+     * and is the foundation of offline replay. Requiring every one of two
+     * hundred existing tests to set it by hand would be two hundred lines of
+     * noise testing nothing, and the first missing one would fail with 400
+     * rather than the thing the test was about.
+     *
+     * So the harness supplies a fresh key per request, exactly as a real
+     * client does. A test that wants to prove the requirement itself sets the
+     * header to '' and gets the refusal.
+     */
+    public function json($method, $uri, array $data = [], array $headers = [], $options = 0): TestResponse
+    {
+        if (! in_array(strtoupper((string) $method), ['GET', 'HEAD', 'OPTIONS'], true)
+            && ! array_key_exists(EnsureIdempotency::HEADER, $headers)) {
+            $headers[EnsureIdempotency::HEADER] = (string) Str::uuid();
+        }
+
+        return parent::json($method, $uri, $data, $headers, $options);
     }
 
     /**
