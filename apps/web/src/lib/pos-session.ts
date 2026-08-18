@@ -72,6 +72,26 @@ export async function pairedTerminal(): Promise<PairedTerminal | null> {
 }
 
 /**
+ * The same, read off a request rather than the ambient store.
+ *
+ * A route handler has the request in its hand; reaching for `cookies()` is
+ * indirection it does not need, and the async store is not available outside a
+ * request scope — so a handler written that way cannot be tested without
+ * mocking framework internals, which is a test of the mock. Server components
+ * have no request object and keep using the store above.
+ */
+export function pairedTerminalFrom(request: {
+  cookies: { get(name: string): { value: string } | undefined };
+}): PairedTerminal | null {
+  const token = request.cookies.get(POS_TOKEN_COOKIE)?.value;
+  const tenantSlug = request.cookies.get(POS_TENANT_COOKIE)?.value;
+
+  if (token === undefined || tenantSlug === undefined) return null;
+
+  return { token, tenantSlug };
+}
+
+/**
  * The shift session token — who is standing at the till right now.
  *
  * The third credential on this tablet and deliberately not merged with either

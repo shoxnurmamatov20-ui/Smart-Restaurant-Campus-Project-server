@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { apiBase } from '@/lib/server-session';
 import {
-  pairedTerminal,
+  pairedTerminalFrom,
   POS_SHIFT_COOKIE,
   POS_SHIFT_MAX_AGE,
   posCookieOptions,
@@ -33,7 +33,7 @@ type ApiErrorBody = {
 };
 
 export async function POST(request: NextRequest) {
-  const terminal = await pairedTerminal();
+  const terminal = pairedTerminalFrom(request);
 
   if (terminal === null) {
     return NextResponse.json({ error: 'not_paired' }, { status: 409 });
@@ -64,6 +64,21 @@ export async function POST(request: NextRequest) {
         Accept: 'application/json',
         Authorization: `Bearer ${terminal.token}`,
         'X-Tenant': terminal.tenantSlug,
+
+        /*
+         * Every write to this API needs one, and signing in is a write: it
+         * opens a session. Without it the API answered
+         * `request.idempotency_key_missing` and nobody could sign in at all —
+         * found by running the whole flow against the live server rather than
+         * by reading, because the pairing call sits outside the tenant
+         * middleware group and needs no key, so the two look alike and are not.
+         *
+         * Minted per request, which is what makes it useful: a network-level
+         * retry of this same fetch carries the same key and cannot open two
+         * sessions for one tap, while a genuine second attempt after a wrong
+         * PIN gets its own.
+         */
+        'Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify({ user_id: userId, pin }),
       cache: 'no-store',
