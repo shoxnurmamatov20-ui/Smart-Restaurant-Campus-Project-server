@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { fetchIdleScreen, pairedTerminal, shiftToken } from '@/lib/pos-session';
+import { fetchIdleScreen, fetchShiftSession, pairedTerminal, shiftToken } from '@/lib/pos-session';
 
 import './pos.css';
 import { getPosBoard } from './pos-data';
@@ -54,7 +54,17 @@ export default async function PosPage() {
     return <PairPanel />;
   }
 
-  if ((await shiftToken()) === null) {
+  const shift = (await shiftToken()) === null ? null : await fetchShiftSession();
+
+  /*
+   * A cookie is not a session. The API closes an idle one after fifteen
+   * minutes, and the cookie outlives that by hours — so "we hold a token" and
+   * "somebody is signed in" are different questions, and only the second one
+   * decides what to draw. Asking gets the truthful answer and sends a
+   * timed-out tablet back to the idle screen, where the next person can put
+   * their PIN in.
+   */
+  if (shift === null) {
     /*
      * `idle` being null does NOT mean unpaired — it means the API could not be
      * read this render. The screen handles that itself: last figures, red link
@@ -73,5 +83,19 @@ export default async function PosPage() {
    */
   const board = await getPosBoard();
 
-  return <PosTerminal menu={board.menu} tables={board.tables} />;
+  return (
+    <PosTerminal
+      menu={board.menu}
+      tables={board.tables}
+      // The real names, from the API. The header used to be two fixture
+      // strings, so a waiter called Malika read "Jasur Toshev" above her own
+      // order — on the screen every void is attributed through.
+      who={shift.user?.name ?? null}
+      terminal={
+        shift.terminal
+          ? [shift.terminal.branch?.name, shift.terminal.code].filter(Boolean).join(' · ')
+          : null
+      }
+    />
+  );
 }

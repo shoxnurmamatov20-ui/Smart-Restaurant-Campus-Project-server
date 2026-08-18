@@ -65,9 +65,15 @@ type CartLine = {
 export function PosTerminal({
   menu,
   tables,
+  who = null,
+  terminal = null,
 }: {
   menu: readonly MenuItem[];
   tables: readonly PosTable[];
+  /** The person signed in, from the API. Null only in the fixture console. */
+  who?: string | null;
+  /** "Chilonzor · POS-3", from the API. Null only in the fixture console. */
+  terminal?: string | null;
 }) {
   const messages = useMessages() as Messages;
   const m = messages.console.pos;
@@ -152,7 +158,7 @@ export function PosTerminal({
   if (!table && !takeaway) {
     return (
       <div className="flex h-screen flex-col">
-        <PosHeader m={m} />
+        <PosHeader m={m} who={who} terminal={terminal} />
 
         <div data-scroll className="min-h-0 flex-1 p-6">
           <div className="mx-auto max-w-[900px]">
@@ -215,6 +221,8 @@ export function PosTerminal({
     <div className="flex h-screen flex-col">
       <PosHeader
         m={m}
+        who={who}
+        terminal={terminal}
         where={table ? table.name : m.takeaway}
         covers={table?.guests ?? null}
         coversLabel={m.covers}
@@ -488,12 +496,16 @@ function PosHeader({
   covers,
   coversLabel,
   onBack,
+  who,
+  terminal,
 }: {
   m: Messages['console']['pos'];
   where?: string;
   covers?: number | null;
   coversLabel?: string;
   onBack?: () => void;
+  who?: string | null;
+  terminal?: string | null;
 }) {
   return (
     <header className="border-border bg-surface flex h-16 flex-none items-center gap-4 border-b px-5">
@@ -510,10 +522,15 @@ function PosHeader({
 
       <div className="min-w-0">
         <div className="font-display text-md tracking-snug leading-tight font-semibold">
-          {where ?? m.heading}
+          {where ?? terminal ?? m.heading}
         </div>
         <div data-num className="text-fg-subtle mt-0.5 text-xs">
-          {where && covers ? `${covers} ${coversLabel}` : m.sub}
+          {/*
+           * Whichever is true here. On a table: how many are sitting at it. On
+           * the floor screen: who is signed in. The fixture strings are last,
+           * and only reachable in the demo console where nobody is.
+           */}
+          {where && covers ? `${covers} ${coversLabel}` : (who ?? m.sub)}
         </div>
       </div>
 

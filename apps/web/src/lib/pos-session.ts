@@ -104,6 +104,59 @@ export type PosStaff = {
   is_locked: boolean;
 };
 
+/** How long a POS read waits before the screen decides it is on its own. */
+const TIMEOUT_MS = 4_000;
+
+/** Who is at the till and which till it is, as GET /v1/pos/auth/session answers. */
+export type ShiftSession = {
+  id: number;
+  is_open: boolean;
+  opened_at: string | null;
+  user?: { id: number; name: string; roles: string[] };
+  terminal?: { code: string; name: string; branch?: { name: string } | null };
+};
+
+/**
+ * Read the open shift, or null if there is not one.
+ *
+ * The order screen's header used to be two fixture strings — a hard-coded
+ * terminal and a hard-coded name. A waiter called Malika signing in and
+ * reading "Jasur Toshev" above her own order is worse than a blank: this is
+ * the screen every void and every discount is attributed through, and the name
+ * on it has to be the name in the audit trail.
+ *
+ * Null also covers the session having timed out server-side while the cookie
+ * survived. The caller treats that as "nobody is signed in", which sends the
+ * tablet back to the idle screen — the truthful answer, and the one that lets
+ * the next person put their PIN in.
+ */
+export async function fetchShiftSession(): Promise<ShiftSession | null> {
+  const terminal = await pairedTerminal();
+  const token = await shiftToken();
+
+  if (terminal === null || token === null) return null;
+
+  try {
+    const response = await fetch(`${apiBase()}/pos/auth/session`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        'X-Tenant': terminal.tenantSlug,
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+
+    if (!response.ok) return null;
+
+    const body = (await response.json()) as { data?: ShiftSession } & ShiftSession;
+
+    return body.data ?? body;
+  } catch {
+    return null;
+  }
+}
+
 /** What the idle screen needs, exactly as GET /v1/pos/idle answers it. */
 export type IdleScreen = {
   terminal: { code: string; name: string; mode: string; app_version: string | null };
@@ -118,9 +171,6 @@ export type IdleScreen = {
   business_date: string;
   server_time: string;
 };
-
-/** How long the idle screen waits before drawing what it last knew. */
-const TIMEOUT_MS = 4_000;
 
 /**
  * Read the idle screen for the terminal this tablet is paired as.
