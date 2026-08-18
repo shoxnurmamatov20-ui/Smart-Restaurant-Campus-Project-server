@@ -163,9 +163,16 @@ if [[ -d $CURRENT ]]; then
     # The outbox. Rows here are domain events written inside the transaction
     # that changed something and relayed afterwards by the scheduler. A backlog
     # means the relay is not running, and nothing else reports that.
+    #
+    # `set app.bypass_tenancy` first, and this is not optional. Row-level
+    # security guards domain_events, and a psql session that names no tenant
+    # sees ZERO ROWS — so this check would report "outbox empty" during a
+    # thousand-row backlog, on every run, and the one thing it exists to catch
+    # would be the one thing it could never see. A monitor that cannot fail is
+    # not a monitor.
     unpub=$(PGPASSWORD="$db_pw" psql -h "${db_host:-127.0.0.1}" -p "${db_port:-5432}" \
         -U "$db_user" -d "$db_name" -tAc \
-        "SELECT count(*) FROM domain_events WHERE published_at IS NULL;" 2>/dev/null)
+        "SET app.bypass_tenancy = 'on'; SELECT count(*) FROM domain_events WHERE published_at IS NULL;" 2>/dev/null | tail -1)
     if [[ ${unpub:-0} -gt 100 ]]; then
         crit "event outbox" "$unpub unpublished — the relay is not keeping up"
     elif [[ ${unpub:-0} -gt 0 ]]; then
