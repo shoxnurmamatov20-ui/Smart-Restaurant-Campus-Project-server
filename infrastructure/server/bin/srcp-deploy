@@ -232,6 +232,32 @@ else
     # ~50 MB of code that is reachable from a web request and never called by
     # one. No packages are downloaded — composer only removes what --no-dev
     # excludes, using the lock file that was copied in.
+    #
+    # Refuse if the front end changed since the build being reused.
+    #
+    # Without --build the Next apps are not rebuilt: the release keeps whatever
+    # .next it inherited from its predecessor. That is the whole point of the
+    # fast path and it is fine when only PHP moved — but ship a new route
+    # handler or a new page that way and it simply is not in the build. It does
+    # not error. It 404s, in production, while every deploy step prints a green
+    # tick and the health gate passes because the routes it probes are older
+    # than the change.
+    #
+    # That happened: /api/pos/pair, /api/pos/staff and /api/pos/pin all went to
+    # 404 and the till fell back to a fixture header, minutes after a deploy
+    # that reported success.
+    #
+    # Compared against the release being replaced rather than against git, so
+    # it holds however the source arrived.
+    if [[ -n "${PREVIOUS:-}" && -d "$PREVIOUS" ]]; then
+        for app in apps/web apps/admin packages; do
+            if ! diff -rq --exclude=node_modules --exclude=.next \
+                    "$PREVIOUS/$app" "$RELEASE/$app" >/dev/null 2>&1; then
+                die "$app changed but --build was not given: the release would carry the previous build and any new page or route handler would 404. Re-run with --build."
+            fi
+        done
+    fi
+
     log "pruning development dependencies (no rebuild requested)"
     if ! as_srcp composer install --no-dev --optimize-autoloader --no-interaction \
             --no-progress --working-dir="$RELEASE/apps/api"; then
