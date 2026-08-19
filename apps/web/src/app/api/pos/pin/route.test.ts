@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 import { DELETE, POST } from './route';
-import { POS_SHIFT_COOKIE } from '@/lib/pos-session';
+import { POS_SHIFT_COOKIE, POS_TILL_SKIPPED_COOKIE } from '@/lib/pos-session';
 
 /**
  * Somebody takes the till.
@@ -127,5 +127,13 @@ describe('DELETE /api/pos/pin', () => {
     expect(jar).toMatch(new RegExp(`${POS_SHIFT_COOKIE}=;[^\\n]*Max-Age=0`, 'i'));
     // Handing the till to the next person must not un-pair the tablet.
     expect(jar).not.toContain('restaurant-campus-terminal=');
+  });
+
+  it('clears the "count it later" note as well', async () => {
+    // Otherwise the next cashier inherits somebody else's decision about a
+    // drawer they now hold, and is never asked to count it.
+    const jar = cookiesOf(await DELETE());
+
+    expect(jar).toMatch(new RegExp(`${POS_TILL_SKIPPED_COOKIE}=;[^\\n]*Max-Age=0`, 'i'));
   });
 });

@@ -132,9 +132,43 @@ export type ShiftSession = {
   id: number;
   is_open: boolean;
   opened_at: string | null;
-  user?: { id: number; name: string; roles: string[] };
+  /** The cash shift this session is filing money into, if one is open. */
+  cash_shift_id: number | null;
+  user?: { id: number; name: string; roles: string[]; permissions?: string[] };
   terminal?: { code: string; name: string; branch?: { name: string } | null };
 };
+
+/**
+ * "I will count the float later."
+ *
+ * Read by the page so the skip actually sticks. Without it the skip reloaded to
+ * a server that still saw no cash shift and drew the same screen again — a loop
+ * with no way out but signing out.
+ *
+ * Not httpOnly and set by the client, because it is not a credential: forging
+ * it skips a screen anybody can skip with the button. What it must NOT do is
+ * outlive the shift, so it carries no max-age and dies with the browser
+ * session, and handing the till back clears it explicitly.
+ */
+export const POS_TILL_SKIPPED_COOKIE = 'restaurant-campus-till-skipped';
+
+export async function tillCountSkipped(): Promise<boolean> {
+  const store = await cookies();
+
+  return store.get(POS_TILL_SKIPPED_COOKIE)?.value === '1';
+}
+
+/**
+ * Whether this person is the one who holds the cash.
+ *
+ * `pos.drawer` and not `pos.sell`: a waiter sells all evening and never opens
+ * the drawer — they send food to the kitchen and the cashier settles. Asking a
+ * waiter to count a float they will never touch would be a screen between them
+ * and their tables for no reason.
+ */
+export function holdsTheDrawer(session: ShiftSession): boolean {
+  return session.user?.permissions?.includes('pos.drawer') ?? false;
+}
 
 /**
  * Read the open shift, or null if there is not one.

@@ -1,10 +1,18 @@
 import { getTranslations } from 'next-intl/server';
 
-import { fetchIdleScreen, fetchShiftSession, pairedTerminal, shiftToken } from '@/lib/pos-session';
+import {
+  fetchIdleScreen,
+  fetchShiftSession,
+  holdsTheDrawer,
+  pairedTerminal,
+  shiftToken,
+  tillCountSkipped,
+} from '@/lib/pos-session';
 
 import './pos.css';
 import { getPosBoard } from './pos-data';
 import { IdleScreen } from './idle-screen';
+import { OpenTill } from './open-till';
 import { PairPanel } from './pair-panel';
 import { PosTerminal } from './pos-terminal';
 
@@ -72,6 +80,22 @@ export default async function PosPage() {
      * pairing.
      */
     return <IdleScreen initial={await fetchIdleScreen()} />;
+  }
+
+  /*
+   * The drawer, before the work, and only for whoever holds it.
+   *
+   * A cashier with no open cash shift cannot take cash: the API refuses the
+   * tender, which is the check that matters and is in the right place. Putting
+   * the count in front of them here means they meet it at the start of their
+   * shift with the drawer open in front of them, rather than mid-service with a
+   * guest waiting and a refusal they have to interpret.
+   *
+   * A waiter never sees it — they hold no drawer — and the screen itself offers
+   * a way past for the card-only case.
+   */
+  if (shift.cash_shift_id === null && holdsTheDrawer(shift) && !(await tillCountSkipped())) {
+    return <OpenTill />;
   }
 
   /*

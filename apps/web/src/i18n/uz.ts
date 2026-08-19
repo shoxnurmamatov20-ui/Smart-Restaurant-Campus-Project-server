@@ -1359,6 +1359,21 @@ export const uz = {
       pinWorking: 'Tekshirilmoqda…',
       lock: 'Kassani topshirish',
       lockConfirm: 'Smenani yopmasdan chiqasizmi? Ochiq hisoblar joyida qoladi.',
+
+      // ---- Kassani ochish (P3) ----
+      tillOpenTitle: 'Kassani ochish',
+      tillOpenHint:
+        'Smena boshida kassadagi mayda pulni nominal bo‘yicha sanang. Bu summa Z-hisobotda hisobga olinadi.',
+      tillNominal: 'Nominal',
+      tillPieces: 'Dona',
+      tillRowSum: 'Summa',
+      tillTotal: 'Boshlang‘ich pul',
+      tillOpenSubmit: 'Kassani ochish',
+      tillOpenWorking: 'Ochilmoqda…',
+      tillCountFirst: 'Avval nominal bo‘yicha sanang',
+      tillOpened: 'Kassa ochildi · boshlang‘ich pul {sum}',
+      tillOpenFailed: 'Kassani ochib bo‘lmadi',
+      tillSkip: 'Keyinroq ochaman',
     },
     mobile: {
       title: 'Telefon',

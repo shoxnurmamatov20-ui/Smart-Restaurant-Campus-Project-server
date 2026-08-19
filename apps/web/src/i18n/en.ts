@@ -1341,6 +1341,21 @@ export const en: WebMessages = {
       pinWorking: 'Checking…',
       lock: 'Hand the till back',
       lockConfirm: 'Leave without closing the shift? Open bills stay where they are.',
+
+      // ---- Opening the till (P3) ----
+      tillOpenTitle: 'Open the till',
+      tillOpenHint:
+        'Count the change float by denomination at the start of the shift. It is accounted for in the Z report.',
+      tillNominal: 'Denomination',
+      tillPieces: 'Count',
+      tillRowSum: 'Sum',
+      tillTotal: 'Float',
+      tillOpenSubmit: 'Open the till',
+      tillOpenWorking: 'Opening…',
+      tillCountFirst: 'Count the notes first',
+      tillOpened: 'Till opened · float {sum}',
+      tillOpenFailed: 'The till could not be opened',
+      tillSkip: 'I will open it later',
     },
     mobile: {
       title: 'Phone',

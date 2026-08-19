@@ -5,6 +5,7 @@ import {
   pairedTerminalFrom,
   POS_SHIFT_COOKIE,
   POS_SHIFT_MAX_AGE,
+  POS_TILL_SKIPPED_COOKIE,
   posCookieOptions,
 } from '@/lib/pos-session';
 
@@ -122,6 +123,14 @@ export async function DELETE() {
   response.cookies.set(POS_SHIFT_COOKIE, '', {
     ...posCookieOptions,
     httpOnly: true,
+    maxAge: 0,
+  });
+
+  // And the "I will count it later" note, so the next person is asked rather
+  // than inheriting somebody else's decision about a drawer they now hold.
+  response.cookies.set(POS_TILL_SKIPPED_COOKIE, '', {
+    ...posCookieOptions,
+    httpOnly: false,
     maxAge: 0,
   });
 

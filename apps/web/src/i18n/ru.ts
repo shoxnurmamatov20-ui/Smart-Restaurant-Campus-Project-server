@@ -1341,6 +1341,21 @@ export const ru: WebMessages = {
       pinWorking: 'Проверяем…',
       lock: 'Передать кассу',
       lockConfirm: 'Выйти, не закрывая смену? Открытые счета останутся на месте.',
+
+      // ---- Открытие кассы (P3) ----
+      tillOpenTitle: 'Открыть кассу',
+      tillOpenHint:
+        'В начале смены пересчитайте размен по номиналам. Эта сумма учитывается в Z-отчёте.',
+      tillNominal: 'Номинал',
+      tillPieces: 'Штук',
+      tillRowSum: 'Сумма',
+      tillTotal: 'Размен',
+      tillOpenSubmit: 'Открыть кассу',
+      tillOpenWorking: 'Открываем…',
+      tillCountFirst: 'Сначала пересчитайте по номиналам',
+      tillOpened: 'Касса открыта · размен {sum}',
+      tillOpenFailed: 'Не удалось открыть кассу',
+      tillSkip: 'Открою позже',
     },
     mobile: {
       title: 'Телефон',
