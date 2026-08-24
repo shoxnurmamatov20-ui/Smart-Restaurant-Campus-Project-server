@@ -1,3 +1,5 @@
+import { scaleFor, type Period } from './overview-data';
+
 /**
  * The accountant's finance dashboard.
  *
@@ -44,21 +46,35 @@ export type TaxLine = {
 
 export type AccountantOverview = {
   greetingName: string;
-  revenueMtd: number;
-  expenses: number;
-  expenseBudget: number;
-  /** Net margin as a percentage, one decimal. Derived server-side. */
-  netMargin: number;
-  unpaidInvoices: number;
-  overdueInvoices: number;
+  /** The business whose money this is, from the session. */
+  placeName: string;
+  /** False for the design's own books — see `./figures.ts`. */
+  live: boolean;
+  revenueMtd: number | null;
+  expenses: number | null;
+  /**
+   * What somebody meant to spend. `null` on a live tenant: a budget is a plan
+   * held in settings, and nothing in a ledger knows one.
+   */
+  expenseBudget: number | null;
+  /** Net margin as a percentage, one decimal. Derived server-side, null until costed. */
+  netMargin: number | null;
+  /**
+   * Invoices, which are a Suppliers question one module along. Null until the
+   * purchase-order endpoints are read here; the panels draw their empty state.
+   */
+  unpaidInvoices: number | null;
+  overdueInvoices: number | null;
   cashflow: readonly CashMonth[];
   methods: readonly PaymentMethod[];
   upcoming: readonly UpcomingPayment[];
   taxes: readonly TaxLine[];
 };
 
-const PLACEHOLDER: AccountantOverview = {
+const PLACEHOLDER = {
   greetingName: 'Malika',
+  placeName: 'Smart Restaurant',
+  live: false,
   revenueMtd: som(438_600_000),
   expenses: som(121_400_000),
   expenseBudget: som(168_000_000),
@@ -94,9 +110,29 @@ const PLACEHOLDER: AccountantOverview = {
     { id: 'income', status: 'pending' },
     { id: 'social', status: 'ready' },
   ],
-};
+} satisfies AccountantOverview;
 
-/** TODO(api): GET /api/v1/finance/overview?period=mtd — no branch scope. */
-export async function getAccountantOverview(): Promise<AccountantOverview> {
-  return PLACEHOLDER;
+/**
+ * The fixture this screen falls back to. Live seam: `getAccountantLive()` in
+ * `./dashboard-server.ts` — `GET /api/v1/dashboard?role=accountant`, which is
+ * not branch-scoped, because the accountant reads the business's money.
+ */
+export async function getAccountantOverview(period: Period = 'today'): Promise<AccountantOverview> {
+  /*
+   * The period toggle is real — see `period-toggle.tsx` — so the figures move
+   * with it. Only the amounts and the counts: `netMargin` is a ratio and a
+   * longer month does not change it, which is the point of a margin.
+   */
+  const factor = scaleFor(period);
+
+  if (factor === 1) return PLACEHOLDER;
+
+  return {
+    ...PLACEHOLDER,
+    revenueMtd: Math.round(PLACEHOLDER.revenueMtd * factor),
+    expenses: Math.round(PLACEHOLDER.expenses * factor),
+    expenseBudget: Math.round(PLACEHOLDER.expenseBudget * factor),
+    unpaidInvoices: Math.round(PLACEHOLDER.unpaidInvoices * factor),
+    overdueInvoices: Math.round(PLACEHOLDER.overdueInvoices * factor),
+  };
 }

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { formatNumber, formatTiyinAmount } from '@restaurant/utils';
 import {
   DataHead,
@@ -8,15 +8,23 @@ import {
   DataTh,
   DataTr,
   Donut,
+  EmptyState,
   KpiCard,
   KpiRow,
   PageHead,
   Panel,
   PanelHead,
-  Segmented,
 } from '@restaurant/ui';
 
-import { getCashierOverview, type PaymentMethodId } from './cashier-data';
+import { todayLabel } from '@/lib/today-label';
+
+import { type Period } from './overview-data';
+import { PeriodToggle } from './period-toggle';
+import { GLYPH } from './kpi-icons';
+
+import { type PaymentMethodId } from './cashier-data';
+import { getCashierLive } from './dashboard-server';
+import { rail, show } from './figures';
 
 /**
  * The cashier's till dashboard.
@@ -29,9 +37,9 @@ import { getCashierOverview, type PaymentMethodId } from './cashier-data';
  * for at the end of the shift. Everything else on this screen exists to explain
  * how it got to that number.
  */
-export async function CashierDashboard() {
+export async function CashierDashboard({ period = 'today' }: { period?: Period }) {
   const [data, t, shared] = await Promise.all([
-    getCashierOverview(),
+    getCashierLive(period),
     getTranslations('console.dashCashier'),
     getTranslations('console.dashboard'),
   ]);
@@ -47,50 +55,70 @@ export async function CashierDashboard() {
   return (
     <>
       <PageHead
-        eyebrow={shared('date')}
+        eyebrow={todayLabel(await getLocale(), new Date())}
         title={t('greeting', { name: data.greetingName })}
-        lede={t('lede')}
+        lede={
+          data.live
+            ? t('ledeLive', { place: data.placeName, count: data.tablesAwaiting ?? 0 })
+            : t('lede')
+        }
         action={
-          <Segmented
-            aria-label={shared('kpiLabel')}
-            segments={[
-              { value: 'today', label: shared('periodToday') },
-              { value: 'week', label: shared('periodWeek') },
-            ]}
+          <PeriodToggle
+            current={period}
+            ariaLabel={shared('kpiLabel')}
+            labels={{
+              today: shared('periodToday'),
+              week: shared('periodWeek'),
+              month: shared('periodMonth'),
+            }}
           />
         }
       />
 
       <KpiRow aria-label={shared('kpiLabel')}>
+        {/*
+          A drawer nobody opened is a dash and the words "no shift open", never
+          a sum. This is the one figure on the platform where an invented value
+          produces a real accusation: a count against a demo balance is short by
+          whatever the demo said was in it.
+        */}
         <KpiCard
           label={t('kDrawer')}
-          value={formatTiyinAmount(data.drawer)}
-          unit={t('som')}
+          {...GLYPH.revenueGood}
+          value={show(data.drawer, formatTiyinAmount)}
+          unit={data.drawer === null && data.live ? t('noShift') : t('som')}
           attainment={null}
-          target={t('targetDrawer')}
+          target={data.live ? undefined : t('targetDrawer')}
         />
         <KpiCard
           label={t('kPayments')}
-          value={formatNumber(data.payments)}
+          {...GLYPH.payments}
+          value={show(data.payments, formatNumber)}
           unit={t('payments')}
-          attainment={(data.payments / 96) * 100}
+          attainment={rail(data.live, data.payments, 96)}
           target={t('targetPayments')}
           railTone="brand"
         />
         <KpiCard
           label={t('kRefunds')}
-          value={formatNumber(data.refunds)}
+          {...GLYPH.refunds}
+          value={show(data.refunds, formatNumber)}
           unit={t('payments')}
-          attainment={(data.refunds / 2) * 100}
+          attainment={rail(data.live, data.refunds, 2)}
           target={t('targetRefunds')}
-          railTone={data.refunds > 2 ? 'danger' : 'success'}
+          railTone={(data.refunds ?? 0) > 2 ? 'danger' : 'success'}
         />
+        {/*
+          `targetAwaiting` — "the oldest has waited 26 minutes" — is dropped on
+          a live till. A target that is a made-up elapsed time is not a target.
+        */}
         <KpiCard
           label={t('kAwaiting')}
-          value={formatNumber(data.tablesAwaiting)}
+          {...GLYPH.awaiting}
+          value={show(data.tablesAwaiting, formatNumber)}
           unit={t('tables')}
           attainment={null}
-          target={t('targetAwaiting')}
+          target={data.live ? undefined : t('targetAwaiting')}
         />
       </KpiRow>
 
@@ -98,37 +126,41 @@ export async function CashierDashboard() {
         <Panel>
           <PanelHead title={t('recent')} subtitle={t('recentSub')} />
 
-          <DataTable minWidth={480}>
-            <DataHead>
-              <tr>
-                <DataTh>{t('colTime')}</DataTh>
-                <DataTh>{t('colOrder')}</DataTh>
-                <DataTh>{t('colMethod')}</DataTh>
-                <DataTh align="right">{t('colAmount')}</DataTh>
-              </tr>
-            </DataHead>
-            <tbody>
-              {data.recent.map((payment) => (
-                <DataTr key={payment.id}>
-                  <DataTd numeric className="text-fg-muted">
-                    {payment.time}
-                  </DataTd>
-                  <DataTd numeric className="font-medium">
-                    {payment.order}
-                  </DataTd>
-                  <DataTd className="text-fg-muted">{METHOD_LABEL[payment.method]}</DataTd>
-                  <DataTd
-                    align="right"
-                    numeric
-                    className={payment.refund ? 'text-danger-700 font-semibold' : 'font-semibold'}
-                  >
-                    {payment.refund ? '−' : ''}
-                    {formatTiyinAmount(payment.amount)}
-                  </DataTd>
-                </DataTr>
-              ))}
-            </tbody>
-          </DataTable>
+          {data.recent.length === 0 ? (
+            <EmptyState className="py-4">{t('recentEmpty')}</EmptyState>
+          ) : (
+            <DataTable minWidth={480}>
+              <DataHead>
+                <tr>
+                  <DataTh>{t('colTime')}</DataTh>
+                  <DataTh>{t('colOrder')}</DataTh>
+                  <DataTh>{t('colMethod')}</DataTh>
+                  <DataTh align="right">{t('colAmount')}</DataTh>
+                </tr>
+              </DataHead>
+              <tbody>
+                {data.recent.map((payment) => (
+                  <DataTr key={payment.id}>
+                    <DataTd numeric className="text-fg-muted">
+                      {payment.time}
+                    </DataTd>
+                    <DataTd numeric className="font-medium">
+                      {payment.order}
+                    </DataTd>
+                    <DataTd className="text-fg-muted">{METHOD_LABEL[payment.method]}</DataTd>
+                    <DataTd
+                      align="right"
+                      numeric
+                      className={payment.refund ? 'text-danger-700 font-semibold' : 'font-semibold'}
+                    >
+                      {payment.refund ? '−' : ''}
+                      {formatTiyinAmount(payment.amount)}
+                    </DataTd>
+                  </DataTr>
+                ))}
+              </tbody>
+            </DataTable>
+          )}
         </Panel>
 
         <div className="flex min-w-0 flex-col gap-5">
@@ -143,19 +175,23 @@ export async function CashierDashboard() {
           <Panel>
             <PanelHead title={t('methods')} subtitle={t('methodsSub')} />
 
-            <Donut
-              total={formatTiyinAmount(methodTotal)}
-              totalLabel={t('som')}
-              slices={data.methods.map((method, index) => ({
-                key: method.id,
-                label: METHOD_LABEL[method.id],
-                value: method.amount,
-                colour: ['var(--brand-500)', 'var(--accent-500)', 'var(--warning-500)'][
-                  index
-                ] as string,
-                display: formatTiyinAmount(method.amount),
-              }))}
-            />
+            {data.methods.length === 0 ? (
+              <EmptyState className="py-4">{t('methodsEmpty')}</EmptyState>
+            ) : (
+              <Donut
+                total={formatTiyinAmount(methodTotal)}
+                totalLabel={t('som')}
+                slices={data.methods.map((method, index) => ({
+                  key: method.id,
+                  label: METHOD_LABEL[method.id],
+                  value: method.amount,
+                  colour: ['var(--brand-500)', 'var(--accent-500)', 'var(--warning-500)'][
+                    index
+                  ] as string,
+                  display: formatTiyinAmount(method.amount),
+                }))}
+              />
+            )}
           </Panel>
         </div>
       </div>

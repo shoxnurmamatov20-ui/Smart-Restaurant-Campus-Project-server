@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { useLocale, useMessages } from 'next-intl';
 import { formatTiyinAmount } from '@restaurant/utils';
+import { flash } from '@restaurant/ui';
 
+import { countTotal, NoteCount, type NoteCounts } from '@/components/note-count';
 import type { Messages } from '@/i18n';
+import type { CashLadder } from '@/lib/cash-notes';
 
 /**
  * Counting the float into the drawer.
@@ -16,22 +19,21 @@ import type { Messages } from '@/i18n';
  * report is later reconciled against — so the count has to be the thing that
  * produces it.
  *
- * The denominations are the notes actually in circulation in Uzbekistan; there
- * is deliberately no coin row, because there are no coins.
+ * The denominations are handed in rather than written here, and that is the
+ * whole point of the prop. This screen shipped with six of Uzbekistan's eight
+ * notes — 20 000 and 2 000 were missing — so a cashier holding either had no
+ * row to count it into. The float came out short, and a short float is a drawer
+ * that reads short all evening with the cashier's name against it. The server
+ * owns the ladder now (`GET /finance/denominations`), which also means this
+ * screen cannot offer a row the server would refuse when the count is posted.
  *
- * Money is integer tiyin the whole way through. The notes are written here in
- * so'm because that is what is printed on them, and multiplied up once — a
- * screen that divided by 100 anywhere would be one rounding away from a drawer
- * that never reconciles.
+ * Money is integer tiyin the whole way through, including the notes: the ladder
+ * arrives in tiyin and is never divided or multiplied here. A screen that
+ * converted anywhere would be one rounding away from a drawer that never
+ * reconciles.
  */
 
-/** Notes in circulation, largest first, as the design lists them. */
-const NOTES = [200_000, 100_000, 50_000, 10_000, 5_000, 1_000] as const;
-
-/** 1 so'm = 100 tiyin. */
-const TIYIN = 100;
-
-export function OpenTill() {
+export function OpenTill({ ladder }: { ladder: CashLadder }) {
   /*
    * What happens after the drawer is open is a full reload, not a callback.
    *
@@ -60,12 +62,11 @@ export function OpenTill() {
   const m = messages.console.pos;
   const locale = useLocale() as 'uz' | 'ru' | 'en';
 
-  const [counts, setCounts] = useState<Record<number, string>>({});
+  const [counts, setCounts] = useState<NoteCounts>({});
   const [working, setWorking] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
 
-  const pieces = (note: number) => Number.parseInt(counts[note] ?? '', 10) || 0;
-  const totalTiyin = NOTES.reduce((sum, note) => sum + note * TIYIN * pieces(note), 0);
+  const totalTiyin = countTotal(ladder.notes, counts);
 
   async function open() {
     if (totalTiyin <= 0 || working) return;
@@ -83,69 +84,46 @@ export function OpenTill() {
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { message?: string } | null;
         setFailed(body?.message ?? m.tillOpenFailed);
+        flash.problem(body?.message ?? m.tillOpenFailed);
         setWorking(false);
 
         return;
       }
 
+      /*
+       * The float, read back — `dc.html:16167`.
+       *
+       * The screen it hands over to says nothing about the drawer, so without
+       * this the cashier who has just counted six denominations note by note
+       * gets no confirmation of the figure they counted to. It is also the
+       * number the Z report will be measured against at midnight.
+       */
+      flash(m.tillOpened.replace('{sum}', formatTiyinAmount(totalTiyin, locale)));
       opened();
     } catch {
       setFailed(m.tillOpenFailed);
+      flash.problem(m.tillOpenFailed);
       setWorking(false);
     }
   }
 
   return (
-    <div className="bg-bg-subtle flex min-h-screen items-center justify-center p-6">
+    <div className="bg-bg-subtle flex min-h-dvh items-center justify-center p-6">
       <div className="border-border bg-surface w-full max-w-[520px] rounded-[20px] border p-7">
         <h1 className="font-display tracking-snug text-2xl leading-tight font-bold">
           {m.tillOpenTitle}
         </h1>
         <p className="text-fg-muted mt-2.5 text-sm leading-normal">{m.tillOpenHint}</p>
 
-        <div className="border-divider text-fg-subtle text-2xs mt-7 grid grid-cols-[1fr_96px_1fr] gap-3 border-b pb-2 font-semibold tracking-[0.06em] uppercase">
-          <span>{m.tillNominal}</span>
-          <span className="text-center">{m.tillPieces}</span>
-          <span className="text-right">{m.tillRowSum}</span>
+        <div className="mt-7">
+          <NoteCount
+            notes={ladder.notes}
+            counts={counts}
+            onChange={setCounts}
+            labels={{ note: m.tillNominal, pieces: m.tillPieces, sum: m.tillRowSum }}
+            disabled={working}
+          />
         </div>
-
-        {NOTES.map((note) => {
-          const count = pieces(note);
-
-          return (
-            <label
-              key={note}
-              className="border-divider grid grid-cols-[1fr_96px_1fr] items-center gap-3 border-b py-2.5 last:border-0"
-            >
-              <span data-num className="text-md font-semibold tabular-nums">
-                {formatTiyinAmount(note * TIYIN, locale)}
-              </span>
-
-              <input
-                value={counts[note] ?? ''}
-                onChange={(event) =>
-                  setCounts((current) => ({
-                    ...current,
-                    // Digits only. A tablet keyboard offers a decimal point and
-                    // a minus sign, and neither is a number of banknotes.
-                    [note]: event.target.value.replace(/\D/g, '').slice(0, 4),
-                  }))
-                }
-                inputMode="numeric"
-                disabled={working}
-                aria-label={`${formatTiyinAmount(note * TIYIN, locale)} · ${m.tillPieces}`}
-                className="border-border text-md h-12 rounded-[10px] border text-center font-semibold tabular-nums"
-              />
-
-              <span
-                data-num
-                className={`text-md text-right tabular-nums ${count > 0 ? '' : 'text-fg-subtle'}`}
-              >
-                {count > 0 ? formatTiyinAmount(note * TIYIN * count, locale) : '—'}
-              </span>
-            </label>
-          );
-        })}
 
         <div className="border-border mt-5 flex items-baseline justify-between border-t pt-4">
           <span className="text-md font-semibold">{m.tillTotal}</span>

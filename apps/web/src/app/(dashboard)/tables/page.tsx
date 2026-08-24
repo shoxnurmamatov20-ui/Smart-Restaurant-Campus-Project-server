@@ -1,5 +1,9 @@
+import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { formatTiyinAmount } from '@restaurant/utils';
+
+import { realtimeConfig } from '@/lib/realtime-server';
+import { getSession } from '@/lib/session';
 
 import { moduleMetadata } from '../module-page';
 import {
@@ -9,7 +13,9 @@ import {
   type Table,
   type TableStatus,
 } from './tables-data';
-import { getFloor } from './tables-server';
+import { FloorBoard } from './floor-board';
+import { LayoutEditor } from './layout-editor';
+import { floorFacts, getFloor, getFloorPlan } from './tables-server';
 
 export const generateMetadata = () => moduleMetadata('tables');
 
@@ -20,8 +26,8 @@ type Dict = Awaited<ReturnType<typeof getTranslations<'console.floor'>>>;
  *
  * Built to the design's Tables screen: a legend of five states across the top,
  * then the plan itself — zones separated by a ruled caption, tables on a
- * `minmax(126px,1fr)` grid — and a 340px panel beside it that fills in when a
- * table is picked.
+ * `minmax(min(126px,100%),1fr)` grid — and a 340px panel beside it that fills
+ * in when a table is picked.
  *
  * Rendered here with nothing selected, which is the state the design draws for
  * an untouched screen and the state a host actually opens it in. Picking a
@@ -30,26 +36,60 @@ type Dict = Awaited<ReturnType<typeof getTranslations<'console.floor'>>>;
  *
  * A server component; getFloor() is the seam: rooms with their tables.
  *
- * TODO — Phase 1 · tables, once the module is built:
- *   - Live occupancy over Reverb, so two hosts cannot seat the same table
- *   - Reservations: create, confirm, remind
+ * Live occupancy arrives over Reverb — `branch.{id}.floor`, the channel the
+ * console, the door and every handset in one building share. Two hosts cannot
+ * seat the same table any more, because the second one watches the first do it.
+ *
+ * TODO — Phase 1 · tables:
+ *   - Reservations: confirming and reminding. Taking one is on the panel now,
+ *     against `POST /tables/reservations` with the tile's own table id; the
+ *     other two belong to a diary screen that does not exist, because the
+ *     design routes "bronlar" at the rota.
  *   - The waitlist
- *   - Per-table QR codes, generated and printed
  *   - Banquet and event holds
  */
 const QUIET =
   'bg-surface hover:bg-bg-subtle h-9 rounded-md border px-3.5 text-sm font-medium whitespace-nowrap';
 
 export default async function TablesPage() {
-  const [t, common, locale] = await Promise.all([
+  const [t, common, locale, session] = await Promise.all([
     getTranslations('console.floor'),
     getTranslations('console.common'),
     getLocale(),
+    getSession(),
   ]);
 
   // The API when there is a session, the fixtures when there is not. Rooms
   // arrive with their tables already in them — see getFloor().
-  const zones = await getFloor(t, locale);
+  /*
+   * The board's state and the room's furniture, side by side.
+   *
+   * Two reads rather than one: the board is redrawn off a realtime channel
+   * every few seconds, and hall ids and positions have no business riding along
+   * on every nudge. `null` from the second is the demo console, and the layout
+   * button is then not offered rather than offered and refused.
+   */
+  const [plan, rooms] = await Promise.all([getFloor(t, locale), getFloorPlan(locale)]);
+  const { zones, branchId, tableIds, orderIds } = plan;
+
+  /*
+   * The line under the title, counted rather than recited.
+   *
+   * The catalogue's sentence claimed "32 tables · 14 seated" directly above a
+   * legend that counts the real ones — the source of the "32 of 32 tables
+   * seated" report from a restaurant whose plan was empty.
+   */
+  const facts = floorFacts(plan, session.placeName);
+  const subtitle = facts === null ? t('subtitle') : t('subtitleLive', facts);
+
+  /* Every open bill the panel can show, formatted here — the locale is here. */
+  const amounts = Object.fromEntries(
+    zones.flatMap((zone) =>
+      zone.tables
+        .filter((table) => table.bill !== undefined)
+        .map((table) => [`bill_${table.name}`, formatTiyinAmount(table.bill ?? 0)]),
+    ),
+  );
   const floor = zones.flatMap((zone) => zone.tables);
 
   return (
@@ -57,16 +97,39 @@ export default async function TablesPage() {
       <div data-pagehead className="mb-[22px] flex items-end justify-between gap-6">
         <div>
           <h2 className="font-display text-2xl font-semibold tracking-tight">{t('title')}</h2>
-          <p className="text-fg-muted mt-1.5 text-sm">{t('subtitle')}</p>
+          <p className="text-fg-muted mt-1.5 text-sm">{subtitle}</p>
         </div>
 
         <div data-pageactions className="flex flex-none gap-2.5">
-          <button type="button" className={QUIET}>
+          {/* `goResv` in the design opens the rota screen with its booking form
+              already unfolded — the bookings live there, not on a second list. */}
+          <Link href="/staff/shifts" className={`${QUIET} grid place-items-center`}>
             {t('reservations')}
-          </button>
-          <button type="button" className={QUIET}>
-            {t('editLayout')}
-          </button>
+          </Link>
+          {/*
+            The design's "edit layout" button, and it opens one now. A list
+            rather than a canvas — see ./layout-editor.tsx: the design's plan is
+            a wrapping grid of equal tiles, so a table needs a place in its room
+            rather than an (x, y). Offered only when the rooms came from the
+            API, because every move is addressed by a table id.
+          */}
+          {rooms === null ? null : (
+            <LayoutEditor
+              plan={rooms}
+              labels={{
+                open: t('editLayout'),
+                close: t('editLayoutClose'),
+                title: t('layoutTitle'),
+                hint: t('layoutHint'),
+                room: t('layoutRoom'),
+                empty: t('layoutEmpty'),
+                up: t('layoutUp'),
+                down: t('layoutDown'),
+                saved: t('layoutSaved'),
+                failed: t('layoutFailed'),
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -90,102 +153,78 @@ export default async function TablesPage() {
         ))}
       </div>
 
-      <div
-        data-split
-        className="grid [grid-template-columns:minmax(0,1fr)_340px] items-start gap-5"
-      >
-        <div className="bg-surface rounded-lg border p-6">
-          {zones.map((zone) => {
-            const tables = zone.tables;
-            const busy = tables.filter(isOccupied).length;
-
-            return (
-              <div key={zone.key} className="mb-7 last:mb-0">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="text-fg-subtle tracking-caps text-xs font-semibold uppercase">
-                    {zone.label}
-                  </span>
-                  <span aria-hidden className="bg-divider h-px flex-1" />
-                  <span data-num className="text-fg-subtle text-xs">
-                    {t('zoneMeta', { total: tables.length, busy })}
-                  </span>
-                </div>
-
-                <div className="grid [grid-template-columns:repeat(auto-fill,minmax(126px,1fr))] gap-3">
-                  {tables.map((table) => (
-                    <TableTile key={table.name} table={table} t={t} common={common} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <aside
-          data-sticky
-          className="bg-surface sticky top-0 rounded-lg border px-8 py-14 text-center"
-        >
-          <div className="text-fg-disabled mx-auto mb-4 grid size-11 place-items-center rounded-md border">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <circle cx="12" cy="12" r="4.5" />
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-            </svg>
-          </div>
-          <div className="text-sm font-semibold">{t('emptyTitle')}</div>
-          <p className="text-fg-subtle mt-1.5 text-xs leading-normal">{t('emptyBody')}</p>
-        </aside>
-      </div>
+      <FloorBoard
+        zones={zones}
+        money={amounts}
+        branchId={branchId}
+        tableIds={tableIds}
+        orderIds={orderIds}
+        realtimeConfig={realtimeConfig()}
+        labels={{
+          zoneMeta: t.raw('zoneMeta') as string,
+          emptyTitle: t('emptyTitle'),
+          emptyBody: t('emptyBody'),
+          seats: t.raw('seatsOf') as string,
+          guests: common('guests'),
+          since: t('since'),
+          waiter: t('waiter'),
+          reservation: t('reservation'),
+          bill: t('bill'),
+          close: common('close'),
+          actionsNote: t('actionsNote'),
+          qrPrint: t('qrPrint'),
+          qrFailed: t('qrFailed'),
+          /* The panel's two forms and the one button that deliberately has no
+             endpoint behind it — see `floor-board.tsx`. */
+          bookGuest: t('bookGuest'),
+          bookPhone: t('bookPhone'),
+          bookGuests: t('bookGuests'),
+          bookTime: t('bookTime'),
+          bookSave: t('bookSave'),
+          needGuest: t('needGuest'),
+          needPhone: t('needPhone'),
+          needTime: t('needTime'),
+          moveTo: t('moveTo'),
+          moveSave: t('moveSave'),
+          needTable: t('needTable'),
+          noBill: t('noBill'),
+          billAtTill: t('billAtTill'),
+          formCancel: t('formCancel'),
+          ...Object.fromEntries(
+            (['seat', 'bill', 'transfer', 'reserve', 'clean'] as const).map((action) => [
+              `action_${action}`,
+              t(`action_${action}`),
+            ]),
+          ),
+          ...Object.fromEntries(
+            TABLE_STATUSES.map((status) => [`status_${status}`, t(statusKey(status))]),
+          ),
+          ...Object.fromEntries(
+            zones.flatMap((zone) =>
+              zone.tables.map((table) => [`meta_${table.name}`, metaFor(table, t, common)]),
+            ),
+          ),
+        }}
+      />
     </>
   );
 }
 
-/**
- * One table.
- *
- * The bottom line changes with the state, which is what makes the plan worth
- * looking at: an occupied table shows its covers and its running bill, a held
- * one shows who is coming and when, a free one just its size.
- */
-function TableTile({ table, t, common }: { table: Table; t: Dict; common: Dict }) {
-  const style = TABLE_STATUS[table.status];
+function metaFor(table: Table, t: Dict, common: Dict): string {
+  if (isOccupied(table) && table.guests !== undefined) {
+    return `${table.guests} ${common('guests')} · ${formatTiyinAmount(table.bill ?? 0)}`;
+  }
 
-  const meta = isOccupied(table)
-    ? `${table.guests} ${common('guests')} · ${formatTiyinAmount(table.bill ?? 0)}`
-    : table.status === 'reserved'
-      ? table.reservation
-      : table.status === 'cleaning'
-        ? t('cleaningMeta')
-        : `${table.seats} ${common('seats')}`;
+  if (table.status === 'reserved' && table.reservation !== undefined) return table.reservation;
 
-  return (
-    <button
-      type="button"
-      data-tile
-      className={`flex min-h-[104px] flex-col gap-2.5 rounded-md border p-3.5 text-left ${style.tile}`}
-    >
-      <span className="flex items-center justify-between">
-        <span className="font-display tracking-snug text-lg font-semibold">{table.name}</span>
-        <span aria-hidden style={{ color: style.dot }}>
-          {style.glyph}
-        </span>
-      </span>
+  /*
+   * A table being cleaned used to read "~4 daqiqada tayyor". Nothing measures
+   * that: no row records when the tile entered `cleaning` and no setting holds
+   * a turn time, so the figure was invented and a host repeated it to a
+   * waiting guest. The seat count below is what the tile can honestly say.
+   */
 
-      <span className={`text-2xs block font-semibold tracking-wide uppercase ${style.label}`}>
-        {t(statusKey(table.status))}
-      </span>
-
-      <span className="text-fg-subtle mt-auto block text-xs">{meta}</span>
-    </button>
-  );
+  return `${table.seats} ${common('seats')}`;
 }
 
 /** The catalogue key for a status — `free` is written `statusFree`. */

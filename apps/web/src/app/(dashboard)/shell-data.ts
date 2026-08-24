@@ -18,10 +18,19 @@ export type CityKey = keyof Messages['console']['city'];
 
 export type Notification = {
   key: NotificationKey;
-  /** How loudly it asks: high is a decision today, mid is a heads-up. */
-  level: 'high' | 'mid';
+  /**
+   * How loudly it asks.
+   *
+   * `high` is a decision today, `mid` is a heads-up, `low` is a fact. The
+   * design paints them danger, warning and brand, which is why a third level
+   * had to exist: a completed P&L in the same red as a cash variance teaches a
+   * reader to stop trusting the red.
+   */
+  level: 'high' | 'mid' | 'low';
   time: string;
   place: PlaceKey;
+  /** Where the row goes when it is pressed — a route in this console. */
+  href: string;
 };
 
 export type Branch = {
@@ -34,18 +43,80 @@ export type Branch = {
   revenue: string;
 };
 
-/** TODO(api): GET /api/v1/notifications — unread first, newest first. */
+/**
+ * The design's six sample rows, and what is behind them now.
+ *
+ * The tray is live: `notificationFeed()` in ./notifications-server.ts reads
+ * `GET /api/v1/notifications`, and these are what a console with no session —
+ * or one whose API is mid-restart — draws instead.
+ *
+ * `public.notifications` exists (migration `2026_08_22_180000`) and four things
+ * write into it: a flagged cash variance, a sale the fiscal window closed on, a
+ * void at a till, and an approval a manager has not answered. Only the first
+ * shares a key with this list; the other three are `fiscal_expired`,
+ * `bill_voided` and `approval_waiting`, which sit beside these six in the
+ * catalogue.
+ *
+ * The other five keys here still have no producer, and each is missing a
+ * different thing rather than the same thing five times: `deleted_items` wants
+ * an item-level void, where Pos publishes whole-bill ones; `beef_low` wants a
+ * stock threshold Inventory does not raise; and `behind_target`, `july_pl` and
+ * `no_show` are a target check, a report run and an attendance sweep, none of
+ * which is an event on this platform yet.
+ *
+ * The ordering rule moved to the server with the rows and is worth restating,
+ * because it is the one thing about this list that reads like a bug: severity
+ * first, clock second, and not merely newest first. Two of these end with
+ * somebody being short of money at the end of a shift, and they belong at the
+ * top of the tray at 09:00 the next morning. It now lives in
+ * `NotificationController::SEVERITY_FIRST`.
+ *
+ * The alternative that was checked and rejected stays recorded rather than
+ * re-argued: `GET /api/v1/dashboard` answers `attention[]`
+ * (`RoleDashboards::attention()`), which is a rules engine over today's figures
+ * — five thresholds carrying no time, no place and no read state, and already
+ * drawn in its own panel on the dashboard. Wiring it here would have put the
+ * same four cards in two places and called one of them a notification.
+ */
 export const NOTIFICATIONS: readonly Notification[] = [
-  { key: 'cash_variance', level: 'high', time: '14:20', place: 'chilonzor' },
-  { key: 'deleted_items', level: 'high', time: '13:05', place: 'sergeli' },
-  { key: 'beef_low', level: 'mid', time: '11:40', place: 'chilonzor' },
-  { key: 'behind_target', level: 'mid', time: '10:15', place: 'termiz' },
+  {
+    key: 'cash_variance',
+    level: 'high',
+    time: '14:20',
+    place: 'chilonzor',
+    href: '/analytics/control',
+  },
+  {
+    key: 'deleted_items',
+    level: 'high',
+    time: '13:05',
+    place: 'sergeli',
+    href: '/analytics/control',
+  },
+  { key: 'beef_low', level: 'mid', time: '11:40', place: 'chilonzor', href: '/inventory' },
+  {
+    key: 'behind_target',
+    level: 'mid',
+    time: '10:15',
+    place: 'termiz',
+    href: '/settings/branches',
+  },
+  { key: 'july_pl', level: 'low', time: '09:00', place: 'head_office', href: '/analytics/reports' },
+  { key: 'no_show', level: 'low', time: '08:30', place: 'yunusobod', href: '/staff' },
 ];
 
 /**
- * TODO(api): GET /api/v1/branches, and the active one from
- * GET /api/v1/auth/context — that endpoint returns `branch` and
- * `branch_pinned`, which is what decides whether this control is editable.
+ * The demo console's five venues.
+ *
+ * The live switcher reads the restaurant's own in the sibling
+ * `shell-server.ts` — `GET /api/v1/branches` joined to
+ * `GET /api/v1/auth/context`, whose `branch` and `branch_pinned` decide which
+ * venue is current and whether the control opens at all. These rows are what a
+ * console with no session, or one whose API is mid-restart, draws instead.
+ *
+ * Choosing a venue does not yet narrow the screens; see `BranchSwitcher` in
+ * `shell-client.tsx` for what the remaining half needs, which is a cookie and
+ * an `X-Branch` header in two shared modules rather than anything on the server.
  */
 export const BRANCHES: readonly Branch[] = [
   { id: 'chilonzor', name: 'Chilonzor', city: 'tashkent', seats: 96, revenue: '6.2M' },

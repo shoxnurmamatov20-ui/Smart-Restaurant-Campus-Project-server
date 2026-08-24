@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useMessages } from 'next-intl';
+import { useLocale, useMessages } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { flash } from '@restaurant/ui';
 
 import type { Messages } from '@/i18n';
+import { fill, POS_COPY, say } from '../pos-copy';
 import type { PosStaff } from '@/lib/pos-session';
 
 /**
@@ -36,14 +38,30 @@ type Chosen = { userId: number; name: string; role: string };
 export function WhoPanel() {
   const messages = useMessages() as Messages;
   const m = messages.console.pos;
+  const locale = useLocale();
   const router = useRouter();
 
   const [staff, setStaff] = useState<PosStaff[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [chosen, setChosen] = useState<Chosen | null>(null);
+  const [role, setRole] = useState('all');
   const [pin, setPin] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+
+  /* The roles this branch actually has, in the order the names arrived. */
+  const roles = (staff ?? []).reduce<{ id: string; label: string }[]>((list, person) => {
+    const first = person.roles[0];
+
+    if (first !== undefined && !list.some((entry) => entry.id === first)) {
+      list.push({ id: first, label: first });
+    }
+
+    return list;
+  }, []);
+
+  const shown =
+    role === 'all' ? (staff ?? []) : (staff ?? []).filter((person) => person.roles[0] === role);
 
   // Read once on mount. The list changes when a manager enrols somebody, which
   // is not something that happens while a waiter is looking at this screen.
@@ -104,11 +122,23 @@ export function WhoPanel() {
           // one and from somebody who is not on shift, and those are three
           // different things to do next.
           setMessage(body?.message ?? m.pinWrong);
+          flash.problem(body?.message ?? m.pinWrong);
           setPin('');
           setWorking(false);
 
           return;
         }
+
+        /*
+         * `Jasur Toshev · smena ochildi` — `dc.html:11817`.
+         *
+         * Said here rather than on the screen that follows, because the screen
+         * that follows is the floor and it has nothing on it about who is
+         * standing at the till. Two people sharing a terminal on a change-over
+         * is the case this exists for: the second one needs to see their own
+         * name, not assume it.
+         */
+        flash(fill(say(locale, POS_COPY.shiftStarted), { name: chosen.name }));
 
         // A navigation, not a state change: what comes next is a server
         // component that reads the shift cookie this response just set.
@@ -116,6 +146,7 @@ export function WhoPanel() {
         router.refresh();
       } catch {
         setMessage(m.pinWrong);
+        flash.problem(m.pinWrong);
         setPin('');
         setWorking(false);
       }
@@ -168,7 +199,7 @@ export function WhoPanel() {
       .toUpperCase();
 
   return (
-    <div className="bg-bg-subtle flex h-screen flex-col">
+    <div className="bg-bg-subtle flex h-dvh flex-col">
       <header className="border-border bg-surface flex h-16 flex-none items-center gap-3.5 border-b px-5">
         <a
           href="/pos"
@@ -198,13 +229,48 @@ export function WhoPanel() {
           </div>
           {staff !== null ? (
             <div data-num className="text-fg-subtle text-xs">
-              {staff.length}
+              {shown.length}
             </div>
           ) : null}
         </div>
       </header>
 
       <div data-scroll className="min-h-0 flex-1 p-5">
+        {/*
+         * Filter by role — `specs/01-os.md §5.6`.
+         *
+         * A branch has twenty or thirty people with a PIN and a waiter starting
+         * a shift is looking for one of five names. The roles come out of the
+         * payload rather than out of a fixed list, so a restaurant that invents
+         * a role gets a chip for it without anybody deploying.
+         *
+         * **The "on shift" filter the design also draws is not here**, and it
+         * is not an oversight: `GET /pos/auth/staff` returns `user_id`, `name`,
+         * `roles` and `is_locked` and nothing about who is currently clocked
+         * in. A chip that guessed would sort the list into two groups that mean
+         * nothing — worse than no chip, on the screen somebody uses to find
+         * their own name in a hurry.
+         */}
+        {roles.length > 1 ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {[{ id: 'all', label: m.whoAllRoles }, ...roles].map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                aria-pressed={role === entry.id}
+                onClick={() => setRole(entry.id)}
+                className={`h-11 rounded-full border px-4 text-sm font-semibold ${
+                  role === entry.id
+                    ? 'border-brand-500 bg-brand-50 text-brand-700'
+                    : 'border-border bg-surface text-fg-muted'
+                }`}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {failed ? (
           <p className="bg-danger-50 text-danger-700 rounded-[12px] px-4 py-3 text-sm font-medium">
             {m.whoUnavailable}
@@ -214,8 +280,8 @@ export function WhoPanel() {
         ) : staff.length === 0 ? (
           <p className="text-fg-subtle text-sm">{m.whoEmpty}</p>
         ) : (
-          <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-3">
-            {staff.map((person) => (
+          <div className="grid [grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))] gap-3">
+            {shown.map((person) => (
               <button
                 key={person.user_id}
                 type="button"
@@ -233,12 +299,31 @@ export function WhoPanel() {
                   {initials(person.name)}
                 </span>
 
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="text-md block truncate leading-snug font-semibold">
                     {person.name}
                   </span>
-                  <span className="text-fg-subtle block truncate text-xs">
-                    {person.is_locked ? m.whoLocked : (person.roles[0] ?? '')}
+
+                  {/*
+                   * The role as a pill and the state as a line, not one line
+                   * doing both. A card that printed "Qulflangan" *instead* of
+                   * the role left a waiter unable to tell whose card they were
+                   * looking at — which is the one thing this screen is for.
+                   */}
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {person.roles[0] === undefined ? null : (
+                      <span className="bg-bg-muted text-fg-muted text-2xs rounded-full px-2 py-0.5 font-semibold">
+                        {person.roles[0]}
+                      </span>
+                    )}
+
+                    <span
+                      className={`text-2xs font-semibold ${
+                        person.is_locked ? 'text-danger-700' : 'text-fg-subtle'
+                      }`}
+                    >
+                      {person.is_locked ? m.whoLocked : m.whoAvailable}
+                    </span>
                   </span>
                 </span>
               </button>
@@ -252,12 +337,13 @@ export function WhoPanel() {
       {/* ---- the PIN pad, over whichever card was tapped ---- */}
       {chosen !== null ? (
         <div
+          data-fade
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-5"
           role="dialog"
           aria-modal="true"
           aria-label={m.pinTitle}
         >
-          <div className="bg-surface w-full max-w-[380px] rounded-[20px] p-6">
+          <div data-sheet className="bg-surface w-full max-w-[380px] rounded-[20px] p-6">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="text-md leading-snug font-semibold">{chosen.name}</div>

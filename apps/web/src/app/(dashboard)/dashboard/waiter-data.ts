@@ -1,4 +1,4 @@
-import type { OrderStatus } from './overview-data';
+import { scaleFor, type OrderStatus, type Period } from './overview-data';
 
 /**
  * The waiter's shift screen.
@@ -51,18 +51,30 @@ export type MySeller = {
 
 export type WaiterOverview = {
   greetingName: string;
-  myOrders: number;
-  openOrders: number;
-  covers: number;
-  sales: number;
-  averageTicket: number;
+  /** The venue this shift is in, from the session. */
+  placeName: string;
+  /** False for the design's own shift — see `./figures.ts`. */
+  live: boolean;
+  myOrders: number | null;
+  openOrders: number | null;
+  covers: number | null;
+  sales: number | null;
+  averageTicket: number | null;
+  /**
+   * The tables this waiter holds. Empty on a live payload: which tables are
+   * theirs is a join of the floor plan against their own open bills, and this
+   * endpoint carries neither side of it. Six sample tables with running bills
+   * send a waiter walking the room to find a table that is not there.
+   */
   tables: readonly MyTable[];
   orders: readonly MyOrder[];
   topSellers: readonly MySeller[];
 };
 
-const PLACEHOLDER: WaiterOverview = {
+const PLACEHOLDER = {
   greetingName: 'Jasur',
+  placeName: 'Chilonzor',
+  live: false,
   myOrders: 14,
   openOrders: 4,
   covers: 41,
@@ -145,9 +157,29 @@ const PLACEHOLDER: WaiterOverview = {
     { id: 'lagmon', name: "Lag'mon", units: 6, share: 0.55 },
     { id: 'ayron', name: 'Ayron', units: 5, share: 0.45 },
   ],
-};
+} satisfies WaiterOverview;
 
-/** TODO(api): GET /api/v1/orders/my-shift — scoped to the signed-in waiter. */
-export async function getWaiterOverview(): Promise<WaiterOverview> {
+/**
+ * The fixture this screen falls back to. Live seam: `getWaiterLive()` in
+ * `./dashboard-server.ts` — `GET /api/v1/dashboard?role=waiter`, scoped by the
+ * API to whoever the token belongs to. The floor plan still comes from here;
+ * `./dashboard-map.ts` says why.
+ */
+export async function getWaiterOverview(period: Period = 'today'): Promise<WaiterOverview> {
+  /*
+   * A waiter's week, not the restaurant's. The tables stay as they are — those
+   * are the six in front of them right now and a week does not multiply them.
+   */
+  const factor = scaleFor(period);
+
+  if (factor !== 1) {
+    return {
+      ...PLACEHOLDER,
+      myOrders: Math.round(PLACEHOLDER.myOrders * factor),
+      covers: Math.round(PLACEHOLDER.covers * factor),
+      sales: Math.round(PLACEHOLDER.sales * factor),
+    };
+  }
+
   return PLACEHOLDER;
 }

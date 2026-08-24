@@ -1,0 +1,296 @@
+/* ============================================================
+   The setup wizard
+
+   A desktop surface, and the only one in this repository that is. It is what a
+   restaurant sees in its first hour, on the machine the owner does their
+   paperwork on — not a phone, not a tablet on a pass. So none of the
+   phone-column rules apply here: no `--phone-measure`, no dock, no safe-area
+   inset. What does apply is `100dvh`, because a fixed rail measured against
+   `vh` is a rail whose last step sits under a browser chrome that has not
+   collapsed yet.
+
+   Geometry comes from the design file rather than from a scale, because the
+   file is the source of truth and it is specific: a 296px rail, a 64px header,
+   36/44/40 padding on the pane, a 760px measure for the content inside it.
+   Where the file states a literal — 12px card radius, 44px control height —
+   it is written as a literal here too. Substituting the nearest token would
+   redraw the screen slightly and silently.
+
+   Colour is entirely semantic tokens, so the console's dark theme comes for
+   free. The design file draws this surface light-only; the product it lives in
+   does not, and a wizard that stayed white while the rest of the console went
+   dark would look like a page from another application.
+   ============================================================ */
+
+.sw {
+  /* The two numbers the whole layout is built from. */
+  --sw-rail: 296px;
+  --sw-measure: 760px;
+
+  /* 44px, because these are real form controls filled in for half an hour at a
+     stretch and a 32px input is the desktop minimum, not a comfortable one. */
+  --sw-control: 44px;
+
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-subtle);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+/* ------------------------------------------------------------
+   Header: identity on the left, progress and language on the right
+   ------------------------------------------------------------ */
+
+.sw-header {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.sw-progress {
+  width: 132px;
+  flex: none;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  overflow: hidden;
+}
+
+.sw-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--brand-500);
+  transition: width var(--dur-med) var(--ease-standard);
+}
+
+/* ------------------------------------------------------------
+   The body: a fixed rail and a pane that scrolls
+
+   `min-height: 0` on the grid is what makes the pane scroll instead of the
+   page. Without it the grid row sizes to its tallest child, the whole document
+   grows, and the rail scrolls away with it — which on step four means the list
+   of steps disappears exactly when somebody wants to check how many are left.
+   ------------------------------------------------------------ */
+
+.sw-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--sw-rail) 1fr;
+}
+
+.sw-rail {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 24px 20px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sw-pane {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 36px 44px 40px;
+  scrollbar-width: thin;
+}
+
+.sw-pane > div {
+  max-width: var(--sw-measure);
+}
+
+/*
+ * Below 1080 the rail costs more than it gives: the pane drops under 700px and
+ * the forms start wrapping. The design hides it and lets the pane take the full
+ * width, and the step number in the pane heading is what keeps a reader
+ * oriented once the list is gone.
+ */
+@media (max-width: 1080px) {
+  .sw-body {
+    grid-template-columns: 1fr;
+  }
+
+  .sw-rail {
+    display: none;
+  }
+
+  .sw-pane {
+    padding: 28px 24px 32px;
+  }
+}
+
+/* The progress figures and the product name are the first things to go; the
+   bar itself stays, because it is the part that answers "how much is left". */
+@media (max-width: 1240px) {
+  .sw-optional-header {
+    display: none;
+  }
+}
+
+/* ============================================================
+   The bar on a phone — measured at 320, where it laid out to 617
+   ============================================================ */
+
+/*
+ * What is left at 1240 is still too much at 320: the mark, the words "Sozlash
+ * ustasi", a 132px progress bar, a three-button language pill, a "Saqlab
+ * chiqish" button, four 16px gaps and 56px of padding — 617px of a 320px phone,
+ * and the whole wizard scrolled sideways.
+ *
+ * They leave in the order a person setting up a restaurant can afford to lose
+ * them. The gutters and gaps first. Then the wizard's own name, which says
+ * nothing a reader on step three does not already know. Then the progress bar,
+ * because the pane heading beside it carries "3 / 7" in words — the same reason
+ * the step rail is allowed to go at 1080.
+ *
+ * The language pill and the way out both stay. One is the first thing an owner
+ * touches; the other is how they leave without losing their work.
+ */
+@media (max-width: 900px) {
+  .sw-header {
+    padding: 0 16px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .sw-wizard-name {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .sw-progress {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .sw-header {
+    padding: 0 12px;
+    gap: 6px;
+  }
+}
+
+/* ------------------------------------------------------------
+   Controls
+   ------------------------------------------------------------ */
+
+.sw-input {
+  width: 100%;
+  height: var(--sw-control);
+  padding: 0 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: var(--text-md);
+}
+
+.sw-input::placeholder {
+  color: var(--fg-disabled);
+}
+
+.sw-input[data-mono] {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+/*
+ * A field the reader has been told is wrong.
+ *
+ * The border carries the colour and the message underneath carries the words —
+ * never colour alone, FOUNDATIONS §7. `aria-invalid` is the hook because it is
+ * the same attribute a screen reader announces, so the two cannot fall out of
+ * step the way a CSS class and an ARIA state do.
+ */
+.sw-input[aria-invalid='true'] {
+  border-color: var(--danger-500);
+}
+
+.sw-card {
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.sw-tap {
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    transform 100ms var(--ease-standard);
+}
+
+.sw-tap:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-tap,
+  .sw-progress > span {
+    transition: none;
+  }
+
+  .sw-tap:active {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   The toast
+
+   FOUNDATIONS §5, to the number: fixed bottom centre, 32px inset, the darkest
+   neutral, white text, a check in success green, 12px radius, the extra-large
+   shadow, and one at a time — a new one replaces the current rather than
+   stacking, because a column of toasts covers the button that produced them.
+   ------------------------------------------------------------ */
+
+.sw-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  /*
+   * `--bg-inverse`, not the literal `--n-900` the design file writes.
+   *
+   * They are the same colour in light, which is the theme the file was drawn
+   * in. In dark they part company, and they must: a near-black toast on a
+   * near-black page is a rectangle with no edge, and the one message the
+   * reader most needs — "the branch was created" — is the one that disappears.
+   * The token means "the opposite of the page", which is what a toast is.
+   */
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
+  box-shadow: var(--shadow-xl);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  max-width: min(560px, calc(100vw - 48px));
+}
+
+/* ------------------------------------------------------------
+   Figures
+
+   Tabular numerals wherever a number sits above or below another one: a table
+   count in a stepper, a run of prices, the pairing code. Proportional digits
+   make a column of figures ripple, and on this screen the figures are the part
+   somebody is checking.
+   ------------------------------------------------------------ */
+
+.sw [data-num] {
+  font-variant-numeric: tabular-nums;
+}

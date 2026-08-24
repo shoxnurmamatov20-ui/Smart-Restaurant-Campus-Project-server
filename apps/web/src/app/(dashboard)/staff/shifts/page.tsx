@@ -1,9 +1,18 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { moduleMetadata } from '../../module-page';
-import { ACTION_PRIMARY, PageHead } from '../../screen';
+import { PageHead } from '../../screen';
 import { STAFF } from '../staff-data';
-import { getRota } from './shifts-server';
+import { RotaBoard } from './rota-board';
+import { BookingList, OpeningChecklist, SwapQueue } from './shift-blocks';
+import { ROTA_COPY, say, weekLabel, type Lang } from './shifts-data';
+import {
+  getBookings,
+  getOpeningChecklist,
+  getRota,
+  getSwappableShifts,
+  getSwaps,
+} from './shifts-server';
 
 export const generateMetadata = () => moduleMetadata('shifts');
 
@@ -17,6 +26,13 @@ export const generateMetadata = () => moduleMetadata('shifts');
  * A day off is written rather than left blank. An empty cell in a rota is
  * ambiguous — it could mean off, or it could mean nobody has filled it in yet —
  * and those two are the difference between a quiet Tuesday and an unstaffed one.
+ *
+ * The design puts four more blocks on this screen and the console had none of
+ * them: the hours column with its over-48 and no-rest flags, the cover row, the
+ * swap queue, today's bookings, and the opening checklist
+ * (`Smart Restaurant OS.dc.html:3581-3871`). A rota with no hours total is a
+ * rota nobody can check, and a manager who cannot answer a swap request in the
+ * console answers it on the phone and then the published week is wrong.
  *
  * TODO — Phase 1 · staff/shifts, once the module is built:
  *   - Assigning and swapping a shift, and publishing the week
@@ -55,12 +71,41 @@ const ROTA: Record<string, readonly (string | null)[]> = {
   sardor: ['07–15', '07–15', '07–15', '07–15', '07–15', null, null],
 };
 
+/**
+ * The seven days the grid's headings stand for, Monday first.
+ *
+ * `Du`, `Se`, `Cho` are seven words that mean a different seven days every
+ * week, so publishing cannot be built from the headings — it needs the dates
+ * behind them. Monday-first because `shifts-server.ts` lays the grid out that
+ * way, and a range that started on Sunday would publish six of the seven
+ * columns a manager is looking at plus one they are not.
+ */
+function weekOf(now: Date): { from: string; to: string } {
+  const monday = new Date(now);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+
+  const sunday = new Date(monday);
+  sunday.setDate(sunday.getDate() + 6);
+
+  return { from: isoDay(monday), to: isoDay(sunday) };
+}
+
+const isoDay = (at: Date): string =>
+  [
+    at.getFullYear(),
+    String(at.getMonth() + 1).padStart(2, '0'),
+    String(at.getDate()).padStart(2, '0'),
+  ].join('-');
+
 export default async function ShiftsPage() {
-  const [nav, t, staff] = await Promise.all([
+  const [nav, t, staff, locale] = await Promise.all([
     getTranslations('console.nav'),
     getTranslations('console.shifts'),
     getTranslations('console.staff'),
+    getLocale(),
   ]);
+
+  const lang = locale as Lang;
 
   /*
    * The API's week when there is a session, this file's when there is not.
@@ -70,7 +115,33 @@ export default async function ShiftsPage() {
    * fixture row looks its post up in the Staff catalogue.  is what
    * tells the cell below which of the two it is holding.
    */
-  const live = await getRota();
+  const dayLabels = DAYS.map((day) => t(day));
+  const week = weekOf(new Date());
+  /*
+   * The reader's own day, computed once on the server.
+   *
+   * The checklist is filed against a trading day and the panel is a client
+   * island, so the date has to cross the boundary as a string — a `new Date()`
+   * in the browser a millisecond the other side of midnight would tick a box on
+   * a different day than the one on screen.
+   */
+  const today = isoDay(new Date());
+
+  const [live, swaps, bookings, checklist, swappable] = await Promise.all([
+    getRota(),
+    getSwaps(dayLabels),
+    /* Tonight's diary. The panel below used to draw the design's four
+       bookings unconditionally — guest names and table numbers belonging to
+       another restaurant — and the floor screen routes the host here. */
+    getBookings({ guests: t('guestsShort'), table: say(ROTA_COPY.table, lang) }),
+    /* Today's opening list. `live: false` — no session — leaves the panel
+       ticking locally and saying so, which is what it used to do everywhere. */
+    getOpeningChecklist(today),
+    /* The published shifts the swap form can ask about. Null is the demo
+       console, and the form is then not offered rather than offered and
+       refused. */
+    getSwappableShifts(),
+  ]);
   const rows =
     live ??
     STAFF.map((person) => ({
@@ -81,75 +152,41 @@ export default async function ShiftsPage() {
       translated: true,
     }));
 
+  /* The post is resolved here, so the rota and the roster cannot disagree
+     about somebody's job, and so the board can stay a plain client island. */
+  const people = rows.map((person) => ({
+    id: person.id,
+    name: person.name,
+    role: 'translated' in person ? staff(person.role) : person.role,
+    days: person.days,
+  }));
+
   return (
     <>
-      <PageHead title={nav('shifts')} subtitle={t('subtitle')}>
-        <button type="button" className={ACTION_PRIMARY}>
-          {t('add')}
-        </button>
-      </PageHead>
+      <PageHead title={nav('shifts')} subtitle={t('subtitle')} />
 
-      <section className="bg-surface mb-[18px] overflow-hidden rounded-lg border">
-        <div className="border-divider flex flex-wrap items-baseline justify-between gap-4 border-b px-5 pt-4 pb-3.5">
-          <h3 className="text-md tracking-snug font-semibold">{t('rota')}</h3>
-          <span data-num className="text-fg-subtle text-xs">
-            {t('rotaSub')}
-          </span>
-        </div>
+      <RotaBoard
+        people={people}
+        days={DAYS.map((day, index) => ({ label: t(day), weekend: index >= 5 }))}
+        week={week}
+        lang={lang}
+        labels={{
+          who: t('who'),
+          off: t('off'),
+          rota: t('rota'),
+          /* The week the grid is actually showing, formatted from the same
+             range the board is given. The catalogue's "11–17 avgust" was
+             right for one week in 2026 and wrong for every other. */
+          rotaSub: weekLabel(week, locale),
+        }}
+      />
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] border-collapse">
-            <thead>
-              <tr>
-                <th className="bg-surface text-fg-subtle sticky left-0 border-b px-5 py-[11px] text-left text-xs font-semibold">
-                  {t('who')}
-                </th>
-                {DAYS.map((day, index) => (
-                  <th
-                    key={day}
-                    className={`border-b px-2 py-[11px] text-center text-xs font-semibold ${
-                      index >= 5 ? 'text-fg-brand' : 'text-fg-subtle'
-                    }`}
-                  >
-                    {t(day)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+      <SwapQueue requests={swaps} shifts={swappable} lang={lang} />
 
-            <tbody>
-              {rows.map((person) => (
-                <tr key={person.id}>
-                  <td className="border-divider bg-surface sticky left-0 border-b px-5 py-[11px]">
-                    <span className="block text-sm font-semibold">{person.name}</span>
-                    {/* The role comes from the Staff catalogue, so the rota and
-                        the roster cannot disagree about someone's job. */}
-                    <span className="text-fg-subtle mt-0.5 block text-xs">
-                      {'translated' in person ? staff(person.role) : person.role}
-                    </span>
-                  </td>
-
-                  {person.days.map((shift, index) => (
-                    <td
-                      key={`${person.id}-${index}`}
-                      className="border-divider border-b px-1.5 py-[7px] text-center"
-                    >
-                      <span
-                        data-num
-                        className={`text-2xs inline-block min-w-[54px] rounded-sm border border-transparent px-[7px] py-1.5 font-semibold ${
-                          shift ? 'bg-brand-50 text-brand-700' : 'bg-bg-muted text-fg-subtle'
-                        }`}
-                      >
-                        {shift ?? t('off')}
-                      </span>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div className="grid items-start gap-[18px] lg:[grid-template-columns:1.25fr_0.95fr]">
+        <BookingList lang={lang} bookings={bookings} />
+        <OpeningChecklist lang={lang} checklist={checklist} />
+      </div>
     </>
   );
 }

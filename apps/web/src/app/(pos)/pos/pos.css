@@ -1,13 +1,17 @@
 /* ============================================================
    The POS terminal — the rules a utility class cannot express
 
-   Two: the press feedback the design requires on a touch surface, and the
-   stacking the three columns do on a narrow screen.
-   ============================================================ */
+   One: the stacking the three columns do on a narrow screen.
 
-[data-pos] button:active {
-  transform: scale(0.97);
-}
+   The press feedback used to live here too, at `scale(.97)` — the figure
+   `FOUNDATIONS §5` writes. The design file the handoff ships says `.985`
+   (`Smart Restaurant OS.dc.html:66`, on bare `button:active`), and where the
+   two disagree the file wins. `packages/ui/src/styles/motion.css` already
+   applies that value to every button on every surface, with the
+   `prefers-reduced-motion` escape hatch beside it — so the till's own copy was
+   not a refinement, it was a fork that pressed harder than the rest of the
+   product on the one surface a waiter touches all evening.
+   ============================================================ */
 
 /* The ticket narrows before it stacks: 380px is comfortable on a 1366 tablet
    and takes a third of a 1024 one. */
@@ -39,11 +43,5 @@
   [data-pos] > aside {
     border-left: 0;
     border-top: 1px solid var(--border);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-pos] button:active {
-    transform: none;
   }
 }

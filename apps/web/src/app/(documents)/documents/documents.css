@@ -1,0 +1,365 @@
+/* ============================================================================
+   02 · Hujjatlar — print geometry.
+
+   `specs/02-documents.md §1` says print geometry is owned by `<doc-page>` and
+   that no `@page` rule should be written. That instruction is addressed to the
+   design tool: `<doc-page>` is the handoff's own web component, it ships in
+   `docs/design/source/doc-page.js`, and it is not part of this application.
+   Nothing else in the repo provides a page box, so the geometry has to be
+   written here — and written once, in one file, rather than scattered through
+   seven components.
+
+   Two page boxes, because the seven documents go onto two different papers and
+   a print run has exactly one. Which one applies is decided by `data-paper` on
+   the stage, set on the server from `PAPER_OF[selected]`.
+   ============================================================================ */
+
+/*
+ * The fallback first, and it is correct on its own.
+ *
+ * Named pages (`page: doc-a4`) are a Chromium-and-newer-Safari feature, and
+ * Chromium is what a restaurant's back office and every receipt printer driver
+ * runs. Where they are not supported this bare rule still applies: zero margin
+ * onto whatever paper the reader chose, which prints an A4 document correctly
+ * on A4 and prints an 80 mm strip up the left edge of a sheet — degraded, but
+ * not wrong.
+ */
+@page {
+  margin: 0;
+}
+
+@page doc-a4 {
+  size: A4;
+  margin: 0;
+}
+
+/*
+ * `auto` height, not a fixed one. A till roll has no page: it is cut where the
+ * document ends, and pinning a height would either cut a long Z report in half
+ * or feed several centimetres of blank paper after a short receipt.
+ */
+@page doc-thermal {
+  size: 80mm auto;
+  margin: 0;
+}
+
+[data-paper='a4'] .doc-sheet {
+  page: doc-a4;
+}
+
+/*
+ * The eighth kind of paper: A4 that is allowed to run on.
+ *
+ * The seven documents each fill exactly one sheet by design, so the print rule
+ * below clips them rather than reflowing — a Z report that spilled would print
+ * a second, almost-empty page. A standard report has no such length: its rows
+ * come from a query and there may be four hundred of them. Clipping one at the
+ * fold is a printed table missing its tail with nothing on the paper to say so,
+ * which is worse than any number of pages.
+ *
+ * The same page box, then, and none of the clipping.
+ */
+[data-paper='a4-flow'] .doc-sheet {
+  page: doc-a4;
+}
+
+[data-paper='80mm'] .doc-strip {
+  page: doc-thermal;
+}
+
+/* ---------------------------------------------------------------- the ink */
+
+/*
+ * Paper is paper.
+ *
+ * The design file has no dark mode and never could: a receipt printed from a
+ * console someone left in dark mode must still be black on white, and a thermal
+ * head can only burn dark on light regardless. So the sheet carries its own
+ * palette — the design file's own `:root` values, copied out of
+ * `Smart Restaurant OS - Hujjatlar.dc.html:17-25` — instead of inheriting the
+ * console's tokens, and `color-scheme: light` stops the browser tinting form
+ * controls and scrollbars inside it.
+ */
+.doc-paper {
+  color-scheme: light;
+
+  --doc-0: #ffffff;
+  --doc-25: #fcfcfd;
+  --doc-50: #f8f9fb;
+  --doc-200: #d9dee6;
+  --doc-300: #bfc6d2;
+  --doc-400: #98a1b0;
+  --doc-900: #0f1320;
+
+  --doc-brand: #2e74ea;
+  --doc-success-50: #ecfdf3;
+  --doc-success-600: #039855;
+  --doc-success-700: #027a48;
+  --doc-warning-50: #fffaeb;
+  --doc-warning-500: #f79009;
+  --doc-warning-600: #dc6803;
+  --doc-danger-50: #fef3f2;
+  --doc-danger-500: #f04438;
+  --doc-danger-600: #d92d20;
+  --doc-accent-500: #0fb48a;
+  --doc-accent-600: #0a8f6c;
+
+  --doc-fg: #0f1320;
+  --doc-fg-muted: #4c5568;
+  --doc-fg-subtle: #6e7789;
+  --doc-border: #e7eaf0;
+  --doc-divider: #f1f3f7;
+
+  color: var(--doc-fg);
+}
+
+/* --------------------------------------------------------------- the desk */
+
+.doc-stage {
+  background: var(--bg-subtle);
+  /*
+   * A4 is 210 mm — 794 px — and it does not fold. On a laptop at 1280 px it
+   * fits beside nothing; on a 1024 px tablet held in portrait it does not fit
+   * at all. Scrolling the sheet inside its own box is the only honest answer:
+   * shrinking it would print at a size nobody chose.
+   */
+  overflow-x: auto;
+  display: flex;
+  /*
+   * `safe center`, and the word is load-bearing.
+   *
+   * Plain `justify-content: center` centres a child that is wider than its
+   * container by pushing it out of BOTH edges — and the overflow past the start
+   * edge is not reachable by scrolling. Measured on a 320px phone: the sheet
+   * sat at `left: -237px`, so the left third of every receipt, invoice and Z
+   * report was unreadable and no gesture could bring it back. `safe` keeps the
+   * centring while there is room and falls back to the start edge when there is
+   * not, which is the whole of the fix.
+   */
+  justify-content: safe center;
+  padding: 28px;
+}
+
+/* The desk's own margin is 28px of a 320px phone. Half of it is still a desk. */
+@media (max-width: 600px) {
+  .doc-stage {
+    padding: 14px;
+  }
+}
+
+/* --------------------------------------------------------------- A4 sheet */
+
+.doc-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  flex: none;
+  background: var(--doc-0);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  /* `16mm 14mm` and `9.5pt` — the design's own values on p1, p4, p5, p6, p7. */
+  padding: 16mm 14mm;
+  font-size: 9.5pt;
+  line-height: 1.4;
+}
+
+/* ------------------------------------------------------------ thermal roll */
+
+/*
+ * 300 px on screen, 80 mm on paper.
+ *
+ * They are within two pixels of each other at 96 dpi, and the difference is
+ * deliberate: on screen a round number keeps the strip crisp against the
+ * pixel grid, and on paper only the millimetre is true.
+ */
+.doc-strip {
+  width: 300px;
+  flex: none;
+  background: var(--doc-0);
+  /*
+   * Dashed on screen because a floating white column with no edge does not
+   * read as a strip of paper. It is not printed — see the print block; a real
+   * receipt has no border, and burning one would waste a millimetre of a 72 mm
+   * printable width.
+   */
+  border: 1px dashed var(--doc-300);
+  padding: 5mm 4mm;
+  font-family: var(--font-mono);
+  font-size: 8pt;
+  line-height: 1.45;
+}
+
+/* The kitchen's ticket is set a point larger — it is read at arm's length. */
+.doc-strip[data-ticket] {
+  font-size: 9pt;
+}
+
+/* `display:flex;gap:12mm;align-items:flex-start` — the design's own container
+   for the pair. Two 80 mm strips and a 12 mm gap come to 172 mm, inside the
+   sheet's 182 mm measure, so they never need to wrap. */
+.doc-strips {
+  display: flex;
+  gap: 12mm;
+  align-items: flex-start;
+}
+
+/* ------------------------------------------------------------- shared bits */
+
+/* A row on a roll: label left, figure right, nothing between — and no gap,
+   which is the design's own rule. On a 72 mm printable width `space-between`
+   is what makes a column of figures line up on its right edge; a gap would
+   move the shortest amounts off it. */
+.doc-line {
+  display: flex;
+  justify-content: space-between;
+}
+
+.doc-rule {
+  border-top: 1px dashed var(--doc-400);
+  margin: 6px 0;
+}
+
+.doc-rule-solid {
+  border-top: 1px solid var(--doc-900);
+  margin: 5px 0;
+}
+
+/* A ruled blank, for a figure or a signature written by hand. */
+.doc-blank {
+  display: block;
+  border-bottom: 1px solid var(--doc-400);
+  height: 13px;
+}
+
+.doc-sign {
+  border-bottom: 1px solid var(--doc-900);
+  height: 24px;
+}
+
+.doc-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/*
+ * The fiscal QR, as a placeholder.
+ *
+ * `repeating-conic-gradient` is the design's own stand-in
+ * (`Hujjatlar.dc.html:154`) and it stays one: a real QR encodes a fiscal sign
+ * the tax office issued at the moment of sale, so any square drawn here would
+ * be a code that scans to nothing. Better an obvious chequerboard than a
+ * plausible-looking code a guest photographs and cannot check.
+ */
+.doc-qr {
+  width: 20mm;
+  height: 20mm;
+  flex: none;
+  background: repeating-conic-gradient(var(--doc-900) 0% 25%, var(--doc-0) 0% 50%) 50% / 2.4mm 2.4mm;
+  border: 1.2mm solid var(--doc-0);
+  outline: 1px solid var(--doc-300);
+}
+
+/* ------------------------------------------------------------------ print */
+
+@media print {
+  /*
+   * Everything that is not the document.
+   *
+   * The switcher, the print button and the design file's own specimen framing
+   * — the "haqiqiy o'lchamda" header over the receipts and the explanatory
+   * notes beside the Z. Those notes are the handoff explaining itself to a
+   * developer; nobody hands a guest a receipt with a paragraph about why it
+   * looks that way.
+   */
+  .doc-chrome,
+  .doc-screen-only {
+    display: none !important;
+  }
+
+  .doc-stage {
+    padding: 0;
+    background: var(--doc-0);
+    overflow: visible;
+    display: block;
+  }
+
+  .doc-sheet {
+    width: 210mm;
+    height: 297mm;
+    min-height: 0;
+    box-shadow: none;
+    /*
+     * The page box clips rather than reflows, which is `<doc-page>`'s own rule
+     * and the reason each of the seven was designed to fill one sheet. A
+     * document that spilled would otherwise print a second, almost-empty page.
+     */
+    overflow: hidden;
+  }
+
+  /*
+   * A report runs to as many pages as it has rows.
+   *
+   * `.doc-sheet` above is a fixed 297 mm box with `overflow: hidden`, which is
+   * right for the seven and wrong for a table of unknown length. Here the box
+   * becomes an ordinary block: the browser breaks it across pages, the header
+   * row repeats at the top of each one (`table-header-group`), and no row is
+   * cut through the middle.
+   */
+  [data-paper='a4-flow'] .doc-sheet {
+    height: auto;
+    min-height: 297mm;
+    overflow: visible;
+  }
+
+  [data-paper='a4-flow'] .doc-table thead {
+    display: table-header-group;
+  }
+
+  [data-paper='a4-flow'] .doc-table tr {
+    break-inside: avoid;
+  }
+
+  /*
+   * The specimen sheet gets out of the way.
+   *
+   * On screen the two thermal documents preview on an A4 page, the way the
+   * design draws them. On paper that page does not exist: the strips go to a
+   * roll, so the sheet loses its size, its padding and its page box and becomes
+   * an ordinary block wrapping the two strips.
+   */
+  [data-paper='80mm'] .doc-sheet {
+    width: auto;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+    display: block;
+    overflow: visible;
+  }
+
+  .doc-strip {
+    width: 80mm;
+    border: 0;
+    padding: 5mm 4mm;
+  }
+
+  .doc-strips {
+    display: block;
+  }
+
+  /*
+   * One strip per page. The design shows the guest receipt and the kitchen
+   * ticket side by side to compare them; the printer issues them separately,
+   * to two different machines in two different rooms.
+   */
+  .doc-strip + .doc-strip {
+    break-before: page;
+  }
+
+  /* Grey fills survive the printer. Without this Chrome drops every background
+     and the P&L's black net-profit row prints as white-on-white. */
+  .doc-paper {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

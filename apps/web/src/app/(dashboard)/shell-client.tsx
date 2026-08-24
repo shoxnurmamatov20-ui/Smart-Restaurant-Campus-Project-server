@@ -1,19 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+
+import { withLocale } from '@/lib/locale-path';
+import { useLocalePath } from '@/lib/use-locale-path';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocale, useMessages } from 'next-intl';
+import { flash } from '@restaurant/ui';
 
 import { useTheme } from '@/components/providers/theme-provider';
 import { LANGUAGE_OPTIONS, type Locale, type Messages } from '@/i18n';
 import { rememberLocale } from '@/i18n/locale';
 import { SESSION_ENDPOINT } from '@/lib/base-path';
+import { post, type Lang } from '@/lib/console-post';
 import { rememberRole } from '@/lib/role-cookie';
-import { ROLE_LIST, type ModuleKey, type RoleId } from '@/lib/roles';
+import { ROLE_LIST, type ModuleKey, type Role, type RoleId } from '@/lib/roles';
 
+import { CommandPalette } from './command-palette';
 import { NAV_ITEMS, type NavItem } from './nav';
-import { BRANCHES, NOTIFICATIONS } from './shell-data';
+import type { NotificationFeed } from './notifications-server';
+import type { BranchChoice } from './shell-server';
+import type { NotificationKey } from './shell-data';
 
 /**
  * Everything in the shell that needs the browser.
@@ -77,20 +85,22 @@ const MENU_ROW =
 /* ------------------------------------------------------------ sidebar -- */
 
 export function NavLink({ item }: { item: NavItem }) {
-  const pathname = usePathname();
+  // `here` is the path without its language; `to()` puts it back on a href.
+  const { here, to } = useLocalePath();
   const nav = (useMessages() as Messages).console.nav;
 
   // Exact match only. `/finance` and `/finance/till` are two rows in the same
   // group, and a prefix match would light both up at once.
-  const active = pathname === item.href;
+  const active = here === item.href;
 
   return (
     <Link
-      href={item.href}
+      href={to(item.href)}
       data-navitem
       data-active={active ? 'true' : undefined}
       aria-current={active ? 'page' : undefined}
-      className="text-fg-muted flex h-10 items-center gap-3 rounded-md px-2.5 text-sm font-medium"
+      data-press
+      className="text-fg-muted flex h-10 flex-none items-center gap-3 rounded-md px-2.5 text-sm font-medium"
     >
       <svg
         width="19"
@@ -140,12 +150,13 @@ export function NavLink({ item }: { item: NavItem }) {
  * the tab and the header end up disagreeing.
  */
 export function PageTitle() {
-  const pathname = usePathname();
+  // `here` is the path without its language; `to()` puts it back on a href.
+  const { here, to } = useLocalePath();
   const nav = (useMessages() as Messages).console.nav;
 
   const match =
-    NAV_ITEMS.find((item) => item.href === pathname) ??
-    NAV_ITEMS.find((item) => pathname.startsWith(`${item.href}/`));
+    NAV_ITEMS.find((item) => item.href === here) ??
+    NAV_ITEMS.find((item) => here.startsWith(`${item.href}/`));
 
   return (
     <h1 className="font-display tracking-snug truncate text-lg leading-[1.2] font-semibold">
@@ -155,22 +166,24 @@ export function PageTitle() {
 }
 
 /**
- * Search, with the shortcut the design advertises.
+ * Search, and the palette behind it.
  *
- * ⌘K focuses the field rather than opening a palette: the design draws a field,
- * and a key that promises one thing and does another is worse than no key.
+ * The field is a **button that looks like a field**, exactly as the design has
+ * it — `readonly`, opens the palette on click or focus. The previous version
+ * was a real input that ⌘K focused and that returned nothing, which taught a
+ * reader that the shortcut was broken.
  */
-export function Search() {
-  const shell = (useMessages() as Messages).console.shell;
+export function Search({ role }: { role: Role }) {
+  const messages = useMessages() as Messages;
+  const shell = messages.console.shell;
   const input = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return;
       event.preventDefault();
-      input.current?.focus();
-      input.current?.select();
+      setOpen(true);
     };
 
     document.addEventListener('keydown', onKey);
@@ -194,33 +207,111 @@ export function Search() {
         <path d="m16.5 16.5 4 4" />
       </svg>
 
-      {/* TODO(api): GET /api/v1/search?q= — orders, tables, menu, customers.
-          Typing works; the result sheet lands with the endpoint. */}
       <input
         ref={input}
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        readOnly
+        onClick={() => setOpen(true)}
+        onFocus={() => setOpen(true)}
         placeholder={shell.searchPlaceholder}
         aria-label={shell.searchLabel}
-        className="bg-bg-subtle text-fg focus:bg-surface focus:border-brand-300 h-9 w-full rounded-md border border-transparent pr-12 pl-[34px] text-sm outline-none"
+        className="bg-bg-subtle text-fg focus:bg-surface focus:border-brand-300 h-9 w-full cursor-text rounded-md border border-transparent pr-12 pl-[34px] text-sm outline-none"
       />
 
       <kbd className="text-fg-subtle bg-surface text-2xs pointer-events-none absolute top-1/2 right-[9px] -translate-y-1/2 rounded-xs border px-[5px] py-0.5 font-sans font-medium">
         ⌘K
       </kbd>
+
+      {open ? (
+        <CommandPalette
+          role={role}
+          onClose={() => {
+            setOpen(false);
+            input.current?.blur();
+          }}
+          labels={{
+            placeholder: shell.cmdPlaceholder,
+            modules: shell.cmdModules,
+            none: shell.cmdNone,
+            noneSub: shell.cmdNoneSub,
+            goTo: shell.cmdGoTo,
+            pending: shell.cmdPending,
+          }}
+        />
+      ) : null}
     </div>
   );
 }
 
-/** What is waiting for a decision, oldest last. */
-export function Notifications() {
+/**
+ * What is waiting for a decision — three severities, and now the reader's own.
+ *
+ * `Smart Restaurant OS.dc.html:405-436`. Two things were wrong and they
+ * compounded: the tray held four of the design's six rows, and it knew only two
+ * severities, so the two quiet ones — a finished report, a missed shift — had
+ * nowhere to sit and were simply absent. A tray in which every row is red or
+ * amber is a tray somebody clears without reading, which is how the red one
+ * that mattered gets cleared too.
+ *
+ * A row is a link, not a paragraph. Every one of these is about something a
+ * reader then has to go and look at, and the design sends each to its own
+ * module; a notification that names a cash variance and cannot take you to it
+ * is a notification that has to be re-found by hand.
+ *
+ * The rows are the person's own now — `notificationFeed()` in the sibling
+ * ./notifications-server.ts, read once by the layout — and the read state has
+ * left the browser with them: `POST /api/notifications` forwards to the API, so
+ * a bell cleared on a laptop is cleared on the phone. `feed.live` decides
+ * whether anything is sent at all, because a console with no session draws the
+ * design's sample tray, whose ids are catalogue keys rather than uuids.
+ *
+ * Words come from the row when it has them and from the catalogue when it does
+ * not. The key names the KIND of thing and is what the console paints and
+ * sorts; the sentence is what makes it worth reading, because "a cash variance"
+ * and "minus thirty-two thousand on shift 41" are not the same notification and
+ * no catalogue can hold the second.
+ */
+export function Notifications({ feed }: { feed: NotificationFeed }) {
   const m = (useMessages() as Messages).console;
+  const lang = useLocale() as Lang;
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<readonly string[]>([]);
   const ref = useDismissable(open, () => setOpen(false));
 
-  const unread = NOTIFICATIONS.filter((item) => !read.includes(item.key));
+  const unread = feed.items.filter((item) => !read.includes(item.id));
+
+  /* The design's three: danger, warning, brand — and grey once it is read, so
+     an opened tray still shows at a glance what is left. */
+  const dot = (level: 'high' | 'mid' | 'low', isUnread: boolean) => {
+    if (!isUnread) return 'bg-n-300';
+    return level === 'high' ? 'bg-danger-500' : level === 'mid' ? 'bg-warning-500' : 'bg-brand-500';
+  };
+
+  /**
+   * Grey the rows first, tell the server after.
+   *
+   * Waiting for the answer before the dot changes would put a quarter-second of
+   * nothing on a control whose whole job is to be pressed and dismissed. When
+   * the write fails the rows go back, which is the honest signal — they really
+   * are still unread — and the line says so, because a tray that silently
+   * refills on the next render reads as a bug in the bell.
+   */
+  const clear = async (ids: readonly string[], body: unknown) => {
+    if (ids.length === 0) return;
+
+    // Functional updates on both sides, so a second row pressed while the
+    // first is still in flight does not overwrite it with the state this
+    // render closed over.
+    setRead((was) => [...was, ...ids]);
+
+    if (!feed.live) return;
+
+    const answer = await post('/api/notifications', body, lang);
+
+    if (!answer.ok) {
+      setRead((was) => was.filter((id) => !ids.includes(id)));
+      flash.problem(answer.message ?? m.shell.notifFailed);
+    }
+  };
 
   return (
     <div ref={ref} className="relative flex-none">
@@ -263,7 +354,12 @@ export function Notifications() {
             <span className="text-sm font-semibold">{m.shell.notifications}</span>
             <button
               type="button"
-              onClick={() => setRead(NOTIFICATIONS.map((item) => item.key))}
+              onClick={() =>
+                void clear(
+                  unread.map((item) => item.id),
+                  { all: true },
+                )
+              }
               className="text-fg-brand text-xs font-semibold hover:underline"
             >
               {m.shell.markAllRead}
@@ -271,23 +367,31 @@ export function Notifications() {
           </div>
 
           <div data-scroll className="max-h-[400px]">
-            {NOTIFICATIONS.map((item) => {
-              const isUnread = !read.includes(item.key);
-              const copy = m.notification[item.key];
+            {feed.items.map((item) => {
+              const isUnread = !read.includes(item.id);
+              /* `in` rather than an index-and-hope: a key the console has never
+                 heard of is a row whose own sentence still draws, and reading
+                 `.title` off undefined would take the whole shell down with it. */
+              const copy =
+                item.key in m.notification ? m.notification[item.key as NotificationKey] : null;
+              const place = item.placeKey === null ? item.placeLabel : m.place[item.placeKey];
 
               return (
-                <div
-                  key={item.key}
+                <Link
+                  key={item.id}
+                  href={item.href}
                   data-row
-                  className={`border-divider flex gap-3 border-b px-4 py-[13px] ${
-                    isUnread ? 'bg-bg-subtle' : ''
+                  onClick={() => {
+                    setOpen(false);
+                    void clear(isUnread ? [item.id] : [], { id: item.id });
+                  }}
+                  className={`border-divider flex gap-3 border-b px-4 py-[13px] text-left ${
+                    isUnread ? 'bg-brand-50' : ''
                   }`}
                 >
                   <span
                     aria-hidden
-                    className={`rounded-pill mt-1.5 size-2 flex-none ${
-                      item.level === 'high' ? 'bg-danger-500' : 'bg-warning-500'
-                    } ${isUnread ? '' : 'opacity-30'}`}
+                    className={`rounded-pill mt-1.5 size-2 flex-none ${dot(item.level, isUnread)}`}
                   />
                   <span className="min-w-0 flex-1">
                     <span
@@ -295,16 +399,17 @@ export function Notifications() {
                         isUnread ? 'font-semibold' : 'font-medium'
                       }`}
                     >
-                      {copy.title}
+                      {item.title ?? copy?.title ?? item.key}
                     </span>
                     <span className="text-fg-muted mt-[3px] block text-xs leading-[1.4]">
-                      {copy.body}
+                      {item.body ?? copy?.body ?? ''}
                     </span>
                     <span data-num className="text-fg-subtle text-2xs mt-[5px] block">
-                      {item.time} · {m.place[item.place]}
+                      {item.time}
+                      {place === null ? '' : ` · ${place}`}
                     </span>
                   </span>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -319,83 +424,198 @@ export function Notifications() {
 }
 
 /**
- * Which venue the numbers are about.
+ * Which venue the numbers are about — and, at last, a way to change it.
  *
- * TODO(api): the list and the active branch come from
- * GET /api/v1/auth/context, which returns `branch` and `branch_pinned`; picking
- * one sets the X-Branch header for every later request. Until then this holds
- * the design's five and remembers the choice locally, so the control behaves
- * the way it will once it is wired.
+ * This was a dropdown, then a label, and now it is a dropdown that works. The
+ * middle step is worth recording because it is why the finished control is
+ * shaped like this: picking a venue used to set React state and flash
+ * "switched to Yunusobod", and then nothing — no cookie was written, `apiGet`
+ * sent no `X-Branch`, and every figure on the page stayed whatever it had
+ * been. An owner read one venue's takings under another venue's name, on every
+ * screen in the console.
+ *
+ * What makes it real is three files rather than this one: `lib/branch-cookie.ts`
+ * holds the choice, `lib/api-server.ts` sends it as `X-Branch` on every read,
+ * and `lib/api-proxy.ts` sends it on every write — a write that arrived
+ * unscoped would change the whole business while the screen showed one venue.
+ *
+ * ---------------------------------------------------------------------------
+ * Three states, and only one of them is a control
+ *
+ *  - **A pinned person** (`branch_pinned` on `auth/context`) is scoped to
+ *    their venue by the server whatever any header said. They get the label.
+ *    Offering them the menu would be offering a choice the API answers with
+ *    `branch.mismatch` — a 403 on every screen at once.
+ *  - **One venue** is not a choice either. A control whose every option gives
+ *    the same answer is worse than no control.
+ *  - **Everybody else** gets the menu, including the row for the roll-up:
+ *    "Barcha filiallar" is not an empty state, it is what an absent `X-Branch`
+ *    means and it is what an owner comparing venues reads.
+ *
+ * ---------------------------------------------------------------------------
+ * The server writes the cookie, and the router re-renders
+ *
+ * `POST /api/dashboard/branch` checks the slug against the restaurant's own
+ * register before writing anything — a slug the API does not know would answer
+ * 404 on every request in the console, from a cookie the reader cannot see.
+ * Then `router.refresh()`, because every figure on the screen was rendered on
+ * the server and none of it is in the browser to update.
+ *
+ * Not optimistic, unlike the intake switches. A switch can be put back; a
+ * venue cannot be un-read, and half a second of the old numbers under the new
+ * name is the exact confusion this control exists to end.
  */
-export function BranchSwitcher() {
+export function BranchSwitcher({
+  branches,
+  activeSlug,
+  canSwitch,
+}: {
+  branches: readonly BranchChoice[];
+  activeSlug: string | null;
+  canSwitch: boolean;
+}) {
   const m = (useMessages() as Messages).console;
+  const lang = useLocale() as Lang;
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(BRANCHES[0].id);
+  const [busy, setBusy] = useState(false);
   const ref = useDismissable(open, () => setOpen(false));
 
-  const current = BRANCHES.find((branch) => branch.id === active) ?? BRANCHES[0];
+  // No venues at all is a restaurant mid-setup, not a bug — and nothing to name.
+  if (branches.length === 0) return null;
+
+  const active = activeSlug === null ? undefined : branches.find((row) => row.slug === activeSlug);
+  const only = branches.length === 1 ? branches[0] : undefined;
+  const label = (active ?? only)?.name ?? m.shell.allVenues;
+
+  const openable = canSwitch && branches.length > 1;
+
+  async function choose(slug: string | null, name: string) {
+    setOpen(false);
+
+    if (slug === activeSlug) return;
+
+    setBusy(true);
+
+    const answer = await post<{ slug: string | null }>('/api/dashboard/branch', { slug }, lang);
+
+    setBusy(false);
+
+    if (!answer.ok) {
+      /*
+       * The demo console has no session, so the handler refuses and there is
+       * nothing to switch. It keeps confirming, which is what
+       * `session.live === false` on the shell already says about every figure
+       * on the page.
+       */
+      if (answer.code === 'offline' || answer.code === 'not_signed_in') {
+        flash(m.shell.branchSwitched.replace('{branch}', name));
+
+        return;
+      }
+
+      flash.problem(answer.message ?? m.shell.branchFailed);
+
+      return;
+    }
+
+    flash(m.shell.branchSwitched.replace('{branch}', name));
+    // Every number on this page was rendered on the server against the old
+    // venue. Nothing in the browser can update them; the server has to.
+    router.refresh();
+  }
+
+  if (!openable) {
+    return (
+      <div className="flex-none">
+        <span
+          title={label}
+          aria-label={`${m.shell.branchScope}: ${label}`}
+          className="bg-surface text-fg flex h-9 items-center gap-2.5 rounded-md border px-3"
+        >
+          <span aria-hidden className="bg-success-500 rounded-pill size-[7px] flex-none" />
+          <span data-branchlabel className="text-sm font-medium">
+            {label}
+          </span>
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="relative flex-none">
       <button
         type="button"
-        title={current.name}
         aria-expanded={open}
+        aria-busy={busy}
+        aria-label={`${m.shell.branchScope}: ${label}`}
         onClick={() => setOpen((value) => !value)}
-        className="bg-surface text-fg hover:bg-bg-subtle flex h-9 items-center gap-2.5 rounded-md border pr-2.5 pl-3"
+        className="bg-surface text-fg hover:bg-bg-subtle flex h-9 items-center gap-2.5 rounded-md border px-3"
       >
         <span aria-hidden className="bg-success-500 rounded-pill size-[7px] flex-none" />
         <span data-branchlabel className="text-sm font-medium">
-          {current.name}
+          {label}
         </span>
-        <Chevron />
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-fg-subtle"
+          aria-hidden
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
 
       {open ? (
-        <Menu width={272}>
+        <Menu width={264}>
           <div className="p-1.5">
-            <div className="text-fg-subtle text-2xs tracking-caps px-2.5 pt-2 pb-1.5 font-semibold uppercase">
-              {m.shell.branchHead}
-            </div>
-
-            {BRANCHES.map((branch) => {
-              const selected = branch.id === active;
-
-              return (
-                <button
-                  key={branch.id}
-                  type="button"
-                  data-row
-                  onClick={() => {
-                    setActive(branch.id);
-                    setOpen(false);
-                  }}
-                  className={`${MENU_ROW} ${selected ? 'bg-brand-50 text-brand-700' : ''}`}
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{branch.name}</span>
-                    <span data-num className="text-fg-subtle text-2xs mt-px block">
-                      {m.city[branch.city]} · {branch.seats} {m.shell.seats}
-                    </span>
+            {branches.map((branch) => (
+              <button
+                key={branch.slug}
+                type="button"
+                role="menuitem"
+                onClick={() => void choose(branch.slug, branch.name)}
+                className={`${MENU_ROW} hover:bg-bg-subtle ${
+                  branch.slug === activeSlug ? 'bg-bg-subtle' : ''
+                }`}
+              >
+                <span className="min-w-0 flex-1 truncate">{branch.name}</span>
+                {/*
+                  The seat count, when the venue has one configured. Not a
+                  fallback of zero: a branch nobody has sized is a branch with
+                  no answer, and "0 o'rin" is a claim about the room.
+                */}
+                {branch.seats === null ? null : (
+                  <span data-num className="text-fg-subtle text-2xs flex-none">
+                    {branch.seats} {m.shell.seats}
                   </span>
-                  <span data-num className="text-fg-subtle flex-none text-xs font-semibold">
-                    {branch.revenue}
-                  </span>
-                </button>
-              );
-            })}
-
-            <div className="bg-divider mx-2.5 my-1.5 h-px" />
-
-            <Link
-              href="/settings/branches"
-              data-row
-              onClick={() => setOpen(false)}
-              className={`${MENU_ROW} text-fg-brand`}
-            >
-              {m.shell.allBranches}
-            </Link>
+                )}
+              </button>
+            ))}
           </div>
+
+          {/*
+            The roll-up, under a rule rather than in the list, because it is not
+            a venue. An absent `X-Branch` is every venue at once, and an owner
+            comparing five branches reads exactly this row.
+          */}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => void choose(null, m.shell.allVenues)}
+            className={`bg-bg-subtle hover:bg-bg-muted text-fg-brand w-full px-4 py-[11px] text-left text-xs font-semibold ${
+              activeSlug === null ? 'underline' : ''
+            }`}
+          >
+            {m.shell.allBranches}
+          </button>
         </Menu>
       ) : null}
     </div>
@@ -415,6 +635,7 @@ export function LanguageAndTheme() {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const { here } = useLocalePath();
 
   const [open, setOpen] = useState(false);
   const ref = useDismissable(open, () => setOpen(false));
@@ -422,13 +643,26 @@ export function LanguageAndTheme() {
   function choose(next: Locale) {
     rememberLocale(next);
     setOpen(false);
-    // The console is server-rendered, so the new language has to come back from
-    // the server; refreshing re-runs the layout with the cookie now set.
-    router.refresh();
+    /*
+     * The language's own URL, loaded as a document.
+     *
+     * `router.refresh()` was here and it was wrong twice over. It re-fetched
+     * every server component and swapped them in place — on a phone that
+     * measured 1327 ms of the old language sitting on screen — and it left the
+     * address bar naming a language the page was no longer in, which is the
+     * whole thing the move into the path was for.
+     *
+     * A client navigation cannot do this either: `<html lang>` is set by the
+     * root layout from a request header, and root layouts do not re-render on
+     * navigation. The document has to be the thing that changes.
+     */
+    const { search, hash } = window.location;
+
+    window.location.assign(`${withLocale(here, next)}${search}${hash}`);
   }
 
   return (
-    <div className="bg-surface flex h-9 flex-none items-center rounded-md border">
+    <div data-langtheme className="bg-surface flex h-9 flex-none items-center rounded-md border">
       <div ref={ref} className="relative">
         <button
           type="button"

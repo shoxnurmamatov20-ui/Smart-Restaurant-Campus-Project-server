@@ -1,0 +1,516 @@
+/* ============================================================
+   The platform console's own surface.
+
+   Twelve screens for one to three people who run this product. Their job on
+   every one of them is the same: somebody has rung about one restaurant out of
+   forty-two, and the answer has to be found while they are still on the phone.
+   That is triage, not reporting, and it is the whole argument for what follows.
+
+   ---------------------------------------------------------------
+   The thesis: colour marks the exception, and nothing else.
+
+   A console that paints every state — green paid, blue plan, grey seen — makes
+   an operator READ forty-two rows to find the three that need them. So here the
+   good state is silent. A restaurant that pays on time has no chip beside it;
+   the only saturated pixels on the screen belong to something that wants a
+   person. Everything else is graphite, and hierarchy is carried by type and
+   space instead.
+
+   That is a real risk and it is taken deliberately: it means "paid" is drawn as
+   an absence. It is defensible because absence is exactly what it is — nothing
+   for the operator to do — and because the alternative was measured on this
+   screen, where a row of six green chips said nothing at a glance.
+
+   ---------------------------------------------------------------
+   What this file may and may not touch
+
+   The token layer is locked: `design-tokens.test.ts` parses
+   `docs/design/source/Smart Restaurant OS.dc.html` and asserts every one of the
+   115 light and 36 dark custom properties against `packages/ui/src/styles/
+   tokens.css`. So nothing here declares a colour. Every value below is either
+   an existing token or a measurement — radius, inset, duration — which the
+   design file has no opinion about for this surface.
+
+   The variables declared on `[data-platform]` are a local rhythm, scoped to
+   this console so they cannot leak into the restaurant console next door, which
+   the design DOES draw in detail.
+
+   Imported after `(dashboard)/app-shell.css`, which this layout still needs for
+   the collapsing rail and the drawer. Every rule here is prefixed with
+   `[data-platform]` so it out-specifies that file rather than fighting it on
+   source order.
+   ============================================================ */
+
+[data-platform] {
+  /* Apple's own easing for interface motion: a fast start that settles rather
+     than decelerating evenly. `--ease-standard` is the material curve and is
+     right for the restaurant console; this surface is not that one. */
+  --p-ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* A grouped panel. Bigger than `--radius-lg` because the corner has to read
+     as a continuous curve at 14px on a 1200px panel, not as a clipped box. */
+  --p-group: 14px;
+
+  /* Where a separator starts. Hairlines that run edge to edge cut a panel into
+     slices; hairlines inset to the content column read as one list with rows
+     in it, which is what it is. */
+  --p-inset: 20px;
+
+  /* The horizontal air inside every panel. One number so a table cell, a list
+     row and a section header all begin on the same vertical line. */
+  --p-pad: 20px;
+}
+
+/* ---- The page's own title ----------------------------------------------
+
+   Large, tight, and alone. The rail already says which screen this is, so the
+   title does not need an eyebrow repeating it — an eyebrow that restates the
+   heading is decoration, and this console has no room for any.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-ptitle] {
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  [data-platform] [data-ptitle] {
+    font-size: 24px;
+  }
+}
+
+/* ---- The grouped panel -------------------------------------------------
+
+   No border. A group is told apart from the page by its fill and its corner,
+   the way a list is in Settings — an outline around a fill is one device doing
+   the job twice. The ring is there for one reason only: in light mode the
+   surface and the page ground are close enough that a panel with neither
+   border nor shadow dissolves.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-group] {
+  background: var(--surface);
+  border-radius: var(--p-group);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--divider) 78%, transparent);
+  overflow: hidden;
+}
+
+/* A heading that belongs to a panel rather than to the page. Small, muted and
+   set in caps — it labels, and a label should never compete with the row it is
+   labelling. */
+[data-platform] [data-glabel] {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+/* ---- The figures row ---------------------------------------------------
+
+   Six KPIs used to be six bordered cards. Cards are for things you act on; a
+   figure is something you read, and boxing each one made a row of identical
+   frames whose contents had to be read one at a time. One panel, hairlines
+   between, values on a single baseline: the eye compares them instead.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-figures] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+}
+
+[data-platform] [data-figure] {
+  padding: 16px var(--p-pad) 18px;
+  position: relative;
+}
+
+/* The rule between two figures, drawn by the second one so the first edge and
+   the last stay clean. Vertical while they sit side by side... */
+[data-platform] [data-figure] + [data-figure]::before {
+  content: '';
+  position: absolute;
+  inset-block: 14px;
+  inset-inline-start: 0;
+  width: 1px;
+  background: var(--divider);
+}
+
+/* ...and horizontal once `auto-fit` has stacked them, where a vertical rule
+   would be a mark floating above a value it no longer separates. */
+@media (max-width: 720px) {
+  [data-platform] [data-figure] + [data-figure]::before {
+    inset-block: auto;
+    inset-inline: var(--p-inset) 0;
+    top: 0;
+    width: auto;
+    height: 1px;
+  }
+}
+
+[data-platform] [data-figure] dt {
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  margin-bottom: 6px;
+}
+
+[data-platform] [data-figure] dd {
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-platform] [data-figure] [data-note] {
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  margin-top: 6px;
+}
+
+/* ---- Tables ------------------------------------------------------------
+
+   The list is the screen. Everything below is in service of scanning it: a
+   header that recedes, rows tall enough to hit, separators that start where the
+   text does, and a hover that says "this one" without drawing a box.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-group] table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+[data-platform] thead th {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+  padding: 14px var(--p-pad) 10px;
+  /* No rule under the header. The gap below it is the separation; a line there
+     as well makes the header look like a first row. */
+  border: 0;
+}
+
+[data-platform] tbody td {
+  padding: 13px var(--p-pad);
+  vertical-align: middle;
+}
+
+[data-platform] tbody tr {
+  transition: background-color var(--dur-fast) var(--p-ease);
+}
+
+[data-platform] tbody tr:hover {
+  background: var(--bg-subtle);
+}
+
+/*
+ * The inset separator.
+ *
+ * Drawn as a background on the cell rather than as a border, because a border
+ * runs the full width of the table and this one has to stop short of the left
+ * edge. `background-size` carries the inset; `right top` pins what is left of
+ * it to the far edge, so the line ends flush on the right and begins under the
+ * text on the left.
+ */
+[data-platform] tbody tr + tr > td {
+  background-image: linear-gradient(var(--divider), var(--divider));
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: left top;
+}
+
+[data-platform] tbody tr + tr > td:first-child {
+  background-size: calc(100% - var(--p-inset)) 1px;
+  background-position: right top;
+}
+
+/* ---- Rows in a list that is not a table -------------------------------- */
+
+[data-platform] [data-grouprow] {
+  position: relative;
+  padding: 13px var(--p-pad);
+}
+
+[data-platform] [data-grouprow] + [data-grouprow]::before {
+  content: '';
+  position: absolute;
+  inset-inline: var(--p-inset) 0;
+  top: 0;
+  height: 1px;
+  background: var(--divider);
+}
+
+/* ---- The exception marker ---------------------------------------------
+
+   The only saturated thing on a healthy screen, and there is none on one. Six
+   pixels: enough to find while scanning a column, not enough to read as a
+   control somebody should press.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-dot] {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  flex: none;
+  /* Lifted onto the cap height of the word beside it rather than its baseline,
+     where a round mark reads as sunk. */
+  vertical-align: 0.08em;
+}
+
+[data-platform] [data-dot='warning'] {
+  background: var(--warning-500);
+}
+
+[data-platform] [data-dot='danger'] {
+  background: var(--danger-500);
+}
+
+[data-platform] [data-dot='success'] {
+  background: var(--success-500);
+}
+
+[data-platform] [data-dot='neutral'] {
+  background: var(--n-300);
+}
+
+/* ---- Controls ----------------------------------------------------------
+
+   Three weights and no more: the thing this screen is FOR, the things it also
+   does, and the things that are one word. A console where every action is a
+   bordered button is a console with no primary action.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-pbtn] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  block-size: 36px;
+  padding-inline: 15px;
+  border-radius: 10px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--p-ease),
+    transform var(--dur-fast) var(--p-ease),
+    box-shadow var(--dur-fast) var(--p-ease);
+}
+
+/* The design's own press, which this console never had: a hair of scale, not a
+   fade. A button that dims under the finger reads as disabled. */
+[data-platform] [data-pbtn]:active {
+  transform: scale(0.97);
+}
+
+[data-platform] [data-pbtn='primary'] {
+  background: var(--brand-500);
+  color: var(--n-0);
+}
+
+[data-platform] [data-pbtn='primary']:hover {
+  background: var(--brand-600);
+}
+
+[data-platform] [data-pbtn='secondary'] {
+  background: var(--bg-muted);
+  color: var(--fg);
+}
+
+[data-platform] [data-pbtn='secondary']:hover {
+  background: color-mix(in oklab, var(--bg-muted) 60%, var(--fg) 8%);
+}
+
+[data-platform] [data-pbtn='plain'] {
+  color: var(--fg-link);
+  padding-inline: 8px;
+}
+
+[data-platform] [data-pbtn='plain']:hover {
+  background: var(--bg-muted);
+}
+
+[data-platform] [data-pbtn='danger'] {
+  background: var(--bg-muted);
+  color: var(--danger-700);
+}
+
+[data-platform] [data-pbtn='danger']:hover {
+  background: var(--danger-50);
+}
+
+[data-platform] [data-pbtn][disabled],
+[data-platform] [data-pbtn][aria-disabled='true'] {
+  opacity: 0.45;
+}
+
+[data-platform] [data-pbtn][disabled]:active,
+[data-platform] [data-pbtn][aria-disabled='true']:active {
+  transform: none;
+}
+
+/* ---- The segmented control ---------------------------------------------
+
+   Five filters used to be five outlined buttons, which is five boxes competing
+   for the same attention and no indication that choosing one un-chooses the
+   others. A segment track says it in its shape: one lane, one thing lit.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-pseg] {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-muted);
+  border-radius: 10px;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+[data-platform] [data-pseg]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-platform] [data-pseg] > button {
+  block-size: 32px;
+  padding-inline: 13px;
+  border-radius: 8px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--fg-muted);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--p-ease),
+    color var(--dur-fast) var(--p-ease),
+    box-shadow var(--dur-fast) var(--p-ease);
+}
+
+[data-platform] [data-pseg] > button:hover {
+  color: var(--fg);
+}
+
+/* The selected segment is a raised tile, not a filled brand block. Brand fill
+   here would put the loudest colour on the screen on a filter that is set to
+   its default on eleven of twelve visits. */
+[data-platform] [data-pseg] > button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--fg);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+/* ---- Fields ------------------------------------------------------------
+
+   Filled, not outlined. An outline is a second edge competing with the panel's
+   own, and the fill already says "you may type here".
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-pfield] {
+  /*
+   * `--surface`, not `--bg-subtle`.
+   *
+   * The first version used the subtle ground, which is also the page's — so on
+   * every screen the search field was an invisible rectangle with a placeholder
+   * floating in it, and the only way to find it was to guess where it began.
+   * A filled control has to be filled with something the page is not.
+   */
+  background: var(--surface);
+  border: 1px solid color-mix(in oklab, var(--divider) 85%, transparent);
+  border-radius: 10px;
+  block-size: 36px;
+  padding-inline: 12px;
+  font-size: var(--text-sm);
+  color: var(--fg);
+  transition:
+    background-color var(--dur-fast) var(--p-ease),
+    border-color var(--dur-fast) var(--p-ease);
+}
+
+[data-platform] [data-pfield]::placeholder {
+  color: var(--fg-subtle);
+}
+
+[data-platform] [data-pfield]:hover {
+  border-color: var(--border);
+}
+
+[data-platform] [data-pfield]:focus {
+  outline: none;
+  border-color: var(--brand-400);
+  box-shadow: var(--shadow-focus);
+}
+
+/* ---- The rail ----------------------------------------------------------
+
+   Quieter than the restaurant console's, on purpose. This one is a place to
+   stand, not a place to look — an operator arrives on Restaurants and stays
+   there. So: a filled pill for where you are, no tint on anything else, and
+   labels that step back until they are the current one.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-navitem] {
+  border-radius: 9px;
+  transition:
+    background-color var(--dur-fast) var(--p-ease),
+    color var(--dur-fast) var(--p-ease);
+}
+
+[data-platform] [data-navitem]:hover {
+  background: var(--bg-subtle);
+  color: var(--fg);
+}
+
+[data-platform] [data-navitem][data-active='true'] {
+  background: var(--bg-muted);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* The one place brand colour appears in the chrome: the glyph of the screen
+   you are on. Enough to find your place at a glance in a rail collapsed to
+   icons, where the label is gone and the fill alone is ambiguous. */
+[data-platform] [data-navitem][data-active='true'] svg {
+  color: var(--brand-600);
+}
+
+[data-platform] [data-navsection] {
+  letter-spacing: 0.075em;
+}
+
+/* ---- The toolbar -------------------------------------------------------
+
+   Nothing scrolls under it — the shell is `h-dvh overflow-hidden` and only
+   `main` scrolls — so there is no translucency to earn here and none is drawn.
+   It gets the one thing it can honestly have: a lighter edge, so the eye starts
+   on the page rather than on the line above it.
+   ------------------------------------------------------------------------ */
+
+[data-platform] [data-topbar] {
+  border-bottom-color: color-mix(in oklab, var(--divider) 60%, transparent);
+}
+
+/* ---- Keyboard ----------------------------------------------------------
+
+   One visible ring, on every interactive thing this console draws. It is a
+   product used by two or three people all day, which is exactly the population
+   that stops reaching for the mouse.
+   ------------------------------------------------------------------------ */
+
+[data-platform] :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---- Motion ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-platform] * {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}

@@ -7,9 +7,24 @@ import type { Messages } from '@/i18n';
  * is a negative amount rather than a positive one with a flag, so the P&L adds
  * up by summation and the net profit cannot disagree with its own rows.
  *
- * TODO(api): GET /api/v1/finance/period?month= — the closed period. Nothing
- * here should be computed in the browser: a P&L that two clients round
- * differently is a P&L nobody trusts.
+ * **The shapes below are the fixture.** What the screen actually draws comes
+ * from `./finance-server.ts`, which reads
+ * `GET /analytics/profit-loss?month=YYYY-MM` and maps it into these types; this
+ * file is what it falls back to when there is no session or the API is down.
+ *
+ * That endpoint exists because none of the others could answer this screen. The
+ * only period the analytics module knew was `?period=today|week|month`, and
+ * `month` there means the trailing thirty trading days ending today — never
+ * "July". `GET /finance/expenses` and `GET /finance/payments` carry no date
+ * filter at all, so a month could not be assembled from them either without
+ * paging the whole history and bucketing it in the browser, which is exactly
+ * the arithmetic this file exists to avoid.
+ *
+ * Two of the seven lines are still thinner than they look, and the server file
+ * says so at each: the food-and-beverage split is a proportion read live off the
+ * bills rather than from the projection the revenue total comes from, and only
+ * the revenue row has a previous-month figure — the statement carries one
+ * comparison because that is the only one it can prove.
  */
 
 type Finance = Messages['console']['finance'];

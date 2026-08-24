@@ -1,8 +1,18 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { APPROVAL_LABEL } from '../../(dashboard)/dashboard/manager';
 import { formatTiyinAmount } from '@restaurant/utils';
 
-import { getOverview } from '../../(dashboard)/dashboard/overview-data';
+import { getLocale } from 'next-intl/server';
+
+import { ApprovalQueue } from '../../(dashboard)/dashboard/approval-queue';
+import { getManagerOverview } from '../../(dashboard)/dashboard/manager-data';
+import { type Attention } from '../../(dashboard)/dashboard/overview-data';
+import { getOverviewLive } from '../../(dashboard)/dashboard/overview-server';
+import { isOccupied } from '../../(dashboard)/tables/tables-data';
+import { getFloor } from '../../(dashboard)/tables/tables-server';
+import { getSession } from '@/lib/session';
+import { PhoneClock } from './phone-clock';
 
 export async function generateMetadata() {
   const t = await getTranslations('console.mobile');
@@ -14,8 +24,17 @@ export async function generateMetadata() {
  *
  * Built to the design's mobile surface: one column, 390px wide, everything an
  * owner checks between meetings — today's takings with its sparkline, orders
- * and covers, the one thing that needs attention, then the branches and two
- * buttons.
+ * and covers, **the approvals waiting on them**, the one thing that needs
+ * attention, then the branches and two buttons.
+ *
+ * The approvals are why the surface exists. `specs/01-os.md §2` describes this
+ * screen in four words — "read-mostly plus approvals" — and §7 gives it a
+ * contract: an approval request must reach this phone in under thirty seconds.
+ * The screen shipped with the read-mostly half and none of the other, so a
+ * waiter needing a 20% discount signed off still had to find a manager in
+ * person. The queue and the keypad are the same components the manager's
+ * dashboard uses, so an approval granted here and one granted at a desk cannot
+ * behave differently.
  *
  * A route rather than a native screen. The React Native app is Phase 2, and
  * until it ships an owner opening this on a phone gets the real figures rather
@@ -32,32 +51,80 @@ export async function generateMetadata() {
  */
 const CARD = 'rounded-lg border p-4';
 
+/**
+ * Three lines per attention card, keyed by the rule the server named.
+ *
+ * The phone used to carry one hardcoded warning — "Mol go'shti 19:00 ga borib
+ * tugaydi · Prognoz 11 kg, qolgani 4.2 kg" — on every owner's screen, about a
+ * shortage that was not happening anywhere. `GET /dashboard` answers a list of
+ * keys and levels and no figures at all, which is why the wording carries none
+ * either; an empty list draws nothing, because a phone with no warning on it is
+ * the answer an owner wants.
+ *
+ * A `Record` over the whole union rather than a lookup with a fallback: a rule
+ * the server grows fails the build here until somebody writes the sentence.
+ */
+const ATTENTION_COPY: Record<Attention['key'], { title: string; body: string }> = {
+  beef: { title: 'attnBeef', body: 'attnBeefBody' },
+  table: { title: 'attnTable', body: 'attnTableBody' },
+  food_cost: { title: 'attnFoodCost', body: 'attnFoodCostBody' },
+  labour_cost: { title: 'attnLabour', body: 'attnLabourBody' },
+  stock_out: { title: 'attnStockOut', body: 'attnStockOutBody' },
+  stock_low: { title: 'attnStockLow', body: 'attnStockLowBody' },
+  void_rate: { title: 'attnVoids', body: 'attnVoidsBody' },
+};
+
 export default async function MobilePage() {
-  const [data, t, dashboard, nav] = await Promise.all([
-    getOverview(),
-    getTranslations('console.mobile'),
-    getTranslations('console.dashboard'),
-    getTranslations('console.nav'),
-  ]);
+  const [data, shift, t, dashboard, nav, manager, pin, tables, session, locale] = await Promise.all(
+    [
+      // The live overview, the same read the desk's dashboard makes: the
+      // phone used to show the design's five venues and their takings to
+      // every owner who opened it.
+      getOverviewLive(),
+      getManagerOverview(),
+      getTranslations('console.mobile'),
+      getTranslations('console.dashboard'),
+      getTranslations('console.nav'),
+      getTranslations('console.dashManager'),
+      getTranslations('console.approvalPin'),
+      getTranslations('console.tables'),
+      getSession(),
+      getLocale(),
+    ],
+  );
+
+  /*
+   * The floor, for the seated card. It read `14 / 32` — a constant — beside
+   * live takings, so an owner glancing at their phone saw somebody else's room.
+   */
+  const floor = await getFloor(tables, locale);
+  const allTables = floor.zones.flatMap((zone) => zone.tables);
+  const seated = allTables.filter((table) => isOccupied(table)).length;
 
   const revenue = data.kpis.find((kpi) => kpi.key === 'revenue');
   const orders = data.kpis.find((kpi) => kpi.key === 'orders');
 
   /* The sparkline: today's hours, in the viewBox the design uses. */
-  const peak = Math.max(...data.hours.map((point) => point.today));
+  // A quiet morning has a peak of zero, and a zero divisor draws NaN — the
+  // line sits on the baseline instead.
+  const peak = Math.max(0, ...data.hours.map((point) => point.today));
   const spark = data.hours
     .map((point, index) => {
-      const x = (index / (data.hours.length - 1)) * 300;
-      const y = 52 - (point.today / peak) * 45;
+      const x = data.hours.length < 2 ? 0 : (index / (data.hours.length - 1)) * 300;
+      const y = peak > 0 ? 52 - (point.today / peak) * 45 : 52;
       return `${x.toFixed(0)},${y.toFixed(0)}`;
     })
     .join(' ');
 
   return (
-    <div className="bg-bg-muted flex min-h-screen justify-center p-0 sm:p-8">
+    <div className="bg-bg-muted flex min-h-dvh justify-center p-0 sm:p-8">
       <div className="bg-surface w-full max-w-[390px] flex-none overflow-hidden border sm:rounded-2xl sm:shadow-xl">
+        {/* The phone frame's own status bar. The clock was `11:24`, printed
+            server-side, so the mock never agreed with the device it was drawn
+            on; it reads the browser's clock now and shows nothing until it
+            has one. */}
         <div className="flex h-11 items-end justify-between px-[22px] pb-1.5 text-xs font-semibold">
-          <span data-num>11:24</span>
+          <PhoneClock />
           <span className="text-fg-muted flex gap-1.5">····· ▮</span>
         </div>
 
@@ -69,11 +136,12 @@ export default async function MobilePage() {
                 {t('live')}
               </div>
             </div>
+            {/* The reader's own initials. It was `RK` for everybody. */}
             <Link
               href="/dashboard"
               className="bg-brand-100 text-brand-700 rounded-pill grid size-9 place-items-center text-xs font-semibold"
             >
-              RK
+              {session.user.initials}
             </Link>
           </div>
 
@@ -82,11 +150,21 @@ export default async function MobilePage() {
             <div data-num className="font-display mt-1.5 text-3xl font-semibold tracking-tight">
               {formatTiyinAmount(revenue?.value ?? 0)}
             </div>
+            {/* The revenue KPI's own delta, or nothing. `console.mobile
+                .versusYesterday` is "+12.4% kechagiga" — a fixed chip beside a
+                live figure, which is the one comparison an owner acts on. */}
             <div className="mt-2 flex items-center gap-2">
               <span className="text-fg-subtle text-xs">{dashboard('som')}</span>
-              <span data-num className="text-success-700 text-xs font-semibold">
-                {t('versusYesterday')}
-              </span>
+              {revenue?.delta ? (
+                <span
+                  data-num
+                  className={`text-xs font-semibold ${
+                    revenue.delta.good ? 'text-success-700' : 'text-fg-muted'
+                  }`}
+                >
+                  {revenue.delta.text}
+                </span>
+              ) : null}
             </div>
 
             <svg
@@ -117,38 +195,109 @@ export default async function MobilePage() {
             <div className={CARD}>
               <div className="text-fg-subtle text-xs">{t('tablesSeated')}</div>
               <div data-num className="font-display mt-[5px] text-xl font-semibold">
-                14 / 32
+                {allTables.length === 0 ? '—' : `${seated} / ${allTables.length}`}
               </div>
             </div>
           </div>
 
-          <div className={`${CARD} bg-warning-50 mb-4 flex gap-3`}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--warning-600)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              className="mt-px flex-none"
-              aria-hidden
-            >
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-              <path d="M10.3 3.9 2.6 17.2A1.9 1.9 0 0 0 4.3 20h15.4a1.9 1.9 0 0 0 1.7-2.8L13.7 3.9a1.9 1.9 0 0 0-3.4 0z" />
-            </svg>
-            <div>
-              <div className="text-warning-700 text-sm font-semibold">{t('alertTitle')}</div>
-              <div className="text-warning-700 mt-[3px] text-xs opacity-85">{t('alertBody')}</div>
+          {/*
+           * Approvals first, above the alerts and the branch list.
+           *
+           * Somebody is standing at a till waiting for this; the low-stock
+           * warning below it will still be true in an hour. Ordering by what is
+           * blocked rather than by severity is the whole difference between a
+           * phone screen and a report.
+           */}
+          {shift.approvals.length > 0 ? (
+            <div className="mb-4">
+              <div className="text-fg-subtle text-2xs tracking-caps mb-2.5 font-semibold uppercase">
+                {manager('approvals')}
+              </div>
+
+              <ApprovalQueue
+                items={shift.approvals.map((approval) => ({
+                  id: approval.id,
+                  who: approval.who,
+                  // Worded like the manager's desk, from `console.dashManager`:
+                  // `console.permissions` has no entry per approval kind, and a
+                  // key that is not there throws MISSING_MESSAGE on the server.
+                  action: manager(APPROVAL_LABEL[approval.action]),
+                  amount: approval.amount === null ? null : formatTiyinAmount(approval.amount),
+                  minutesAgo: approval.minutesAgo,
+                }))}
+                labels={{
+                  approve: manager('approve'),
+                  decline: manager('decline'),
+                  approved: manager('approved'),
+                  declined: manager('declined'),
+                  reason: manager.raw('approvalReason') as string,
+                  pinTitle: pin('title'),
+                  pinSub: pin('sub'),
+                  cancel: pin('cancel'),
+                  digitsEntered: pin.raw('digits') as string,
+                }}
+              />
             </div>
-          </div>
+          ) : null}
 
-          <div className="text-fg-subtle text-2xs tracking-caps mb-2.5 font-semibold uppercase">
-            {t('branches')}
-          </div>
+          {/* What needs a decision, from the dashboard's own attention list —
+              and nothing at all when the list is empty. */}
+          {data.attention.map((item) => {
+            const warn = item.level === 'warn';
+            const copy = ATTENTION_COPY[item.key];
 
-          {data.branches.map((branch) => (
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className={`${CARD} mb-4 flex gap-3 ${warn ? 'bg-warning-50' : ''}`}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={warn ? 'var(--warning-600)' : 'var(--fg-muted)'}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  className="mt-px flex-none"
+                  aria-hidden
+                >
+                  {warn ? (
+                    <>
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                      <path d="M10.3 3.9 2.6 17.2A1.9 1.9 0 0 0 4.3 20h15.4a1.9 1.9 0 0 0 1.7-2.8L13.7 3.9a1.9 1.9 0 0 0-3.4 0z" />
+                    </>
+                  ) : (
+                    <>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7.5v5l3 2" />
+                    </>
+                  )}
+                </svg>
+                <div>
+                  <div className={`text-sm font-semibold ${warn ? 'text-warning-700' : ''}`}>
+                    {dashboard(copy.title)}
+                  </div>
+                  <div
+                    className={`mt-[3px] text-xs ${warn ? 'text-warning-700 opacity-85' : 'text-fg-muted'}`}
+                  >
+                    {dashboard(copy.body)}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+
+          {/* One venue has nothing to compare; the list earns its heading at two. */}
+          {data.branches.length > 1 ? (
+            <div className="text-fg-subtle text-2xs tracking-caps mb-2.5 font-semibold uppercase">
+              {t('branches')}
+            </div>
+          ) : null}
+
+          {(data.branches.length > 1 ? data.branches : []).map((branch) => (
             <div
               key={branch.id}
               className="border-divider flex items-center justify-between border-b py-[11px]"

@@ -1,20 +1,24 @@
 import { getTranslations } from 'next-intl/server';
 
 import {
+  fetchCashLadder,
   fetchIdleScreen,
+  fetchPosFloor,
+  fetchPosMenu,
   fetchShiftSession,
   holdsTheDrawer,
   pairedTerminal,
   shiftToken,
   tillCountSkipped,
 } from '@/lib/pos-session';
+import { realtimeConfig } from '@/lib/realtime-server';
 
 import './pos.css';
-import { getPosBoard } from './pos-data';
 import { IdleScreen } from './idle-screen';
 import { OpenTill } from './open-till';
 import { PairPanel } from './pair-panel';
-import { PosTerminal } from './pos-terminal';
+import { OrderScreen } from './order-screen';
+import { fetchBillRates } from './rates-server';
 
 export async function generateMetadata() {
   const t = await getTranslations('console.pos');
@@ -95,31 +99,76 @@ export default async function PosPage() {
    * a way past for the card-only case.
    */
   if (shift.cash_shift_id === null && holdsTheDrawer(shift) && !(await tillCountSkipped())) {
-    return <OpenTill />;
+    /*
+     * The notes come from the server, not from the screen.
+     *
+     * The ladder is configuration — this platform is multi-country — and it is
+     * also what the API validates the posted count against, so a screen holding
+     * its own copy can offer a row the server then refuses. It shipped holding
+     * six of Uzbekistan's eight notes, which is worse than a refusal: the
+     * missing rows simply could not be counted and the float came out short.
+     *
+     * Read here rather than in the client so the count screen paints once, with
+     * its rows already on it, and so a till whose API is unreachable still opens
+     * on the built-in list.
+     */
+    return <OpenTill ladder={await fetchCashLadder()} />;
   }
 
   /*
-   * The board is still fixtures, and that is P4's work rather than an oversight
-   * here: the live read needs the menu, the stop list and the floor, and the
-   * first two want the realtime channel that arrives with them. What is real
-   * today is everything around it — this tablet is a known terminal, and the
-   * person at it signed in with a PIN against a session the API is holding.
+   * The board and the floor, both live.
+   *
+   * Read in parallel because they are independent and a waiter is standing
+   * there: two sequential four-second timeouts is eight seconds of a blank
+   * screen in the worst case, and the worst case is a basement dining room.
+   *
+   * Either can come back null — an API mid-restart, a network that dropped —
+   * and the screen says so rather than drawing an empty menu that looks like a
+   * restaurant with nothing to sell.
    */
-  const board = await getPosBoard();
+  const [sections, tables, rates] = await Promise.all([
+    fetchPosMenu(),
+    fetchPosFloor(),
+    /*
+     * The two rates the totals block may print beside a figure.
+     *
+     * Third in the same parallel read rather than a fourth round trip: a waiter
+     * is standing there, and this is a settings call whose answer changes twice
+     * a year. `null` is the normal answer for a cashier — they do not hold
+     * `settings.view` — and the labels then omit the rate, which is what they
+     * have always done.
+     */
+    fetchBillRates(),
+  ]);
 
   return (
-    <PosTerminal
-      menu={board.menu}
-      tables={board.tables}
+    <OrderScreen
+      sections={sections ?? []}
+      rates={rates}
+      tables={tables ?? []}
       // The real names, from the API. The header used to be two fixture
       // strings, so a waiter called Malika read "Jasur Toshev" above her own
       // order — on the screen every void is attributed through.
       who={shift.user?.name ?? null}
+      /* Zero when the session does not say — the safe end of the ladder: every
+         discount then opens an approval rather than applying silently. */
+      discountCeiling={shift.user?.discount_ceiling ?? 0}
       terminal={
         shift.terminal
           ? [shift.terminal.branch?.name, shift.terminal.code].filter(Boolean).join(' · ')
           : null
       }
+      /*
+       * The room, for the channel the kitchen answers on.
+       *
+       * From the terminal rather than from the person: a till is bolted to one
+       * counter, and a waiter who also covers the terrace is still standing at
+       * this one. `branch` when the API loaded it, `branch_id` when it did not —
+       * the same value either way, and null only for a till with no branch, which
+       * would be a mispaired device.
+       */
+      branchId={shift.terminal?.branch?.id ?? shift.terminal?.branch_id ?? null}
+      realtimeConfig={realtimeConfig()}
     />
   );
 }

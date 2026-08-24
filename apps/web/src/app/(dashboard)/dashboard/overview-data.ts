@@ -20,8 +20,14 @@ export type KpiKey = 'revenue' | 'orders' | 'average_cheque' | 'gross_profit' | 
 
 export type Kpi = {
   key: KpiKey;
-  /** Integer tiyin when `unit` is money, a plain count otherwise. */
-  value: number;
+  /**
+   * Integer tiyin when `unit` is money, a plain count otherwise — or `null`
+   * when the server answered and would not vouch for the figure (gross
+   * profit before every dish is costed). The card then shows a dash. A
+   * fixture number beside five live ones is the one thing this must never
+   * become: the reader cannot tell which of the six to believe.
+   */
+  value: number | null;
   unit: 'money' | 'count';
   /**
    * The delta beside the figure. `good` is the meaning, not the sign: falling
@@ -43,8 +49,16 @@ export type Kpi = {
   railColour: string;
 };
 
-/** One hour of trading: what came in today, and on this weekday on average. */
-export type HourPoint = { hour: string; today: number; average: number };
+/**
+ * One hour of trading: what came in today, and on this weekday on average.
+ *
+ * `average` is nullable because the rolling weekday average does not exist on
+ * the server — it needs a window per weekday — and the chart used to draw its
+ * comparison line from the fixture whatever the tenant. A new restaurant saw
+ * its flat-zero day plotted far below an "average" it never had, with no
+ * marker saying which of the two lines was real.
+ */
+export type HourPoint = { hour: string; today: number; average: number | null };
 
 export type TopProduct = {
   id: string;
@@ -62,13 +76,43 @@ export type OrderStatus = 'new' | 'accepted' | 'cooking' | 'ready' | 'to_pay' | 
 
 export type RecentOrder = { id: string; where: string; status: OrderStatus; total: number };
 
-export type AttentionKey = 'beef' | 'table';
+/**
+ * The cards the attention panel knows how to word.
+ *
+ * Two halves, and the split is not cosmetic. `beef` and `table` are the
+ * design's own sample cards and carry figures in their copy — "4.2 kg left
+ * against 11 kg forecast" — which only a fixture can promise. The other five
+ * are what `RoleDashboards::attention()` actually emits, and their copy carries
+ * no figures at all, because the payload carries none: a card arrives as a key,
+ * a level and the screen it wants opened, and nothing else.
+ *
+ * A closed union rather than `string`, so a rule added on the server without
+ * copy on this side fails to compile here instead of rendering a blank card.
+ * `attentionFrom()` in ./overview-server.ts drops anything it cannot word.
+ */
+export type AttentionKey =
+  'beef' | 'table' | 'food_cost' | 'labour_cost' | 'stock_out' | 'stock_low' | 'void_rate';
 
 export type Attention = {
   key: AttentionKey;
   /** `warn` is tinted and carries a warning mark, `note` is a plain card. */
   level: 'warn' | 'note';
   href: string;
+};
+
+/**
+ * The facts under the greeting — worded by the screen, in the reader's
+ * language. `null` where the fixture is drawn (the design's own sentence
+ * stands in) or where the server would not vouch for the comparison.
+ */
+export type Lede = {
+  /** The venue the comparison is about — or the restaurant, for the whole business. */
+  branch: string;
+  period: Period;
+  /** Revenue against the previous period, signed; null when unknown. */
+  revenueDeltaPercent: number | null;
+  /** How many attention cards are showing. */
+  issues: number;
 };
 
 export type Overview = {
@@ -79,6 +123,8 @@ export type Overview = {
   topProducts: readonly TopProduct[];
   branches: readonly BranchRow[];
   recentOrders: readonly RecentOrder[];
+  /** Null on the fixture: the design's own sentence is drawn instead. */
+  lede: Lede | null;
 };
 
 /** 1 UZS = 100 tiyin. */
@@ -109,6 +155,7 @@ const HOURS: readonly HourPoint[] = [
 
 const PLACEHOLDER: Overview = {
   greetingName: 'Rustam',
+  lede: null,
 
   kpis: [
     {
@@ -204,11 +251,99 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, string> = {
  * argument every real query will need — an owner reading all five venues
  * passes null, which is exactly what the branch scope means server-side.
  */
-export async function getOverview(branchSlug: string | null = null): Promise<Overview> {
-  // TODO(api): GET /api/v1/analytics/overview?period=today, sending branchSlug
-  // as the X-Branch header. Until then the page renders the design's sample
-  // figures so the layout can be reviewed against the prototype.
+/**
+ * Which stretch of trading the screen is showing.
+ *
+ * The period toggle used to be three buttons with the first hardcoded active
+ * and no handler — drawn, and decorative. It is a real choice now, carried in
+ * the URL rather than in component state, which buys three things: it survives
+ * a reload, it can be linked ("look at the month"), and it works with
+ * JavaScript off. When `?period=` reaches the API it is already the right
+ * shape — the parameter simply stops being scaled here and starts being sent.
+ */
+export type Period = 'today' | 'week' | 'month';
+
+export const PERIODS: readonly Period[] = ['today', 'week', 'month'];
+
+export const isPeriod = (value: unknown): value is Period =>
+  typeof value === 'string' && (PERIODS as readonly string[]).includes(value);
+
+/**
+ * How much bigger a week and a month are than a day, in this fixture.
+ *
+ * Not 7 and 30. A restaurant does not trade a flat multiple of Tuesday — the
+ * weekend carries a week and the last third of a month carries the month — and
+ * a toggle that multiplied by seven would draw a chart no restaurateur
+ * recognises. 6.4 and 27.1 are the design's own week and month totals over its
+ * day, which is where these come from.
+ */
+const SCALE: Readonly<Record<Period, number>> = {
+  today: 1,
+  week: 6.4,
+  month: 27.1,
+};
+
+/**
+ * The multiplier for a period, for the six dashboards that keep their own
+ * fixtures.
+ *
+ * Exported rather than duplicated: seven screens now carry the same toggle, and
+ * seven copies of "a week is 6.4 days" is seven chances for two dashboards to
+ * disagree about the same week.
+ */
+export const scaleFor = (period: Period): number => SCALE[period];
+
+/** Attainment is a ratio and must not be scaled — only the amounts are. */
+function scaleKpi(kpi: Kpi, factor: number): Kpi {
+  return factor === 1 || kpi.value === null
+    ? kpi
+    : { ...kpi, value: Math.round(kpi.value * factor) };
+}
+
+export async function getOverview(
+  branchSlug: string | null = null,
+  period: Period = 'today',
+): Promise<Overview> {
+  /*
+   * The fixture, and it stays one.
+   *
+   * The live read is next door in `./overview-server.ts`:
+   * `getOverviewLive()` against `GET /api/v1/dashboard?role=`, which is the
+   * endpoint that exists — there is no `/analytics/overview`, and this comment
+   * named one for a while. Everything below is the design's own sample data and
+   * is what the screen falls back to when there is no session or the API is
+   * restarting.
+   *
+   * `branchSlug` is unused here for the same reason: the venue travels as the
+   * `X-Branch` header, which only the server half can set, and a fixture has
+   * exactly one venue's worth of figures anyway.
+   */
   void branchSlug;
 
-  return PLACEHOLDER;
+  const factor = SCALE[period];
+
+  return {
+    ...PLACEHOLDER,
+    kpis: PLACEHOLDER.kpis.map((kpi) => scaleKpi(kpi, factor)),
+    /*
+     * The hourly curve is a *day*, so a week and a month do not scale it —
+     * they replace the question. Left as the day's shape with the amounts
+     * scaled, which is honest for a fixture and is the one figure the endpoint
+     * will answer differently rather than proportionally.
+     */
+    hours: PLACEHOLDER.hours.map((point) => ({
+      hour: point.hour,
+      today: Math.round(point.today * factor),
+      average: point.average === null ? null : Math.round(point.average * factor),
+    })),
+    branches: PLACEHOLDER.branches.map((branch) => ({
+      ...branch,
+      revenue: Math.round(branch.revenue * factor),
+    })),
+    topProducts: PLACEHOLDER.topProducts.map((product) => ({
+      ...product,
+      units: Math.round(product.units * factor),
+      revenue: Math.round(product.revenue * factor),
+    })),
+  };
 }

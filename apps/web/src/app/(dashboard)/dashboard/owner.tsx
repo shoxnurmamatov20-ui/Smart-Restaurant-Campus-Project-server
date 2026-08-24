@@ -1,35 +1,83 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { EmptyState, KpiCard as UiKpiCard, type Tone } from '@restaurant/ui';
 import { formatNumber, formatTiyinAmount } from '@restaurant/utils';
 
 import {
-  getOverview,
   ORDER_STATUS_TONE,
   type Attention,
   type BranchRow,
   type HourPoint,
   type Kpi,
+  type Period,
   type RecentOrder,
   type TopProduct,
 } from './overview-data';
+import { todayLabel } from '@/lib/today-label';
+
+import { ledeText } from './lede';
+import { marginOf } from './margin';
+import { getOverviewLive } from './overview-server';
+import { GLYPH } from './kpi-icons';
+import { PeriodToggle } from './period-toggle';
 
 /** A raised surface: hairline first, shadow only for things that float. */
 const CARD = 'bg-surface rounded-lg border';
 const PANEL = `${CARD} px-6 py-[22px]`;
 const H3 = 'font-display text-md font-semibold tracking-snug';
 
-/** Copy for one KPI, keyed off the figure's id. */
-const KPI_COPY: Record<Kpi['key'], { label: string; unit: string; target: string }> = {
-  revenue: { label: 'kRevenue', unit: 'som', target: 'targetRevenue' },
-  orders: { label: 'kOrders', unit: 'closed', target: 'targetOrders' },
-  average_cheque: { label: 'kAov', unit: 'som', target: 'targetAov' },
-  gross_profit: { label: 'kGross', unit: 'marginNote', target: 'targetGross' },
-  expenses: { label: 'kExpenses', unit: 'som', target: 'targetExpenses' },
+/**
+ * Copy and glyph for one KPI, keyed off the figure's id.
+ *
+ * The picture belongs in the same row as the words: the design gives each of
+ * the five its own badge, and a table that decides the label here and the icon
+ * somewhere else is a table that drifts the first time a figure is renamed.
+ */
+const KPI_COPY: Record<
+  Kpi['key'],
+  { label: string; unit: string; target: string; glyph: keyof typeof GLYPH }
+> = {
+  revenue: { label: 'kRevenue', unit: 'som', target: 'targetRevenue', glyph: 'revenue' },
+  orders: { label: 'kOrders', unit: 'closed', target: 'targetOrders', glyph: 'orders' },
+  average_cheque: { label: 'kAov', unit: 'som', target: 'targetAov', glyph: 'average' },
+  gross_profit: { label: 'kGross', unit: 'marginOf', target: 'targetGross', glyph: 'profit' },
+  expenses: { label: 'kExpenses', unit: 'som', target: 'targetExpenses', glyph: 'expenses' },
 };
 
+/**
+ * The rail's tone, from the colour the data layer already picked.
+ *
+ * `overview-data.ts` hands back a CSS custom property because the design names
+ * one per figure; `KpiCard` takes a tone. Mapping here rather than changing the
+ * data keeps the alternation the design specifies — five rails in one colour
+ * read as a single repeated bar — without two files having opinions about it.
+ */
+const RAIL_TONE: Record<string, Tone> = {
+  'var(--brand-500)': 'brand',
+  'var(--accent-500)': 'accent',
+  'var(--success-500)': 'success',
+  'var(--warning-500)': 'warning',
+  'var(--danger-500)': 'danger',
+};
+
+/**
+ * Three lines per card: what happened, what to do, and where to go.
+ *
+ * `Record` over the full key union rather than a lookup with a fallback, so a
+ * rule the server grows cannot reach this screen as an untitled card — adding
+ * the key to `AttentionKey` fails the build here until somebody writes the
+ * sentence. The first two are the design's own sample cards and carry figures;
+ * the other five are the server's rules and deliberately carry none, because
+ * `GET /dashboard` sends a key and a level and no numbers at all.
+ */
 const ATTENTION_COPY: Record<Attention['key'], { title: string; body: string; cta: string }> = {
   beef: { title: 'attnBeef', body: 'attnBeefBody', cta: 'attnBeefCta' },
   table: { title: 'attnTable', body: 'attnTableBody', cta: 'attnTableCta' },
+  food_cost: { title: 'attnFoodCost', body: 'attnFoodCostBody', cta: 'attnFoodCostCta' },
+  labour_cost: { title: 'attnLabour', body: 'attnLabourBody', cta: 'attnLabourCta' },
+  stock_out: { title: 'attnStockOut', body: 'attnStockOutBody', cta: 'attnStockOutCta' },
+  stock_low: { title: 'attnStockLow', body: 'attnStockLowBody', cta: 'attnStockLowCta' },
+  void_rate: { title: 'attnVoids', body: 'attnVoidsBody', cta: 'attnVoidsCta' },
 };
 
 type Dict = Awaited<ReturnType<typeof getTranslations<'console.dashboard'>>>;
@@ -39,57 +87,58 @@ type Dict = Awaited<ReturnType<typeof getTranslations<'console.dashboard'>>>;
  *
  * Built to the design's own dashboard, panel for panel: an eyebrow date over a
  * 30px greeting with the period segment opposite, a KPI row that reflows on
- * `minmax(212px,1fr)`, a 1.65/1 split carrying the trading day against what
- * needs a decision, and a three-up row of the day's detail underneath.
+ * `minmax(min(212px,100%),1fr)`, a 1.65/1 split carrying the trading day
+ * against what needs a decision, and a three-up row of the day's detail
+ * underneath.
  *
  * Tailwind against the design's tokens throughout — `text-3xl` is its 30px,
  * `rounded-lg` its 14px, `text-fg-subtle` its muted ink. Only data-attribute
  * states and scrollbar chrome need a stylesheet; those live in ../app-shell.css.
  *
- * A server component. Figures come from `getOverview()`, which is the seam the
- * API lands in; words come from the catalogue, in whichever of the three
- * languages the reader has chosen.
+ * A server component. Figures come from `getOverviewLive()` —
+ * `GET /api/v1/dashboard?role=`, falling back to the design's own sample data
+ * when there is no session or the API is restarting; words come from the
+ * catalogue, in whichever of the three languages the reader has chosen. One
+ * panel is still sample data on purpose and overview-server.ts says which.
  */
-export async function OwnerDashboard() {
-  const [data, t] = await Promise.all([getOverview(), getTranslations('console.dashboard')]);
+export async function OwnerDashboard({ period = 'today' }: { period?: Period }) {
+  const [data, t, locale] = await Promise.all([
+    getOverviewLive(period),
+    getTranslations('console.dashboard'),
+    getLocale(),
+  ]);
 
   return (
     <>
       <div data-pagehead className="mb-6 flex items-end justify-between gap-6">
         <div>
           <div className="text-fg-subtle tracking-caps mb-2 text-xs font-semibold uppercase">
-            {t('date')}
+            {todayLabel(locale, new Date())}
           </div>
           <h2 className="font-display text-3xl leading-[1.1] font-semibold tracking-tight">
             {t('greeting', { name: data.greetingName })}
           </h2>
-          <p className="text-fg-muted text-md mt-2 leading-normal">{t('lede')}</p>
+          <p className="text-fg-muted text-md mt-2 leading-normal">{ledeText(data.lede, t)}</p>
         </div>
 
-        {/* Static for now: switching the period is a data concern and there is
-            no source to re-query yet. Rendered so wiring it up is a change of
-            behaviour rather than of shape. */}
-        <div className="bg-bg-muted flex flex-none items-center gap-0.5 rounded-md p-[3px]">
-          {(['periodToday', 'periodWeek', 'periodMonth'] as const).map((key, index) => (
-            <button
-              key={key}
-              type="button"
-              data-seg
-              data-active={index === 0 ? 'true' : undefined}
-              className="text-fg-muted h-[30px] rounded-[7px] px-3.5 text-sm font-medium"
-            >
-              {t(key)}
-            </button>
-          ))}
-        </div>
+        <PeriodToggle
+          current={period}
+          ariaLabel={t('kpiLabel')}
+          labels={{ today: t('periodToday'), week: t('periodWeek'), month: t('periodMonth') }}
+        />
       </div>
 
       <section
         aria-label={t('kpiLabel')}
-        className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(212px,1fr))] gap-3.5"
+        className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(212px,100%),1fr))] gap-3.5"
       >
         {data.kpis.map((kpi) => (
-          <KpiCard key={kpi.key} kpi={kpi} t={t} />
+          <KpiCard
+            key={kpi.key}
+            kpi={kpi}
+            t={t}
+            caption={kpi.key === 'gross_profit' ? marginCaption(data.kpis, t) : undefined}
+          />
         ))}
       </section>
 
@@ -101,7 +150,7 @@ export async function OwnerDashboard() {
         <AttentionPanel items={data.attention} t={t} />
       </div>
 
-      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] gap-5">
+      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-5">
         <BestSellers products={data.topProducts} t={t} />
         <BranchPerformance branches={data.branches} t={t} />
         <RecentOrders orders={data.recentOrders} />
@@ -115,56 +164,50 @@ export async function OwnerDashboard() {
 /**
  * One figure, its delta, and the rail underneath.
  *
- * The rail carries a real target — the caption says which — so a KPI without
- * one renders none rather than a bar at an invented width.
+ * `packages/ui`'s card rather than a local copy of it. The local one predated
+ * the shared component and had drifted from the design in the two places the
+ * design is most specific about: a 12px sentence-case label where the file sets
+ * 10px uppercase at `.07em`, and no glyph badge at all. It also carried no
+ * `data-kpi`, so the entrance stagger and the hover lift in `motion.css` — the
+ * only motion on this screen — never ran here.
+ *
+ * The rail still refuses to draw without a target. A bar at an invented width
+ * beside a real number is how a reader learns to distrust the number.
  */
-function KpiCard({ kpi, t }: { kpi: Kpi; t: Dict }) {
+/** "61.1% marja" — from the figures, or nothing when there is nothing to divide. */
+function marginCaption(kpis: readonly Kpi[], t: Dict): string | null {
+  const margin = marginOf(kpis);
+
+  return margin === null ? null : t('marginOf', { percent: margin });
+}
+
+function KpiCard({ kpi, t, caption }: { kpi: Kpi; t: Dict; caption?: string | null }) {
   const copy = KPI_COPY[kpi.key];
-  const value = kpi.unit === 'money' ? formatTiyinAmount(kpi.value) : formatNumber(kpi.value);
-  const percent = kpi.attainment === null ? 0 : Math.min(100, Math.round(kpi.attainment * 100));
+  const value =
+    kpi.value === null
+      ? '—'
+      : kpi.unit === 'money'
+        ? formatTiyinAmount(kpi.value)
+        : formatNumber(kpi.value);
 
   return (
-    <div className={`${CARD} px-5 pt-[18px] pb-4`}>
-      <div className="text-fg-subtle mb-2.5 text-xs">{t(copy.label)}</div>
-
-      <div data-num className="font-display text-3xl leading-none font-semibold tracking-tight">
-        {value}
-      </div>
-
-      <div data-num className="text-fg-subtle mt-2 text-xs">
-        {t(copy.unit)}
-        {kpi.delta ? (
-          <>
-            {' · '}
-            <span
-              className={
-                kpi.delta.good ? 'text-success-700 font-semibold' : 'text-fg-muted font-semibold'
-              }
-            >
-              {kpi.delta.text}
-            </span>
-          </>
-        ) : null}
-      </div>
-
-      {kpi.attainment !== null ? (
-        <>
-          <div
-            role="img"
-            aria-label={`${t(copy.target)}: ${percent}%`}
-            className="bg-bg-muted mt-3.5 h-[3px] overflow-hidden rounded-[2px]"
-          >
-            <div
-              className="h-full rounded-[2px]"
-              style={{ width: `${percent}%`, background: kpi.railColour }}
-            />
-          </div>
-          <div data-num className="text-fg-subtle text-2xs mt-[7px]">
-            {t(copy.target)}
-          </div>
-        </>
-      ) : null}
-    </div>
+    <UiKpiCard
+      label={t(copy.label)}
+      value={value}
+      unit={
+        caption !== undefined
+          ? (caption ?? undefined)
+          : kpi.value === null
+            ? undefined
+            : t(copy.unit)
+      }
+      delta={kpi.delta?.text}
+      deltaTone={kpi.delta?.good ? 'success' : 'neutral'}
+      {...GLYPH[copy.glyph]}
+      attainment={kpi.attainment === null ? null : Math.min(100, Math.round(kpi.attainment * 100))}
+      railTone={RAIL_TONE[kpi.railColour] ?? 'brand'}
+      target={kpi.attainment === null ? undefined : t(copy.target)}
+    />
   );
 }
 
@@ -183,17 +226,32 @@ const CHART = { width: 700, height: 196, bottom: 192, peakY: 26 } as const;
  * width the panel has while the vertical scale stays honest.
  */
 function SalesThroughDay({ hours, t }: { hours: readonly HourPoint[]; t: Dict }) {
-  const peak = Math.max(...hours.flatMap((point) => [point.today, point.average]));
+  /*
+   * The comparison line exists only where every point has one. A rolling
+   * weekday average is not on the endpoint, so a live chart draws one series —
+   * and drops the legend and the caption that promise two, rather than
+   * plotting today against the demo restaurant's Tuesday.
+   */
+  const comparable = hours.every((point) => point.average !== null);
+  const peak = Math.max(
+    ...hours.flatMap((point) =>
+      point.average === null ? [point.today] : [point.today, point.average],
+    ),
+  );
   const span = CHART.bottom - CHART.peakY;
 
-  const x = (index: number) => (index / (hours.length - 1)) * CHART.width;
-  const y = (value: number) => CHART.bottom - (value / peak) * span;
+  // A day with nothing sold yet has a peak of zero, and zero divided into
+  // anything is NaN — which the browser reports as a broken path on every
+  // render of a brand-new restaurant's home screen. A flat line at the
+  // baseline is what a quiet morning looks like.
+  const x = (index: number) => (hours.length < 2 ? 0 : (index / (hours.length - 1)) * CHART.width);
+  const y = (value: number) => (peak > 0 ? CHART.bottom - (value / peak) * span : CHART.bottom);
 
   const plot = (pick: (point: HourPoint) => number) =>
     hours.map((point, index) => `${x(index).toFixed(1)},${y(pick(point)).toFixed(1)}`).join(' ');
 
   const today = plot((point) => point.today);
-  const average = plot((point) => point.average);
+  const average = comparable ? plot((point) => point.average ?? 0) : '';
   const busiest = hours.reduce((best, point) => (point.today > best.today ? point : best));
 
   return (
@@ -201,11 +259,13 @@ function SalesThroughDay({ hours, t }: { hours: readonly HourPoint[]; t: Dict })
       <div className="mb-[22px] flex items-start justify-between gap-4">
         <div>
           <h3 className={H3}>{t('chartTitle')}</h3>
-          <p className="text-fg-subtle mt-1 text-xs">{t('chartSub')}</p>
+          <p className="text-fg-subtle mt-1 text-xs">
+            {comparable ? t('chartSub') : t('chartSubLive')}
+          </p>
         </div>
         <div className="flex flex-none gap-4">
           <Legend colour="bg-brand-500">{t('legendToday')}</Legend>
-          <Legend colour="bg-border-strong">{t('legendAverage')}</Legend>
+          {comparable ? <Legend colour="bg-border-strong">{t('legendAverage')}</Legend> : null}
         </div>
       </div>
 
@@ -238,14 +298,16 @@ function SalesThroughDay({ hours, t }: { hours: readonly HourPoint[]; t: Dict })
           />
 
           {/* The comparison first, so today's line sits over it. */}
-          <polyline
-            points={average}
-            fill="none"
-            stroke="var(--border-strong)"
-            strokeWidth="1.75"
-            strokeDasharray="4 4"
-            strokeLinecap="round"
-          />
+          {comparable ? (
+            <polyline
+              points={average}
+              fill="none"
+              stroke="var(--border-strong)"
+              strokeWidth="1.75"
+              strokeDasharray="4 4"
+              strokeLinecap="round"
+            />
+          ) : null}
 
           <path
             d={`M${today} L${CHART.width},${CHART.bottom} L0,${CHART.bottom} Z`}
@@ -297,13 +359,18 @@ function Legend({ colour, children }: { colour: string; children: React.ReactNod
  * Two levels, as the design draws them: the first is tinted and carries a
  * warning mark, the second is a plain bordered card. Severity is never colour
  * alone — the icon and the wording say it too.
+ *
+ * The subtitle counts rather than describes. It read "two open items, oldest 26
+ * minutes" while the panel was two fixtures; the live list is between zero and
+ * four cards and carries no ages, so the only sentence that stays true under
+ * both is the number of cards under it.
  */
 function AttentionPanel({ items, t }: { items: readonly Attention[]; t: Dict }) {
   return (
     <section className={PANEL}>
       <h3 className={`${H3} mb-1`}>{t('attentionTitle')}</h3>
       <p className="text-fg-subtle mb-[18px] text-xs">
-        {items.length === 0 ? t('attentionEmpty') : t('attentionSub')}
+        {items.length === 0 ? t('attentionEmpty') : t('attentionSub', { n: items.length })}
       </p>
 
       <div className="flex flex-col gap-3">
@@ -466,22 +533,26 @@ async function RecentOrders({ orders }: { orders: readonly RecentOrder[] }) {
         </Link>
       </PanelHead>
 
-      <div className="flex flex-col gap-0.5">
-        {orders.map((order) => (
-          <div key={order.id} data-row className={`${ROW} gap-3`}>
-            <span className="text-fg-subtle w-[52px] font-mono text-xs">{order.id}</span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">{order.where}</span>
-            <span
-              className={`rounded-pill text-2xs px-2 py-[3px] font-semibold whitespace-nowrap ${ORDER_STATUS_TONE[order.status]}`}
-            >
-              {status(order.status)}
-            </span>
-            <span data-num className="w-[84px] text-right text-sm font-semibold">
-              {formatTiyinAmount(order.total)}
-            </span>
-          </div>
-        ))}
-      </div>
+      {orders.length === 0 ? (
+        <EmptyState className="py-4">{t('recentOrdersEmpty')}</EmptyState>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          {orders.map((order) => (
+            <div key={order.id} data-row className={`${ROW} gap-3`}>
+              <span className="text-fg-subtle w-[52px] font-mono text-xs">{order.id}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{order.where}</span>
+              <span
+                className={`rounded-pill text-2xs px-2 py-[3px] font-semibold whitespace-nowrap ${ORDER_STATUS_TONE[order.status]}`}
+              >
+                {status(order.status)}
+              </span>
+              <span data-num className="w-[84px] text-right text-sm font-semibold">
+                {formatTiyinAmount(order.total)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

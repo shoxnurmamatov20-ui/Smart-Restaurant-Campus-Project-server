@@ -111,7 +111,7 @@ import {
  */
 export default function DesignSystemPage() {
   return (
-    <div className="mx-auto max-w-5xl space-y-14 px-6 py-12">
+    <div className="mx-auto max-w-5xl space-y-14 px-4 py-12 sm:px-6">
       <header>
         <p className="text-muted-foreground text-sm tracking-wide uppercase">
           Smart Restaurant Campus
@@ -145,7 +145,10 @@ export default function DesignSystemPage() {
         title="Diagramma ranglari"
         note="Besh qator, tartibda. Utility sinf orqali — inline style bilan emas: Tailwind v4 hech qanday sinf ishlatmagan token o‘zgaruvchisini umuman chiqarmaydi, shuning uchun var(--color-chart-3) bo‘sh qoladi."
       >
-        <div className="grid grid-cols-5 gap-3">
+        {/* Five swatches beside a label each. At 320 that is 40px a column and
+            "Diagramma 5" cannot fit in it, so the row pushed the page sideways;
+            below `sm` they go two and three. */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
           {CHARTS.map((chart) => (
             <div key={chart.name} className="space-y-2">
               <div className={`h-16 rounded-lg border ${chart.className}`} />

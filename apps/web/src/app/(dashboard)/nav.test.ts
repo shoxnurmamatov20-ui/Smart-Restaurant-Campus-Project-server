@@ -24,16 +24,27 @@ import { NAV_GROUPS, NAV_ITEMS } from './nav';
 /**
  * Routes the sidebar deliberately does not carry.
  *
- * The permissions matrix is reached from Staff and from Settings, which is
- * where someone looking for it actually goes; a nineteenth-and-a-half row for
- * it would push the sidebar past what the design draws. Listed here rather
- * than silently exempted, so adding a page still has to be a decision.
+ * Both are reached from Settings, which is where somebody looking for either
+ * actually goes, and neither is one of the design's own sidebar rows — adding
+ * them would push the rail past what `specs/01-os.md §3` draws. Listed here
+ * rather than silently exempted, so adding a page still has to be a decision.
+ *
+ * `/settings/site` is the site-and-PWA configurator (`specs/06`), which the
+ * design treats as its own product rather than as a module of the console.
  */
-const LINKED_IN_PAGE = ['/settings/permissions'];
+const LINKED_IN_PAGE = ['/settings/permissions', '/settings/site'];
 
-/** Every route under (dashboard) that has a page, as a URL path. */
+/**
+ * Every route the console links to that has a page, as a URL path.
+ *
+ * Two roots, because one sidebar row is not a console screen: the kitchen
+ * display is its own full-bleed surface (`(kds)`), dark and sized for a wall,
+ * and the chef's single nav row points at it. Walking only `(dashboard)` would
+ * fail that link the day the KDS moved out of the shell — which is exactly
+ * what it should not do, because nothing about the link changed.
+ */
 function routesOnDisk(): string[] {
-  const root = join(process.cwd(), 'src/app/(dashboard)');
+  const roots = [join(process.cwd(), 'src/app/(dashboard)'), join(process.cwd(), 'src/app/(kds)')];
   const found: string[] = [];
 
   const walk = (dir: string, prefix: string) => {
@@ -48,7 +59,7 @@ function routesOnDisk(): string[] {
     }
   };
 
-  walk(root, '');
+  for (const root of roots) walk(root, '');
 
   return found.sort();
 }

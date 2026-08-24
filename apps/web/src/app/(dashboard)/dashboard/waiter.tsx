@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { formatNumber, formatTiyinAmount } from '@restaurant/utils';
 import {
   CellBar,
@@ -9,12 +9,19 @@ import {
   PageHead,
   Panel,
   PanelHead,
-  Segmented,
   StatusChip,
 } from '@restaurant/ui';
 
+import { todayLabel } from '@/lib/today-label';
+
+import { type Period } from './overview-data';
+import { PeriodToggle } from './period-toggle';
+import { GLYPH } from './kpi-icons';
+
 import { ORDER_STATUS_TONE, type OrderStatus } from './overview-data';
-import { getWaiterOverview, type MyTable, type TableStatus } from './waiter-data';
+import { type MyTable, type TableStatus } from './waiter-data';
+import { getWaiterLive } from './dashboard-server';
+import { delta, rail, show } from './figures';
 
 /**
  * The waiter's shift screen.
@@ -27,9 +34,9 @@ import { getWaiterOverview, type MyTable, type TableStatus } from './waiter-data
  * the design's §3.5 table and its accessibility rule agree on this, and a card
  * that says only "amber" is a card a colour-blind waiter reads as "grey".
  */
-export async function WaiterDashboard() {
+export async function WaiterDashboard({ period = 'today' }: { period?: Period }) {
   const [data, t, shared, floor] = await Promise.all([
-    getWaiterOverview(),
+    getWaiterLive(period),
     getTranslations('console.dashWaiter'),
     getTranslations('console.dashboard'),
     getTranslations('console.floor'),
@@ -40,52 +47,64 @@ export async function WaiterDashboard() {
   return (
     <>
       <PageHead
-        eyebrow={shared('date')}
+        eyebrow={todayLabel(await getLocale(), new Date())}
         title={t('greeting', { name: data.greetingName })}
-        lede={t('lede')}
+        lede={data.live ? t('ledeLive', { count: data.openOrders ?? 0 }) : t('lede')}
         action={
-          <Segmented
-            aria-label={shared('kpiLabel')}
-            segments={[
-              { value: 'today', label: shared('periodToday') },
-              { value: 'week', label: shared('periodWeek') },
-            ]}
+          <PeriodToggle
+            current={period}
+            ariaLabel={shared('kpiLabel')}
+            labels={{
+              today: shared('periodToday'),
+              week: shared('periodWeek'),
+              month: shared('periodMonth'),
+            }}
           />
         }
       />
 
       <KpiRow aria-label={shared('kpiLabel')}>
+        {/*
+          Four shift targets — 22 tickets, 64 covers, 3 200 000 so'm, a 120 000
+          average — none of them set by this restaurant. No rail on a live
+          shift, and the `+9.6%` chip goes too: it was the same number for every
+          waiter on every day.
+        */}
         <KpiCard
           label={t('kMyOrders')}
-          value={formatNumber(data.myOrders)}
-          unit={`${data.openOrders} ${t('open')}`}
-          attainment={(data.myOrders / 22) * 100}
+          {...GLYPH.orders}
+          value={show(data.myOrders, formatNumber)}
+          unit={data.openOrders === null ? undefined : `${data.openOrders} ${t('open')}`}
+          attainment={rail(data.live, data.myOrders, 22)}
           target={t('targetOrders')}
           railTone="brand"
         />
         <KpiCard
           label={t('kMyCovers')}
-          value={formatNumber(data.covers)}
+          {...GLYPH.guests}
+          value={show(data.covers, formatNumber)}
           unit={t('guests')}
-          attainment={(data.covers / 64) * 100}
+          attainment={rail(data.live, data.covers, 64)}
           target={t('targetCovers')}
           railTone="accent"
         />
         <KpiCard
           label={t('kMySales')}
-          value={formatTiyinAmount(data.sales)}
+          {...GLYPH.revenueGood}
+          value={show(data.sales, formatTiyinAmount)}
           unit={t('som')}
-          attainment={(data.sales / (3_200_000 * 100)) * 100}
+          attainment={rail(data.live, data.sales, 3_200_000 * 100)}
           target={t('targetSales')}
           railTone="brand"
         />
         <KpiCard
           label={t('kMyAov')}
-          value={formatTiyinAmount(data.averageTicket)}
+          {...GLYPH.average}
+          value={show(data.averageTicket, formatTiyinAmount)}
           unit={t('som')}
-          delta="+9.6%"
+          delta={delta(data.live, '+9.6%')}
           deltaTone="success"
-          attainment={(data.averageTicket / (120_000 * 100)) * 100}
+          attainment={rail(data.live, data.averageTicket, 120_000 * 100)}
           target={t('targetAov')}
           railTone="accent"
         />
@@ -129,24 +148,33 @@ export async function WaiterDashboard() {
           </Panel>
 
           <Panel>
-            <PanelHead title={t('myTables')} subtitle={t('myTablesSub')} />
+            {/* The subtitle used to say "six tables assigned" whatever was
+                below it. It counts, or it says where the list comes from. */}
+            <PanelHead
+              title={t('myTables')}
+              subtitle={data.live ? t('myTablesSubLive') : t('myTablesSub')}
+            />
 
-            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(158px,1fr))] gap-3">
-              {data.tables.map((table) => (
-                <TableCard
-                  key={table.id}
-                  table={table}
-                  label={{
-                    toPay: floor('statusToPay'),
-                    seated: floor('statusSeated'),
-                    reserved: floor('statusReserved'),
-                    cleaning: floor('statusCleaning'),
-                    free: floor('statusFree'),
-                  }}
-                  seats={t('seats')}
-                />
-              ))}
-            </div>
+            {data.tables.length === 0 ? (
+              <EmptyState className="py-4">{t('myTablesEmpty')}</EmptyState>
+            ) : (
+              <div className="grid [grid-template-columns:repeat(auto-fill,minmax(min(158px,100%),1fr))] gap-3">
+                {data.tables.map((table) => (
+                  <TableCard
+                    key={table.id}
+                    table={table}
+                    label={{
+                      toPay: floor('statusToPay'),
+                      seated: floor('statusSeated'),
+                      reserved: floor('statusReserved'),
+                      cleaning: floor('statusCleaning'),
+                      free: floor('statusFree'),
+                    }}
+                    seats={t('seats')}
+                  />
+                ))}
+              </div>
+            )}
           </Panel>
         </div>
 
@@ -164,22 +192,28 @@ export async function WaiterDashboard() {
           <Panel>
             <PanelHead title={t('myTop')} subtitle={t('myTopSub')} />
 
-            <div className="flex flex-col gap-3">
-              {data.topSellers.map((seller) => (
-                <div key={seller.id} className="flex items-center gap-3">
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{seller.name}</span>
-                  <CellBar
-                    percent={seller.share * 100}
-                    fill="var(--brand-500)"
-                    label={seller.name}
-                    className="max-w-[70px] flex-none"
-                  />
-                  <span data-num className="w-7 flex-none text-right text-sm font-semibold">
-                    {formatNumber(seller.units)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {data.topSellers.length === 0 ? (
+              <EmptyState className="py-4">{t('myTopEmpty')}</EmptyState>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {data.topSellers.map((seller) => (
+                  <div key={seller.id} className="flex items-center gap-3">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                      {seller.name}
+                    </span>
+                    <CellBar
+                      percent={seller.share * 100}
+                      fill="var(--brand-500)"
+                      label={seller.name}
+                      className="max-w-[70px] flex-none"
+                    />
+                    <span data-num className="w-7 flex-none text-right text-sm font-semibold">
+                      {formatNumber(seller.units)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Panel>
         </div>
       </div>

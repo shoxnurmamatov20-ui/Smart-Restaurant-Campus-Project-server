@@ -9,8 +9,12 @@ import type { Messages } from '@/i18n';
  * thing a waiter does many times a day. What makes it useful is the comparison
  * across the shift, not any single number.
  *
- * TODO(api): GET /api/v1/analytics/control — computed server-side from the
- * audit log, because these figures decide whether someone is spoken to.
+ * These are the fixture. The live read is next door in `./control-server.ts`,
+ * which asks `GET /api/v1/analytics/control` and falls back to the rows below
+ * when there is no session or the API is restarting. Every figure is computed
+ * server-side from the audit log and taken as given here — a ranking a browser
+ * could recompute is a ranking a browser could be made to recompute
+ * differently, and this one decides whether somebody is spoken to.
  */
 
 type Control = Messages['console']['control'];

@@ -1,4 +1,4 @@
-import type { Messages } from '@/i18n';
+import { scaleFor, type Period } from './overview-data';
 
 /**
  * The branch manager's shift dashboard.
@@ -40,13 +40,22 @@ export type StationRow = {
   target: number;
 };
 
-/** The floor, by status. The four add up to `total`. */
+/**
+ * The floor, by status.
+ *
+ * `reserved` and `cleaning` are nullable because the server splits the room two
+ * ways and the design's donut splits it four: `FloorTally` publishes `occupied`
+ * and `free`, and its own docblock says a table being cleaned is neither. Null
+ * is "this room is not counted that way", which the donut draws as two slices;
+ * zeroing them would tell a manager no table is booked tonight, which is the
+ * single thing this panel exists to stop them getting wrong.
+ */
 export type FloorCount = {
   total: number;
   free: number;
   busy: number;
-  reserved: number;
-  cleaning: number;
+  reserved: number | null;
+  cleaning: number | null;
 };
 
 export type ShiftPerson = {
@@ -61,14 +70,29 @@ export type ShiftPerson = {
 /**
  * Something a member of staff cannot do alone.
  *
- * `action` keys into `console.permissions`, which already names all twenty
- * gated actions in three languages — the approval queue and the permission
- * matrix are describing the same list and should not word it twice.
+ * `action` is `PosApproval::ACTIONS`, in this console's own spelling. It used to
+ * key into `console.permissions` — twenty gated actions already worded in three
+ * languages — and that read well until the queue became live: the till asks for
+ * `discount`, and the matrix words two ceilings (`aDiscount5`, `aDiscount20`),
+ * so mapping one onto the other put a ceiling on screen that nobody had asked
+ * for. Ten keys of its own, named after what the till actually sends.
  */
+export type ApprovalAction =
+  | 'voidLine'
+  | 'voidOrder'
+  | 'discount'
+  | 'priceOverride'
+  | 'reopenBill'
+  | 'refund'
+  | 'drawerOpen'
+  | 'comp'
+  | 'shiftVariance'
+  | 'creditSale';
+
 export type Approval = {
   id: string;
   who: string;
-  action: keyof Messages['console']['permissions'];
+  action: ApprovalAction;
   /** In tiyin, or null for an action that is not about money. */
   amount: number | null;
   minutesAgo: number;
@@ -76,19 +100,44 @@ export type Approval = {
 
 export type ManagerOverview = {
   greetingName: string;
-  openOrders: number;
-  averageWaitMinutes: number;
-  cancelled: number;
-  covers: number;
+  /**
+   * What the figures are about — the pinned venue, or the restaurant itself.
+   *
+   * From the session, not the report: the line under the greeting names a
+   * place, and it used to name Chilonzor to every manager of every tenant.
+   */
+  placeName: string;
+  /**
+   * False when this is the design's own screen rather than the restaurant's.
+   *
+   * Every figure below reads differently under it: a fixture keeps the design's
+   * targets and delta chips, a live one draws no rail it cannot justify and a
+   * dash where the server would not answer.
+   */
+  live: boolean;
+  openOrders: number | null;
+  averageWaitMinutes: number | null;
+  cancelled: number | null;
+  covers: number | null;
   waiters: readonly WaiterRow[];
   stations: readonly StationRow[];
-  floor: FloorCount;
+  floor: FloorCount | null;
+  /** The people on shift. Empty on a live payload — see `onShiftCount`. */
   onShift: readonly ShiftPerson[];
+  /**
+   * How many are checked in, which is all `App\Contracts\Staff\Roster`
+   * publishes: *"anything richer — names, roles, lateness — is personnel data
+   * and stays behind the Staff module's own permissions"*. The panel says the
+   * number rather than truncating the fixture's six people to it.
+   */
+  onShiftCount: number | null;
   approvals: readonly Approval[];
 };
 
-const PLACEHOLDER: ManagerOverview = {
+const PLACEHOLDER = {
   greetingName: 'Aziza',
+  placeName: 'Chilonzor',
+  live: false,
   openOrders: 12,
   averageWaitMinutes: 9,
   cancelled: 1,
@@ -162,23 +211,47 @@ const PLACEHOLDER: ManagerOverview = {
     { id: 'sardor', name: 'Sardor Nazarov', initials: 'SN', role: 'warehouse', from: '08:00' },
   ],
 
+  onShiftCount: 6,
+
   approvals: [
-    { id: 'ap-1', who: 'Jasur Toshev', action: 'aDiscount20', amount: som(186_000), minutesAgo: 4 },
-    { id: 'ap-2', who: 'Nodira Saidova', action: 'aVoid', amount: som(42_000), minutesAgo: 11 },
+    { id: 'ap-1', who: 'Jasur Toshev', action: 'discount', amount: som(186_000), minutesAgo: 4 },
+    { id: 'ap-2', who: 'Nodira Saidova', action: 'voidOrder', amount: som(42_000), minutesAgo: 11 },
   ],
-};
+} satisfies ManagerOverview;
 
 /**
- * Where the backend plugs in.
+ * The fixture this screen falls back to.
  *
- * TODO(api): GET /api/v1/analytics/shift-overview, with the branch as the
- * X-Branch header. The approval queue is the one part that must not be polled —
- * it belongs on the `notification.*` channel, per the design's §5.3.
+ * The live seam is `./dashboard-server.ts` — `getManagerLive()` against
+ * `GET /api/v1/dashboard?role=manager` — and the mapping is in
+ * `./dashboard-map.ts`, which names panel by panel what that endpoint answers
+ * and what still comes from here. The approval queue is one of the ones that
+ * stays: it must not be polled at all, because it belongs on the
+ * `notification.*` channel, per the design's §5.3.
  */
 export async function getManagerOverview(
   branchSlug: string | null = null,
+  period: Period = 'today',
 ): Promise<ManagerOverview> {
   void branchSlug;
 
-  return PLACEHOLDER;
+  /*
+   * The counts move with the period; the floor and the approval queue do not.
+   * Thirty-two tables are thirty-two tables, and a request waiting on a PIN is
+   * waiting *now* — multiplying either by six would be nonsense on the screen.
+   */
+  const factor = scaleFor(period);
+
+  if (factor === 1) return PLACEHOLDER;
+
+  return {
+    ...PLACEHOLDER,
+    openOrders: Math.round(PLACEHOLDER.openOrders * factor),
+    cancelled: Math.round(PLACEHOLDER.cancelled * factor),
+    covers: Math.round(PLACEHOLDER.covers * factor),
+    waiters: PLACEHOLDER.waiters.map((waiter) => ({
+      ...waiter,
+      revenue: Math.round(waiter.revenue * factor),
+    })),
+  };
 }

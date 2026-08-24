@@ -11,9 +11,11 @@ import type { Messages } from '@/i18n';
  * reads `next/headers` — pulling it in here breaks the browser build. Types and
  * fixtures stay client-safe; anything that talks to the server lives next door.
  *
- * TODO(api): Reverb has to push the changes. A table's status must move the
- * moment the till or the waiter's tablet moves it, or the host seats someone
- * twice; this render is a snapshot.
+ * Reverb pushes the changes, so this is not a snapshot: `floor-board.tsx`
+ * joins `branch.{id}.floor` and repaints on `.tables.table.changed`, and
+ * `tables-live.ts` holds the state map both halves read. A table's colour has
+ * to move the moment the till or a waiter's handset moves it, or a host seats
+ * somebody twice.
  */
 
 export type TableStatus = 'free' | 'seated' | 'reserved' | 'cleaning' | 'to_pay';

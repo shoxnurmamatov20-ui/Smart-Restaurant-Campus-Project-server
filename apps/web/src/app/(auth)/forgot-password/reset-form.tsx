@@ -44,10 +44,14 @@ export function ResetForm() {
 
     setState('sending');
 
-    // TODO(api): POST /api/v1/auth/forgot-password { email } — always 204, for
-    // the reason in this file's note. The delay stands in for the round trip so
-    // the button's disabled state is visible rather than a flicker.
-    window.setTimeout(() => setState('sent'), 420);
+    // Always lands on "sent": the API answers 204 whether or not the address
+    // exists (the reason is in this file's note), and a network failure here
+    // is indistinguishable from that on purpose — the person asks again.
+    void fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).finally(() => setState('sent'));
   }
 
   return (

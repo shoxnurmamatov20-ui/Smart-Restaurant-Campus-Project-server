@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useMessages } from 'next-intl';
+import { flash } from '@restaurant/ui';
 
 import type { Messages } from '@/i18n';
 
@@ -82,16 +83,26 @@ export function PairPanel() {
       if (!response.ok) {
         setCode('');
         setStatus({ kind: 'failed', message: body?.message ?? m.pairHelp });
+        flash.problem(body?.message ?? m.pairHelp);
         inputRef.current?.focus();
 
         return;
       }
 
-      setStatus({
-        kind: 'paired',
-        code: body?.terminal?.code ?? value,
-        branch: body?.terminal?.branch ?? null,
-      });
+      const paired = body?.terminal?.code ?? value;
+      const branch = body?.terminal?.branch ?? null;
+
+      setStatus({ kind: 'paired', code: paired, branch });
+
+      /*
+       * Which till this tablet has become, said once and out loud.
+       *
+       * The panel says it too, and then the page reloads out from under it —
+       * so the panel's own sentence is on screen for whatever a reload takes.
+       * The toast survives the navigation, which is the point: the manager who
+       * read the code out needs to see it was the right one.
+       */
+      flash(m.pairPaired.replace('{code}', paired).replace('{branch}', branch ?? ''));
 
       // A full reload rather than a router refresh: the idle screen is a server
       // component that reads the cookie this request just set, and the cookie
@@ -100,6 +111,7 @@ export function PairPanel() {
     } catch {
       setCode('');
       setStatus({ kind: 'failed', message: m.pairHelp });
+      flash.problem(m.pairHelp);
     }
   }
 
@@ -114,7 +126,7 @@ export function PairPanel() {
   const characters = Array.from({ length: LENGTH }, (_, index) => code[index] ?? '');
 
   return (
-    <div className="bg-bg-subtle flex min-h-screen items-center justify-center p-6">
+    <div className="bg-bg-subtle flex min-h-dvh items-center justify-center p-6">
       <div className="border-border bg-surface w-full max-w-[560px] rounded-[20px] border p-8 sm:p-10">
         <h1 className="font-display tracking-snug text-2xl leading-tight font-bold">
           {m.pairTitle}

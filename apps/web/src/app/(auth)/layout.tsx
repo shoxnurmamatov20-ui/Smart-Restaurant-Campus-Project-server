@@ -40,7 +40,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       {/* Declares its own language — see the note in (dashboard)/layout.tsx. */}
       <div
         lang={locale}
-        className="bg-bg-subtle text-fg text-md flex min-h-screen flex-col items-center justify-center px-5 py-12"
+        className="bg-bg-subtle text-fg text-md flex min-h-dvh flex-col items-center justify-center px-5 py-12"
       >
         <Link href="/" className="mb-7 flex items-center gap-3">
           <span className="bg-brand-500 font-display grid size-9 flex-none place-items-center rounded-[10px] text-[17px] font-bold tracking-[-0.04em] text-white">
@@ -51,7 +51,15 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           </span>
         </Link>
 
-        <div className="w-full max-w-[460px]">{children}</div>
+        {/*
+          The width is the page's, not the layout's.
+
+          Reset is one field and stays at the design's 460px, which it sets
+          itself. Sign-in is wider: the design puts three "door" cards beside the
+          card, and a 460px column would stack them under the form — which is
+          the one place a reader needs them *before* the form, not after.
+        */}
+        <div className="flex w-full justify-center">{children}</div>
 
         <Link href="/" className="text-fg-subtle hover:text-fg mt-7 text-sm font-medium">
           {t('backToSite')}

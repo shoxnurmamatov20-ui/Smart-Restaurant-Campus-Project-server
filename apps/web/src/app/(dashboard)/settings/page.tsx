@@ -1,85 +1,79 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getMessages, getTranslations } from 'next-intl/server';
+
+import type { Messages } from '@/i18n';
 
 import { moduleMetadata } from '../module-page';
 import { ACTION, PageHead } from '../screen';
+import { settingsCopy } from './settings-copy';
+import { SettingsPanels } from './settings-panels';
+import { settingsScreen } from './settings-server';
 
 export const generateMetadata = () => moduleMetadata('settings');
 
 /**
  * Settings.
  *
- * Built to the design's Settings screen: one card per area, each saying what
- * it holds rather than only naming it — "Sozlamalar → Ogohlantirishlar" is a
- * path the notification panel already points people down, and a card that only
- * says "Alerts" leaves them guessing whether they have arrived.
+ * `Smart Restaurant OS.dc.html:5677-6189` draws one screen here: a strip of
+ * eight tabs — terminal, printers, receipt, payment methods, categories, zones,
+ * notifications, releases — over the panel the reader chose, and under it the
+ * order-state table, three groups of policy switches and the appearance row.
  *
- * Branches has a screen already, so its card links there; the rest land as
- * their modules do.
+ * What stood here instead was an index of seven cards, five of them with a
+ * disabled button. That is not an unfinished version of this screen, it is a
+ * different screen: it names the areas a restaurant might configure and lets a
+ * manager into two of them. The eight panels are now built, and the two routes
+ * that genuinely are their own screens — roles and the site configurator — keep
+ * their links in the head, which is also where `nav.test.ts` expects to find
+ * them.
  *
- * TODO — Phase 1 · settings, once the modules are built:
- *   - The restaurant profile form, and who may edit it
- *   - Roles and permissions against the Spatie set the API already defines
- *   - Alert rules: event, recipient, channel
- *   - Integrations: fiscal module, Didox, 1C, Telegram, aggregators
- *   - Plan and invoices
+ * Most of what the panels draw is now read from the server rather than
+ * invented — the requisites at the top of every receipt, the printers, the
+ * tills, the zones, which online rails have keys — because all of it looked
+ * configured when it was not: every restaurant's receipt preview drew the same
+ * STIR, and the identity panel named a terminal called POS-3 that no
+ * deployment has ever had. `settings-server.ts` is the seam and it says which
+ * read answers which block.
+ *
+ * The controls that write do so through a route handler on this origin, never
+ * to Laravel directly. The ten policy switches under the panels used to be one
+ * write and nine toasts; six of them are declared paths with one enforcement
+ * point each now (`config/settings.php`, the `policies.*` group). The four that
+ * still only move are drawn because the design draws them and are statements
+ * rather than levers — a tax rate, a kitchen behaviour nothing implements yet,
+ * and three discount ceilings whose single source is the terminal. Each is
+ * argued in `settings-panels.tsx`, where it is drawn.
  */
-const GROUPS = [
-  { key: 'groupProfile', href: null },
-  { key: 'groupRoles', href: '/settings/permissions' },
-  { key: 'groupAlerts', href: null },
-  { key: 'groupIntegrations', href: null },
-  { key: 'groupBilling', href: null },
-  { key: 'groupData', href: null },
-] as const;
-
 export default async function SettingsPage() {
-  const [nav, t] = await Promise.all([
+  const [nav, t, messages] = await Promise.all([
     getTranslations('console.nav'),
     getTranslations('console.settings'),
+    getMessages(),
   ]);
 
+  /* The sentences come from the catalogue and the figures from settings-data;
+     `settingsCopy` is the seam that hands the panels one object, and
+     `settingsScreen` lays the restaurant's own rows over it. */
+  const copy = await settingsScreen(settingsCopy((messages as Messages).console.settingsPanels));
+
   return (
-    <>
-      <PageHead title={nav('settings')} subtitle={t('subtitle')}>
+    /* The design holds settings to 900px. Every panel here is a form or a
+       narrow table, and a form measured across a 1440px screen is a form
+       nobody's eye tracks back across. */
+    <div className="mx-auto max-w-[900px]">
+      <PageHead title={nav('settings')} subtitle={copy.subtitle}>
+        <Link href="/settings/permissions" className={`${ACTION} grid place-items-center`}>
+          {t('groupRoles')}
+        </Link>
+        <Link href="/settings/site" className={`${ACTION} grid place-items-center`}>
+          {t('groupSite')}
+        </Link>
         <Link href="/settings/branches" className={`${ACTION} grid place-items-center`}>
           {nav('branches')}
         </Link>
       </PageHead>
 
-      <div className="grid [grid-template-columns:repeat(auto-fill,minmax(340px,1fr))] gap-4">
-        {GROUPS.map((group) => (
-          <div
-            key={group.key}
-            className="bg-surface flex flex-col gap-3 rounded-lg border px-6 py-[22px]"
-          >
-            <h3 className="text-md tracking-snug font-semibold">{t(group.key)}</h3>
-            <p className="text-fg-muted flex-1 text-sm leading-normal text-pretty">
-              {t(`${group.key}Sub`)}
-            </p>
-
-            {/* Only the areas with a screen behind them link anywhere; the
-                rest render the same control disabled rather than promising a
-                page that is not there yet. */}
-            {group.href ? (
-              <Link
-                href={group.href}
-                className="hover:bg-bg-subtle mt-1 grid h-9 place-items-center self-start rounded-md border px-3.5 text-sm font-semibold"
-              >
-                {t('manage')}
-              </Link>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="text-fg-disabled mt-1 h-9 cursor-not-allowed self-start rounded-md border px-3.5 text-sm font-semibold"
-              >
-                {t('manage')}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </>
+      <SettingsPanels copy={copy} />
+    </div>
   );
 }

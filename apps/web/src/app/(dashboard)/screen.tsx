@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 
 /**
  * The pieces every module screen is made of.
@@ -60,12 +60,34 @@ export function TableCard({
   head,
   children,
   className = '',
+  empty,
 }: {
   columns: string;
   head: readonly (string | { label: string; align: 'right' })[];
   children: ReactNode;
   className?: string;
+  /**
+   * What to say when there are no rows.
+   *
+   * Passed in rather than defaulted, because an empty table is never generic:
+   * an empty stop list is good news, an empty order list at eight in the
+   * evening is a broken till, and a filter that matched nothing is a filter to
+   * relax. `title` says which; `body` says what to do.
+   *
+   * Optional only so the caller has to *decide* — a table with no rows and no
+   * empty state renders a header strip over nothing, which is what every module
+   * in this console did.
+   */
+  empty?: { title: string; body?: string };
 }) {
+  /*
+   * "No rows" is `children` being an empty array or nothing at all.
+   *
+   * `Children.count` rather than `Array.isArray`: a caller may pass a fragment,
+   * a mapped array, or a single row, and only one of those has a `length`.
+   */
+  const rows = Children.count(children);
+
   return (
     <div data-table className={`bg-surface overflow-hidden rounded-lg border ${className}`}>
       <div
@@ -83,7 +105,18 @@ export function TableCard({
         })}
       </div>
 
-      {children}
+      {rows === 0 && empty !== undefined ? (
+        <div className="px-5 py-14 text-center">
+          <p className="text-sm font-semibold">{empty.title}</p>
+          {empty.body === undefined ? null : (
+            <p className="text-fg-subtle mx-auto mt-1.5 max-w-[44ch] text-xs leading-normal">
+              {empty.body}
+            </p>
+          )}
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }
@@ -108,6 +141,18 @@ export function Row({
   );
 }
 
+/**
+ * A tab strip that switches, in the design's underline style.
+ *
+ * Nine modules in this console drew one of these with the first tab hardcoded
+ * active and no handler. The strip is the module's own navigation — a menu with
+ * four tabs where three cannot be reached is a menu missing three screens, and
+ * it reads as broken rather than as unfinished.
+ *
+ * A client island so the pages around it stay server components: the tab is the
+ * only thing that changes, and re-rendering a table of two hundred dishes on
+ * the server to move an underline would be a navigation for nothing.
+ */
 export type Tone = 'success' | 'warning' | 'danger' | 'brand' | 'neutral';
 
 const TONES: Record<Tone, string> = {
@@ -133,21 +178,50 @@ export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
 export function StatStrip({
   stats,
 }: {
-  stats: readonly { label: string; value: string; tone?: 'warning' }[];
+  stats: readonly {
+    label: string;
+    /*
+     * A node, not a string, so one figure in an otherwise server-rendered strip
+     * can be live. The inventory screen needs exactly that: the design's
+     * open-purchase count is `8 + ordered.length`, and the addition happens in a
+     * client island further down the page. Widening the type keeps the other
+     * three figures — and every other screen's strip — on the server.
+     */
+    value: ReactNode;
+    /**
+     * The line under the number — what it is measured against.
+     *
+     * The design's KPI card is three lines, not two, and the third is the one
+     * that turns a number into a judgement: "14 min" says nothing, "14 min ·
+     * target 15 minutes" says the desk is keeping up. This card drew only the
+     * first two for a long time, which is why several screens read as
+     * dashboards of unanchored numbers.
+     */
+    note?: string;
+    /** Colour on the number, and only where the number is a verdict. */
+    tone?: 'warning' | 'danger' | 'success';
+  }[];
 }) {
   return (
-    <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))] overflow-hidden rounded-lg border">
+    <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))] overflow-hidden rounded-lg border">
       {stats.map((stat) => (
         <div key={stat.label} className="border-divider px-[22px] py-[18px] not-last:border-r">
           <div className="text-fg-subtle mb-2 text-xs">{stat.label}</div>
           <div
             data-num
             className={`font-display text-2xl font-semibold tracking-tight ${
-              stat.tone === 'warning' ? 'text-warning-700' : ''
+              stat.tone === 'warning'
+                ? 'text-warning-700'
+                : stat.tone === 'danger'
+                  ? 'text-danger-700'
+                  : stat.tone === 'success'
+                    ? 'text-success-700'
+                    : ''
             }`}
           >
             {stat.value}
           </div>
+          {stat.note ? <div className="text-fg-subtle mt-1.5 text-xs">{stat.note}</div> : null}
         </div>
       ))}
     </div>
@@ -171,7 +245,10 @@ export function Avatar({ name }: { name: string }) {
 /** A proportion, drawn as the design's 5px rail. */
 export function Rail({ percent, colour }: { percent: number; colour: string }) {
   return (
-    <span className="bg-bg-muted block h-[5px] overflow-hidden rounded-[3px]">
+    // `data-rail` is what binds the fill to `railIn` — the wipe the design
+    // plays on every proportion. Without it the rail simply appears at width,
+    // which is the one thing a proportion should never do.
+    <span data-rail className="bg-bg-muted block h-[5px] overflow-hidden rounded-[3px]">
       <span
         className="block h-full rounded-[3px]"
         style={{ width: `${Math.min(100, percent)}%`, background: colour }}

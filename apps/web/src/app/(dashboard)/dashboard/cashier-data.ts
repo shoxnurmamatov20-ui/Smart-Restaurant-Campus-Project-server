@@ -1,3 +1,5 @@
+import { scaleFor, type Period } from './overview-data';
+
 /**
  * The cashier's till dashboard.
  *
@@ -24,18 +26,33 @@ export type Payment = {
 
 export type CashierOverview = {
   greetingName: string;
-  /** What should be in the drawer right now, in tiyin. */
-  drawer: number;
-  openingFloat: number;
-  payments: number;
-  refunds: number;
-  tablesAwaiting: number;
+  /** The venue this drawer is in, from the session. */
+  placeName: string;
+  /** False for the design's own till — see `./figures.ts`. */
+  live: boolean;
+  /**
+   * What should be in the drawer right now, in tiyin, or `null` when no till is
+   * open.
+   *
+   * Null is a real answer and not an absence: `RoleDashboards::currentShift()`
+   * says so by sending `shift: null`. This is the one number on the platform
+   * where an invented value can produce a real accusation of theft, so a
+   * cashier who has opened nothing reads a dash and the button that opens one.
+   */
+  drawer: number | null;
+  openingFloat: number | null;
+  payments: number | null;
+  refunds: number | null;
+  /** Tables that have asked for the bill — `tables_awaiting` on the payload. */
+  tablesAwaiting: number | null;
   recent: readonly Payment[];
   methods: readonly { id: PaymentMethodId; amount: number }[];
 };
 
-const PLACEHOLDER: CashierOverview = {
+const PLACEHOLDER = {
   greetingName: 'Dilshod',
+  placeName: 'Chilonzor',
+  live: false,
   drawer: som(2_184_000),
   openingFloat: som(500_000),
   payments: 64,
@@ -63,9 +80,32 @@ const PLACEHOLDER: CashierOverview = {
     { id: 'cash', amount: som(842_000) },
     { id: 'wallet', amount: som(318_000) },
   ],
-};
+} satisfies CashierOverview;
 
-/** TODO(api): GET /api/v1/finance/till/current — the signed-in cashier's drawer. */
-export async function getCashierOverview(): Promise<CashierOverview> {
+/**
+ * The fixture this screen falls back to. Live seam: `getCashierLive()` in
+ * `./dashboard-server.ts`, which takes the drawer from the open shift on
+ * `GET /api/v1/dashboard?role=cashier`.
+ */
+export async function getCashierOverview(period: Period = 'today'): Promise<CashierOverview> {
+  /*
+   * The drawer is *not* scaled. It is what is physically in front of the
+   * cashier now; a week of takings is a different question and multiplying the
+   * drawer by six would put a number on screen that no count could ever match.
+   */
+  const factor = scaleFor(period);
+
+  if (factor !== 1) {
+    return {
+      ...PLACEHOLDER,
+      payments: Math.round(PLACEHOLDER.payments * factor),
+      refunds: Math.round(PLACEHOLDER.refunds * factor),
+      methods: PLACEHOLDER.methods.map((method) => ({
+        ...method,
+        amount: Math.round(method.amount * factor),
+      })),
+    };
+  }
+
   return PLACEHOLDER;
 }

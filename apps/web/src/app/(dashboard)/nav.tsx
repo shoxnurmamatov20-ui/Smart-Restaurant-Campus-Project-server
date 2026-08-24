@@ -6,23 +6,31 @@ import type { ModuleKey, Role } from '@/lib/roles';
 /**
  * Staff console navigation.
  *
- * Nineteen destinations in four groups, exactly as the design's sidebar has
- * them — what is happening right now, then the catalogue behind it, then the
- * people, then the business. `nav.test.ts` reads this and checks it against the
- * pages that actually exist on disk, which is how a page without a link, or a
- * link without a page, gets caught.
+ * Twenty-four destinations in four groups and a footer, taken from the design
+ * file's own sidebar — service, then the catalogue, then the people, then the
+ * money, then settings below a rule. `nav.test.ts` reads this and checks it
+ * against the pages that actually exist on disk, which is how a page without a
+ * link, or a link without a page, gets caught.
  *
- * `href` is separate from `key` because seven of these are views of a module
+ * **Read from the file, not from the spec.** `specs/01-os.md §3` draws three
+ * groups and lists twenty-two rows; `files/Smart Restaurant OS.dc.html` draws
+ * four groups and twenty-four, the two extra being the menu board and the
+ * complaints queue. The handoff README settles it in a sentence — "Where a
+ * document and a file disagree, the file wins and the document is a bug" — and
+ * this file was briefly rebuilt from the spec, which cost the Catalogue group
+ * and both of those rows. It is rebuilt from the design file now.
+ *
+ * `href` is separate from `key` because eight of these are views of a module
  * rather than modules of their own: the schedule belongs to Staff, the till and
- * the books to Finance, control and reports to Analytics. Nesting them keeps
- * one folder per Phase 1 module instead of inventing eight more top-level
- * routes the API has no counterpart for.
+ * the books to Finance, control and reports to Analytics, complaints to CRM.
+ * Nesting them keeps one folder per Phase 1 module instead of inventing nine
+ * more top-level routes the API has no counterpart for.
  *
  * Labels are message keys, not strings — the console runs in uz / ru / en and
  * the sidebar is the first thing that has to follow the switch.
  *
  * Icons are the design's own, inlined at its stroke width (1.75 on a 24×24 box)
- * rather than pulled from a package: the sidebar needs nineteen of them and
+ * rather than pulled from a package: the sidebar needs two dozen of them and
  * vendoring the subset keeps the client bundle from carrying a whole set.
  * Emoji, which this file used before, are ruled out by the design outright.
  */
@@ -44,6 +52,30 @@ export type NavGroup = {
   items: readonly NavItem[];
 };
 
+/**
+ * The sidebar, section by section, exactly as the design file draws it.
+ *
+ * Four overlines and a settings footer. The membership and the order are the
+ * file's, read off the rail's own DOM rather than off the prose:
+ *
+ *   OPERATIONS  overview · orders · floor · order intake · kitchen
+ *   CATALOGUE   menu · stock · suppliers
+ *   PEOPLE      staff · rota · menu board · customers · marketing · website
+ *   BUSINESS    finance · stock operations · till · bookkeeping ·
+ *               loss prevention · complaints · analytics · reports · branches
+ *   footer      settings
+ *
+ * Two placements look wrong and are the design's: the menu board sits among
+ * the people because it is a thing somebody puts on a wall and keeps current,
+ * and stock operations sits under Business next to the money it moves rather
+ * than beside the stock list it draws from. Both were checked against the file
+ * before being copied, because both are the kind of detail a reader "corrects"
+ * on the way past.
+ *
+ * Settings is outside the four: the design puts it below a rule at the foot of
+ * the rail, beside the collapse control, because it is not one of the day's
+ * jobs.
+ */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     key: 'sectionOps',
@@ -82,6 +114,16 @@ export const NAV_GROUPS: readonly NavGroup[] = [
             <path d="M12 18v3" />
             <path d="M3 12h3" />
             <path d="M18 12h3" />
+          </>
+        ),
+      },
+      {
+        key: 'calls',
+        href: '/calls',
+        icon: (
+          <>
+            {/* A handset over a queue: five channels arriving in one list. */}
+            <path d="M5 4h3l1.6 4-2 1.4a12 12 0 0 0 6 6l1.4-2 4 1.6v3a1.6 1.6 0 0 1-1.7 1.6A15.4 15.4 0 0 1 3.4 5.7 1.6 1.6 0 0 1 5 4Z" />
           </>
         ),
       },
@@ -160,6 +202,18 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         ),
       },
       {
+        key: 'board',
+        href: '/board',
+        icon: (
+          <>
+            {/* A screen on a stand: the menu board hangs above the counter. */}
+            <rect x="3" y="4" width="18" height="11" rx="1.5" />
+            <path d="M12 15v4" />
+            <path d="M8.5 19h7" />
+          </>
+        ),
+      },
+      {
         key: 'crm',
         href: '/crm',
         icon: (
@@ -172,10 +226,34 @@ export const NAV_GROUPS: readonly NavGroup[] = [
           </>
         ),
       },
+      {
+        key: 'marketing',
+        href: '/marketing',
+        icon: (
+          <>
+            {/* A megaphone — campaigns going out, not a chart coming back. */}
+            <path d="M3 10v4a1 1 0 0 0 1 1h2l5 4V5L6 9H4a1 1 0 0 0-1 1Z" />
+            <path d="M16 8.5a5 5 0 0 1 0 7" />
+            <path d="M19 6a9 9 0 0 1 0 12" />
+          </>
+        ),
+      },
+      {
+        key: 'web',
+        href: '/web',
+        icon: (
+          <>
+            {/* A globe: the restaurant's own site, seen from outside. */}
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18" />
+            <path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18Z" />
+          </>
+        ),
+      },
     ],
   },
   {
-    key: 'sectionBusiness',
+    key: 'sectionMoney',
     items: [
       {
         key: 'finance',
@@ -234,6 +312,20 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         ),
       },
       {
+        key: 'cases',
+        href: '/crm/cases',
+        badge: '3',
+        badgeTone: 'warning',
+        icon: (
+          <>
+            {/* A speech bubble with a raised point — a complaint, not a chat. */}
+            <path d="M20 12.5a7.5 7.5 0 0 1-10.9 6.7L4 20.5l1.4-4.6A7.5 7.5 0 1 1 20 12.5Z" />
+            <path d="M12 8.5v3.5" />
+            <path d="M12 15.2v.1" />
+          </>
+        ),
+      },
+      {
         key: 'analytics',
         href: '/analytics',
         icon: (
@@ -270,26 +362,49 @@ export const NAV_GROUPS: readonly NavGroup[] = [
           </>
         ),
       },
-      {
-        key: 'settings',
-        href: '/settings',
-        icon: (
-          <>
-            <path d="M4 8h5" />
-            <path d="M13 8h7" />
-            <path d="M4 16h9" />
-            <path d="M17 16h3" />
-            <circle cx="11" cy="8" r="2" />
-            <circle cx="15" cy="16" r="2" />
-          </>
-        ),
-      },
     ],
   },
 ];
 
-/** Every row, flattened — the shell and the tests both want this. */
-export const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+/**
+ * Settings, which sits below the sections rather than inside one.
+ *
+ * `specs/01-os.md §3`: a rule, then settings and the collapse control. Kept out
+ * of `NAV_GROUPS` so no section can accidentally claim it and so the shell can
+ * render the footer without slicing the last group.
+ */
+export const NAV_FOOTER: NavItem = {
+  key: 'settings',
+  href: '/settings',
+  icon: (
+    <>
+      <path d="M4 8h5" />
+      <path d="M13 8h7" />
+      <path d="M4 16h9" />
+      <path d="M17 16h3" />
+      <circle cx="11" cy="8" r="2" />
+      <circle cx="15" cy="16" r="2" />
+    </>
+  ),
+};
+
+export const NAV_ITEMS: readonly NavItem[] = [
+  ...NAV_GROUPS.flatMap((group) => group.items),
+  /* Settings is a destination like any other; only its placement differs. */
+  NAV_FOOTER,
+];
+
+/**
+ * Settings, for the roles that hold it.
+ *
+ * Mirrors `navGroupsFor` rather than being folded into it, because the design
+ * puts this row outside the sections — below a rule, beside the collapse
+ * control. A role without `settings` gets no footer at all rather than an empty
+ * rule, which is what a waiter's rail should look like.
+ */
+export function navFooterFor(role: Role): NavItem | null {
+  return role.nav.includes(NAV_FOOTER.key) ? NAV_FOOTER : null;
+}
 
 /**
  * The sidebar this role actually gets.
@@ -306,11 +421,47 @@ export const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group
  * Presentation only. The row a role cannot see is a row not drawn — the API
  * refuses the request either way, and `TenantIsolationTest` is what proves it.
  */
-export function navGroupsFor(role: Role): readonly NavGroup[] {
+/**
+ * The four counts the sidebar wears, by the item they belong to.
+ *
+ * From `GET /api/v1/dashboard/pulse`. Null is the fixture console, which
+ * keeps the design's own badges; a live tenant gets its counts, and an item
+ * whose count is zero gets no badge at all — a grey "0" beside "Orders" is
+ * a badge that says nothing, which is the one thing a badge must not do.
+ */
+export type NavCounts = {
+  orders: number;
+  kitchen: number;
+  inventory: number;
+  cases: number;
+} | null;
+
+export function navGroupsFor(role: Role, counts: NavCounts = null): readonly NavGroup[] {
   const allowed = new Set<ModuleKey>(role.nav);
 
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => allowed.has(item.key)),
+    items: group.items.filter((item) => allowed.has(item.key)).map((item) => badged(item, counts)),
   })).filter((group) => group.items.length > 0);
 }
+
+function badged(item: NavItem, counts: NavCounts): NavItem {
+  if (counts === null) return item;
+
+  const count = COUNTED[item.key];
+
+  if (count === undefined) return item;
+
+  const value = count(counts);
+  const rest: NavItem = { ...item };
+  delete rest.badge;
+
+  return value > 0 ? { ...rest, badge: String(value) } : rest;
+}
+
+const COUNTED: Partial<Record<ModuleKey, (counts: NonNullable<NavCounts>) => number>> = {
+  orders: (counts) => counts.orders,
+  kitchen: (counts) => counts.kitchen,
+  inventory: (counts) => counts.inventory,
+  cases: (counts) => counts.cases,
+};

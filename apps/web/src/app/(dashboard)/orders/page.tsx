@@ -1,10 +1,13 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { formatTiyinAmount } from '@restaurant/utils';
 
-import { ORDER_STATUS_TONE } from '../dashboard/overview-data';
 import { moduleMetadata } from '../module-page';
-import { ORDER_TABS, type OrderRow } from './orders-data';
-import { getOrderRows } from './orders-server';
+import { getSession } from '@/lib/session';
+
+import { CHANNEL_FILTERS, ORDER_RAIL, STATUS_FILTERS, type OrderRow } from './orders-data';
+import { OrderControls } from './orders-controls';
+import { OrdersTable } from './orders-table';
+import { getBillRates, getOrderCounts, getOrders } from './orders-server';
 
 export const generateMetadata = () => moduleMetadata('orders');
 
@@ -30,175 +33,231 @@ export const generateMetadata = () => moduleMetadata('orders');
  *   - Void and refund, with a reason and an approval
  *   - Delivery: address, courier, promised time
  */
-const COLUMNS = '[grid-template-columns:96px_1fr_130px_116px_130px_96px_116px_40px]';
 
-const QUIET =
-  'bg-surface hover:bg-bg-subtle h-9 rounded-md border px-3.5 text-sm font-medium whitespace-nowrap';
-
-export default async function OrdersPage() {
-  const [nav, t, status, common] = await Promise.all([
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [nav, t, status, common, act, locale] = await Promise.all([
     getTranslations('console.nav'),
     getTranslations('console.orders'),
     getTranslations('console.orderStatus'),
     getTranslations('console.common'),
+    getTranslations('console.actions'),
+    getLocale(),
   ]);
-  const shell = await getTranslations('console.shell');
+
+  /*
+   * The narrowing, out of the URL.
+   *
+   * A selection is a place: it survives a refresh and it can be sent to
+   * whoever asked the question. Applied on the SERVER because the list is paged
+   * upstream — a filter applied in the browser would narrow one page of a
+   * hundred and present the result as the answer.
+   */
+  const query = await searchParams;
+  const one = (key: string): string | undefined => {
+    const value = query[key];
+
+    return typeof value === 'string' && value !== '' ? value : undefined;
+  };
+
+  const filters = {
+    channel: one('channel'),
+    status: one('status'),
+    waiter: one('waiter'),
+    intake: one('intake'),
+  };
 
   // The API when there is a session, the fixtures when there is not — the seam
-  // is inside getOrderRows(), so this screen never learns which it got.
-  const orders = await getOrderRows(t);
+  // is inside getOrders(), so this screen never learns which it got. `ids` is
+  // what the drawer needs to read a bill's real lines and write to it; `tables`
+  // and `waiters` are what the transfer sheet offers to move it to.
+  const [{ rows: orders, ids, tables, waiters }, counts, rates, session] = await Promise.all([
+    getOrders(t, filters),
+    // Two counted reads for the caption — see getOrderCounts(). The line used
+    // to be a catalogue sentence claiming twelve open bills over an empty
+    // table.
+    getOrderCounts(),
+    // This restaurant's own VAT and service rates, so the drawer's arithmetic
+    // and the two labels beside it agree with each other and with the receipt.
+    getBillRates(),
+    getSession(),
+  ]);
+
+  const subtitle =
+    counts === null ? t('subtitle') : t('subtitleLive', { ...counts, place: session.placeName });
+
+  /*
+   * The table's own column, formatted here.
+   *
+   * `formatTiyinAmount` needs the locale and the locale lives on the server;
+   * shipping the formatter to render three dozen settled figures is a cost with
+   * no return. The drawer's amounts are not here for the opposite reason: its
+   * lines are fetched after a click, so nothing on the server has seen them.
+   */
+  const amounts = Object.fromEntries(
+    orders.map((order) => [`total_${order.id}`, formatTiyinAmount(order.total)]),
+  );
 
   return (
     <>
       <div data-pagehead className="mb-[22px] flex items-end justify-between gap-6">
         <div>
           <h2 className="font-display text-2xl font-semibold tracking-tight">{nav('orders')}</h2>
-          <p className="text-fg-muted mt-1.5 text-sm">{t('subtitle')}</p>
+          <p className="text-fg-muted mt-1.5 text-sm">{subtitle}</p>
         </div>
 
-        <div data-pageactions className="flex flex-none gap-2.5">
-          <button type="button" className={`${QUIET} flex items-center gap-2`}>
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.9"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <path d="M3 6h18M6 12h12M10 18h4" />
-            </svg>
-            {common('filters')}
-          </button>
-          <button type="button" className={QUIET}>
-            {common('export')}
-          </button>
-          <button
-            type="button"
-            className="bg-brand-500 hover:bg-brand-600 h-9 flex-none rounded-md px-3.5 text-sm font-semibold whitespace-nowrap text-white"
-          >
-            {shell('newOrder')}
-          </button>
-        </div>
+        {/*
+          The design's two head buttons, and both open something now. See
+          ./orders-controls.tsx: filtering writes `filter[...]` into the URL and
+          the list is re-read narrowed on the server; "New order" opens a BILL —
+          which conversation, whose number, where it is going — and the terminal
+          adds the dishes to it.
+        */}
+        <OrderControls
+          lang={locale as 'uz' | 'ru' | 'en'}
+          canCreate={Object.keys(ids).length > 0 || tables.length > 0}
+          channels={CHANNEL_FILTERS.map((key) => ({ value: key, label: t(`channel_${key}`) }))}
+          statuses={STATUS_FILTERS.map((key) => ({ value: key, label: status(key) }))}
+          waiters={waiters.map((person) => ({ value: String(person.id), label: person.label }))}
+          tables={tables.map((table) => ({ value: String(table.id), label: table.label }))}
+          labels={{
+            filters: t('filters'),
+            filterAny: t('filterAny'),
+            filterClear: t('filterClear'),
+            newOrder: t('newOrder'),
+            newTable: t('newTable'),
+            newGuests: t('newGuests'),
+            newName: t('newName'),
+            newPhone: t('newPhone'),
+            newAddress: t('newAddress'),
+            newAddressNeeded: t('newAddressNeeded'),
+            newHint: t('newHint'),
+            newOpen: t('newOpen'),
+            newOpening: t('newOpening'),
+            newOpened: t.raw('newOpened') as string,
+            newFailed: t('newFailed'),
+            colWhere: t('colWhere'),
+            colStatus: t('colStatus'),
+            colWaiter: t('colWaiter'),
+          }}
+        />
       </div>
 
-      {/* The strip sits on the table's top border; -1px lets the active
-          underline cover that line rather than stack on top of it. */}
-      <div className="mb-0.5 flex items-center gap-5 border-b">
-        {ORDER_TABS.map((tab, index) => (
-          <button
-            key={tab.key}
-            type="button"
-            className={`-mb-px border-b-2 px-0.5 pt-2.5 pb-3 text-sm font-medium ${
-              index === 0 ? 'border-brand-500 text-fg' : 'text-fg-muted border-transparent'
-            }`}
-          >
-            {t(tab.key)}{' '}
-            <span data-num className="text-fg-subtle font-medium">
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+      <OrdersTable
+        rows={orders}
+        ids={ids}
+        tables={tables}
+        waiters={waiters}
+        money={amounts}
+        rates={rates}
+        labels={{
+          tabActive: t('tabActive'),
+          tabReady: t('tabReady'),
+          tabPaid: t('tabPaid'),
+          tabVoided: t('tabVoided'),
 
-      <div data-table className="bg-surface overflow-hidden rounded-b-lg border border-t-0">
-        <div
-          className={`bg-bg-subtle text-fg-subtle grid ${COLUMNS} gap-4 border-b px-5 py-[11px] text-xs font-semibold tracking-wide`}
-        >
-          <span>{t('colOrder')}</span>
-          <span>{t('colWhere')}</span>
-          <span>{t('colWaiter')}</span>
-          <span>{t('colItems')}</span>
-          <span>{t('colStatus')}</span>
-          <span>{t('colOpened')}</span>
-          <span className="text-right">{t('colTotal')}</span>
-          <span />
-        </div>
+          colOrder: t('colOrder'),
+          colWhere: t('colWhere'),
+          colWaiter: t('colWaiter'),
+          colItems: t('colItems'),
+          colStatus: t('colStatus'),
+          colOpened: t('colOpened'),
+          colTotal: t('colTotal'),
 
-        {orders.map((order) => (
-          <div
-            key={order.id}
-            data-row
-            className={`border-divider grid ${COLUMNS} items-center gap-4 border-b px-5 py-3.5`}
-          >
-            <span className="text-fg-muted font-mono text-sm">{order.id}</span>
+          system: t('system'),
+          showing: t.raw('showing') as string,
+          previous: common('previous'),
+          next: common('next'),
+          close: common('close'),
 
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{order.where}</span>
-              <span className="text-fg-subtle mt-0.5 block text-xs">{detail(order, t)}</span>
-            </span>
+          export: common('export'),
+          exportTitle: common('exportTitle'),
+          exportBody: common('exportBody'),
+          exportRows: common.raw('exportRows') as string,
+          exportFormat: common('exportFormat'),
+          exportCsv: common('exportCsv'),
+          exportExcelFormat: common('exportExcelFormat'),
+          exportDownload: common('exportDownload'),
+          exportNote: common('exportNote'),
+          // `console.common` has no `cancel` — it never did, and this line has
+          // been rendering the key path into the export dialog's own button.
+          // The word now lives beside the four confirm sheets that also need
+          // it, rather than being added to a catalogue five other screens read.
+          cancel: t('cancel'),
 
-            <span className="text-fg-muted text-sm">
-              {order.waiter === 'system' ? t('system') : order.waiter}
-            </span>
-            <span data-num className="text-fg-muted text-sm">
-              {order.items}
-            </span>
+          emptyTab: t('emptyTab'),
+          emptyTabSub: t('emptyTabSub'),
+          emptyVoided: t('emptyVoided'),
 
-            <span>
-              <span
-                className={`rounded-pill text-2xs inline-flex items-center gap-1.5 px-[9px] py-1 font-semibold ${ORDER_STATUS_TONE[order.status]}`}
-              >
-                <span aria-hidden className="rounded-pill size-[5px] bg-current" />
-                {status(order.status)}
-              </span>
-            </span>
+          waiter: t('colWaiter'),
+          noLines: t('noLines'),
+          subtotal: t('subtotal'),
+          service: t('serviceRate', { percent: rates.service }),
+          total: t('colTotal'),
+          // `{percent}` is resolved here and `{amount}` in the drawer, which
+          // is the only one of the two the browser knows.
+          vat: (t.raw('vatRate') as string).replace('{percent}', String(rates.vat)),
+          actionsNote: t('actionsNote'),
+          // `console.actions.reprinted` is the catalogue's own line for a copy
+          // of a receipt and is already used by the till; the other four say
+          // what they did in this screen's own words, because "voided" and
+          // "moved" are sentences about an order rather than about paper.
+          reprinted: act('reprinted'),
 
-            <span data-num className="text-fg-muted text-sm">
-              {order.time}
-            </span>
-            <span data-num className="text-right text-sm font-semibold">
-              {formatTiyinAmount(order.total)}
-            </span>
+          // The confirm sheet the other four open — ./order-actions.tsx.
+          ...Object.fromEntries(
+            (
+              [
+                // `cancel` is up with the export dialog's keys — it is shared
+                // with that button and only listed once.
+                'reason',
+                'reasonShort',
+                'apply',
+                'discountByPercent',
+                'discountByAmount',
+                'discountAmountLabel',
+                'transferTable',
+                'transferWaiter',
+                'transferNowhere',
+                'approvalTitle',
+                'approvalRetry',
+                'refundNothing',
+                'refundSeveral',
+              ] as const
+            ).map((key) => [key, t(key)]),
+          ),
+          ...Object.fromEntries(
+            (['void', 'refund', 'discount', 'transfer'] as const).flatMap((action) => [
+              [`confirm_${action}`, t(`confirm_${action}`)],
+              [`sub_${action}`, t(`sub_${action}`)],
+              [`done_${action}`, t(`done_${action}`)],
+            ]),
+          ),
 
-            <span className="text-fg-disabled flex justify-end">
-              <Chevron />
-            </span>
-          </div>
-        ))}
-
-        <div className="flex items-center justify-between gap-4 px-5 py-3.5">
-          <span className="text-fg-subtle text-xs">{t('showing')}</span>
-
-          <div className="flex flex-none items-center gap-1">
-            <button
-              type="button"
-              disabled
-              aria-label="←"
-              className="text-fg-disabled grid size-8 place-items-center rounded-sm border"
-            >
-              <Chevron flip />
-            </button>
-
-            {[1, 2, 3].map((page) => (
-              <button
-                key={page}
-                type="button"
-                data-num
-                className={`grid h-8 min-w-8 place-items-center rounded-sm border px-2 text-sm ${
-                  page === 1
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 font-semibold'
-                    : 'text-fg-muted hover:bg-bg-subtle'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-
-            <span className="text-fg-disabled px-1.5 text-sm">…</span>
-
-            <button
-              type="button"
-              aria-label="→"
-              className="text-fg-muted hover:bg-bg-subtle grid size-8 place-items-center rounded-sm border"
-            >
-              <Chevron />
-            </button>
-          </div>
-        </div>
-      </div>
+          ...Object.fromEntries(
+            ORDER_RAIL.map((step) => [`rail_${step}`, status(step === 'paid' ? 'paid' : step)]),
+          ),
+          ...Object.fromEntries(
+            (['sent', 'cooking', 'ready', 'served'] as const).map((state) => [
+              `line_${state}`,
+              t(`line_${state}`),
+            ]),
+          ),
+          ...Object.fromEntries(
+            (['print', 'void', 'refund', 'discount', 'transfer'] as const).map((action) => [
+              `action_${action}`,
+              t(`action_${action}`),
+            ]),
+          ),
+          ...Object.fromEntries(orders.map((order) => [`detail_${order.id}`, detail(order, t)])),
+          ...Object.fromEntries(
+            orders.map((order) => [`status_${order.status}`, status(order.status)]),
+          ),
+        }}
+      />
     </>
   );
 }
@@ -209,23 +268,4 @@ function detail(order: OrderRow, t: (key: string) => string): string {
   if (order.channel === 'counter') return t('counter');
 
   return `${t('dineIn')} · ${order.detail}`;
-}
-
-function Chevron({ flip }: { flip?: boolean }) {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={flip ? 'rotate-180' : undefined}
-      aria-hidden
-    >
-      <path d="m9 6 6 6-6 6" />
-    </svg>
-  );
 }

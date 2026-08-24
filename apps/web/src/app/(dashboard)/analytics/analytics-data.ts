@@ -3,11 +3,26 @@ import type { Messages } from '@/i18n';
 /**
  * The last thirty days, as the design's Analytics screen reads them.
  *
- * Money is integer tiyin. Margin and profit are derived from price, cost and
- * units — never stored — so a price change cannot leave a stale margin behind.
+ * `Smart Restaurant OS.dc.html:13588-13597` (hours and category mix),
+ * `:16814-16844` (the four menu-engineering groups and the nine dishes) and
+ * `:10184-10191` (the four service figures). Money is integer tiyin. Margin and
+ * profit are derived from price, cost and units — never stored — so a price
+ * change cannot leave a stale margin behind.
  *
- * TODO(api): GET /api/v1/analytics/summary — the API computes these across
- * branches; a client cannot, because it never sees every branch's tickets.
+ * A twelve-month revenue trend, a labour-share series and a set of donut
+ * colours used to live at the bottom of this file. None of the three is in the
+ * design's Analytics view: the trend and the labour chart came from
+ * `specs/01-os.md`, and the file puts labour cost by hour on the branches
+ * screen instead, where `settings/branches` already draws it. They are gone
+ * rather than left unused, because a fixture nobody renders is a fixture that
+ * drifts unnoticed.
+ *
+ * These are the fixture. The live read is next door in `./analytics-server.ts`,
+ * which asks `GET /api/v1/analytics/summary` and
+ * `GET /api/v1/analytics/menu-engineering` and falls back to everything below
+ * when there is no session or the API is restarting. It has to be the server
+ * that computes them: these figures span branches, and a client only ever sees
+ * the tickets of the venue whose `X-Branch` it sent.
  */
 
 type Analytics = Messages['console']['analytics'];

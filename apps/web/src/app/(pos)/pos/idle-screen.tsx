@@ -6,6 +6,7 @@ import { useLocale, useMessages } from 'next-intl';
 import { formatTiyinCompact } from '@restaurant/utils';
 
 import type { Messages } from '@/i18n';
+import { CONTACT } from '@/lib/constants';
 import type { IdleScreen as IdleData } from '@/lib/pos-session';
 
 /**
@@ -50,9 +51,19 @@ const BLOCKS: Record<Mode, { stats: boolean; health: boolean }> = {
   brand: { stats: false, health: true },
 };
 
-/** The backgrounds the design draws, verbatim. */
+/**
+ * The backgrounds the design draws.
+ *
+ * `night` is the design's own `--pos-idle` token and is read rather than copied:
+ * the prototype gives it a second, deeper value under `[data-theme="dark"]`, and
+ * a literal here could only ever be one of the two. A till stands in a dark room
+ * — the wrong one is the one that was hard-coded.
+ *
+ * The other two have no token because the design gives them none; they are
+ * choices a venue makes for its own entrance screen, not part of the contract.
+ */
 const BACKGROUNDS: Record<string, string> = {
-  night: 'linear-gradient(165deg,#141A28 0%,#0B0E16 58%,#0F1320 100%)',
+  night: 'var(--pos-idle)',
   ink: 'linear-gradient(165deg,#1F2533 0%,#0F1320 100%)',
   warm: 'linear-gradient(165deg,#2A2119 0%,#14100C 100%)',
 };
@@ -227,7 +238,7 @@ export function IdleScreen({
 
   return (
     <div
-      className="relative flex h-screen flex-col overflow-hidden text-white"
+      className="relative flex h-dvh flex-col overflow-hidden text-white"
       style={{ background: BACKGROUNDS[background] ?? BACKGROUNDS.night }}
     >
       {/* The design's wash over the flat gradient — depth without a photograph. */}
@@ -252,8 +263,11 @@ export function IdleScreen({
           <div className="mt-1.5 text-sm text-white/60">{date}</div>
         </div>
 
+        {/* `/settings`, not `/settings/terminal` — the latter has never been a
+            route, so the only control on a terminal's all-day screen was a 404.
+            The terminal panel lives inside the settings screen's tab strip. */}
         <Link
-          href="/settings/terminal"
+          href="/settings"
           aria-label={m.idleSettings}
           title={m.idleSettings}
           className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-white/20 bg-white/5 text-white/70"
@@ -351,7 +365,10 @@ export function IdleScreen({
             className="text-2xs flex items-center gap-[7px] font-mono font-semibold text-white/60"
             title={linkUp ? m.idleLinkUp : m.idleLinkDown}
           >
+            {/* Breathing only while it is broken — `dc.html:12552`. A dot that
+                always moves is a dot nobody looks at. */}
             <span
+              data-live={linkUp ? undefined : 'true'}
               className={`h-[7px] w-[7px] flex-none rounded-full ${
                 linkUp ? 'bg-success-500' : 'bg-danger-500'
               }`}
@@ -367,7 +384,10 @@ export function IdleScreen({
               </span>
             ) : null}
             {data?.terminal.app_version ? <span>v{data.terminal.app_version}</span> : null}
-            <span>{m.idleHelp}</span>
+            {/* The number is configuration, not copy — `CONTACT.phone` — so
+                the till and the website cannot drift apart again. They had:
+                the catalogue carried its own copy of an older number. */}
+            <span>{m.idleHelp.replace('{phone}', CONTACT.phone)}</span>
           </div>
         </div>
       ) : null}

@@ -5,9 +5,26 @@
  * branch's own revenue, which is the only way five venues of different sizes
  * can be read on one row.
  *
- * TODO(api): GET /api/v1/branches/performance?period= — the rollup the owner
- * reads. `App\Models\Branch` and the branch scope already exist; this is the
- * report that hangs off them.
+ * What is here is the demo console's five venues — the render a reader gets
+ * when there is no session behind the screen. The live one reads the
+ * restaurant's own from the sibling `branches-server.ts`, which now makes a
+ * single call: `GET /api/v1/analytics/branches?period=`, and that one report
+ * answers all nine columns.
+ *
+ * It did not always. Six of the nine — margin, labour, food cost, headcount,
+ * open alerts and the change against last period — had no per-branch source
+ * anywhere and were drawn as dashes, because the two endpoints this file used
+ * to name between them knew only the register and the takings. What closed the
+ * gap was `analytics.daily_facts`: one row per venue per trading day carrying
+ * revenue, cost of goods, labour and discounts, which turns five of those six
+ * into a grouped scan and the sixth — `openAlerts`, which had no definition on
+ * the platform at all — into thresholds over the same row. The service
+ * (`Modules/Analytics/app/Services/BranchPerformance.php`) states the
+ * definition it settled on.
+ *
+ * `LABOUR_BY_HOUR` below is still a fixture, and it is not the same gap: labour
+ * cost is answered for a window, never hour by hour, so there is no curve to
+ * read.
  */
 
 export type BranchPerformance = {

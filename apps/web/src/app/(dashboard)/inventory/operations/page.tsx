@@ -1,141 +1,272 @@
-import { getTranslations } from 'next-intl/server';
-import { formatNumber } from '@restaurant/utils';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { formatTiyinAmount } from '@restaurant/utils';
 
 import { moduleMetadata } from '../../module-page';
-import { PageHead, Row, TableCard } from '../../screen';
+import { PageHead } from '../../screen';
+import {
+  batchCost,
+  BY_KEY,
+  DELIVERIES,
+  lineCost,
+  perBase,
+  PREP_BY_KEY,
+  PREP_ITEMS,
+  prepUnitCost,
+  RECIPES,
+  recipeCost,
+  shortfallValue,
+  WASTE_LOG,
+  type Lang,
+} from './stock-ops-data';
+import {
+  fetchDeliveries,
+  fetchLedger,
+  fetchPrepCards,
+  fetchRecipeCards,
+  fetchStockItems,
+  fetchTransfers,
+  fetchVenues,
+  fetchWasteLog,
+} from './stock-ops-server';
+import { StockOpsTabs } from './stock-ops-tabs';
+import { TAB_ORDER } from './stock-ops-data';
 
 export const generateMetadata = () => moduleMetadata('stockOps');
 
 /**
  * What actually moves the stock.
  *
- * Built to the design's Stock operations screen: five tabs across the top —
- * receiving, count, waste, transfer, recipe card — with receiving open, which
- * is what a storekeeper starts the morning on.
+ * Seven tabs, from the design file's own strip: receiving, count, waste,
+ * transfer, recipe cards, prep items, and the adjustment log. `specs/01-os.md
+ * §5.8` names five; the file draws seven and the file wins.
  *
- * A delivery is shown as ordered against received, with the variance called
- * out. That is the whole job: the supplier's document says forty kilograms and
- * the scale says thirty-eight, and someone has to decide which one the ledger
- * believes before the meat goes in the fridge.
+ * The page is a shell. Everything below the head is one client component,
+ * because every tab is an interaction — a counted quantity, a chosen reason,
+ * two branches, a selected recipe — and a tab strip that does not switch is the
+ * bug this screen shipped with for months.
  *
- * TODO — Phase 1 · inventory/operations, once the module is built:
- *   - Accepting a delivery, which posts the stock and the payable together
- *   - The count sheet, and the variance it writes to the ledger
- *   - Waste with a reason, since that is what makes it analysable
- *   - Transfers between branches, both sides in one movement
- *   - Recipe cards, which is what makes every deduction automatic
+ * Money is formatted here and handed down by key. That looks roundabout and is
+ * deliberate: `formatTiyinAmount` needs the locale, the locale lives on the
+ * server, and shipping the formatter plus its locale data to the browser to
+ * render two dozen static amounts is a real cost for no gain.
  */
-const COLUMNS = '[grid-template-columns:minmax(0,1.4fr)_110px_110px_120px]';
+export default async function StockOperationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  /* `?tab=count` and `?tab=waste` are the store screen's two head buttons. An
+     unknown value falls back to receiving rather than rendering nothing. */
+  const asked = (await searchParams).tab;
+  const initial = TAB_ORDER.find((key) => key === asked) ?? 'recv';
 
-/** The design's two open deliveries. */
-const DELIVERIES = [
-  {
-    id: 'INV-4862',
-    supplier: 'Toshkent Go‘sht Savdo',
-    time: '08:40',
-    lines: [
-      { key: 'itemBeef', ordered: 40, received: 38 },
-      { key: 'itemLamb', ordered: 25, received: 25 },
-      { key: 'itemChicken', ordered: 30, received: 30 },
-    ],
-  },
-  {
-    id: 'INV-4871',
-    supplier: 'Anhor Sabzavot',
-    time: '09:15',
-    lines: [
-      { key: 'itemCarrot', ordered: 50, received: 50 },
-      { key: 'itemOnion', ordered: 40, received: 36 },
-      { key: 'itemTomato', ordered: 20, received: 20 },
-      { key: 'itemHerbs', ordered: 8, received: 8 },
-    ],
-  },
-] as const;
-
-const TABS = ['tabReceiving', 'tabCount', 'tabWaste', 'tabTransfer', 'tabRecipe'] as const;
-
-export default async function StockOperationsPage() {
-  const [nav, t] = await Promise.all([
+  const [nav, t, pin, act, locale] = await Promise.all([
     getTranslations('console.nav'),
     getTranslations('console.stockOps'),
+    getTranslations('console.approvalPin'),
+    getTranslations('console.actions'),
+    getLocale(),
   ]);
+
+  const lang = locale as Lang;
+
+  /*
+   * The four lists the writing tabs need real ids for.
+   *
+   * Fetched in parallel and every one of them may be null: no session, an
+   * expired token or an API mid-restart puts the screen back on its fixtures,
+   * where the buttons confirm instead of posting. See stock-ops-server.ts.
+   */
+  const [venues, items, transfers, prepCards, deliveries] = await Promise.all([
+    fetchVenues(),
+    fetchStockItems(),
+    fetchTransfers(),
+    fetchPrepCards(lang),
+    fetchDeliveries(),
+  ]);
+
+  /*
+   * The dishes that have a technical card. Its own await rather than joining
+   * the group above only because it is the last thing added here and the group
+   * is already five wide; both are one round trip either way.
+   */
+  const recipes = await fetchRecipeCards();
+
+  /*
+   * The two ledger reads need the shelf to name their rows — a movement
+   * carries an ingredient id and nothing else — so they follow rather than
+   * run beside it.
+   */
+  const [ledger, wasteLog] = await Promise.all([fetchLedger(items), fetchWasteLog(items)]);
+  const money = (tiyin: number) => formatTiyinAmount(Math.round(tiyin), lang);
+
+  /* Every amount the seven tabs can show, formatted once, keyed by where it goes. */
+  const amounts: Record<string, string> = {};
+
+  for (const delivery of DELIVERIES) {
+    amounts[`short_${delivery.id}`] = money(shortfallValue(delivery));
+  }
+
+  /*
+   * And the same figure for the live vans, keyed by their own row ids.
+   *
+   * The fixture loop above keys by document number — `INV-4862` — and a live
+   * delivery is keyed by primary key, so the two never collide. Formatted here
+   * because the locale is here: the panel is a client island.
+   */
+  for (const delivery of deliveries ?? []) {
+    amounts[`short_${delivery.id}`] = money(delivery.shortfallTiyin);
+  }
+
+  for (const entry of WASTE_LOG) amounts[`waste_${entry.id}`] = money(entry.cost);
+  amounts.wasteTotal = money(WASTE_LOG.reduce((sum, entry) => sum + entry.cost, 0));
+
+  for (const entry of wasteLog ?? []) amounts[`liveWaste_${entry.id}`] = money(entry.costTiyin);
+  amounts.liveWasteTotal = money((wasteLog ?? []).reduce((sum, entry) => sum + entry.costTiyin, 0));
+
+  for (const recipe of RECIPES) {
+    amounts[`cost_${recipe.key}`] = money(recipeCost(recipe));
+    amounts[`sell_${recipe.key}`] = money(recipe.sell);
+
+    recipe.lines.forEach((line, index) => {
+      const unitCost =
+        line.kind === 'prep'
+          ? prepUnitCost(PREP_BY_KEY.get(line.prep)!)
+          : perBase(BY_KEY.get(line.ingredient)!);
+
+      amounts[`unit_${recipe.key}_${index}`] = money(unitCost);
+      amounts[`line_${recipe.key}_${index}`] = money(lineCost(line));
+    });
+  }
+
+  for (const item of PREP_ITEMS) {
+    amounts[`batch_${item.key}`] = money(batchCost(item));
+    amounts[`prepUnit_${item.key}`] = money(prepUnitCost(item));
+  }
+
+  /* The live cards are costed by the server — `batch_cost_tiyin` and
+     `unit_cost_tiyin` on the resource — so nothing is recomputed here; the
+     figures are only formatted, in the same place and by the same function as
+     the fixtures'. */
+  for (const card of prepCards ?? []) {
+    amounts[`liveBatch_${card.id}`] = money(card.batchCostTiyin);
+    amounts[`liveUnit_${card.id}`] = money(card.unitCostTiyin);
+  }
+
+  const labels: Record<string, string> = {
+    ...Object.fromEntries(TAB_ORDER.map((key) => [`tab_${key}`, t(`tab_${key}`)])),
+
+    recvSub: t('recvSub'),
+    docMeta: t.raw('docMeta') as string,
+    accept: t('accept'),
+    shortfall: t.raw('shortfall') as string,
+
+    countSub: t('countSub'),
+    countHidden: t('countHidden'),
+    colCounted: t('colCounted'),
+    matched: t('matched'),
+    needsPin: t('needsPin'),
+    signed: t('signed'),
+    varianceRule: t.raw('varianceRule') as string,
+    finishCount: t('finishCount'),
+    countReason: t.raw('countReason') as string,
+
+    wasteSub: t('wasteSub'),
+    wastePlaceholder: t('wastePlaceholder'),
+    wasteAdd: t('wasteAdd'),
+    wasteTotal: t.raw('wasteTotal') as string,
+    reason_expired: t('reason_expired'),
+    reason_spoiled: t('reason_spoiled'),
+    reason_broken: t('reason_broken'),
+    reason_cooking: t('reason_cooking'),
+    reason_returned: t('reason_returned'),
+
+    moveSub: t('moveSub'),
+    from: t('from'),
+    to: t('to'),
+    moveSend: t('moveSend'),
+    samePlace: t('samePlace'),
+    state_inTransit: t('state_inTransit'),
+    state_received: t('state_received'),
+    state_delivered: t('state_delivered'),
+
+    recipeSub: t('recipeSub'),
+    colIngredient: t('colIngredient'),
+    colUnitCost: t('colUnitCost'),
+    prepTag: t('prepTag'),
+    totalCost: t('totalCost'),
+    sellPrice: t('sellPrice'),
+    margin: t('margin'),
+    foodCost: t('foodCost'),
+    lowMargin: t('lowMargin'),
+
+    prepSub: t('prepSub'),
+    prepMake: t('prepMake'),
+    prepMade: t.raw('prepMade') as string,
+    colBatch: t('colBatch'),
+    colLoss: t('colLoss'),
+    colShelf: t('colShelf'),
+    colOnHand: t('colOnHand'),
+    ingredients: t('ingredients'),
+    days: t.raw('days') as string,
+
+    recvEmpty: t('recvEmpty'),
+    countNothing: t('countNothing'),
+    countFailed: t('countFailed'),
+    wasteIncomplete: t('wasteIncomplete'),
+    wasteFailed: t('wasteFailed'),
+    wasteEmpty: t('wasteEmpty'),
+    logEmpty: t('logEmpty'),
+    recipeEmpty: t('recipeEmpty'),
+    recipeMissingLine: t('recipeMissingLine'),
+    recipeUnresolved: t.raw('recipeUnresolved') as string,
+    recipeFloor: t('recipeFloor'),
+
+    logSub: t('logSub'),
+    logNote: t('logNote'),
+    kind_receiving: t('kind_receiving'),
+    kind_count: t('kind_count'),
+    kind_waste: t('kind_waste'),
+    kind_transfer: t('kind_transfer'),
+    kind_correction: t('kind_correction'),
+
+    colItem: t('colItem'),
+    colOrdered: t('colOrdered'),
+    colReceived: t('colReceived'),
+    colVariance: t('colVariance'),
+    colQuantity: t('colQuantity'),
+    colReason: t('colReason'),
+    colCost: t('colCost'),
+    colTime: t('colTime'),
+
+    deliveryAccepted: act('deliveryAccepted'),
+    countFinished: act('countFinished'),
+    wasteLogged: act('wasteLogged'),
+    transferSent: act('transferSent'),
+
+    pinTitle: pin('title'),
+    pinSub: pin('sub'),
+    cancel: pin('cancel'),
+    digitsEntered: pin.raw('digits') as string,
+  };
 
   return (
     <>
       <PageHead title={nav('stockOps')} subtitle={t('subtitle')} />
-
-      <div className="bg-bg-muted mb-5 flex w-fit flex-wrap gap-0.5 rounded-md p-[3px]">
-        {TABS.map((tab, index) => (
-          <button
-            key={tab}
-            type="button"
-            data-seg
-            data-active={index === 0 ? 'true' : undefined}
-            className="text-fg-muted h-8 rounded-[7px] border-0 bg-transparent px-3.5 text-sm font-medium"
-          >
-            {t(tab)}
-          </button>
-        ))}
-      </div>
-
-      {DELIVERIES.map((delivery) => (
-        <section key={delivery.id} className="bg-surface mb-4 overflow-hidden rounded-lg border">
-          <div className="border-divider flex flex-wrap items-center justify-between gap-3 border-b px-5 pt-4 pb-3.5">
-            <div>
-              <h3 className="text-md tracking-snug font-semibold">{delivery.supplier}</h3>
-              <p className="text-fg-subtle mt-1 text-xs">
-                {t('docMeta', { doc: delivery.id, time: delivery.time })}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="bg-brand-500 hover:bg-brand-600 h-[34px] rounded-md px-4 text-sm font-semibold text-white"
-            >
-              {t('accept')}
-            </button>
-          </div>
-
-          <TableCard
-            columns={COLUMNS}
-            className="rounded-none border-0"
-            head={[
-              t('colItem'),
-              { label: t('colOrdered'), align: 'right' },
-              { label: t('colReceived'), align: 'right' },
-              { label: t('colVariance'), align: 'right' },
-            ]}
-          >
-            {delivery.lines.map((line) => {
-              const variance = line.received - line.ordered;
-
-              return (
-                <Row key={line.key} columns={COLUMNS} className="py-3">
-                  <span className="min-w-0 text-sm font-medium">{t(line.key)}</span>
-
-                  <span data-num className="text-fg-muted text-right text-sm">
-                    {formatNumber(line.ordered)} kg
-                  </span>
-                  <span data-num className="text-right text-sm font-semibold">
-                    {formatNumber(line.received)} kg
-                  </span>
-
-                  {/* A short delivery is the only thing on this row worth a
-                      colour, so nothing else gets one. */}
-                  <span
-                    data-num
-                    className={`text-right text-sm font-semibold ${
-                      variance < 0 ? 'text-danger-700' : 'text-fg-subtle'
-                    }`}
-                  >
-                    {variance === 0 ? '—' : `${variance > 0 ? '+' : '−'}${Math.abs(variance)} kg`}
-                  </span>
-                </Row>
-              );
-            })}
-          </TableCard>
-        </section>
-      ))}
+      <StockOpsTabs
+        lang={lang}
+        labels={labels}
+        money={amounts}
+        initial={initial}
+        venues={venues}
+        items={items}
+        transfers={transfers}
+        prepCards={prepCards}
+        deliveries={deliveries}
+        recipes={recipes}
+        ledger={ledger}
+        wasteLog={wasteLog}
+      />
     </>
   );
 }

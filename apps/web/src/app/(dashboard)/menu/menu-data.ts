@@ -174,3 +174,125 @@ export const MENU_ITEMS: readonly MenuRow[] = [
  */
 export const marginOf = (item: { price: number; cost: number }): number =>
   item.price === 0 ? 0 : Math.round(((item.price - item.cost) / item.price) * 100);
+
+/* ============================================================
+   The three tabs beside the item list — `specs/01-os.md §5.6`
+
+   The module shipped one table. Modifiers, categories and import are the three
+   things a restaurant does to a menu *after* the dishes exist, and the last one
+   is how the dishes get there in the first place.
+   ============================================================ */
+
+export type ModifierOption = {
+  id: string;
+  /** An option's name is written by the restaurant; not translated. */
+  name: string;
+  /** Tiyin. Zero for a choice that costs nothing, negative for a discount. */
+  price: number;
+};
+
+export type ModifierGroup = {
+  id: string;
+  name: string;
+  /** How many of the options a guest must pick, and may pick. */
+  min: number;
+  max: number;
+  options: readonly ModifierOption[];
+  /** Which dishes carry it. */
+  usedBy: number;
+  /**
+   * Whether the sheet is switched on.
+   *
+   * Optional because the fixture groups are all live and have nothing to say
+   * about it; the API sends it, and a group somebody disabled in March is
+   * exactly the row this tab exists to surface — hiding it would read as
+   * deleted.
+   */
+  active?: boolean;
+};
+
+export const MODIFIER_GROUPS: readonly ModifierGroup[] = [
+  {
+    id: 'portion',
+    name: 'Ulush',
+    /*
+     * min 1, max 1 — a portion is a choice, not an extra. That distinction is
+     * the whole reason the two numbers exist: a group with min 0 is optional
+     * and a group with min 1 blocks the line until somebody answers.
+     */
+    min: 1,
+    max: 1,
+    usedBy: 24,
+    options: [
+      { id: 'one', name: 'Bir kishilik', price: 0 },
+      { id: 'large', name: 'Kattalashtirilgan', price: 18_000_00 },
+      { id: 'two', name: 'Ikki kishilik tovoq', price: 42_000_00 },
+    ],
+  },
+  {
+    id: 'extras',
+    name: "Qo'shimchalar",
+    min: 0,
+    max: 4,
+    usedBy: 31,
+    options: [
+      { id: 'meat', name: "Qo'shimcha go'sht", price: 18_000_00 },
+      { id: 'cheese', name: 'Ikki hissa pishloq', price: 9_000_00 },
+      { id: 'sauce', name: 'Sous alohida', price: 4_000_00 },
+      { id: 'bread', name: "Qo'shimcha non", price: 3_000_00 },
+    ],
+  },
+  {
+    id: 'prep',
+    name: 'Tayyorlash',
+    min: 0,
+    max: 3,
+    usedBy: 47,
+    options: [
+      { id: 'noonion', name: 'Piyozsiz', price: 0 },
+      { id: 'spicy', name: 'Achchiqroq', price: 0 },
+      { id: 'nosalt', name: 'Kam tuzli', price: 0 },
+    ],
+  },
+];
+
+export type CategoryRow = {
+  id: string;
+  name: string;
+  /** Where it sits in the menu, and on the board. */
+  position: number;
+  items: number;
+  /** Hidden categories keep their dishes and leave the guest surfaces. */
+  visible: boolean;
+};
+
+export const CATEGORIES: readonly CategoryRow[] = [
+  { id: 'national', name: 'Milliy taomlar', position: 1, items: 18, visible: true },
+  { id: 'grill', name: 'Kabob', position: 2, items: 9, visible: true },
+  { id: 'burgers', name: 'Burgerlar', position: 3, items: 7, visible: true },
+  { id: 'lavash', name: 'Lavash', position: 4, items: 5, visible: true },
+  { id: 'pizza', name: 'Pitsa', position: 5, items: 11, visible: true },
+  { id: 'salads', name: 'Salatlar', position: 6, items: 6, visible: true },
+  { id: 'drinks', name: 'Ichimliklar', position: 7, items: 14, visible: true },
+  { id: 'seasonal', name: 'Mavsumiy', position: 8, items: 4, visible: false },
+];
+
+/**
+ * The columns an import file must carry, and what each is for.
+ *
+ * `specs/01-os.md §5.6` calls for a template and a column mapping, and the
+ * mapping is the part that matters: a restaurant sends a spreadsheet its
+ * accountant made, and the column called «Наименование» has to become `name`
+ * without anybody editing the file.
+ */
+export const IMPORT_COLUMNS: readonly { key: string; required: boolean }[] = [
+  { key: 'name', required: true },
+  { key: 'category', required: true },
+  { key: 'price', required: true },
+  { key: 'cost', required: false },
+  { key: 'station', required: false },
+  { key: 'allergens', required: false },
+];
+
+/** How many dishes the starter template carries. */
+export const STARTER_TEMPLATE_DISHES = 68;

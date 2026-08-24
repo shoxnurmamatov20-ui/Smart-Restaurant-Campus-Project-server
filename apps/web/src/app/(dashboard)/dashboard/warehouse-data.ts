@@ -1,3 +1,5 @@
+import { scaleFor, type Period } from './overview-data';
+
 /**
  * The storekeeper's stock dashboard.
  *
@@ -37,19 +39,31 @@ export type ConsumedItem = {
 
 export type WarehouseOverview = {
   greetingName: string;
-  lowStock: number;
-  expiring: number;
-  deliveriesToday: number;
-  deliveriesAccepted: number;
-  /** Waste as a percentage of stock value, one decimal. Derived server-side. */
-  wastePercent: number;
-  stock: StockCount;
+  /** The venue whose store this is, from the session. */
+  placeName: string;
+  /** False for the design's own store — see `./figures.ts`. */
+  live: boolean;
+  lowStock: number | null;
+  expiring: number | null;
+  /**
+   * Goods arriving, which is a Suppliers receipt and not on this payload. Null
+   * on a live tenant, and the table below draws its empty state — four
+   * scheduled deliveries from suppliers a restaurant has never dealt with is
+   * the version of this panel that shipped.
+   */
+  deliveriesToday: number | null;
+  deliveriesAccepted: number | null;
+  /** Waste as a percentage of stock value, one decimal. Null on an empty shelf. */
+  wastePercent: number | null;
+  stock: StockCount | null;
   incoming: readonly Delivery[];
   consumed: readonly ConsumedItem[];
 };
 
-const PLACEHOLDER: WarehouseOverview = {
+const PLACEHOLDER = {
   greetingName: 'Sardor',
+  placeName: 'Chilonzor',
+  live: false,
   lowStock: 4,
   expiring: 2,
   deliveriesToday: 3,
@@ -86,13 +100,36 @@ const PLACEHOLDER: WarehouseOverview = {
     { id: 'oil', name: 'Paxta moyi', quantity: 38, unit: 'l', cost: som(988_000), share: 0.45 },
     { id: 'onion', name: 'Piyoz', quantity: 31, unit: 'kg', cost: som(217_000), share: 0.37 },
   ],
-};
+} satisfies WarehouseOverview;
 
-/** TODO(api): GET /api/v1/inventory/overview, branch as the X-Branch header. */
+/**
+ * The fixture this screen falls back to. Live seam: `getWarehouseLive()` in
+ * `./dashboard-server.ts` — `GET /api/v1/dashboard?role=warehouse`, scoped to a
+ * branch by the `X-Branch` header the API client already sends.
+ */
 export async function getWarehouseOverview(
   branchSlug: string | null = null,
+  period: Period = 'today',
 ): Promise<WarehouseOverview> {
   void branchSlug;
 
-  return PLACEHOLDER;
+  /*
+   * Deliveries and consumption scale; what is on the shelf does not. "128 SKUs
+   * in stock" multiplied by twenty-seven is not a number about anything, and
+   * neither is a waste *percentage* — it is a ratio.
+   */
+  const factor = scaleFor(period);
+
+  if (factor === 1) return PLACEHOLDER;
+
+  return {
+    ...PLACEHOLDER,
+    deliveriesToday: Math.round(PLACEHOLDER.deliveriesToday * factor),
+    deliveriesAccepted: Math.round(PLACEHOLDER.deliveriesAccepted * factor),
+    consumed: PLACEHOLDER.consumed.map((item) => ({
+      ...item,
+      quantity: Math.round(item.quantity * factor),
+      cost: Math.round(item.cost * factor),
+    })),
+  };
 }
