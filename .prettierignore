@@ -54,3 +54,14 @@ design_handoff_*
 # OpenApiDocumentTest — a formatter rewriting it makes the check fail on
 # every commit that touches it. Generated files belong to their generator.
 apps/api/openapi.json
+
+# Generated from packages/ui/src/styles/tokens.css by `pnpm theme`.
+# `apps/mobile/src/theme.test.ts` regenerates into memory and compares byte for
+# byte, so formatting it here would make the generator have to satisfy Prettier
+# rather than the design — and the test would fail on a file nobody edited.
+apps/mobile/src/theme.ts
+
+# Generated native projects (`expo prebuild`) — build artefacts of app.json,
+# regenerated on every `srcp-apk`; the generator owns their formatting.
+apps/mobile/android/
+apps/mobile/ios/

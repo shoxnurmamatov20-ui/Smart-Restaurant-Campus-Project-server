@@ -196,6 +196,28 @@ public/uploads/
 apps/*/AGENTS.md
 apps/*/CLAUDE.md
 
-# Design handoff bundles — vendor bytes, kept out of git (see docs/design/source for the
-# two files the build actually reads). The previous two bundles were removed the same way.
+# Design handoff bundles — a designer's raw export directory, ignored because it is a
+# delivery mechanism rather than source: it arrives with a new name each time and carries
+# screenshots, thumbnails and two READMEs that say which file happened to be open.
+#
+# The DESIGN ITSELF IS COMMITTED, in docs/design/source/ — all fourteen .dc.html files plus
+# their three runtime scripts. That is what apps/web/src/app/design-coverage.test.ts reads and
+# what every fidelity test compares against, so the "1:1 with the design" claim is checked on
+# every push instead of skipping wherever the export was not checked out.
+#
+# It used to be the other way round: two superseded v1.0 files in docs/design/source and the
+# current fourteen ignored. Screens then got built from whichever copy their author opened —
+# one listing nineteen sidebar modules, the other twenty-four — which is exactly how one
+# product ended up with two designs in it.
+#
+# Refreshing the design means dropping a new export beside the repo and copying its
+# project/*.dc.html over docs/design/source/. The test prefers the export when it is present.
 Restaurant form scope questions-handoff*/
+
+# Expo CLI state — per machine, like .next/cache
+.expo/
+expo-env.d.ts
+
+# Playwright output
+apps/web/test-results/
+apps/web/playwright-report/
