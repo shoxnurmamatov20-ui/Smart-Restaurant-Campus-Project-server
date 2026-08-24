@@ -24,11 +24,76 @@ abstract class TestCase extends BaseTestCase
 
     protected function setUp(): void
     {
+        /*
+         * Before the framework boots, and that ordering is the whole point.
+         *
+         * `parent::setUp()` boots the application and runs RefreshDatabase, which
+         * calls `migrate:fresh` — DROP on 54 tables, CASCADE. So every check that
+         * happens after it is a post-mortem, not a guard: by the time it can speak,
+         * whatever database was named has already been emptied.
+         *
+         * That is what the check below used to be. It was written after the suite ran
+         * against production once, it describes that incident in detail, and it sat
+         * where it could only ever have reported it. The one thing that saved the
+         * day's orders was `migrate:fresh` declining to run unprompted under
+         * APP_ENV=production — and phpunit.xml sets APP_ENV=testing, so a cached
+         * config or an exported DB_DATABASE would have removed even that.
+         *
+         * So the cheap half runs first, on nothing but a filename and an environment
+         * variable, and refuses before anything can be dropped. The thorough half
+         * still runs afterwards, because only a booted application can say which
+         * database it actually resolved.
+         */
+        self::refuseBeforeTheFrameworkBoots();
+
         parent::setUp();
 
         $this->refuseToRunAgainstAnythingButTheTestDatabase();
         $this->registerErrorAssertions();
         $this->forgetRateLimits();
+    }
+
+    /**
+     * The two things that can be known without booting, checked before anything is
+     * dropped.
+     *
+     * Deliberately does not use `base_path()`, `config()` or the container: none of
+     * them exist yet, and needing them is what put the original check on the wrong
+     * side of the migration.
+     */
+    private static function refuseBeforeTheFrameworkBoots(): void
+    {
+        if (self::$aimedAtTestDatabase) {
+            return;
+        }
+
+        $cached = __DIR__.'/../bootstrap/cache/config.php';
+
+        if (file_exists($cached)) {
+            /*
+             * This file is the original incident, exactly. When it exists Laravel
+             * loads neither .env nor the config files, so every `env()` call inside
+             * them — including the one phpunit.xml feeds DB_DATABASE through — never
+             * runs, and the suite connects to whatever the cache names. Which, in the
+             * checkout that served production, was production.
+             */
+            Assert::fail(
+                'A cached config exists at '.realpath($cached)
+                ." — it silences phpunit.xml's environment entirely, so these tests"
+                .' would run against whatever database the cache names. Run'
+                .' `php artisan config:clear` first.'
+            );
+        }
+
+        $intended = (string) ($_ENV['DB_DATABASE'] ?? '');
+
+        if (! self::namesATestDatabase($intended)) {
+            Assert::fail(
+                "DB_DATABASE is '{$intended}', which is not a test database name."
+                ." It must end in '_test' or be a parallel lane like '_test_a'."
+                .' Refusing to boot: the next thing that happens is migrate:fresh.'
+            );
+        }
     }
 
     /**
@@ -47,6 +112,11 @@ abstract class TestCase extends BaseTestCase
      * created. That is why this check exists as code and not as a note: the
      * failure mode looks like flaky tests, not like danger.
      *
+     * The second half, and what it adds: only a booted application can say which
+     * database it actually resolved, as opposed to which one it was asked for. A
+     * mismatch between those two is a config file quietly overriding phpunit.xml,
+     * which is a different fault from a wrong variable and needs saying differently.
+     *
      * Checked once per process, before the first test's transaction opens.
      */
     private function refuseToRunAgainstAnythingButTheTestDatabase(): void
@@ -55,24 +125,15 @@ abstract class TestCase extends BaseTestCase
             return;
         }
 
-        $cached = $this->app->getCachedConfigPath();
-
-        if (file_exists($cached)) {
-            Assert::fail(
-                "A cached config exists at {$cached} — it silences phpunit.xml's"
-                .' environment entirely, so these tests would run against whatever'
-                .' database the cache names. Run `php artisan config:clear` first.'
-            );
-        }
-
         $intended = $_ENV['DB_DATABASE'] ?? '';
         $actual = (string) config('database.connections.'.config('database.default').'.database');
 
-        if ($intended === '' || $actual !== $intended || ! str_ends_with($actual, '_test')) {
+        if ($intended === '' || $actual !== $intended || ! self::namesATestDatabase($actual)) {
             Assert::fail(
                 "The suite is connected to '{$actual}' but phpunit.xml says"
-                ." '{$intended}'. A test database name must end in '_test';"
-                .' refusing to run a single test against anything else.'
+                ." '{$intended}'. A test database name must end in '_test' or be a"
+                .' parallel lane like `_test_a`; refusing to run a single test'
+                .' against anything else.'
             );
         }
 
@@ -81,6 +142,27 @@ abstract class TestCase extends BaseTestCase
         }
 
         self::$aimedAtTestDatabase = true;
+    }
+
+    /**
+     * Whether this name can only be a test database.
+     *
+     * `_test`, or a parallel lane: `_test_a` through `_test_z`. Lanes exist because
+     * the suite opens with `migrate:fresh`, which DROPs 54 tables CASCADE — so two
+     * sessions sharing one database drop each other's tables mid-run, and the symptom
+     * is a test that fails on something unrelated and passes when you re-run it.
+     * `php artisan db:setup --lanes=4` creates them.
+     *
+     * The pattern is deliberately narrow rather than a substring match. `_test`
+     * anywhere in the name would accept `srcp_testing_copy_of_production`, and the
+     * whole point of this guard is that it cannot be talked into a database holding
+     * somebody's takings. A single letter is enough for more parallel sessions than
+     * anyone can read the output of, and nothing about production names matches it.
+     */
+    private static function namesATestDatabase(string $name): bool
+    {
+        return str_ends_with($name, '_test')
+            || preg_match('/_test_[a-z]$/', $name) === 1;
     }
 
     /**
@@ -152,7 +234,7 @@ abstract class TestCase extends BaseTestCase
      * the kitchen's redispatch test lost a line and read as a duplicate-ticket
      * bug.
      *
-     * @param UploadedFile[] $files
+     * @param  UploadedFile[]  $files
      */
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
     {

@@ -164,10 +164,23 @@ final class RowLevelSecurityTest extends TestCase
 
         $names = array_map(static fn (object $row): string => (string) $row->name, $unguarded);
 
-        // Two exemptions, both identity tables that auth:sanctum reads before
-        // any GUC exists: guarded, `users` makes every login on the platform
-        // fail and `terminals` makes every paired tablet answer 401.
-        $this->assertSame(['pos.terminals', 'public.users'], $names, sprintf(
+        /*
+         * Three exemptions, and all three are the same sentence.
+         *
+         * A table that AUTHENTICATION ITSELF must read cannot be guarded by a
+         * policy that authentication is what establishes: `auth:sanctum`
+         * resolves a token's owner before any middleware has worked out which
+         * restaurant the request is for, with no `app.tenant_id` set. Guarded,
+         * `users` makes every login on the platform fail, `pos.terminals` makes
+         * every paired tablet answer 401, and `staff.devices` makes every
+         * enrolled phone answer 403.
+         *
+         * None of the three holds money, guest data or personal data, and all
+         * three keep the Eloquent `BelongsToTenant` scope on every query the
+         * application makes. A FOURTH name appearing here is a bug until
+         * somebody writes the same paragraph about it.
+         */
+        $this->assertSame(['pos.terminals', 'public.users', 'staff.devices'], $names, sprintf(
             'Tables carrying tenant_id without forced row-level security: %s',
             implode(', ', $names),
         ));

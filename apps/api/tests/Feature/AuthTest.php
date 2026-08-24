@@ -182,6 +182,75 @@ final class AuthTest extends TestCase
         );
     }
 
+    public function test_one_address_on_two_accounts_signs_in_the_one_whose_password_matches(): void
+    {
+        /*
+         * An address is supposed to name exactly one account, and both doors
+         * that create one refuse a duplicate. The column's own constraint is
+         * weaker — `unique(tenant_id, email)` — so a row written from a console
+         * or a seeder can share an address, and Postgres counts a null
+         * `tenant_id` as distinct from every other null besides.
+         *
+         * This deployment has exactly that pair: a restaurant owner and the
+         * platform operator who onboarded them, on one gmail. A bare
+         * `->first()` with no `ORDER BY` answered with whichever row the heap
+         * handed back, so one of the two accounts was simply unreachable — and
+         * WHICH one moved on its own, because an UPDATE writes a new tuple at
+         * the end of the table and a sign-in updates `last_login_at`. A
+         * password reset on one account silently handed the address to the
+         * other identity.
+         *
+         * The operator is asked for FIRST, before anything has been updated,
+         * because that is the order in which the old code is wrong: the owner
+         * was inserted first, so it is the row `->first()` returns, and the
+         * operator's own password was refused as if it were a typo. Testing the
+         * owner first would prove nothing — a successful sign-in moves that row
+         * to the end of the heap, which lets the very next call find the
+         * operator by accident.
+         */
+        $tenant = Tenant::query()->create([
+            'name' => 'Omad Manti', 'slug' => 'omad-manti', 'country_code' => 'UZ',
+            'locale' => 'uz', 'timezone' => 'Asia/Tashkent', 'status' => 'active',
+        ]);
+
+        $owner = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'ownerparol123',
+        ]);
+
+        $operator = User::factory()->create([
+            'tenant_id' => null,
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'operatorparol123',
+        ]);
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'operatorparol123',
+        ])->assertOk()->assertJsonPath('user.id', $operator->id);
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'ownerparol123',
+        ])->assertOk()->assertJsonPath('user.id', $owner->id);
+
+        // Again, after both rows have been updated by their own sign-in. The
+        // answer must be the same one it was the first time; a login that
+        // alternates between two identities is worse than one that refuses.
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'operatorparol123',
+        ])->assertOk()->assertJsonPath('user.id', $operator->id);
+
+        // And a password that is neither is still one refusal, with nothing in
+        // it that says which of the two accounts exists.
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'ikkalasi@example.uz',
+            'password' => 'uchinchisi123',
+        ])->assertStatus(422);
+    }
+
     public function test_a_deactivated_employee_cannot_sign_in(): void
     {
         User::factory()->inactive()->create(['email' => 'ketgan@osh.uz']);

@@ -51,6 +51,7 @@ final class DesignRoleMatrixTest extends TestCase
         'cashier' => 'cashier',
         'kitchen' => 'chef',
         'warehouse' => 'storekeeper',
+        'operator' => 'order-operator',
     ];
 
     public function test_every_role_the_design_names_exists_on_the_server(): void
@@ -95,6 +96,10 @@ final class DesignRoleMatrixTest extends TestCase
             // Stock, and the suppliers who fill it.
             'storekeeper' => ['inventory.manage', 'inventory.create', 'suppliers.view',
                 'suppliers.create', 'menu.view'],
+
+            // Books an order off the phone. Never settles one.
+            'order-operator' => ['orders.view', 'orders.create', 'orders.update',
+                'menu.view', 'crm.view', 'crm.update'],
         ];
 
         foreach ($expected as $role => $permissions) {
@@ -146,6 +151,12 @@ final class DesignRoleMatrixTest extends TestCase
             // Stock in, stock out. Never a bill.
             'storekeeper' => ['orders.create', 'orders.update', 'finance.view', 'pos.sell',
                 'staff.view'],
+
+            // The operator books an order and nothing else touches money. No
+            // till, no drawer, no void, no refund — a desk that can refund
+            // over the phone is a desk that gets talked into refunding.
+            'order-operator' => ['pos.sell', 'pos.drawer', 'pos.void', 'pos.refund',
+                'pos.approve', 'finance.view', 'menu.update', 'staff.view'],
         ];
 
         foreach ($forbidden as $role => $permissions) {

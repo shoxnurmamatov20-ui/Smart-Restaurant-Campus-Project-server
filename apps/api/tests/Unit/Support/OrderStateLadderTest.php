@@ -6,6 +6,8 @@ namespace Tests\Unit\Support;
 
 use App\Support\Orders\OrderChannel;
 use App\Support\Orders\OrderState;
+use Modules\Menu\Models\MenuItem;
+use Modules\Orders\Models\Order;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -182,8 +184,62 @@ final class OrderStateLadderTest extends TestCase
         // DECISIONS Q2, and the one rule the design file states in its copy
         // and then breaks in its arithmetic.
         $this->assertTrue(OrderChannel::DineIn->chargesService());
-        $this->assertFalse(OrderChannel::Pickup->chargesService());
-        $this->assertFalse(OrderChannel::Delivery->chargesService());
+
+        foreach (OrderChannel::cases() as $channel) {
+            if ($channel === OrderChannel::DineIn) {
+                continue;
+            }
+
+            // Written over `cases()` rather than as three assertions, so a
+            // fifth channel added later cannot quietly start charging for a
+            // table it never gave anybody.
+            $this->assertFalse(
+                $channel->chargesService(),
+                "{$channel->value} must not carry a service charge",
+            );
+        }
+    }
+
+    #[Test]
+    public function the_channel_values_are_the_ones_the_database_stores(): void
+    {
+        /*
+         * The enum was written from the design file's vocabulary — dine,
+         * delivery, pickup — while orders.channel has always stored dine_in,
+         * takeaway, delivery, aggregator. Nothing reconciled them, so
+         * `OrderChannel::from($order->channel)` threw for every real order and
+         * the whole enum was decoration.
+         *
+         * Hard-coded rather than read from Order::CHANNELS on purpose: this is
+         * the assertion that the two lists are the same list, and reading one
+         * from the other would assert nothing.
+         */
+        $values = array_map(static fn (OrderChannel $c): string => $c->value, OrderChannel::cases());
+        sort($values);
+
+        $this->assertSame(['aggregator', 'delivery', 'dine_in', 'takeaway'], $values);
+    }
+
+    #[Test]
+    public function the_models_that_list_channels_list_the_same_ones(): void
+    {
+        /*
+         * Two models carry the list as a class constant, because a `const` in
+         * PHP cannot call a method. So the agreement cannot be enforced by
+         * construction and is enforced here instead — which is the same trade
+         * the TypeScript ladder above makes, for the same reason: a list copied
+         * into three places is three chances for a fifth channel to reach only
+         * two of them.
+         */
+        $canonical = OrderChannel::values();
+        sort($canonical);
+
+        foreach ([Order::CHANNELS, MenuItem::CHANNELS] as $listed) {
+            $listed = (array) $listed;
+            sort($listed);
+
+            $this->assertSame($canonical, $listed);
+        }
     }
 
     /** @return list<string> */
@@ -215,7 +271,10 @@ final class OrderStateLadderTest extends TestCase
         );
 
         foreach ($matches as $match) {
-            preg_match_all("/'([a-z]+)'/", $match[2], $channels);
+            // `[a-z_]`, not `[a-z]`: the channels are `dine_in` and friends
+            // now, and a pattern that stopped at the underscore silently
+            // matched "dine" and made the two ladders look like they agreed.
+            preg_match_all("/'([a-z_]+)'/", $match[2], $channels);
             $out[$match[1]] = $channels[1];
         }
 

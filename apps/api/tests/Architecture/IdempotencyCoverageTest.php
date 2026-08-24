@@ -33,12 +33,34 @@ final class IdempotencyCoverageTest extends TestCase
         // second token, which is what a second sign-in should do.
         'api/v1/auth/register' => 'no session yet; a replay should mint a new token',
         'api/v1/auth/login' => 'no session yet; a replay should mint a new token',
+        'api/v1/auth/forgot-password' => 'no session yet; a replay sends the same mail again, which is what a person who pressed twice wants',
+        'api/v1/auth/reset-password' => 'no session yet; the broker token is one-use, so a replay is refused by the token itself',
         'api/v1/auth/logout' => 'idempotent by nature — the token is already gone',
         'api/v1/admin/login' => 'no session yet; TOTP already blocks replay within its window',
 
         // Pairing happens before the terminal has any identity to key against,
         // and the ten-minute code is single-use, which is the same guarantee.
         'api/v1/pos/terminals/pair' => 'single-use pairing code is already the one-time key',
+
+        // The same door for a personal phone, and the same guarantee: a handset
+        // that has never been enrolled has no identity to key a request against,
+        // and the eight-character code is destroyed inside the transaction that
+        // redeems it — so a replay finds nothing rather than enrolling twice.
+        'api/v1/staff/devices/pair' => 'single-use enrolment code is already the one-time key',
+
+        /*
+         * A payment provider's callback. It is not our client — it is a bank
+         * retrying until it gets a clean answer — and it will never send a
+         * header we invented.
+         *
+         * The guarantee it needs is stronger than the header anyway and comes
+         * from the data: `OnlinePaymentLedger::settle()` takes the invoice row
+         * FOR UPDATE, returns the payment it already wrote, and never writes a
+         * second tender. Six PerformTransaction retries produce one payment
+         * row; the header could not have promised that, because Payme would
+         * have sent six different keys.
+         */
+        'api/v1/payments/{provider}/callback' => 'a bank, not a client; settle() is idempotent under a row lock',
 
         // The till carries X-Pos-Local-Id, which is scoped to the terminal and
         // ordered by local_seq — a stronger guarantee than the header, and the
@@ -61,6 +83,41 @@ final class IdempotencyCoverageTest extends TestCase
         'api/v1/bots/{botKey}/users/link' => 'linking twice is one link; naturally idempotent',
         'api/v1/bots/{botKey}/commands/log' => 'append-only telemetry; a duplicate costs one row',
         'api/v1/bots/{botKey}/feedback' => 'NEEDS A KEY — waiting on the aiogram client to send one',
+
+        /*
+         * The marketplace's consumer surface, and this one is a database fact
+         * rather than a preference.
+         *
+         * `EnsureIdempotency` claims the key against a tenant.
+         * `public.idempotency_keys` carries `tenant_id` and is behind
+         * row-level security like everything else that does. A marketplace
+         * customer HAS no tenant — they order from forty restaurants and belong
+         * to none — so the claim would go in with `tenant_id = null` on a
+         * fail-closed connection, and the policy refuses it: the write never
+         * happens and a hungry person is told the platform is broken.
+         *
+         * So the guarantee moved into the data, exactly where the payment
+         * callbacks keep theirs for the same shape of reason:
+         *
+         *   POST /mp/orders            unique (consumer_id, client_reference).
+         *                              The app mints the reference when the
+         *                              basket is created, so a replay returns
+         *                              the first order rather than cooking a
+         *                              second meal — and it survives the app
+         *                              being killed and reopened, which a
+         *                              per-request header does not.
+         *   PUT  /mp/me/addresses      a PUT of the whole list. Sending it twice
+         *                              leaves the same three addresses; that is
+         *                              why it is not four CRUD endpoints.
+         *   PATCH /mp/me               sets two fields to given values.
+         *   .../cancel .../rate        refused the second time by the order's own
+         *   .../dispute                state and by a unique index on the dispute.
+         *   auth/otp{,/verify}         no account yet, by definition — the same
+         *                              exemption /auth/login carries, with the
+         *                              per-number limits in OtpCredentials doing
+         *                              the work a key could not.
+         */
+        'api/v1/mp/*' => 'a marketplace customer has no tenant to key against; every write is idempotent in the data',
     ];
 
     #[Test]

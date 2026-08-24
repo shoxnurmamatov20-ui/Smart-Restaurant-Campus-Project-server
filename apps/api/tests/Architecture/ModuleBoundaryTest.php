@@ -47,12 +47,13 @@ final class ModuleBoundaryTest extends TestCase
         ],
 
         // Known, deliberate, and scheduled to move onto the event bus when
-        // these modules are next worked on: `orders.confirmed` opens a ticket,
-        // `suppliers.delivery_received` raises stock. Recorded rather than
-        // hidden so the debt is visible and cannot grow.
-        'Kitchen' => [
-            'Orders' => 'A ticket is opened from a bill. To become a subscriber to orders.confirmed.',
-        ],
+        // this module is next worked on: `suppliers.delivery_received` raises
+        // stock. Recorded rather than hidden so the debt is visible and cannot
+        // grow.
+        //
+        // Kitchen's edge to Orders was here and is gone: firing a bill now goes
+        // through App\Contracts\Kitchen\TicketWriter, so Orders hands over the
+        // `Bill` it already publishes and Kitchen reads no Orders model at all.
         'Suppliers' => [
             'Inventory' => 'Receiving a delivery raises stock. To become a publisher of suppliers.delivery_received.',
         ],
@@ -66,6 +67,23 @@ final class ModuleBoundaryTest extends TestCase
         'migrations', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs',
         // Platform-wide RBAC: a role means the same thing in every restaurant.
         'permissions', 'roles', 'model_has_permissions', 'model_has_roles', 'role_has_permissions',
+        /*
+         * The platform's price list and its four switches.
+         *
+         * These belong to nobody, and that is what makes them the platform's: a
+         * tier costs the same for every restaurant on the product, and
+         * `maintenance` is either on or it is not. Stamping either with a
+         * `tenant_id` would mean each restaurant carried its own copy of the
+         * price it is charged, which is the thing a price list exists to stop.
+         *
+         * Note what is NOT here: `platform_invoices`, `platform_issues` and
+         * `impersonations` all carry `tenant_id` and are guarded by row-level
+         * security like everything else. They are about ONE restaurant even
+         * though only the operator reads them — and the operator's connection
+         * bypasses, so the policy costs them nothing and protects the other
+         * direction for free.
+         */
+        'platform_plans', 'platform_settings',
         // Keyed by event rather than restaurant; the event row carries tenant_id.
         'processed_domain_events',
         // Polymorphic attachments — isolation comes from the model that owns them.
@@ -73,7 +91,64 @@ final class ModuleBoundaryTest extends TestCase
         // Local development instrumentation, never installed in production.
         'telescope_entries', 'telescope_entries_tags', 'telescope_monitoring',
         'pulse_entries', 'pulse_aggregates', 'pulse_values',
+        /*
+         * The marketplace's own people, who belong to the platform rather than
+         * to any restaurant on it — `marketplace.consumers`,
+         * `marketplace.consumer_addresses` and `marketplace.couriers`.
+         *
+         * This is the one exemption on this list that is a product decision
+         * rather than plumbing, so it is worth stating precisely. A MyPOS
+         * customer orders plov from one place on Tuesday and lavash from
+         * another on Friday; "one account, one basket, one address book, one
+         * loyalty balance across forty restaurants" IS the marketplace, and
+         * stamping the row with whoever they happened to order from first gives
+         * them a second account at the second restaurant. A rider carrying three
+         * restaurants' bags on one run belongs to none of them for the same
+         * reason. `crm.customers` is the other thing — a restaurant's own guest
+         * list, its own loyalty scheme, its own tab — and stays tenanted.
+         *
+         * They are NOT on `RowLevelSecurityTest`'s exemption list, and the
+         * difference matters: `public.users`, `pos.terminals` and `staff.devices`
+         * carry `tenant_id` and are excused a policy because authentication has
+         * to read them before a tenant exists. These carry no `tenant_id` at
+         * all, so no policy is written and there is nothing to excuse.
+         *
+         * What replaces the policy is the token, so the token is checked hard —
+         * `Modules\Marketplace\Http\Middleware\RequireConsumerToken`, and
+         * every controller behind it reads rows through `$consumer->...` rather
+         * than by an id out of a URL. A fourth tenant-free table in this module
+         * has to earn its own paragraph.
+         */
+        'consumers', 'consumer_addresses', 'couriers',
+        /*
+         * And the fourth, which the paragraph above asked somebody to write.
+         *
+         * `marketplace.subscriptions` is MyPOS Plus, and it belongs to a
+         * consumer rather than to a restaurant for the same reason the consumer
+         * does. Stamping it would give a guest who subscribed after ordering
+         * plov free delivery from that one shop and full price at the other
+         * thirty-nine — which is the opposite of what the subscription is sold
+         * as, and the only version of it a schema could then express.
+         *
+         * Guarded by the token like the other three: `ConsumerPlusController`
+         * reads `$consumer->id` from `RequireConsumerToken` and never from a URL
+         * or a body, and a partial unique index allows exactly one live row per
+         * person so a replayed subscribe cannot open a second month.
+         */
+        'subscriptions',
     ];
+
+    /**
+     * Module models that deliberately scope by something other than a tenant.
+     *
+     * Four, all in Marketplace, all for one reason: a marketplace customer,
+     * their address book, their subscription and a MyPOS rider belong to the
+     * platform rather than to any restaurant on it. See `TENANT_FREE_TABLES`
+     * for the argument and `RequireConsumerToken` for what guards them instead.
+     *
+     * @var array<int, string>
+     */
+    private const PLATFORM_MODELS = ['Consumer', 'ConsumerAddress', 'Courier', 'Subscription'];
 
     // ============ Module boundaries ============
 
@@ -207,9 +282,20 @@ final class ModuleBoundaryTest extends TestCase
                 continue;
             }
 
-            // Every module model belongs to a restaurant. Declaring the column
-            // without the trait is worse than not having it: the data looks
-            // isolated and is not.
+            /*
+             * Every module model belongs to a restaurant, except the three that
+             * belong to the platform.
+             *
+             * Declaring `tenant_id` without the trait is worse than not having
+             * it: the data looks isolated and is not. The exemption below is the
+             * opposite case — a model with no `tenant_id` to scope by, listed by
+             * name so a fourth cannot appear quietly. The full argument is on
+             * `TENANT_FREE_TABLES` above and on the models themselves.
+             */
+            if (in_array(basename($path, '.php'), self::PLATFORM_MODELS, true)) {
+                continue;
+            }
+
             if (! str_contains($source, 'BelongsToTenant')) {
                 $violations[] = $path;
             }
@@ -230,6 +316,8 @@ final class ModuleBoundaryTest extends TestCase
      * @var array<string, string>
      */
     private const MODULE_SCHEMAS = [
+        'Board' => 'board',
+        'Marketplace' => 'marketplace',
         'Menu' => 'menu',
         'Orders' => 'orders',
         'Kitchen' => 'kitchen',
@@ -278,7 +366,18 @@ final class ModuleBoundaryTest extends TestCase
     {
         $violations = [];
 
-        foreach ($this->phpFilesIn(base_path(self::MODULES_PATH)) as $file) {
+        /*
+         * Core as well as the modules. The rule was written for modules, and
+         * the first thing to break it afterwards was `app/Models/SiteVisit`,
+         * whose `updated_at` would have been five hours ahead on this box: a
+         * timezone bug is not less of one for living in core.
+         */
+        $files = array_merge(
+            iterator_to_array($this->phpFilesIn(base_path(self::MODULES_PATH)), false),
+            iterator_to_array($this->phpFilesIn(base_path('app')), false),
+        );
+
+        foreach ($files as $file) {
             $path = $this->relative($file->getPathname());
 
             if (str_contains($path, '/tests/') || str_contains($path, '/database/migrations/')) {
@@ -520,6 +619,175 @@ final class ModuleBoundaryTest extends TestCase
     }
 
     // ============ Hygiene ============
+
+    public function test_every_module_provider_extends_the_api_base(): void
+    {
+        /*
+         * `ApiModuleServiceProvider` guards `registerViews()` against a module
+         * with no `resources/views` — nwidart's base calls `loadViewsFrom()`
+         * unconditionally, and `view:cache` then dies in the deploy's step 5
+         * with "directory does not exist". The Board module shipped extending
+         * the raw base because the generator template still named it; the
+         * release built, booted, and failed to go live. The template is fixed;
+         * this is what stops the next module repeating it.
+         */
+        $wrong = [];
+
+        foreach (glob(base_path('Modules/*/app/Providers/*ServiceProvider.php')) ?: [] as $file) {
+            if (str_ends_with($file, 'EventServiceProvider.php') || str_ends_with($file, 'RouteServiceProvider.php')) {
+                continue;
+            }
+
+            $source = (string) file_get_contents($file);
+
+            if (preg_match('/extends\s+ModuleServiceProvider\b/', $source) === 1) {
+                $wrong[] = $this->relative($file);
+            }
+        }
+
+        $this->assertSame([], $wrong, 'Module providers extending nwidart\'s base instead of ApiModuleServiceProvider: '.implode(', ', $wrong));
+    }
+
+    /**
+     * Nothing may read a setting nobody can write.
+     *
+     * `config/settings.php` is the schema `PATCH /settings` and
+     * `PATCH /branches/{branch}` validate against, and an undeclared path is
+     * dropped on write **without an error** — the write returns 200 and keeps
+     * nothing. So a `->setting('x')` whose path is not declared is a control
+     * the console can draw, a manager can press, and the server will quietly
+     * discard.
+     *
+     * Four found the day this was written, and each was a promise to a guest:
+     * `delivery_fee_tiyin` (the storefront quoted zero and the bill charged
+     * whatever a seeder had left), `kitchen_queue_minutes` and
+     * `delivery_travel_minutes` (every kitchen in the country promised the same
+     * 10 + 25 minutes), and `geo.lat`/`geo.lng` (no venue could be put on a
+     * map). None of them failed anything: they read as defaults forever.
+     */
+    public function test_every_setting_the_server_reads_can_be_written(): void
+    {
+        /** @var array<string, array<string, mixed>> $schema */
+        $schema = config('settings.schema', []);
+
+        $declared = [];
+
+        foreach ($schema as $group) {
+            foreach (array_keys($group) as $path) {
+                $declared[] = (string) $path;
+            }
+        }
+
+        /*
+         * Two PostgreSQL session variables and nothing to do with this schema:
+         * `app.tenant_id` and `app.bypass_tenancy` are GUCs read through the
+         * same helper name on a different object.
+         */
+        $notSettings = ['app.tenant_id', 'app.bypass_tenancy'];
+
+        /*
+         * A group's own root key counts as declared.
+         *
+         * `config('settings.root')` says where each group lives inside the
+         * document — `site` under `site`, `restaurant` at the top — so
+         * `setting('site')` is a read of the whole group, and every leaf under
+         * it is writable one at a time.
+         */
+        foreach ((array) config('settings.root', []) as $key) {
+            if (is_string($key) && $key !== '') {
+                $declared[] = $key;
+            }
+        }
+
+        $unwritable = [];
+
+        foreach ([base_path('app'), base_path(self::MODULES_PATH)] as $root) {
+            foreach ($this->phpFilesIn($root) as $file) {
+                $path = $this->relative($file->getPathname());
+
+                if (str_contains($path, '/tests/')) {
+                    continue;
+                }
+
+                $source = (string) file_get_contents($file->getPathname());
+
+                /*
+                 * Comments out first. A docblock explaining why this helper is
+                 * wrapped in a class quotes `setting('policies.x')` as an
+                 * example, and an example is not a read.
+                 */
+                $source = (string) preg_replace('#/\*.*?\*/#s', '', $source);
+
+                /*
+                 * `->setting(` and case-sensitively, which is the whole of what
+                 * separates a tenant setting from `platformSetting()` — a
+                 * different table, a different schema, and one this rule has no
+                 * business auditing.
+                 */
+                preg_match_all("/->setting\(\s*'([a-z0-9_.]+)'/", $source, $matches);
+
+                foreach ($matches[1] as $key) {
+                    if (in_array($key, $notSettings, true)) {
+                        continue;
+                    }
+
+                    /*
+                     * A path built at runtime — `setting('hours.'.$today)` —
+                     * ends at the dot. The prefix is what can be checked, and
+                     * `hours` is declared, so the parent rule covers it.
+                     */
+                    $key = rtrim($key, '.');
+
+                    if ($this->settingIsDeclared($key, $declared)) {
+                        continue;
+                    }
+
+                    $unwritable[$key] = $path;
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $unwritable,
+            'Read but undeclared in config/settings.php, so a write of them is discarded: '
+                .implode(', ', array_keys($unwritable)),
+        );
+    }
+
+    /**
+     * Whether a read path is covered by the schema.
+     *
+     * A parent read — `setting('hours')` for the whole week, `setting('brand')`
+     * for the map — is covered by any declared child of it: the document under
+     * that key is writable, one leaf at a time, which is what the reader needs.
+     *
+     * @param  list<string>  $declared
+     */
+    private function settingIsDeclared(string $key, array $declared): bool
+    {
+        foreach ($declared as $path) {
+            if ($path === $key) {
+                return true;
+            }
+
+            // `hours.*` covers `hours.mon`; `hours.*.*` covers nothing shorter.
+            if (str_contains($path, '*')) {
+                $pattern = '/^'.str_replace(['\*', '\.'], ['[^.]+', '\.'], preg_quote($path, '/')).'$/';
+
+                if (preg_match($pattern, $key) === 1) {
+                    return true;
+                }
+            }
+
+            // A parent read of a declared leaf: `brand` for `brand.name`.
+            if (str_starts_with($path, $key.'.')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public function test_no_debugging_statements_survived(): void
     {
