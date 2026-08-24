@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { PAGE_PLANS } from '../src/app/(marketing)/pages-data';
+
 /**
  * The pages a stranger can reach, and the two things each has to do: render
  * without an error boundary, and not leak a console surface.
@@ -53,8 +55,18 @@ test.describe('public surfaces', () => {
     for (const path of ['/dashboard', '/orders', '/finance', '/documents', '/platform']) {
       const response = await page.goto(path);
 
-      // Redirected to the sign-in, never rendered.
-      expect(new URL(page.url()).pathname, `${path} rendered for a stranger`).toBe('/login');
+      /*
+       * Redirected to the sign-in, never rendered.
+       *
+       * Matched on the tail rather than on `/login` exactly: every URL on this
+       * site carries a language, so the guard lands on `/uz/login` — and pinning
+       * the prefix here would make the assertion a test of what the default
+       * language is rather than of whether a stranger got in. The half that
+       * matters is that the console did not render.
+       */
+      const landed = new URL(page.url()).pathname;
+
+      expect(landed, `${path} rendered for a stranger`).toMatch(/(^|\/)login$/);
       expect(response?.status()).toBeLessThan(500);
     }
   });
@@ -62,12 +74,29 @@ test.describe('public surfaces', () => {
   test('the pricing page shows the plan in so‘m, not a hundred times cheaper', async ({ page }) => {
     await page.goto('/pricing');
 
-    // 2 400 000 was rendered as 24 000 for weeks because the fixture held so‘m
-    // where the formatter expected tiyin. The number is the regression test.
-    // `Intl.NumberFormat('uz')` groups with U+00A0; the design writes U+2009.
-    // Either is the right number; a plain space or nothing at all is not.
-    await expect(
-      page.getByText(/2[\u00a0\u2009\u202f ]400[\u00a0\u2009\u202f ]000/).first(),
-    ).toBeVisible();
+    /*
+     * The bug this guards is a *unit* error, not a particular number.
+     * `formatTiyinAmount` divides by a hundred, so a price transcribed from the
+     * design as so'm renders a plan a hundred times too cheap — Start was
+     * advertised at 24 000 for weeks against a real 2 400 000.
+     *
+     * So the figure is read from the same table the page renders instead of
+     * being written here. Hard-coding it made this test expire the day the owner
+     * repriced the plans — 2026-08-23, to 150 000 and 390 000 — and a test that
+     * fails for being out of date teaches people to ignore it.
+     *
+     * `Intl.NumberFormat('uz')` groups with U+00A0 and the design writes U+2009;
+     * either is the right number, a plain space or nothing at all is not.
+     */
+    const monthlyTiyin = PAGE_PLANS[0]?.monthlyTiyin;
+
+    expect(monthlyTiyin, 'the first plan has to have a price to look for').not.toBeNull();
+
+    const grouped = String(Math.round((monthlyTiyin ?? 0) / 100)).replace(
+      /\B(?=(\d{3})+(?!\d))/g,
+      '[\\u00a0\\u2009\\u202f ]',
+    );
+
+    await expect(page.getByText(new RegExp(grouped)).first()).toBeVisible();
   });
 });
