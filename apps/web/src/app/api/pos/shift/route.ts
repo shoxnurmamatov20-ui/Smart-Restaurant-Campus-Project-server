@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
         // Opening a shift is a write, like every other one here. Per request,
         // so a retried fetch cannot open two shifts for one count.
         'Idempotency-Key': crypto.randomUUID(),
+        // The device's own id for this write — see the bill handler.
+        'X-Pos-Local-Id': crypto.randomUUID(),
       },
       body: JSON.stringify({ opening_cash: openingCash }),
       cache: 'no-store',

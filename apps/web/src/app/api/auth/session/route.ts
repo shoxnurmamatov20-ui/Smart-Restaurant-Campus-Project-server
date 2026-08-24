@@ -29,7 +29,7 @@ type LoginResponse = {
 };
 
 export async function POST(request: NextRequest) {
-  let body: { email?: unknown; password?: unknown };
+  let body: { email?: unknown; phone?: unknown; password?: unknown };
 
   try {
     body = await request.json();
@@ -37,12 +37,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
 
-  const email = typeof body.email === 'string' ? body.email : '';
+  /*
+   * One field, two identifiers.
+   *
+   * The console's form sends whatever was typed as `email`; the API signs a
+   * person in by email or by phone (`LoginRequest`), and a hire whose account
+   * came from the roster has only the second — their address is the
+   * `.invalid` placeholder, their phone is what the manager read out beside
+   * the password. Digits with an optional leading `+` are a phone; anything
+   * else is an address. An explicit `phone` is honoured as well.
+   */
+  const typed = typeof body.email === 'string' ? body.email.trim() : '';
+  const explicitPhone = typeof body.phone === 'string' ? body.phone.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
 
-  if (email === '' || password === '') {
+  const asPhone = (value: string): string | null => {
+    const bare = value.replace(/[\s()-]/g, '');
+
+    return /^\+?\d{9,15}$/.test(bare) ? bare : null;
+  };
+
+  const phone = explicitPhone === '' ? asPhone(typed) : (asPhone(explicitPhone) ?? explicitPhone);
+  const email = phone === null ? typed : '';
+
+  if ((email === '' && phone === null) || password === '') {
     return NextResponse.json({ error: 'missing_credentials' }, { status: 422 });
   }
+
+  const identity = phone === null ? { email } : { phone };
 
   let upstream: Response;
 
@@ -50,7 +72,7 @@ export async function POST(request: NextRequest) {
     upstream = await fetch(`${apiBase()}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ email, password, device_name: 'console' }),
+      body: JSON.stringify({ ...identity, password, device_name: 'console' }),
       cache: 'no-store',
     });
   } catch {

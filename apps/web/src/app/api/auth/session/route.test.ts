@@ -117,6 +117,53 @@ describe('POST /api/auth/session', () => {
     expect(await down.json()).toEqual({ error: 'api_unreachable' });
   });
 
+  /**
+   * A phone typed into the one field goes to the API as a phone.
+   *
+   * A hire whose account came from the roster has no real address — the
+   * phone the manager read out beside their password is their login — and
+   * the form has one field for both. The handler, not the form, decides which
+   * key the API receives.
+   */
+  it('sends a phone typed into the field as a phone, not an email', async () => {
+    const calls: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        calls.push(JSON.parse(String(init.body)));
+
+        return new Response(
+          JSON.stringify({ token: 'tok_2', user: { name: 'Sevara', roles: ['accountant'] } }),
+          { status: 200 },
+        );
+      }),
+    );
+
+    const response = await POST(request({ email: '+998 90 123-45-67', password: 'secret' }));
+
+    expect(response.status).toBe(200);
+    expect(calls).toEqual([{ phone: '+998901234567', password: 'secret', device_name: 'console' }]);
+  });
+
+  it('still sends an address as an address', async () => {
+    const calls: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        calls.push(JSON.parse(String(init.body)));
+
+        return new Response(
+          JSON.stringify({ token: 'tok_3', user: { name: 'Rustam', roles: ['owner'] } }),
+          { status: 200 },
+        );
+      }),
+    );
+
+    await POST(request({ email: 'owner@demo.uz', password: 'secret' }));
+
+    expect(calls).toEqual([{ email: 'owner@demo.uz', password: 'secret', device_name: 'console' }]);
+  });
+
   it('will not call the API with an empty field', async () => {
     const spy = vi.fn();
     vi.stubGlobal('fetch', spy);

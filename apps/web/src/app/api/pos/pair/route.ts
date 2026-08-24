@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { APP_VERSION } from '@/lib/constants';
 import { apiBase } from '@/lib/server-session';
 import { POS_TENANT_COOKIE, POS_TOKEN_COOKIE, posCookieOptions } from '@/lib/pos-session';
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         code,
         device_fingerprint: fingerprint,
-        app_version: process.env.NEXT_PUBLIC_APP_VERSION ?? '2.4.0',
+        app_version: APP_VERSION,
       }),
       cache: 'no-store',
     });
