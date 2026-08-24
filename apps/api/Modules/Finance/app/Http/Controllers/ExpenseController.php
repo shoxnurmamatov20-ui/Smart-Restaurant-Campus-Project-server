@@ -29,18 +29,69 @@ final class ExpenseController extends Controller
     {
         $perPage = min($request->integer('per_page', 25), self::MAX_PER_PAGE);
 
-        $records = QueryBuilder::for(Expense::class)
+        $query = QueryBuilder::for(Expense::class)
             ->allowedFilters([
                 AllowedFilter::exact('category'),
                 AllowedFilter::exact('shift', 'cash_shift_id'),
                 AllowedFilter::exact('paid_in_cash'),
-            ])
+                /*
+                 * `?filter[unpaid]=1` — what the restaurant has filed and not
+                 * yet settled. Through the model's own scope, so "unpaid" means
+                 * the same thing here as it does to the books screen's chip.
+                 */
+                AllowedFilter::callback('unpaid', function ($query, $value): void {
+                    if (filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+                        $query->unpaid();
+                    }
+                }),
+                AllowedFilter::callback('from', function ($query, $value): void {
+                    // On the trading day, never `whereDate()` — see
+                    // PaymentController::index() for both halves of the reason.
+                    $query->where('business_date', '>=', $value);
+                }),
+                AllowedFilter::callback('to', function ($query, $value): void {
+                    $query->where('business_date', '<=', $value);
+                }),
+            ]);
+
+        // Before the sort: see PaymentController::index() — a clone taken after
+        // `paginate()` carries the ordering into an aggregate.
+        $totals = $this->windowTotals($query);
+
+        $records = $query
             ->allowedSorts(['spent_at', 'amount', 'created_at'])
             ->defaultSort('-spent_at')
             ->paginate($perPage)
             ->withQueryString();
 
-        return ExpenseResource::collection($records);
+        return ExpenseResource::collection($records)->additional(['meta' => $totals]);
+    }
+
+    /**
+     * What the filtered window came to, and how much of it is still owed.
+     *
+     * Over the query the page came from rather than over the page: the books
+     * screen draws fifty rows and states the month's spend above them, and a
+     * total summed from fifty rows of a busier month is a smaller number that
+     * looks exactly as authoritative.
+     *
+     * @param  QueryBuilder<Expense>  $query
+     * @return array{total_tiyin: int, unpaid_tiyin: int, unpaid_count: int}
+     */
+    private function windowTotals(QueryBuilder $query): array
+    {
+        $row = $query->clone()
+            ->toBase()
+            ->selectRaw('coalesce(sum(amount), 0)::bigint as total')
+            ->selectRaw('coalesce(sum(case when paid_at is null then amount else 0 end), 0)::bigint as unpaid')
+            ->selectRaw('count(case when paid_at is null then 1 end)::bigint as unpaid_count')
+            ->first();
+
+        return [
+            'total_tiyin' => (int) ($row->total ?? 0),
+            'unpaid_tiyin' => (int) ($row->unpaid ?? 0),
+            'unpaid_count' => (int) ($row->unpaid_count ?? 0),
+        ];
     }
 
     public function store(StoreExpenseRequest $request): ExpenseResource

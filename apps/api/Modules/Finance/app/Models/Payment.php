@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Finance\Models;
 
 use App\Models\Activity;
+use App\Models\Branch;
+use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
@@ -25,11 +27,18 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property int $id
  * @property int|null $tenant_id
+ * @property Carbon|null $business_date The trading day this row belongs to — DECISIONS Q3
+ * @property int|null $branch_id The venue that took it — a payment happens at an address
  * @property int|null $cash_shift_id
  * @property int|null $order_id Orders module id, no FK on purpose
  * @property string|null $order_number
- * @property string $method cash
- * @property int $amount Amount in tiyin (1 UZS = 100 tiyin)
+ * @property string $method One of self::METHODS
+ * @property int $amount Amount in tiyin (1 UZS = 100 tiyin) — what stayed, never what was handed over
+ * @property string|null $reference Acquirer authorisation code or gateway transaction id
+ * @property int $tip Tiyin on top of the bill, DECISIONS Q6 — never revenue
+ * @property int $rounding Tiyin added by cash rounding, DECISIONS Q7 — SIGNED
+ * @property int $fee_amount Tiyin the acquirer keeps — not the restaurant's
+ * @property int $fee_bps The fee rate in basis points, snapshotted at capture
  * @property string $status captured
  * @property string|null $fiscal_receipt_no From the fiscal module
  * @property Carbon|null $paid_at
@@ -40,6 +49,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
  * @property-read CashShift|null $cashShift
  * @property-read Tenant|null $tenant
  *
@@ -72,6 +82,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class Payment extends Model
 {
+    /*
+     * A payment happens at an address — CLAUDE.md's third rule. The column has
+     * been here since tender detail landed; the trait had not, so nothing scoped
+     * a read by venue and a chain's owner asking one branch for its takings got
+     * the whole estate's. An unset branch still means "all of them", which is
+     * what an owner's dashboard and every cross-branch report want.
+     */
+    use BelongsToBranch;
     use BelongsToTenant;
     use HasBusinessDate;
 
@@ -89,18 +107,61 @@ final class Payment extends Model
 
     protected $table = 'finance.payments';
 
-    public const METHODS = ['cash', 'card', 'payme', 'click', 'uzum', 'corporate'];
+    /**
+     * How money can arrive.
+     *
+     * The card schemes are named individually because they cost different amounts:
+     * Uzcard and Humo take 1.2%, Visa and Mastercard 2.4%. A single `card` method
+     * cannot carry that, so an owner comparing card revenue against a bank
+     * statement would be comparing two numbers that differ by a percentage nobody
+     * could reconstruct.
+     *
+     * `card` stays for the tills that already send it, and its fee rate is
+     * deliberately zero — a visibly missing figure rather than a plausible guess in
+     * a margin report nobody could trace. See App\Support\Finance\AcquirerFees.
+     */
+    public const METHODS = [
+        'cash',
+        'card',
+        'uzcard',
+        'humo',
+        'visa',
+        'mastercard',
+        'payme',
+        'click',
+        'uzum',
+        'corporate',
+        /*
+         * A guest's own tab — "balansiga yozildi · pul kelmadi".
+         *
+         * Not the same as `corporate`, which looks similar and is not: a company
+         * account is a contract with a business that settles by bank transfer, and
+         * the money does arrive. `credit` is a regular signing for lunch, and the
+         * money is a debt until they come back on Friday.
+         *
+         * A Z-report that folded the two together would explain neither, which is
+         * the whole reason the phase exists: the gap between what was sold and what
+         * was banked has to have a name, or it reads as a shortfall.
+         */
+        'credit',
+    ];
 
     public const STATUSES = ['captured', 'refunded'];
 
     protected $fillable = [
         'business_date',
         'tenant_id',
+        'branch_id',
         'cash_shift_id',
         'order_id',
         'order_number',
         'method',
         'amount',
+        'reference',
+        'tip',
+        'rounding',
+        'fee_amount',
+        'fee_bps',
         'status',
         'fiscal_receipt_no',
         'paid_at',
@@ -114,7 +175,20 @@ final class Payment extends Model
             'business_date' => 'date',
             'paid_at' => 'datetime',
             'refunded_at' => 'datetime',
+            /*
+             * Every money column cast to integer, not only the amount.
+             *
+             * Postgres returns bigint as a string through PDO, and a string in a
+             * money path is a float waiting to happen: `'4500000' + 0.0` is how a
+             * tiyin becomes a rounding error. `rounding` is signed and casting it
+             * keeps the minus sign an integer rather than a numeric string that
+             * sorts wrong.
+             */
             'amount' => 'integer',
+            'tip' => 'integer',
+            'rounding' => 'integer',
+            'fee_amount' => 'integer',
+            'fee_bps' => 'integer',
         ];
     }
 

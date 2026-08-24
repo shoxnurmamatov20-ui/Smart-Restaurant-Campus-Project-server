@@ -36,4 +36,14 @@ final class EloquentDayBook implements DayBook
             ))
             ->sum('amount');
     }
+
+    public function openSince(?int $branchId = null): ?\DateTimeImmutable
+    {
+        $openedAt = CashShift::query()
+            ->where('status', 'open')
+            ->when($branchId !== null, fn ($query) => $query->where('branch_id', $branchId))
+            ->min('opened_at');
+
+        return $openedAt === null ? null : new \DateTimeImmutable((string) $openedAt);
+    }
 }

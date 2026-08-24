@@ -26,6 +26,12 @@ final class ExpenseResource extends JsonResource
             'amount' => $this->amount,
             'paid_in_cash' => $this->paid_in_cash,
             'spent_at' => $this->spent_at?->toIso8601String(),
+            'paid_at' => $this->paid_at?->toIso8601String(),
+            // Stated rather than left to the client to infer from a null. The
+            // console draws a paid/unpaid chip and a boolean is what a chip is;
+            // three readers each writing `paid_at !== null` is three places the
+            // meaning of null can drift.
+            'is_paid' => $this->paid_at !== null,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

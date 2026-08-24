@@ -8,6 +8,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Finance\Models\CashCount;
+use Modules\Finance\Models\CashMovement;
 use Modules\Finance\Models\CashShift;
 use Modules\Finance\Models\Expense;
 use Modules\Finance\Models\Payment;
@@ -34,6 +36,32 @@ final class CashShiftTest extends TestCase
         $this->actingAs($user);
 
         return $user;
+    }
+
+    // ============ Money brought to the drawer ============
+
+    public function test_change_brought_from_the_safe_is_a_known_kind_and_points_at_its_count(): void
+    {
+        $this->actingAsCashier();
+        $shift = $this->postJson('/api/v1/finance/shifts/open', ['opening_cash' => 5_000_000])
+            ->assertCreated()->json('data.id');
+
+        // Counted by note on the way in: two 100 000 and ten 50 000.
+        $answer = $this->postJson("/api/v1/finance/shifts/{$shift}/cash-in", [
+            'denominations' => ['10000000' => 2, '5000000' => 10],
+            'reason' => 'Mayda pul, seyfdan',
+        ])->assertCreated()->json('data');
+
+        $this->assertSame(70_000_000, $answer['amount']);
+        $this->assertSame('top_up', $answer['count']['kind']);
+        // `top_up` was being written without being one of CashCount::KINDS, so
+        // anything that filtered by the known kinds never saw the money come in.
+        $this->assertContains('top_up', CashCount::KINDS);
+
+        // And the movement names the count that justified it — two rows, one
+        // event, and an auditor can see they are the same thing.
+        $movement = CashMovement::query()->findOrFail($answer['record_id']);
+        $this->assertSame($answer['count']['id'], $movement->cash_count_id);
     }
 
     // ============ Auth & RBAC ============
@@ -154,12 +182,17 @@ final class CashShiftTest extends TestCase
         Expense::factory()->create(['cash_shift_id' => $shift->id, 'amount' => 10000000, 'paid_in_cash' => true]);
 
         // 500 000 + 300 000 + 200 000 − 100 000 = 900 000 so'm
+        //
+        // Closing answers with the Z-report itself rather than the shift row: it
+        // is the document that gets signed, so the response is the thing you
+        // print. Its sections are the plan's — turnover, methods, drawer,
+        // adjustments — and the drawer section is where the count lives.
         $this->postJson("/api/v1/finance/shifts/{$shift->id}/close", ['counted_cash' => 90000000])
             ->assertOk()
-            ->assertJsonPath('data.expected_cash', 90000000)
-            ->assertJsonPath('data.counted_cash', 90000000)
-            ->assertJsonPath('data.difference', 0)
-            ->assertJsonPath('data.status', 'closed');
+            ->assertJsonPath('data.drawer.expected_cash', 90000000)
+            ->assertJsonPath('data.drawer.counted_cash', 90000000)
+            ->assertJsonPath('data.drawer.difference', 0)
+            ->assertJsonPath('data.shift.status', 'closed');
     }
 
     public function test_a_short_drawer_reports_a_negative_difference(): void
@@ -168,11 +201,39 @@ final class CashShiftTest extends TestCase
         $shift = CashShift::factory()->create(['opening_cash' => 10000000]);
         Payment::factory()->cash()->create(['cash_shift_id' => $shift->id, 'amount' => 20000000]);
 
-        // Expected 300 000, counted 295 000 — 5 000 so'm short.
-        $this->postJson("/api/v1/finance/shifts/{$shift->id}/close", ['counted_cash' => 29500000])
+        // Expected 300 000, counted 295 000 — 5 000 so'm short, and short enough
+        // that a reason is the whole of what the ladder asks for. A manager comes
+        // into it past 20 000 so'm; see DayCloseLadderTest.
+        $this->postJson("/api/v1/finance/shifts/{$shift->id}/close", [
+            'counted_cash' => 29500000,
+            'reason' => 'Mehmonga qaytim ikki marta berilgan',
+        ])
             ->assertOk()
-            ->assertJsonPath('data.expected_cash', 30000000)
-            ->assertJsonPath('data.difference', -500000);
+            ->assertJsonPath('data.drawer.expected_cash', 30000000)
+            ->assertJsonPath('data.drawer.difference', -500000)
+            ->assertJsonPath('data.drawer.difference_reason', 'Mehmonga qaytim ikki marta berilgan');
+    }
+
+    /**
+     * The same shortfall with nothing said about it does not close.
+     *
+     * A count that produces a figure nobody has to account for is the same as not
+     * counting: the number exists, nobody reads it, and the drawer is short again
+     * next month.
+     */
+    public function test_a_difference_with_no_reason_does_not_close_the_till(): void
+    {
+        $this->actingAsCashier();
+        $shift = CashShift::factory()->create(['opening_cash' => 10000000]);
+        Payment::factory()->cash()->create(['cash_shift_id' => $shift->id, 'amount' => 20000000]);
+
+        $this->postJson("/api/v1/finance/shifts/{$shift->id}/close", ['counted_cash' => 29500000])
+            ->assertStatus(422)
+            ->assertApiError('finance.variance_needs_reason');
+
+        // And the till is still selling: a refused close must not leave a drawer
+        // locked with a queue at the counter.
+        $this->assertSame('open', CashShift::query()->findOrFail($shift->id)->status);
     }
 
     public function test_a_shift_cannot_be_closed_twice(): void
@@ -180,8 +241,12 @@ final class CashShiftTest extends TestCase
         $this->actingAsCashier();
         $shift = CashShift::factory()->closed()->create();
 
+        // 409, not 422: the request is well formed and the shift is simply in
+        // the wrong state for it — the same reading `order.invalid_transition`
+        // gets everywhere else in the catalogue.
         $this->postJson("/api/v1/finance/shifts/{$shift->id}/close", ['counted_cash' => 1000])
-            ->assertStatus(422);
+            ->assertStatus(409)
+            ->assertApiError('finance.shift_already_closed');
     }
 
     // ============ Module info ============
