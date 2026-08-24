@@ -333,6 +333,18 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                  */
                 Route::post('tenants/{tenant}/owner-password', [Platform\TenantController::class, 'resetOwnerPassword'])
                     ->name('tenants.owner-password');
+
+                /*
+                 * The owner's own details — the address they sign in with.
+                 *
+                 * Separate from the line above because the two are different
+                 * acts: this is an idempotent correction, that one issues a
+                 * credential and ends every session the account has open. An
+                 * operator fixing a typo in a phone number must not sign the
+                 * owner out of the till they are standing at.
+                 */
+                Route::patch('tenants/{tenant}/owner', [Platform\TenantController::class, 'updateOwner'])
+                    ->name('tenants.owner.update');
                 Route::post('tenants/{tenant}/invoices', [Platform\BillingController::class, 'store'])
                     ->name('tenants.invoices.store');
 

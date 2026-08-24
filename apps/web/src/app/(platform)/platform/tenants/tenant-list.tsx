@@ -695,6 +695,31 @@ function TenantCard({
   const [sending, setSending] = useState(false);
 
   /*
+   * The owner's account, as the panel is editing it.
+   *
+   * `emailNow` shadows `row.ownerEmail` the way `planNow` shadows the plan: the
+   * list above owns the row and re-fetching the whole page to show one corrected
+   * address would throw away every other panel this operator has open.
+   *
+   * `emailDraft` is separate from `emailNow` because a half-typed address is not
+   * an address — the copy button and the heading keep reading the saved one
+   * while somebody is still typing over it.
+   */
+  const [emailNow, setEmailNow] = useState<string | null>(row.ownerEmail);
+  const [emailDraft, setEmailDraft] = useState(row.ownerEmail ?? '');
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  /*
+   * A password the operator typed, or nothing.
+   *
+   * Empty is the default and stays the default: the button below says "issue a
+   * new one" until there is something here, and only then offers to set it. An
+   * operator who never touches this field gets exactly the behaviour they had
+   * before.
+   */
+  const [passwordDraft, setPasswordDraft] = useState('');
+
+  /*
    * The owner's new password, once.
    *
    * It stays here rather than in a `flash()`: a toast is one at a time and gone
@@ -907,7 +932,11 @@ function TenantCard({
 
     const answer = await post<{ owner?: { password?: unknown } }>(
       '/api/platform/tenant-password',
-      { tenantId },
+      // Trimmed here as well as upstream: a password with a space on the end is
+      // one nobody can dictate over a phone, and this is the field it is typed
+      // into. Empty means "generate one", which is what the handler does with an
+      // absent key.
+      { tenantId, password: passwordDraft.trim() },
       lang,
     );
 
@@ -930,7 +959,67 @@ function TenantCard({
       return;
     }
 
+    /* The field is emptied on the way out. Leaving a password sitting in an
+       input on a console somebody walks away from is the thing this screen is
+       otherwise careful about, and the issued value below is the copy that
+       matters now. */
+    setPasswordDraft('');
     setIssued(password);
+  }
+
+  /**
+   * Correct the address this restaurant signs in with.
+   *
+   * The one field an operator is asked about by name. A restaurant is onboarded
+   * from what was heard on a call, and a wrong character in the email is a
+   * business that cannot get in at all — `/forgot-password` needs a mailer and
+   * this deployment runs `MAIL_MAILER=log`, so before this existed the repair
+   * was to onboard the restaurant a second time.
+   *
+   * Deliberately not the same button as the password. That one ends every
+   * session the account has open; this is a correction, and an operator fixing a
+   * typo must not sign the owner out of the till they are standing at.
+   */
+  async function saveOwnerEmail() {
+    if (tenantId === null) {
+      flash.problem(copy.demo);
+
+      return;
+    }
+
+    const next = emailDraft.trim();
+
+    // Nothing typed, or nothing changed. Silent rather than a refusal toast: the
+    // operator pressed a button that had nothing to do, which is not an error
+    // they need told about.
+    if (next === '' || next === emailNow) return;
+
+    setSavingEmail(true);
+
+    const answer = await post<{ owner?: { email?: unknown } }>(
+      '/api/platform/tenant-owner',
+      { tenantId, email: next },
+      lang,
+    );
+
+    setSavingEmail(false);
+
+    if (!answer.ok) {
+      refused(answer.message);
+
+      return;
+    }
+
+    /* The API's copy, not the form's. It is the one that was actually stored,
+       and reading it back is how a normalisation upstream — a trimmed space, a
+       lower-cased domain — reaches the screen instead of being invisible until
+       the next reload. */
+    const saved = answer.data.owner?.email;
+    const shown = typeof saved === 'string' && saved !== '' ? saved : next;
+
+    setEmailNow(shown);
+    setEmailDraft(shown);
+    flash(`${row.name} · ${copy.emailSaved}`);
   }
 
   async function movePlan(next: PlanId) {
@@ -1318,7 +1407,7 @@ function TenantCard({
           <div className="border-border bg-bg-subtle mt-[18px] rounded-md border p-4">
             <span className="block text-sm font-semibold">{copy.credentialsTitle}</span>
 
-            {row.ownerEmail === null ? (
+            {emailNow === null ? (
               /* A real state, not an error: a restaurant whose only owner was
                  deactivated, or one archived before anybody signed in. Said
                  plainly, because the next thing the operator does about it is
@@ -1326,20 +1415,76 @@ function TenantCard({
               <p className="text-fg-muted mt-2 text-sm leading-normal">{copy.credentialsNone}</p>
             ) : (
               <>
+                {/* The address, editable in place.
+                    It is the field an operator is asked about by name — "what do
+                    I sign in with", "you spelled it wrong" — and it used to be a
+                    copy button and nothing else. Still copyable: the button
+                    beside it copies whatever is saved, which is what gets read
+                    back down a phone. */}
+                <label className="mt-2.5 block">
+                  <span className="text-fg-muted text-xs font-semibold">{copy.emailLabel}</span>
+                  <span className="mt-1.5 flex flex-wrap gap-2">
+                    <input
+                      type="email"
+                      inputMode="email"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={emailDraft}
+                      disabled={savingEmail}
+                      onChange={(event) => setEmailDraft(event.target.value)}
+                      className="bg-surface border-border text-fg h-10 min-w-[200px] flex-1 rounded-md border px-3 font-mono text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void copyText(emailNow)}
+                      title={copy.copyHint}
+                      className="border-border bg-surface text-fg h-10 shrink-0 rounded-md border px-3 text-sm font-semibold"
+                    >
+                      {copy.copyAction}
+                    </button>
+                  </span>
+                </label>
+
                 <button
                   type="button"
-                  onClick={() => void copyText(row.ownerEmail ?? '')}
-                  title={copy.copyHint}
-                  className="bg-surface border-border text-fg mt-2.5 block max-w-full truncate rounded-md border px-3 py-2 font-mono text-sm"
+                  disabled={
+                    savingEmail || emailDraft.trim() === '' || emailDraft.trim() === emailNow
+                  }
+                  onClick={() => void saveOwnerEmail()}
+                  className={`mt-2 h-9 w-full rounded-md text-sm font-semibold text-white ${
+                    savingEmail || emailDraft.trim() === '' || emailDraft.trim() === emailNow
+                      ? 'bg-n-300'
+                      : 'bg-brand-600'
+                  }`}
                 >
-                  {row.ownerEmail}
+                  {copy.emailSave}
                 </button>
 
                 {/* Why there is no "show the password" button, in the place
                     somebody would look for one. */}
-                <p className="text-fg-muted mt-2.5 text-xs leading-normal">
-                  {copy.credentialsHint}
-                </p>
+                <p className="text-fg-muted mt-3 text-xs leading-normal">{copy.credentialsHint}</p>
+
+                {/* And what to do instead: type one, or leave it and take the
+                    generated one. Both end every session the account has open,
+                    which the sentence above already says. */}
+                <label className="mt-3 block">
+                  <span className="text-fg-muted text-xs font-semibold">{copy.passwordLabel}</span>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={passwordDraft}
+                    disabled={sending}
+                    placeholder={copy.passwordPlaceholder}
+                    onChange={(event) => setPasswordDraft(event.target.value)}
+                    className="bg-surface border-border text-fg mt-1.5 h-10 w-full rounded-md border px-3 font-mono text-sm"
+                  />
+                </label>
+                {/* Not `type="password"`. The operator is reading this out to
+                    somebody, and a field of dots is a field they cannot check
+                    before they say it. Nothing is hidden here that the answer
+                    below does not print in full anyway. */}
+                <p className="text-fg-muted mt-1.5 text-xs leading-normal">{copy.passwordRule}</p>
 
                 {issued === null ? null : (
                   <div className="border-warning-500/40 bg-warning-50/40 mt-3.5 rounded-md border p-3.5">
@@ -1366,6 +1511,11 @@ function TenantCard({
                     onClick={() => {
                       setAsking(null);
                       setIssued(null);
+                      // A typed password left in a closed panel would be waiting
+                      // in the field the next time it is opened, on a console
+                      // somebody else may be sitting at.
+                      setPasswordDraft('');
+                      setEmailDraft(emailNow ?? '');
                     }}
                     className="border-border-strong bg-surface h-9 min-w-[120px] flex-1 rounded-md border text-sm font-semibold"
                   >
@@ -1379,7 +1529,11 @@ function TenantCard({
                       sending ? 'bg-n-300' : 'bg-warning-600'
                     }`}
                   >
-                    {issued === null ? copy.newPassword : copy.newPasswordAgain}
+                    {passwordDraft.trim() !== ''
+                      ? copy.setPassword
+                      : issued === null
+                        ? copy.newPassword
+                        : copy.newPasswordAgain}
                   </button>
                 </div>
               </>
@@ -1786,6 +1940,11 @@ function AddRestaurant({
   const [owner, setOwner] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  /* The owner's first password, when the operator has one in mind. Empty is the
+     default and generates one, which is what this sheet did before and is still
+     the right default — the field exists for the call where the restaurant
+     dictates the password they want to use. */
+  const [firstPassword, setFirstPassword] = useState('');
   const [city, setCity] = useState<(typeof FORM_CITIES)[number]>('tashkent');
   const [plan, setPlan] = useState<PlanId>('growth');
   const [sending, setSending] = useState(false);
@@ -1817,6 +1976,7 @@ function AddRestaurant({
         owner: owner.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        password: firstPassword.trim(),
         planKey: plan,
         // The city becomes the first venue's city — the tenant itself has no
         // address, and the list reads the city back off the venues.
@@ -1996,6 +2156,34 @@ function AddRestaurant({
               placeholder={copy.emailPlaceholder}
               className="bg-bg-subtle border-border text-md mb-5 h-[46px] w-full rounded-md border px-3.5"
             />
+
+            {/* The password, if the operator has one in mind.
+                Left empty it is generated, which is what this sheet has always
+                done and is still what most calls want. It is here because the
+                other kind of call exists: a restaurant that dictates the
+                password it intends to use, where the alternative was issuing a
+                random one and immediately replacing it from the card.
+
+                `type="text"` rather than `password`, deliberately — the operator
+                is reading this out to somebody as they type it, and a field of
+                dots is a field they cannot check first. It is printed in full on
+                the next screen regardless. */}
+            <label className="mb-2 block text-sm font-semibold" htmlFor="new-password">
+              {copy.fieldPassword}
+            </label>
+            <input
+              id="new-password"
+              type="text"
+              autoComplete="off"
+              spellCheck={false}
+              value={firstPassword}
+              onChange={(event) => setFirstPassword(event.target.value)}
+              placeholder={copy.passwordPlaceholder}
+              className="bg-bg-subtle border-border text-md h-[46px] w-full rounded-md border px-3.5 font-mono"
+            />
+            <p className="text-fg-muted mt-1.5 mb-5 text-xs leading-normal">
+              {copy.fieldPasswordHint}
+            </p>
 
             <span className="mb-2.5 block text-sm font-semibold">{copy.fieldCity}</span>
             <div className="mb-[22px] flex flex-wrap gap-2">

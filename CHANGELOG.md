@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🔑 Added — The operator can set the owner's credentials, not only mint them (2026-08-24)
+
+Restaurant owners ring the platform and ask two things: "send me my email and
+password", and "change it to this one". Neither had an answer on this screen.
+
+- **The address a restaurant signs in with is editable.**
+  `PATCH /platform/tenants/{tenant}/owner`, and the tenant card edits it in
+  place. It was previously a copy button and nothing else, which meant a typo
+  taken down on a phone call was a business that could not sign in at all —
+  `/forgot-password` needs a mailer and this deployment runs `MAIL_MAILER=log`,
+  so the only repair was to onboard the restaurant a second time and leave the
+  first one sitting there. Unique across the whole platform, ignoring the row
+  being edited.
+- **Deliberately not the same door as the password.** Issuing a credential ends
+  every session that account has open; correcting an address does not, and the
+  test asserts the surviving token rather than trusting the split. An operator
+  fixing a phone number must not sign the owner out of the till they are
+  standing at.
+- **A password may now be chosen.** `POST .../owner-password` takes an optional
+  one, and the new-restaurant sheet has a field for the first one. This reverses
+  a decision, so the reasoning is worth stating: it used to generate and only
+  generate, on the argument that an operator who _can_ choose will reuse one weak
+  string across every restaurant. Right about the risk, wrong about the remedy —
+  the case it blocked is the ordinary one, and the alternative was an operator
+  reading sixteen random characters down a phone line, which is how a password
+  ends up on a sticky note on the till. `Password::min(12)->letters()->numbers()`
+  refuses the weak repeat without refusing the request, and three data-provider
+  cases prove it: too short, letters only, digits only — none of them stored.
+  `uncompromised()` is deliberately absent: it calls haveibeenpwned over the
+  network, and a credential screen that hangs when an outside service is down is
+  worse than the leak it screens for.
+- **Empty still generates**, and the console still offers that first. The
+  distinction is load-bearing at the proxy: an untouched field must reach the API
+  as an _absent_ key rather than `""`, or `nullable` reads it as a chosen blank
+  and refuses it for being under twelve characters — so the generator would never
+  run. There is a test for exactly that, on both handlers.
+- **What is still impossible, and why the screen says so.** There is no "show me
+  the password": `users.password` is a bcrypt hash, so the honest answers are a
+  new one or none. The panel keeps the sentence explaining that, in the place
+  somebody looks for the button — now beside a field that does the thing they
+  actually wanted.
+
+Both password fields are `type="text"` on purpose. The operator is reading the
+value out to somebody as they type it, and a field of dots is a field they cannot
+check first; it is printed in full on the next line regardless.
+
+**A bug the tests caught before production did.** `UpdateOwnerRequest` first
+resolved the row for `unique(...)->ignore()` with `property_exists($tenant, 'id')`
+— and an Eloquent attribute is not a declared property. It lives in `$attributes`
+and arrives through `__get`, so that is false on a model that plainly has an id;
+`unique` then stepped over nobody and an operator correcting a phone number while
+leaving the address alone was refused for colliding with their own row.
+
 ### 🔐 Fixed — The owner's login, when nobody wrote the password down (2026-08-23)
 
 A restaurant was opened from the platform console and handed over with no

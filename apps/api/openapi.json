@@ -13920,6 +13920,53 @@
                 }
             }
         },
+        "/v1/platform/tenants/{tenant}/owner": {
+            "patch": {
+                "operationId": "api.v1.platform.tenants.owner.update",
+                "tags": [
+                    "platform"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "$ref": "#/components/parameters/XTenant"
+                    },
+                    {
+                        "$ref": "#/components/parameters/XBranch"
+                    },
+                    {
+                        "$ref": "#/components/parameters/XLocale"
+                    },
+                    {
+                        "$ref": "#/components/parameters/IdempotencyKey"
+                    }
+                ],
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": "Success shapes are resource-specific; every failure is the Error envelope with a code from x-error-catalogue.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/platform/tenants/{tenant}/owner-password": {
             "post": {
                 "operationId": "api.v1.platform.tenants.owner-password",

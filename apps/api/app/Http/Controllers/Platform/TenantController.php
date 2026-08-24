@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\ImpersonateRequest;
+use App\Http\Requests\Platform\IssueOwnerPasswordRequest;
 use App\Http\Requests\Platform\StorePlatformTenantRequest;
+use App\Http\Requests\Platform\UpdateOwnerRequest;
 use App\Http\Requests\Platform\UpdatePlatformTenantRequest;
 use App\Models\Branch;
 use App\Models\Impersonation;
@@ -142,9 +144,17 @@ final class TenantController extends Controller
      * them: `/forgot-password` needs a mailer, and this deployment runs
      * `MAIL_MAILER=log`.
      *
-     * So: a generated password, never a typed one. An operator who could choose
-     * it would choose the same one for every restaurant they open, and that
-     * string would end up in a notebook next to a list of customer names.
+     * A typed one is accepted, and that is a reversal worth stating. This used to
+     * generate and only generate, on the argument that an operator who can choose
+     * would reuse one weak string across every restaurant. The argument is right
+     * about the risk and wrong about the remedy: the case it blocked is the
+     * ordinary one — an owner rings and asks for a password they can remember, or
+     * dictates the one they already use — and the alternative was an operator
+     * reading sixteen random characters down a phone line, which is how a
+     * password ends up on a sticky note on the till. `IssueOwnerPasswordRequest`
+     * enforces the strength instead, which refuses the weak repeat without
+     * refusing the request. Empty still generates, and the console still offers
+     * that first.
      *
      * Every existing session for that account ends with it. A credential reset
      * that leaves the old sessions alive is not a reset — and the case this is
@@ -156,7 +166,7 @@ final class TenantController extends Controller
      * everybody else's PIN and password are the restaurant's own business, from
      * `staff/members`.
      */
-    public function resetOwnerPassword(Request $request, Tenant $tenant): JsonResponse
+    public function resetOwnerPassword(IssueOwnerPasswordRequest $request, Tenant $tenant): JsonResponse
     {
         $owner = $this->owner($tenant);
 
@@ -170,7 +180,8 @@ final class TenantController extends Controller
             );
         }
 
-        $password = TenantProvisioner::password();
+        $chosen = $request->validated('password');
+        $password = is_string($chosen) && $chosen !== '' ? $chosen : TenantProvisioner::password();
 
         $owner->forceFill(['password' => $password])->save();
 
@@ -183,7 +194,14 @@ final class TenantController extends Controller
         activity('platform.tenant')
             ->performedOn($tenant)
             ->causedBy($request->user())
-            ->withProperties(['user_id' => $owner->id, 'email' => $owner->email])
+            // Whether it was chosen or generated, never the password itself. An
+            // audit trail that carries the credential is a second place to steal
+            // it from, and this one is readable from the console.
+            ->withProperties([
+                'user_id' => $owner->id,
+                'email' => $owner->email,
+                'chosen' => is_string($chosen) && $chosen !== '',
+            ])
             ->log('platform.owner.password_reset');
 
         return response()->json([
@@ -194,6 +212,66 @@ final class TenantController extends Controller
                 'phone' => $owner->phone,
                 // Once. Exactly like the create call, and for the same reason.
                 'password' => $password,
+            ],
+        ]);
+    }
+
+    /**
+     * Correct the owner's own details — the address they sign in with, chiefly.
+     *
+     * A restaurant is onboarded from what an operator heard on a phone call, and
+     * a wrong character in the email is not cosmetic: it is a business that
+     * cannot sign in at all. `/forgot-password` is no help — this deployment
+     * runs `MAIL_MAILER=log`, so the reset mail goes to a file — and until this
+     * existed the only repair was to create the restaurant a second time and
+     * leave the first one sitting there.
+     *
+     * The password is NOT here, deliberately, and the split is the point. This
+     * is a correction and it is idempotent; issuing a credential ends every
+     * session that account has open. Putting both behind one call would mean an
+     * operator fixing a typo in a phone number silently signs the owner out of
+     * the till they are standing at.
+     *
+     * Nothing else about the account is reachable: not the role, not the tenant,
+     * not `is_active`. See `UpdateOwnerRequest`.
+     */
+    public function updateOwner(UpdateOwnerRequest $request, Tenant $tenant): JsonResponse
+    {
+        $owner = $this->owner($tenant);
+
+        if ($owner === null) {
+            throw ApiException::detailed(
+                'request.validation_failed',
+                'Bu restoranda egasining hisobi yo\'q.',
+                'В этом ресторане нет учётной записи владельца.',
+                'This restaurant has no owner account.',
+                field: 'tenant',
+            );
+        }
+
+        $before = ['name' => $owner->name, 'email' => $owner->email, 'phone' => $owner->phone];
+
+        $owner->fill($request->validated())->save();
+
+        activity('platform.tenant')
+            ->performedOn($tenant)
+            ->causedBy($request->user())
+            // Both sides, because "who changed the address this account signs in
+            // with, and what was it before" is the question asked when somebody
+            // cannot get in — and the old value is the half that answers it.
+            ->withProperties([
+                'user_id' => $owner->id,
+                'from' => $before,
+                'to' => $request->validated(),
+            ])
+            ->log('platform.owner.updated');
+
+        return response()->json([
+            'owner' => [
+                'id' => $owner->id,
+                'name' => $owner->name,
+                'email' => $owner->email,
+                'phone' => $owner->phone,
             ],
         ]);
     }

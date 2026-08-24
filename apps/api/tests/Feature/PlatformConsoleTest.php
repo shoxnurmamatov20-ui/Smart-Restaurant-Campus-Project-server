@@ -16,6 +16,7 @@ use Database\Seeders\PlatformSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -303,8 +304,9 @@ final class PlatformConsoleTest extends TestCase
 
         $issued = (string) $response->json('owner.password');
 
-        // Generated, never chosen: an operator who could type one would type
-        // the same one for every restaurant they open.
+        // Generated, because this call sent no password. Typing one is allowed
+        // now — see the three tests below — but an empty request still means
+        // "make me one", which is the default the console offers first.
         $this->assertNotSame('', $issued);
 
         $after = $owner->fresh();
@@ -340,6 +342,183 @@ final class PlatformConsoleTest extends TestCase
             'email' => $owner->email,
             'password' => $issued,
         ])->assertOk();
+    }
+
+    public function test_the_operator_may_choose_the_password_and_it_signs_the_owner_in(): void
+    {
+        /*
+         * The call this exists for: a restaurant rings and dictates the password
+         * it wants to use, or asks for one it can remember. It used to be
+         * refused on the argument that an operator who can choose will reuse one
+         * weak string everywhere — right about the risk, wrong about the remedy,
+         * because the alternative was reading sixteen random characters down a
+         * phone line.
+         */
+        $owner = $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $chosen = 'Osh7Xona7Termiz';
+
+        $this->postJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
+            ['password' => $chosen],
+        )
+            ->assertOk()
+            // Answered back rather than swallowed: the console prints what it is
+            // told, and an API that quietly generated a different one would have
+            // the operator reading out a password that does not work.
+            ->assertJsonPath('owner.password', $chosen);
+
+        // Asserted at the door rather than against the hash, for the same reason
+        // the generated case is: what matters is that it opens the login.
+        $this->postJson('/api/v1/auth/login', [
+            'email' => $owner->email,
+            'password' => $chosen,
+        ])->assertOk();
+    }
+
+    /**
+     * @return list<array{0: string}>
+     */
+    public static function weakPasswords(): array
+    {
+        return [
+            'too short' => ['Short1'],
+            'letters only' => ['oshxonatermiz'],
+            'digits only' => ['908070605040'],
+        ];
+    }
+
+    #[DataProvider('weakPasswords')]
+    public function test_a_weak_password_is_refused_rather_than_stored(string $weak): void
+    {
+        /*
+         * The strength rule is what replaced the old blanket refusal, so it is
+         * the thing carrying the risk now. Twelve characters with letters *and*
+         * digits: not the restaurant's name, not a phone number, not `12345678`.
+         *
+         * `uncompromised()` is deliberately not among the rules — it calls
+         * haveibeenpwned over the network, and a credential screen that hangs
+         * when an outside service is down is worse than the leak it screens for.
+         */
+        $owner = $this->restaurantOwner();
+        $before = (string) $owner->password;
+
+        $this->actingAs($this->operator());
+
+        $this->postJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
+            ['password' => $weak],
+        )->assertStatus(422);
+
+        $after = $owner->fresh();
+        $this->assertNotNull($after);
+
+        // The half that matters: a refused password must not have been written
+        // on the way to being refused.
+        $this->assertSame($before, (string) $after->password);
+    }
+
+    public function test_the_operator_may_correct_the_address_the_owner_signs_in_with(): void
+    {
+        /*
+         * A restaurant is onboarded from what was heard on a phone call, and a
+         * wrong character in the email is a business that cannot sign in at all:
+         * `/forgot-password` needs a mailer and this deployment runs
+         * `MAIL_MAILER=log`. Before this existed the only repair was to onboard
+         * the restaurant a second time.
+         */
+        $owner = $this->restaurantOwner();
+        $session = $owner->createToken('console');
+        $this->assertSame(1, $owner->tokens()->count());
+
+        $this->actingAs($this->operator());
+
+        $this->patchJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner",
+            ['email' => 'egasi@oshxona.uz'],
+        )
+            ->assertOk()
+            ->assertJsonPath('owner.email', 'egasi@oshxona.uz');
+
+        $after = $owner->fresh();
+        $this->assertNotNull($after);
+        $this->assertSame('egasi@oshxona.uz', $after->email);
+
+        /*
+         * And the session survives, which is the whole reason this is not the
+         * password endpoint. An operator fixing a typo must not sign the owner
+         * out of the till they are standing at.
+         */
+        $this->assertSame(1, $after->tokens()->count());
+        $this->assertNotNull($session);
+
+        $this->assertTrue(
+            Activity::query()->where('description', 'platform.owner.updated')->exists(),
+            'changing the address somebody signs in with has to leave a trace',
+        );
+
+        // The new address is the one that opens the login, and it is asserted
+        // rather than assumed: an update that changes a column the guard does
+        // not read would pass every check above and lock the owner out.
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'egasi@oshxona.uz',
+            'password' => 'password',
+        ])->assertOk();
+    }
+
+    public function test_an_address_already_on_the_platform_is_refused(): void
+    {
+        /*
+         * The column's own constraint is `unique(tenant_id, email)`, which
+         * permits the same address in two businesses — and `AuthController::login`
+         * has already had to be taught to weigh a password against every
+         * candidate because this deployment has exactly that pair. Letting an
+         * operator create a second one on purpose would make that worse.
+         */
+        $owner = $this->restaurantOwner();
+        $taken = $this->operator();
+
+        $this->actingAs($taken);
+
+        $this->patchJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner",
+            ['email' => $taken->email],
+        )->assertStatus(422);
+
+        $after = $owner->fresh();
+        $this->assertNotNull($after);
+        $this->assertSame($owner->email, $after->email);
+    }
+
+    public function test_keeping_the_same_address_is_not_a_collision_with_itself(): void
+    {
+        // `unique` has to step over the row being edited, or correcting a phone
+        // number while the address is unchanged refuses itself.
+        $owner = $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $this->patchJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner",
+            ['email' => $owner->email, 'phone' => '+998901112233'],
+        )
+            ->assertOk()
+            ->assertJsonPath('owner.phone', '+998901112233');
+    }
+
+    public function test_a_restaurant_owner_cannot_edit_their_own_platform_record(): void
+    {
+        $owner = $this->restaurantOwner();
+        $this->actingAs($owner);
+
+        $this->patchJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner",
+            ['email' => 'yangi@oshxona.uz'],
+        )->assertStatus(403);
+
+        $after = $owner->fresh();
+        $this->assertNotNull($after);
+        $this->assertSame($owner->email, $after->email);
     }
 
     public function test_a_restaurant_owner_cannot_reissue_anybody_a_password(): void

@@ -35,6 +35,7 @@ type Body = {
   phone?: unknown;
   planKey?: unknown;
   city?: unknown;
+  password?: unknown;
 };
 
 /** The three the plan table ships with; anything else is refused upstream anyway. */
@@ -91,6 +92,14 @@ export async function POST(request: NextRequest) {
       phone: phoneNumber(body.phone),
       plan_key: planKey,
       city: trimmed(body.city),
+      /* The owner's first password, when the operator chose one.
+       *
+       * Absent rather than `''` when they did not: the rule upstream is
+       * `nullable`, so an empty string is a *chosen* blank and would be refused
+       * for being under twelve characters — where an absent key is what makes
+       * the generator run. `trimmed` returning null is exactly that shape, and
+       * `JSON.stringify` drops the key. */
+      password: trimmed(body.password) ?? undefined,
       // `locale`, `timezone`, `country` and `trial_days` are deliberately not
       // sent. Every one has a default upstream — `uz`, Asia/Tashkent, UZ, and
       // the platform's own configured trial length — and sending the console's
