@@ -258,8 +258,50 @@ export function middleware(request: NextRequest) {
    * on the same bare path they always see.
    */
   const carried = request.headers.get(DOC_LANG_HEADER);
-  const reentry = fromPath === null && isUrlLocale(carried);
-  const locale = fromPath ?? (reentry ? (carried as UrlLocale) : null);
+
+  /*
+   * The same second pass, arriving from the browser instead of from Next.
+   *
+   * On a full page load the rewrite below is internal and the second pass
+   * carries `x-doc-lang`. On a *soft* navigation it is not: the router asks for
+   * the RSC payload of `/uz/x`, Next answers the rewrite with a 307 telling the
+   * client to fetch `/x?_rsc=…`, and that request is a fresh one from a browser
+   * — no `x-doc-lang`, because nothing outside this function ever sets it.
+   *
+   * Without this branch that request has no language, so the block below sends
+   * it 308 back to `/uz/x`, which rewrites, which redirects to `/x?_rsc=…`
+   * again. Every link in the console was that loop: the router never received a
+   * payload, so the route kept showing `(dashboard)/loading.tsx` and the screen
+   * sat on its skeleton until the browser gave up and did a full reload — 33
+   * chunks and a fresh render for what should have been one fetch. A hard
+   * reload of the same URL always worked, which is what made it look like the
+   * pages themselves were slow rather than the navigation between them.
+   *
+   * Both signals, deliberately. The header is Next's, the query parameter is in
+   * the URL, and the edge proxy in front of this box already demonstrably drops
+   * headers it does not recognise — it strips `Upgrade`, which is why Reverb
+   * cannot hold a socket through it. A fix that only reads the header would
+   * work here and loop in production.
+   *
+   * Like `x-doc-lang`, this supplies the language and nothing else: every guard
+   * below still runs, on the same bare path it always sees. `RSC: 1` on
+   * `/dashboard` gets what `/dashboard` has always got — the session check.
+   */
+  const softNavigation =
+    fromPath === null &&
+    (request.headers.get('rsc') === '1' || request.nextUrl.searchParams.has('_rsc'));
+
+  const reentry = fromPath === null && (isUrlLocale(carried) || softNavigation);
+  const locale =
+    fromPath ??
+    (isUrlLocale(carried)
+      ? carried
+      : softNavigation
+        ? preferredLocale(
+            request.cookies.get(LOCALE_COOKIE)?.value,
+            request.headers.get('accept-language') ?? '',
+          )
+        : null);
 
   /*
    * No language in the path — put one there and send them to it, once.

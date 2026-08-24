@@ -509,3 +509,71 @@ describe('the session guard, enforced', () => {
     }
   });
 });
+
+/**
+ * The loop that made every link in the console feel broken.
+ *
+ * A soft navigation does not ask for a page, it asks for that page's RSC
+ * payload. The router sends `RSC: 1`; Next answers this file's rewrite by
+ * telling the client to fetch the bare path with `?_rsc=…` on it; and that
+ * request comes back here from a *browser*, so it carries no `x-doc-lang` and
+ * has no language in its path. Before this was fixed it was therefore 308'd to
+ * the prefixed URL, which rewrote, which redirected to the bare one again.
+ *
+ * Nothing errored. The route simply never received a payload, so it kept
+ * rendering `(dashboard)/loading.tsx` — every screen stuck on its skeleton,
+ * while a hard reload of the very same URL worked perfectly. That is what made
+ * the pages look slow rather than the navigation between them.
+ */
+describe('a soft navigation is answered, not bounced', () => {
+  const RSC = (path: string, how: 'header' | 'query', init?: { cookie?: string }) => {
+    const url = new URL(path, 'https://oshxona.uz');
+
+    if (how === 'query') url.searchParams.set('_rsc', 'a1b2c');
+
+    const request = new NextRequest(url);
+
+    if (how === 'header') request.headers.set('RSC', '1');
+    if (init?.cookie !== undefined) request.cookies.set('restaurant-campus-locale', init.cookie);
+
+    return middleware(request);
+  };
+
+  it('does not redirect an RSC request that has no language in its path', () => {
+    // 308 here is the loop. Anything else is the payload being served.
+    expect(RSC('/pricing', 'header').status).not.toBe(308);
+    expect(RSC('/pricing', 'header').status).toBe(200);
+  });
+
+  it('reads the marker from the query string too, because a proxy can strip a header', () => {
+    // The edge proxy in front of this deployment already drops `Upgrade`. A fix
+    // that only read the `RSC` header would pass here and loop in production.
+    expect(RSC('/pricing', 'query').status).toBe(200);
+  });
+
+  it('serves it in the language the reader was already reading', () => {
+    const answer = RSC('/pricing', 'header', { cookie: 'ru' });
+
+    expect(answer.status).toBe(200);
+    expect(answer.headers.get('x-middleware-request-x-doc-lang') ?? 'ru').toBe('ru');
+  });
+
+  it('still gives an ordinary request its language, permanently', () => {
+    // The fix must not turn the locale redirect off for everybody else.
+    const answer = AT('/pricing');
+
+    expect(answer.status).toBe(308);
+    expect(goesTo(answer).pathname).toBe('/uz/pricing');
+  });
+
+  it('does not let the RSC marker past a guard', () => {
+    // The marker supplies a language and nothing else. A console route with no
+    // session goes to sign-in, exactly as it did before — it is not bounced to
+    // its own prefixed URL, and it is certainly not served.
+    const answer = RSC('/dashboard', 'header');
+
+    expect(answer.status).toBeGreaterThanOrEqual(300);
+    expect(goesTo(answer).pathname).not.toBe('/uz/dashboard');
+    expect(goesTo(answer).pathname).toContain('/login');
+  });
+});
