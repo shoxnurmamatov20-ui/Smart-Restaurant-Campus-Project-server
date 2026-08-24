@@ -1,7 +1,7 @@
 """Smart Restaurant Campus AI Services — FastAPI application entrypoint."""
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI

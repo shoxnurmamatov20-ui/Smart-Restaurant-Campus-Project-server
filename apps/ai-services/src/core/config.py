@@ -19,11 +19,11 @@ class Settings(BaseSettings):
     # ============ App ============
     app_name: str = "Smart Restaurant Campus AI Services"
     app_version: str = "0.0.0"
-    app_env: str = Field(default="local")          # local | staging | production
+    app_env: str = Field(default="local")  # local | staging | production
     app_debug: bool = Field(default=True)
 
     # ============ Server ============
-    host: str = "0.0.0.0"  # noqa: S104  # container-bound
+    host: str = "0.0.0.0"  # container-bound
     port: int = 8001
 
     # ============ CORS ============

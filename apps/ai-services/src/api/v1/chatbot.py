@@ -6,6 +6,8 @@ request: the model recommends only from what is actually sellable right now,
 because a suggestion the kitchen cannot cook is worse than no suggestion.
 """
 
+from typing import Any
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
@@ -31,8 +33,10 @@ class ChatRequest(BaseModel):
     # Only orderable items — the caller (Laravel) has already applied the stop-list.
     menu: list[MenuItemContext] = Field(default_factory=list)
     guest_allergens: list[str] = Field(default_factory=list)
-    recent_orders: list[str] = Field(default_factory=list, description="SKUs the guest ordered before")
-    context: dict | None = None
+    recent_orders: list[str] = Field(
+        default_factory=list, description="SKUs the guest ordered before"
+    )
+    context: dict[str, Any] | None = None
 
 
 class Suggestion(BaseModel):

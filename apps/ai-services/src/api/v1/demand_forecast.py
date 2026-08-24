@@ -41,7 +41,9 @@ class DemandForecast(BaseModel):
     expected_orders: int
     expected_revenue_tiyin: int
     expected_guests: int
-    peak_hours: list[int] = Field(default_factory=list, description="Local hours, e.g. [13, 19, 20]")
+    peak_hours: list[int] = Field(
+        default_factory=list, description="Local hours, e.g. [13, 19, 20]"
+    )
     items: list[ItemForecast] = Field(default_factory=list)
     confidence: float = Field(default=0.0, ge=0, le=1)
     notes: list[str] = Field(default_factory=list)

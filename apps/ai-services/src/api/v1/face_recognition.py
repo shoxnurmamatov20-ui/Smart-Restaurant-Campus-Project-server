@@ -15,13 +15,15 @@ class FaceMatch(BaseModel):
     staff_member_id: str
     full_name: str | None = None
     confidence: float = Field(ge=0, le=1)
-    bounding_box: dict      # {"x": ..., "y": ..., "w": ..., "h": ...}
+    # Pixel coordinates in the frame that was sent, not a normalised box: the
+    # caller draws it over the same image it uploaded.
+    bounding_box: dict[str, int]
 
 
 class FaceVerificationResult(BaseModel):
     matched: bool
     matches: list[FaceMatch] = Field(default_factory=list)
-    liveness_passed: bool = False   # anti-spoof: a photo of a photo must fail
+    liveness_passed: bool = False  # anti-spoof: a photo of a photo must fail
 
 
 @router.post("/verify", response_model=FaceVerificationResult)
@@ -39,7 +41,7 @@ async def verify_face(file: UploadFile) -> FaceVerificationResult:
 
 
 @router.post("/enroll")
-async def enroll_face(staff_member_id: str, file: UploadFile) -> dict:
+async def enroll_face(staff_member_id: str, file: UploadFile) -> dict[str, str]:
     """Enroll a new face for a staff member."""
     # TODO: store the embedding in the vector DB, keyed by staff_member_id and
     # tenant. Raw photos are not kept — only the embedding.
