@@ -487,6 +487,31 @@ matn i18n katalogida (`console.roles`).
   O'tmish — davomat, kelajak — reja; kelmagan smenaga davomat yozilmaydi.
   Har bir lavozimning o'z vaqti bor (barmen 14–00, omborchi 07–15), chunki
   hammani 09–18 ga tiqish hech bir restoranda bo'lmagan jadval chizadi.
+- **Ombor daftari `StockMovementSeeder` bilan** — har bir ingredientning
+  hozirgi qoldig'idan **orqaga** hisoblanadi, so'ng vaqt tartibida oldinga
+  o'ynatiladi. Ikki qoida: `balance_after` **soat bo'yicha** boradi (kod
+  tartibi bo'yicha emas — birinchi variantda chiqindi keyingi kungi sarfdan
+  keyin qo'llanib, daftar qayta o'ynatilganda boshqa javob berardi), va
+  **javon daftarga ergashadi** — kelishmovchilikda daftar haq.
+  `PurchaseOrderSeeder` — to'rt holat (qoralama, yuborilgan, tasdiqlangan,
+  qabul qilingan); ariza jamisi qatorlar yig'indisiga teng.
+- **Menyu matritsasi — Kasavana–Smith usuli.** Yulduz / ot / topishmoq / it:
+  o'rtachadan ko'p sotilgan — ommabop, o'rtachadan yuqori marja — foydali.
+  Buni hisoblash mumkin, chunki bu **e'lon qilingan usul**, mijoz segmenti kabi
+  biznes egallaydigan tasnif emas: qoida kodda yozilgan va oshpaz rozi
+  bo'lmasa nima sabab bo'lganini ko'radi. Analitika hisobotlari sahifalanmagan
+  — har biri o'z shaklidagi hisobot, shuning uchun `Paginated<T>` emas, alohida
+  tiplangan (`analytics-server.ts`).
+- **Hisoblanadigan ustunlar saqlanmaydi.** Yetkazib beruvchining sarfi, ochiq
+  arizalari va o'z vaqtida yetkazish foizi xarid arizalaridan chiqadi; xodimning
+  bugungi smenasi, ish soati va savdosi smena, davomat va buyurtmalardan.
+  Saqlangan foiz — o'zi umumlashtirgan arizalardan ajralib ketadigan foiz, va
+  buni birinchi bo'lib «kechikdingiz» deb aytilgan yetkazib beruvchi sezadi.
+  Yetkazib beruvchida bazaga faqat **ikkita** ustun qo'shildi: `category` va
+  `lead_time_days` — bularni hech qanday arizadan chiqarib bo'lmaydi.
+- **`clockedIn` — davomatdan, bandlik holatidan emas.** `status = active`
+  «shu yerda ishlaydi» degani, «hozir shu yerda» degani emas; ikkinchisi deb
+  o'qish tunda soat 3 da butun shtatni oshxonada ko'rsatardi.
 - **«Hali fixture» ro'yxati yopildi (2026-08-24 da tekshirildi)** — to'rttala
   toifa ham allaqachon qilingan, ro'yxat esa eskirgan holda turgan edi:
   `crm/feedbacks` va `tables/reservations` `crm-server.ts`/`tables-server.ts`

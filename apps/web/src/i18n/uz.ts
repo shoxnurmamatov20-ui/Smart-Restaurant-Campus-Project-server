@@ -2040,6 +2040,7 @@ export const uz = {
       poNoDate: 'Sana belgilanmagan',
       subtitleCount:
         '{active, plural, =0 {yetkazib beruvchi yo‘q} other {# ta faol}} · {open, plural, =0 {ochiq xarid yo‘q} other {# ta ochiq xarid}} · bu chorakda {spend}M so‘m',
+      days: 'kun',
     },
     staff: {
       tabPeople: 'Xodimlar',
@@ -2183,6 +2184,7 @@ export const uz = {
       subtitleLive:
         '{total} tanish mehmon · {loyalty} sodiqlik a’zosi · {risk} tasi yo‘qolish xavfida',
       historyEmpty: 'Buyurtma tarixi yo‘q',
+      allergy: 'Allergiya',
     },
     till: {
       tabShift: 'Smena',

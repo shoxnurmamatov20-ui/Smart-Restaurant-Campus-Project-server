@@ -1909,6 +1909,7 @@ export const ru: WebMessages = {
       poNoDate: 'Дата не назначена',
       subtitleCount:
         '{active, plural, =0 {нет поставщиков} other {# активных}} · {open, plural, =0 {нет открытых закупок} other {# открытых закупок}} · за квартал {spend}М сум',
+      days: 'дн.',
     },
     staff: {
       tabPeople: 'Сотрудники',
@@ -2050,6 +2051,7 @@ export const ru: WebMessages = {
       subtitleLive:
         '{total} знакомых гостей · {loyalty} в программе лояльности · {risk} под риском ухода',
       historyEmpty: 'Истории заказов нет',
+      allergy: 'Аллергия',
     },
     till: {
       tabShift: 'Смена',

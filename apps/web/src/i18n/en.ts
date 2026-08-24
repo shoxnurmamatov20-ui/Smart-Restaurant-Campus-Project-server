@@ -1916,6 +1916,7 @@ export const en: WebMessages = {
       poNoDate: 'No date set',
       subtitleCount:
         '{active, plural, =0 {no suppliers} other {# active}} · {open, plural, =0 {no open purchases} other {# open purchases}} · {spend}M so‘m this quarter',
+      days: 'days',
     },
     staff: {
       tabPeople: 'People',
@@ -2056,6 +2057,7 @@ export const en: WebMessages = {
       aspPrice: 'Price',
       subtitleLive: '{total} known guests · {loyalty} loyalty members · {risk} at risk of lapsing',
       historyEmpty: 'No order history',
+      allergy: 'Allergy',
     },
     till: {
       tabShift: 'Shift',
