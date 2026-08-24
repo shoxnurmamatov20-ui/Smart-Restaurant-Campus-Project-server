@@ -2,7 +2,7 @@
   "name": "restaurant-campus",
   "version": "0.0.0",
   "private": true,
-  "description": "Smart Restaurant Campus — restoranlar uchun yagona raqamli boshqaruv platformasi (monorepo)",
+  "description": "Smart Restaurant Campus \u2014 restoranlar uchun yagona raqamli boshqaruv platformasi (monorepo)",
   "author": "uzbcorp@gmail.com",
   "license": "UNLICENSED",
   "engines": {
@@ -32,7 +32,8 @@
     "ai:install": "cd apps/ai-services && uv sync",
     "ai:dev": "cd apps/ai-services && uv run uvicorn src.main:app --reload --port 8001",
     "ai:test": "cd apps/ai-services && uv run pytest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "load": "node infrastructure/load/run.mjs --base http://127.0.0.1 --host mypos.tashmedunitf.uz --users 30 --seconds 30"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [

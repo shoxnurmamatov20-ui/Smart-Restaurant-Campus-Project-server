@@ -1,11 +1,13 @@
 packages:
   - 'apps/web'
   - 'apps/admin'
+  - 'apps/mobile'
   - 'packages/*'
 
-# Note: apps/mobile is Phase 2 and holds only a README — it has no package.json,
-# so listing it here would be a workspace entry pointing at nothing. Add it back
-# in the same commit that adds the Expo app.
+# apps/mobile is the Expo shell: the five phone surfaces as a native app, sharing
+# `@restaurant/types`, `@restaurant/utils` and `@restaurant/i18n` with the web
+# build. It deliberately does NOT depend on `packages/ui` — those primitives are
+# DOM and Tailwind, and a React Native tree has neither.
 #
 # The till used to be a third app here (apps/pos, port 3002). It was folded back
 # into the staff console: POS is module 12, and a module is a section of
