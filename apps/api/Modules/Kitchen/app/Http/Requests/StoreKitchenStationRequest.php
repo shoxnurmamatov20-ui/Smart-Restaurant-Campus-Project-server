@@ -29,6 +29,7 @@ final class StoreKitchenStationRequest extends FormRequest
         return [
             'code' => ['required', 'string', 'max:32', 'regex:/^[a-z_]+$/', Rule::unique('kitchen_stations', 'code')->where(fn (Builder $query) => $query->where('tenant_id', $tenantId))],
             'name' => ['required', 'string', 'max:120'],
+            'printer_id' => ['nullable', 'integer', Rule::exists('printers', 'id')->where(fn (Builder $query) => $query->where('tenant_id', $tenantId))],
             'sla_minutes' => ['nullable', 'integer', 'min:1', 'max:240'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'is_active' => ['nullable', 'boolean'],

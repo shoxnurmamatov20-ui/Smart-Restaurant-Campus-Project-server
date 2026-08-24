@@ -25,7 +25,6 @@ final class KitchenController extends Controller
             'endpoints' => [
                 'stations' => url('/api/v1/kitchen/stations'),
                 'tickets' => url('/api/v1/kitchen/tickets'),
-                'dispatch' => url('/api/v1/kitchen/dispatch'),
             ],
             'counts' => [
                 // Counted in the database. The kitchen display polls this

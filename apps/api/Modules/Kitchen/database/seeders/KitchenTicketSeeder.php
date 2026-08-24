@@ -35,7 +35,7 @@ final class KitchenTicketSeeder extends Seeder
      * Late ones are the point of the screen — the design colours a ticket past
      * its SLA red — so the oldest are deliberately left `cooking`.
      */
-    private const SPREAD = ['new', 'new', 'cooking', 'cooking', 'ready'];
+    private const SPREAD = ['new', 'accepted', 'cooking', 'cooking', 'ready'];
 
     public function run(): void
     {
@@ -45,7 +45,7 @@ final class KitchenTicketSeeder extends Seeder
         $orders = DB::table('orders.orders')
             ->whereIn('status', ['placed', 'accepted', 'cooking', 'ready'])
             ->orderBy('id')
-            ->get(['id', 'tenant_id', 'number', 'channel', 'table_label', 'placed_at']);
+            ->get(['id', 'tenant_id', 'number', 'channel', 'table_label', 'waiter_user_id', 'placed_at']);
 
         if ($orders->isEmpty()) {
             $this->command?->warn('⏭  Kitchen: ochiq buyurtma yo\'q — avval OrdersDatabaseSeeder.');
@@ -79,6 +79,8 @@ final class KitchenTicketSeeder extends Seeder
                         // renamed or retired and the ticket should still say
                         // where the food goes.
                         'table_label' => $order->table_label,
+                        // And who is waiting for it — the name the pass shouts.
+                        'waiter_user_id' => $order->waiter_user_id,
                         'channel' => $order->channel,
                         'status' => $status,
                         'lines' => $stationLines->map(fn ($line): array => [

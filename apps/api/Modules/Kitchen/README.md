@@ -22,10 +22,10 @@
 
 ## Database jadvallar (rejalashtirilgan)
 
-- `kitchen_stations` — sexlar (issiq, sovuq, mangal, bar)
-- `kitchen_tickets` — oshxona chiptalari
-- `kitchen_ticket_items` — chipta satrlari
-- `kitchen_ticket_events` — holat o'zgarishlari va taymerlar
+- `kitchen_stations` — sexlar (issiq, sovuq, mangal, bar) + `printer_id`
+- `kitchen_tickets` — oshxona chiptalari (satrlar `lines` jsonb snapshot'ida)
+- `kitchen_printers` — printer parki
+- `kitchen_print_jobs` — chop etish navbati
 
 Har bir jadvalda `tenant_id` bo'ladi va model `BelongsToTenant` trait'ini
 ishlatadi — bitta restoran boshqasining ma'lumotini hech qachon ko'rmaydi.
@@ -49,12 +49,51 @@ Har bir amal Spatie permission bilan himoyalangan:
 
 ---
 
+## Qog'oz — printerlar va chop etish navbati (P8)
+
+Bu modul oshxona ekranidan tashqari **printer parkini** ham ushlaydi: sex
+docket'i, mijoz cheki va naqd yashigi impulsi. Nega shu yerda — printer sex
+bilan bir xil narsani biladi (nima qayerda pishadi), va ularni ajratish
+`kitchen_stations` bilan `printers` orasiga modul chegarasini qo'yardi.
+Ko'chirish sharti bitta: printer parki sexdan mustaqil bo'lganda alohida
+`Printing` moduliga chiqadi va `App\Contracts\Printing\PrintSpooler` o'zgarmaydi.
+
+| Jadval                        | Nima                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `kitchen.printers`            | Qurilma reyestri: filial, roli, ulanish, kengligi, kod sahifasi, tiriklik |
+| `kitchen.print_jobs`          | Chidamli navbat: bosilishi kerak bo'lgan va bosilgan hujjatlar            |
+| `kitchen_stations.printer_id` | Sex → printer marshruti; `null` bo'lsa filial standarti                   |
+
+**Asosiy qoida: ilova hech qachon printerga ulanmaydi.** U tranzaksiya ichida
+navbatga bitta qator yozadi va qaytadi. Printerga baytlarni lokal agent yozadi —
+`Modules/Kitchen/docs/print-agent-design.md`. Sababi: `TenderService::settle()`
+butunlay `DB::transaction` ichida, va u yerdagi sinxron chop etish yiqilsa,
+karta terminalda o'tkazilgan to'lov orqaga qaytardi.
+
+Render serverda: `Modules/Kitchen/app/Printing/`. `Charset` o'zbek lotinidagi
+`oʻ`/`gʻ` (U+02BB) ni hal qiladi — u hech qanday termal printer kod sahifasida
+yo'q, va e'tiborsiz qoldirilsa har bir chekda savol belgisi chiqadi.
+
+```
+GET    /api/v1/kitchen/printers/health     — holat qatori (pos.view|kitchen.view)
+GET    /api/v1/kitchen/printers            — reyestr (kitchen.view)
+POST   /api/v1/kitchen/printers            — qo'shish (kitchen.manage)
+POST   /api/v1/kitchen/printers/{p}/test   — sinov chop etish (kitchen.manage)
+POST   /api/v1/kitchen/print-jobs/claim    — agent ish so'raydi (kitchen.update)
+POST   /api/v1/kitchen/tickets/{t}/print   — docket'ni qayta bosish (kitchen.update)
+POST   /api/v1/kitchen/receipts            — chekni qayta bosish (pos.sell)
+```
+
+---
+
 ## Boshqa modullar bilan bog'liqlik
 
 - **Orders** — buyurtma chiptaga aylanadi
 - **Menu** — taomning sexi va standart tayyorlash vaqti
 - **Warehouse** — tayyorlangan taom ingredientni hisobdan chiqaradi
 - **Analytics** — oshxona samaradorligi ko'rsatkichlari
+- **Pos** — chek va naqd yashigi, `App\Contracts\Printing\PrintSpooler` orqali
+  (Pos bu modulni import qilmaydi)
 
 ---
 

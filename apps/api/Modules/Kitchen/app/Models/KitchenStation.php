@@ -13,10 +13,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Modules\Kitchen\Database\Factories\KitchenStationFactory;
+use Modules\Kitchen\Printing\PrinterRouter;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -27,6 +29,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $tenant_id
  * @property string $code Matches MenuItem::STATIONS, e.g. grill
  * @property string $name
+ * @property int|null $printer_id Where this section's dockets come out
  * @property int $sla_minutes Ticket is late past this
  * @property int $sort_order
  * @property bool $is_active
@@ -37,6 +40,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Branch|null $branch
+ * @property-read Printer|null $printer
  * @property-read Tenant|null $tenant
  * @property-read Collection<int, KitchenTicket> $tickets
  * @property-read int|null $tickets_count
@@ -54,6 +58,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|KitchenStation whereId($value)
  * @method static Builder<static>|KitchenStation whereIsActive($value)
  * @method static Builder<static>|KitchenStation whereName($value)
+ * @method static Builder<static>|KitchenStation wherePrinterId($value)
  * @method static Builder<static>|KitchenStation whereSlaMinutes($value)
  * @method static Builder<static>|KitchenStation whereSortOrder($value)
  * @method static Builder<static>|KitchenStation whereTenantId($value)
@@ -80,6 +85,7 @@ final class KitchenStation extends Model
         'tenant_id',
         'code',
         'name',
+        'printer_id',
         'sla_minutes',
         'sort_order',
         'is_active',
@@ -106,6 +112,21 @@ final class KitchenStation extends Model
         return $this->hasMany(KitchenTicket::class, 'station', 'code');
     }
 
+    /**
+     * Where this section's dockets come out.
+     *
+     * Nullable, and the fallback lives in {@see PrinterRouter}
+     * rather than here: a station with no printer of its own uses the branch's
+     * default kitchen printer, which is what most restaurants actually have —
+     * one machine at the pass and five stations pointing at it.
+     *
+     * @return BelongsTo<Printer, $this>
+     */
+    public function printer(): BelongsTo
+    {
+        return $this->belongsTo(Printer::class);
+    }
+
     // ============ Scopes ============
 
     public function scopeActive(Builder $query): Builder
@@ -118,7 +139,7 @@ final class KitchenStation extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['tenant_id', 'code', 'name', 'sla_minutes', 'is_active'])
+            ->logOnly(['tenant_id', 'code', 'name', 'printer_id', 'sla_minutes', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('kitchen.station');

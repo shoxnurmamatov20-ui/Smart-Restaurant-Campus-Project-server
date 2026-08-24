@@ -9,14 +9,18 @@ use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Support\Settings\Policies;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Modules\Kitchen\Database\Factories\KitchenTicketFactory;
+use Modules\Kitchen\Events\TicketMoved;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -33,6 +37,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $order_number
  * @property string $station
  * @property string|null $table_label
+ * @property int|null $waiter_user_id public.users id, snapshot at fire time
  * @property string $channel
  * @property string $status new
  * @property array<array-key, mixed>|null $lines [{sku,title,quantity,note}]
@@ -50,6 +55,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read int $elapsed_minutes
  * @property-read bool $is_late
  * @property-read Tenant|null $tenant
+ * @property-read User|null $waiter
  *
  * @method static Builder<static>|KitchenTicket active()
  * @method static \Modules\Kitchen\Database\Factories\KitchenTicketFactory factory($count = null, $state = [])
@@ -94,7 +100,23 @@ final class KitchenTicket extends Model
 
     protected $table = 'kitchen.kitchen_tickets';
 
-    public const STATUSES = ['new', 'cooking', 'ready', 'served', 'recalled', 'cancelled'];
+    /**
+     * The ladder a docket climbs.
+     *
+     * `accepted` was missing, and its absence was visible on the wall: the
+     * design's board has five columns — new, accepted, cooking, ready, served —
+     * and the second could never fill, because nothing could put a ticket in
+     * it. The comment in BillRegistry::send() already described the state as a
+     * cook's first act ("`accepted` when they take the ticket, `cooking` when
+     * they start"); only the value was missing.
+     *
+     * It earns its place by answering a question the other states cannot: has
+     * anybody looked at this yet. A ticket sitting at `new` for six minutes is a
+     * ticket nobody has seen; the same ticket at `accepted` is one a cook is
+     * holding. Those are different problems and the chef running the pass fixes
+     * them differently.
+     */
+    public const STATUSES = ['new', 'accepted', 'cooking', 'ready', 'served', 'recalled', 'cancelled'];
 
     protected $fillable = [
         'tenant_id',
@@ -102,6 +124,7 @@ final class KitchenTicket extends Model
         'order_number',
         'station',
         'table_label',
+        'waiter_user_id',
         'channel',
         'status',
         'lines',
@@ -127,6 +150,20 @@ final class KitchenTicket extends Model
         return KitchenTicketFactory::new();
     }
 
+    // ============ Relationships ============
+
+    /**
+     * Who is waiting for this plate.
+     *
+     * Reads `public.users`, which is core and not another module — the docket
+     * carries the id as a snapshot (see the migration) and this only turns it
+     * into a name. Kitchen still never touches `orders.orders`.
+     */
+    public function waiter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'waiter_user_id');
+    }
+
     // ============ Accessors ============
 
     /** Minutes since the ticket hit the pass — what the cook sees counting up. */
@@ -148,15 +185,83 @@ final class KitchenTicket extends Model
      */
     protected function isLate(): Attribute
     {
-        return Attribute::get(fn (): bool => in_array($this->status, ['new', 'cooking'], true)
-            && $this->elapsed_minutes > $this->sla_minutes);
+        // `accepted` counts as late too: a claimed ticket nobody has started is
+        // exactly the one the pass needs shouted about.
+        return Attribute::get(fn (): bool => in_array($this->status, ['new', 'accepted', 'cooking'], true)
+            && $this->elapsed_minutes > self::lateAfterMinutes($this->sla_minutes));
+    }
+
+    /**
+     * How long this ticket has before the docket turns red.
+     *
+     * The station's own `sla_minutes` unless the restaurant has set a house
+     * rule — `policies.kds_late_minutes`, which the console's *"Chek rangi bilan
+     * ogohlantirish"* switch writes. Zero, the default, means the station
+     * decides, and that is the right default: a grill and a bar have genuinely
+     * different clocks, and one number across a kitchen would make either the
+     * drinks permanently red or the steaks permanently green.
+     *
+     * A house rule OVERRIDES rather than caps. A venue that says ten minutes
+     * means ten minutes at every pass — including a station whose own figure is
+     * twenty — because the person setting it is answering "how long may a guest
+     * wait", not "how long does this pan take".
+     */
+    public static function lateAfterMinutes(int $stationMinutes): int
+    {
+        $house = app(Policies::class)->number('kds_late_minutes');
+
+        return $house > 0 ? $house : $stationMinutes;
+    }
+
+    /**
+     * Announce every move, from one place.
+     *
+     * There are four methods that change a status and there will be a fifth, so
+     * dispatching from each is four chances to forget and one screen that
+     * silently stops updating. A model hook cannot be forgotten: whatever
+     * changes the column, the floor and the pass both hear about it.
+     *
+     * `getOriginal` gives the state it came from, which is what lets a screen
+     * that missed a message tell it is behind rather than assuming it is
+     * current.
+     */
+    protected static function booted(): void
+    {
+        self::updated(static function (self $ticket): void {
+            if (! $ticket->wasChanged('status')) {
+                return;
+            }
+
+            TicketMoved::dispatch($ticket, (string) $ticket->getOriginal('status'));
+        });
     }
 
     // ============ Domain behaviour ============
 
-    public function start(): bool
+    /**
+     * A cook takes the ticket.
+     *
+     * Separate from starting it, because in a real kitchen they are separate:
+     * the ticket is claimed off the rail first and the pan goes on when there is
+     * room. Collapsing them would make every accepted ticket look like it was
+     * already cooking, and the pass would lose the one signal that says which
+     * tickets nobody has picked up.
+     */
+    public function accept(): bool
     {
         if (! in_array($this->status, ['new', 'recalled'], true)) {
+            return false;
+        }
+
+        return $this->update(['status' => 'accepted']);
+    }
+
+    public function start(): bool
+    {
+        // From `accepted` too, which is the normal path now: claimed, then
+        // started. Straight from `new` stays legal — a quiet kitchen with one
+        // cook has no use for the middle step.
+        if (! in_array($this->status, ['new', 'accepted', 'recalled'], true)) {
             return false;
         }
 
@@ -165,7 +270,7 @@ final class KitchenTicket extends Model
 
     public function markReady(): bool
     {
-        if (! in_array($this->status, ['new', 'cooking', 'recalled'], true)) {
+        if (! in_array($this->status, ['new', 'accepted', 'cooking', 'recalled'], true)) {
             return false;
         }
 
@@ -199,7 +304,7 @@ final class KitchenTicket extends Model
     /** Everything still owed to a guest. */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->whereIn('status', ['new', 'cooking', 'recalled']);
+        return $query->whereIn('status', ['new', 'accepted', 'cooking', 'recalled']);
     }
 
     /**
@@ -220,10 +325,18 @@ final class KitchenTicket extends Model
         // The clock comes from PHP as a bound parameter rather than from SQL's
         // now(): it keeps the comparison independent of the database server's
         // timezone, and it makes the scope testable with Carbon::setTestNow().
-        return $query->whereIn('status', ['new', 'cooking'])
+        $house = app(Policies::class)->number('kds_late_minutes');
+
+        // The house rule as a bound parameter, or the station's own column —
+        // the same choice `lateAfterMinutes()` makes, expressed in SQL. Two
+        // readings of one rule, and the accessor and the count on the same
+        // screen disagreeing is exactly what this pair exists to prevent.
+        return $query->whereIn('status', ['new', 'accepted', 'cooking'])
             ->whereRaw(
-                'extract(epoch from (? - coalesce(started_at, created_at))) / 60 > sla_minutes',
-                [now()],
+                $house > 0
+                    ? 'extract(epoch from (? - coalesce(started_at, created_at))) / 60 > ?'
+                    : 'extract(epoch from (? - coalesce(started_at, created_at))) / 60 > sla_minutes',
+                $house > 0 ? [now(), $house] : [now()],
             );
     }
 

@@ -22,6 +22,14 @@ final class KitchenStationResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
+            /*
+             * Which printer this section's dockets come out of, and null when it
+             * uses the branch default. The console's printer screen needs the
+             * distinction: "not configured" and "configured to the same device
+             * as everything else" look identical on paper and are different
+             * things to change.
+             */
+            'printer_id' => $this->printer_id,
             'sla_minutes' => $this->sla_minutes,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,

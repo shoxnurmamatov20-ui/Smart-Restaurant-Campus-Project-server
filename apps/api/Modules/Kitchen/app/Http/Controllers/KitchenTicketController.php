@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace Modules\Kitchen\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Modules\Kitchen\Http\Requests\StoreKitchenTicketRequest;
 use Modules\Kitchen\Http\Requests\UpdateKitchenTicketRequest;
 use Modules\Kitchen\Http\Resources\KitchenTicketResource;
-use Modules\Kitchen\Models\KitchenStation;
 use Modules\Kitchen\Models\KitchenTicket;
-use Modules\Orders\Models\Order;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -32,7 +29,10 @@ final class KitchenTicketController extends Controller
     {
         $perPage = min($request->integer('per_page', 25), self::MAX_PER_PAGE);
 
-        $records = QueryBuilder::for(KitchenTicket::class)
+        // Eager on the query rather than on the builder chain: one query for
+        // the whole board instead of one per card, and the KDS reloads every
+        // few seconds with every card naming its waiter.
+        $records = QueryBuilder::for(KitchenTicket::query()->with('waiter'))
             ->allowedFilters([
                 AllowedFilter::exact('station'),
                 AllowedFilter::exact('status'),
@@ -81,6 +81,21 @@ final class KitchenTicketController extends Controller
         return response()->noContent();
     }
 
+    /**
+     * A cook takes the ticket off the rail.
+     *
+     * Separate from starting it because a kitchen is: the ticket is claimed
+     * first and the pan goes on when there is room. It is also the button the
+     * plan's acceptance test presses — the waiter's chip turns amber the moment
+     * this lands, without their tablet asking anybody.
+     */
+    public function accept(KitchenTicket $ticket): KitchenTicketResource
+    {
+        abort_unless($ticket->accept(), 422, "Bu chiptani qabul qilib bo'lmaydi.");
+
+        return new KitchenTicketResource($ticket->refresh());
+    }
+
     public function start(KitchenTicket $ticket): KitchenTicketResource
     {
         abort_unless($ticket->start(), 422, "Bu chiptani boshlab bo'lmaydi.");
@@ -115,49 +130,4 @@ final class KitchenTicketController extends Controller
      * One ticket per station, because the grill and the bar work in parallel and
      * a single combined ticket makes both wait for the slower one.
      */
-    public function dispatchOrder(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'order_id' => ['required', 'integer', 'exists:orders,id'],
-        ]);
-
-        /** @var Order $order */
-        $order = Order::query()->with('items')->findOrFail($validated['order_id']);
-
-        $slaByStation = KitchenStation::query()->pluck('sla_minutes', 'code');
-        $created = [];
-
-        foreach ($order->items->groupBy('station') as $station => $lines) {
-            $existing = KitchenTicket::query()
-                ->where('order_id', $order->id)
-                ->where('station', $station)
-                ->first();
-
-            $payload = [
-                'order_id' => $order->id,
-                'order_number' => $order->number,
-                'station' => (string) $station,
-                'table_label' => $order->table_label,
-                'channel' => $order->channel,
-                'sla_minutes' => (int) ($slaByStation[$station] ?? 20),
-                'lines' => $lines->map(fn ($line): array => [
-                    'sku' => $line->sku,
-                    'title' => $line->title,
-                    'quantity' => $line->quantity,
-                    'note' => $line->note,
-                ])->values()->all(),
-            ];
-
-            // Re-dispatching an edited order updates the ticket in place rather
-            // than printing a second one the cook has to reconcile by hand.
-            $created[] = $existing
-                ? tap($existing)->update($payload)
-                : KitchenTicket::create($payload + ['status' => 'new']);
-        }
-
-        return response()->json([
-            'order_id' => $order->id,
-            'tickets' => KitchenTicketResource::collection(collect($created)),
-        ], 201);
-    }
 }

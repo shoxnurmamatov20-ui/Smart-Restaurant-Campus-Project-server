@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Kitchen\Tests\Feature;
 
+use App\Contracts\Orders\BillRegistry;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -11,8 +12,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Kitchen\Models\KitchenStation;
 use Modules\Kitchen\Models\KitchenTicket;
 use Modules\Menu\Models\MenuItem;
-use Modules\Orders\Models\Order;
-use Modules\Orders\Models\OrderItem;
+use Modules\Menu\Models\ModifierGroup;
+use Modules\Menu\Models\ModifierOption;
 use Tests\TestCase;
 
 /**
@@ -44,6 +45,27 @@ final class KitchenTicketTest extends TestCase
         $this->actingAs($user);
 
         return $user;
+    }
+
+    /**
+     * The registry, resolved fresh each time it is asked for.
+     *
+     * A property set in setUp() would be resolved before `actingAs` has put a
+     * tenant in the context, and the bill it opened would belong to nobody.
+     */
+    private function bills(): BillRegistry
+    {
+        return app(BillRegistry::class);
+    }
+
+    /** A dish that comes off one station. */
+    private function dish(string $station, string $sku = 'KIT-1'): MenuItem
+    {
+        return MenuItem::factory()->create([
+            'sku' => $sku.'-'.$station,
+            'station' => $station,
+            'price' => 4_500_000,
+        ]);
     }
 
     // ============ Auth & RBAC ============
@@ -168,38 +190,77 @@ final class KitchenTicketTest extends TestCase
 
     // ============ Dispatch ============
 
-    public function test_an_order_becomes_one_ticket_per_station(): void
+    /*
+     * Firing goes through the bill, not through a door of its own.
+     *
+     * These called `POST /kitchen/dispatch`, which no longer exists. It was the
+     * second half of a two-call fire: the client transitioned the bill and then
+     * had to remember to ask for the dockets, and a tablet that lost signal in
+     * between left a bill reading "sent" with nothing on any pass. `send()` now
+     * does both in one transaction, so the only way to fire is to fire.
+     */
+    public function test_a_fired_bill_becomes_one_ticket_per_station(): void
     {
         $this->actingAsChef();
         KitchenStation::factory()->create(['code' => 'grill', 'sla_minutes' => 25]);
 
-        $order = Order::factory()->create(['table_label' => 'A-7']);
-        OrderItem::factory()->count(2)->create(['order_id' => $order->id, 'station' => 'grill']);
-        OrderItem::factory()->create(['order_id' => $order->id, 'station' => 'bar']);
+        $bill = $this->bills()->open('dine_in', tableLabel: 'A-7');
+        $this->bills()->addLine($bill->id, $this->dish('grill')->id, 2);
+        $this->bills()->addLine($bill->id, $this->dish('bar')->id, 1);
 
-        $this->postJson('/api/v1/kitchen/dispatch', ['order_id' => $order->id])
-            ->assertCreated()
-            ->assertJsonCount(2, 'tickets');
+        $this->bills()->send($bill->id);
 
-        $grill = KitchenTicket::where('order_id', $order->id)->where('station', 'grill')->firstOrFail();
-        $this->assertCount(2, $grill->lines);
+        $this->assertSame(2, KitchenTicket::where('order_id', $bill->id)->count());
+
+        $grill = KitchenTicket::where('order_id', $bill->id)->where('station', 'grill')->firstOrFail();
+        $this->assertCount(1, $grill->lines, 'Two of one dish is one line of quantity two');
         $this->assertSame('A-7', $grill->table_label);
         $this->assertSame(25, $grill->sla_minutes, 'The station SLA must win over the default');
     }
 
-    public function test_redispatching_an_edited_order_updates_the_ticket_in_place(): void
+    public function test_refiring_an_edited_bill_updates_the_ticket_in_place(): void
     {
         $this->actingAsChef();
-        $order = Order::factory()->create();
-        OrderItem::factory()->create(['order_id' => $order->id, 'station' => 'hot']);
 
-        $this->postJson('/api/v1/kitchen/dispatch', ['order_id' => $order->id])->assertCreated();
-        OrderItem::factory()->create(['order_id' => $order->id, 'station' => 'hot']);
-        $this->postJson('/api/v1/kitchen/dispatch', ['order_id' => $order->id])->assertCreated();
+        $bill = $this->bills()->open('dine_in');
+        $this->bills()->addLine($bill->id, $this->dish('hot')->id, 1);
+        $this->bills()->send($bill->id);
+
+        $this->bills()->addLine($bill->id, $this->dish('hot', 'HOT-2')->id, 1);
+        $this->bills()->send($bill->id);
 
         // One ticket, not two — the cook must not have to reconcile duplicates.
-        $this->assertSame(1, KitchenTicket::where('order_id', $order->id)->count());
-        $this->assertCount(2, KitchenTicket::where('order_id', $order->id)->firstOrFail()->lines);
+        $this->assertSame(1, KitchenTicket::where('order_id', $bill->id)->count());
+        $this->assertCount(2, KitchenTicket::where('order_id', $bill->id)->firstOrFail()->lines);
+    }
+
+    public function test_the_docket_carries_what_the_guest_actually_asked_for(): void
+    {
+        /*
+         * The field that matters most on the whole ticket. "No onion" is not a
+         * preference — for somebody with an allergy it is the reason they can
+         * eat — and the docket carried sku, title, quantity and note and
+         * nothing else. From the day modifiers shipped, a cook would have
+         * plated exactly the wrong dish while the tablet showed the right one.
+         */
+        $this->actingAsChef();
+
+        $dish = $this->dish('grill');
+        $group = ModifierGroup::factory()->create(['is_multi' => true, 'min_choices' => 0, 'max_choices' => 3]);
+        $noOnion = ModifierOption::factory()->free()->create(['modifier_group_id' => $group->id]);
+        $dish->modifierGroups()->attach($group->id, ['tenant_id' => $dish->tenant_id]);
+
+        $bill = $this->bills()->open('dine_in');
+        $this->bills()->addLine($bill->id, $dish->id, 1, seatNo: 3, modifierChoiceIds: [$noOnion->id]);
+        $this->bills()->send($bill->id);
+
+        $ticket = KitchenTicket::where('order_id', $bill->id)->firstOrFail();
+        $line = $ticket->lines[0];
+
+        $this->assertSame(['Piyozsiz'], $line['modifiers']);
+        // And which guest, so a runner can put four steaks down in front of the
+        // right four people without asking.
+        $this->assertSame(3, $line['seat_no']);
     }
 
     // ============ Module info ============
@@ -249,23 +310,22 @@ final class KitchenTicketTest extends TestCase
             ->assertApiError('tenant.mismatch');
     }
 
-    public function test_dispatch_snapshots_the_dish_titles(): void
+    public function test_the_docket_snapshots_the_dish_title(): void
     {
+        // The cook is holding paper, or a screen that has not refreshed. What
+        // it names has to keep meaning what it meant when it was fired — the
+        // same rule the receipt follows on the money.
         $this->actingAsChef();
-        $dish = MenuItem::factory()->create(['station' => 'hot']);
-        $order = Order::factory()->create();
-        OrderItem::factory()->create([
-            'order_id' => $order->id,
-            'station' => 'hot',
-            'sku' => $dish->sku,
-            'title' => 'Osh (to\'y palov)',
-            'quantity' => 2,
-        ]);
 
-        $this->postJson('/api/v1/kitchen/dispatch', ['order_id' => $order->id])->assertCreated();
+        $dish = $this->dish('hot');
+        $bill = $this->bills()->open('dine_in');
+        $this->bills()->addLine($bill->id, $dish->id, 1);
+        $this->bills()->send($bill->id);
 
-        $ticket = KitchenTicket::where('order_id', $order->id)->firstOrFail();
-        $this->assertSame("Osh (to'y palov)", $ticket->lines[0]['title']);
-        $this->assertSame(2, $ticket->lines[0]['quantity']);
+        $dish->forceFill(['name' => ['uz' => 'Boshqa nom', 'ru' => 'Другое', 'en' => 'Renamed']])->save();
+
+        $ticket = KitchenTicket::where('order_id', $bill->id)->firstOrFail();
+
+        $this->assertNotSame('Boshqa nom', $ticket->lines[0]['title']);
     }
 }
