@@ -1,0 +1,100 @@
+/*
+ * MyPOS Marketplace.
+ *
+ * A neutral surface deliberately: a marketplace carries eight restaurants'
+ * brands on one screen, and a platform that also asserts its own colour makes
+ * every card fight the page. The accent here is the platform's own and it is
+ * used for exactly two things — the price a guest is about to pay, and the
+ * button that commits it.
+ */
+[data-mp] {
+  --mp-bg: var(--bg-subtle);
+  --mp-card: var(--surface);
+
+  /*
+   * The app frame's gutter — `MyPOS Marketplace - Ilova.dc.html` pads its
+   * sections `0 18px` and its rows `16px 18px`, so eighteen is the number the
+   * whole 390px column is measured from.
+   *
+   * Declared here because two screens already wrote `px-[var(--mp-gutter)]`
+   * against a token nothing defined. An unresolved custom property is not an
+   * error — it resolves to nothing — so `/mp/orders` and `/mp/profile` rendered
+   * with their content flush to the edge of the phone and looked like a
+   * different app from the four screens beside them.
+   */
+  --mp-gutter: 18px;
+
+  /*
+   * A card that sits on the marketplace ground. Same role as `--mp-card`, and
+   * declared as its own name because the orders list uses it with a left accent
+   * stripe where the store grid does not — one token per role rather than one
+   * per colour, so a future dark tuning can part them.
+   */
+  --mp-surface: var(--mp-card);
+
+  background: var(--mp-bg);
+  color: var(--fg);
+}
+
+/*
+ * The design draws this twice — a website and an app — and it is built once.
+ * Below 640 the header nav becomes a bottom dock and the store grid becomes a
+ * single column of full-bleed cards, which is the whole difference between the
+ * two framings.
+ */
+[data-mp] [data-mp-dock] {
+  display: flex;
+}
+
+@media (min-width: 640px) {
+  [data-mp] [data-mp-dock] {
+    display: none;
+  }
+}
+
+[data-mp] [data-mp-nav] {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  [data-mp] [data-mp-nav] {
+    display: flex;
+  }
+}
+
+/* 44px, and 52 for the one button that spends money. */
+[data-mp] [data-tap] {
+  min-height: 44px;
+}
+
+[data-mp] [data-tap='pay'] {
+  min-height: 52px;
+}
+
+/*
+ * A horizontal scroller: cuisines, filters, the three store rails, the nine
+ * circles under "Yaqin atrofda".
+ *
+ * `data-mp-rail` rather than `data-rail`, and the rename is the whole point:
+ * `packages/ui/src/styles/motion.css` binds `[data-rail] > div` to `railIn`,
+ * the wipe a **progress bar** makes when it appears. Two meanings on one
+ * attribute meant every store card in a scroller grew out of its own left edge
+ * on mount, and the loyalty bar on the profile picked up `display: flex` and
+ * `overflow-x: auto` from this rule. One attribute, one meaning.
+ */
+[data-mp] [data-mp-rail] {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-mp] [data-mp-rail]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-mp] [data-mp-rail] > * {
+  scroll-snap-align: start;
+}

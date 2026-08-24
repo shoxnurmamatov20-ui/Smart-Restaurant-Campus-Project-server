@@ -1,0 +1,298 @@
+/* ============================================================
+   The customer phone surface
+
+   Three surfaces in this repository are drawn for a phone — the QR menu,
+   the staff app and this one — and all three were about to invent their own
+   answer to the same four questions. This file is the agreed answer for
+   `(customer)`; `(guest)` and `(staff)` hold the same mechanism with their own
+   gutter. What is shared is written down here rather than in three heads:
+
+     --phone-measure   the content column, 390px, from FOUNDATIONS §10
+     --phone-gutter    horizontal padding — per surface, NOT shared:
+                       the customer app is drawn at 20px throughout and the
+                       Telegram mini app at 16px, both in the design files
+     --tap-min         44px, FOUNDATIONS §10, non-negotiable on a phone
+
+   No device frame. The design file draws a 390x844 rounded bezel with a fake
+   9:41 clock and battery glyphs, and that is the review board, not the
+   product — FOUNDATIONS §9 says phone surfaces render full-bleed at <=560 and
+   START-HERE §3 says to strip the demo affordances. Above 560 the column is
+   centred on a muted field as a card, which is the design's composition
+   without the phone costume.
+   ============================================================ */
+
+/*
+ * Both selectors, and that is not belt-and-braces.
+ *
+ * These were declared on `.cx` alone while the layout marks the surface with
+ * `data-customer`, so `--phone-gutter` resolved to nothing and every
+ * `px-[var(--phone-gutter)]` on the home screen collapsed to zero padding — text
+ * against the edge of the glass, on a screen that looked deliberate enough that
+ * nobody questioned it.
+ *
+ * `[data-customer]` is what the layout actually sets and is the one that matters;
+ * `.cx` is kept because the design file's own markup uses it and screens copied
+ * from it carry the class.
+ */
+[data-customer],
+.cx {
+  --phone-measure: 390px;
+  --phone-gutter: 20px;
+  --tap-min: 44px;
+
+  /* The primary call to action — pay, place, confirm. Taller than the 44px
+     floor on purpose: it is the one control on its screen that costs money,
+     and the extra height is what stops a thumb reaching for it and finding the
+     tab bar instead. */
+  --tap-lg: 52px;
+
+  /* How much room the docked bar takes out of the scroll region. 64px of bar
+     plus the home-indicator inset, so the last row of a list clears it. */
+  --cx-dock: calc(64px + env(safe-area-inset-bottom, 0px));
+
+  min-height: 100dvh;
+  background: var(--bg-muted);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  display: flex;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------
+   The shell: a column that owns the viewport height
+
+   `100dvh` and not `100vh`. Mobile Safari sizes `vh` against the viewport
+   with its toolbar collapsed, so `100vh` is taller than what the reader can
+   see and the docked bar sits below the fold — the exact bug that makes a
+   checkout button unreachable on the one device it matters on.
+   ------------------------------------------------------------ */
+.cx-shell {
+  width: 100%;
+  max-width: var(--phone-measure);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* The card treatment, only where there is room for it. Below this the surface
+   is the whole screen and a border would be a line down the edge of a phone. */
+@media (min-width: 561px) {
+  .cx {
+    padding: 24px 20px;
+  }
+
+  .cx-shell {
+    /* The page padding, or the shell overflows the field it floats on. */
+    height: calc(100dvh - 48px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+  }
+}
+
+/* ------------------------------------------------------------
+   The scroll region
+
+   `min-height: 0` is load-bearing. A flex child's default `min-height: auto`
+   refuses to shrink below its content, so without it the column grows past the
+   viewport, `overflow-y` never engages, and the list scrolls the page behind
+   the dock instead of scrolling under it.
+
+   `overscroll-behavior: contain` stops the rubber-band at the end of a long
+   menu from handing the scroll to the document underneath.
+   ------------------------------------------------------------ */
+.cx-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.cx-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.cx-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+.cx-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Room at the bottom of a scrolling screen for the bar that floats over it. */
+.cx-scroll[data-docked='true'] {
+  padding-bottom: var(--cx-dock);
+}
+
+/* ------------------------------------------------------------
+   The docked bar — tab dock, or a single call to action
+
+   `sticky`, not `fixed`. A fixed bar is positioned against the viewport, so on
+   a wide screen it would break out of the centred column and run the full
+   width of the page; it also mispositions inside any transformed ancestor.
+   Sticky keeps it inside the shell, which is where it belongs.
+
+   `env(safe-area-inset-bottom)` reads 0 unless the document declares
+   `viewport-fit=cover`. That declaration lives in the root layout, which this
+   surface does not own — it has been reported. Until it lands the inset is
+   zero and this padding degrades to the base value rather than breaking.
+   ------------------------------------------------------------ */
+.cx-dock {
+  position: sticky;
+  bottom: 0;
+  flex: none;
+  z-index: 10;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.cx-bar {
+  position: sticky;
+  bottom: 0;
+  flex: none;
+  z-index: 10;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px var(--phone-gutter) calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/*
+ * A bar on a screen that also has the tab dock — the cart, where "continue to
+ * payment" and the four tabs are both on screen.
+ *
+ * Two `sticky; bottom: 0` siblings both stop at the bottom of the viewport, so
+ * the bar would land on top of the dock and hide it. Lifting it by exactly the
+ * dock's height parks it directly above, and the safe-area inset comes out of
+ * the padding because the dock underneath already carries it — counted twice,
+ * it opens a gap on an iPhone and nowhere else, which is the kind of bug that
+ * ships.
+ */
+.cx-bar[data-above-dock='true'] {
+  bottom: var(--cx-dock);
+  padding-bottom: 12px;
+}
+
+/* ------------------------------------------------------------
+   States as attributes
+
+   Ported from the design file, which drives every toggle this way. Keeping the
+   mechanism means a chip, a tab and a segmented control read the same in the
+   markup here as in the prototype, and a reviewer can diff them.
+   ------------------------------------------------------------ */
+[data-press] {
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+[data-press]:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-press] {
+    transition: none;
+  }
+
+  [data-press]:active {
+    transform: none;
+  }
+}
+
+/* The selected tab in the dock. */
+[data-tab][data-on='true'] {
+  color: var(--brand-600);
+}
+
+/* A category filter chip. */
+[data-chip][data-on='true'] {
+  background: var(--brand-500);
+  border-color: var(--brand-500);
+  color: #fff;
+}
+
+/* One half of a two-way switch — delivery against pickup, light against dark. */
+[data-seg][data-on='true'] {
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow-xs);
+}
+
+/* A radio-shaped choice: a portion size, a payment rail. */
+[data-opt][data-on='true'] {
+  border-color: var(--brand-500);
+  background: var(--brand-50);
+}
+
+/* Tabular figures wherever a number is read rather than spoken. Money in a
+   column that does not line up is money the reader has to re-add. */
+[data-num] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* ------------------------------------------------------------
+   The accent axis and the chat surface now live in
+   `packages/ui/src/styles/tokens.css`.
+
+   They were declared here while that layer was being written, byte-identical to
+   the values sent for it. Three surfaces use the accent — the restaurant site,
+   the Telegram mini app and this one — and a local copy in each is how one
+   tenant comes to render three different colours.
+
+   What stays is the one measurement this surface owns: the Telegram mini app is
+   drawn on a 16px gutter rather than the customer app's 20px, and that is in
+   the design file for both.
+   ------------------------------------------------------------ */
+.cx-tg {
+  --phone-gutter: 16px;
+}
+
+[data-chip][data-on='true'].cx-tg-chip,
+.cx-tg [data-chip][data-on='true'] {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+}
+
+/*
+ * An image slot with no image — the customer app's version of `image-slot`.
+ *
+ * The design puts nine of these across the app (promo banner, category tiles,
+ * dish cards, the dish screen's hero, cart thumbs) and none of them existed:
+ * the screens rendered text where the design renders a picture, on the one
+ * surface FOUNDATIONS §12 calls photo-led. The uploads are not in this
+ * repository, so what is drawn is the slot itself at the right proportion —
+ * a tinted panel with the brand's own wash across it, so the layout is the
+ * design's layout and a real photograph drops in without anything moving.
+ *
+ * Deliberately not a broken `<img>`: an alt-text box with a torn-page icon is
+ * worse than an empty frame in every browser.
+ */
+.c-shot {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 100% at 22% 18%,
+      color-mix(in srgb, var(--brand-500) 16%, transparent),
+      transparent 62%
+    ),
+    var(--bg-muted);
+}
+
+/* The dark loyalty card — `Mijoz ilovasi.dc.html:565-585`. */
+.c-gold {
+  background: linear-gradient(135deg, var(--n-900) 0%, var(--n-800) 62%, #4a3b1f 100%);
+  color: #fff;
+}

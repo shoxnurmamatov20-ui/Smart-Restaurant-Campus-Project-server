@@ -1,0 +1,169 @@
+/* ============================================================
+   The staff app's own measurements and its two dark surfaces
+
+   Named `crew` rather than `staff` for the same reason the route is `/crew`:
+   `/staff` is a console module an HR manager opens *about* employees, and this
+   is the app an employee opens about themselves. Two products, and a shared
+   word in the CSS is how they start sharing a stylesheet by accident.
+
+     --phone-measure  390px, the design's own column. The staff app is drawn at
+                      390x812 and every grid in it — two tables across, a 3x4
+                      keypad — is proportioned for that width.
+     --tap-min        44px, FOUNDATIONS §10. This screen is used standing up,
+                      one-handed, carrying plates. It is the floor, not a goal.
+     --crew-gutter    18px, from the design file's app padding (16px 18px).
+                      The PIN screen and the lock screen set their own below,
+                      because the design draws them at 26px and 16px.
+
+   They are declared here rather than in packages/ui because they describe THIS
+   surface. `--page`, and the accent axis the guest surfaces use, live in the
+   token package where a second copy cannot drift.
+
+   No `data-acc` here on purpose. The accent axis is a restaurant's own colour
+   on the surfaces a *guest* sees; the staff app is the product the design
+   system was drawn for and takes brand blue unchanged. A waiter moving between
+   two venues of one chain should not have to relearn which colour means
+   "ready".
+   ============================================================ */
+[data-crew] {
+  --phone-measure: 390px;
+  --tap-min: 44px;
+  --crew-gutter: 18px;
+
+  /*
+   * How much scroll room the floating dock takes out of the bottom of a screen.
+   * 50px of button, the gradient it fades through, and the home-indicator
+   * inset — so the last row of a table grid clears it instead of being read
+   * through a blur.
+   */
+  --crew-dock: calc(108px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ------------------------------------------------------------
+   The two surfaces the design paints dark regardless of theme
+
+   The hero card (revenue, my sales, today's intake) and the lock screen are
+   dark in the light theme too — that is the design, not a dark-mode artefact.
+   They carry their own foreground ramp because `--fg` on a near-black card is
+   unreadable, and a screen that reads fine in the office and not in the
+   restaurant is the failure this prevents.
+
+   These are `--crew-` prefixed rather than the design file's bare `--hero-*`
+   because three other surfaces in this repo draw a dark card and none of them
+   share these values. A generic name here is an invitation to reuse it there.
+   ------------------------------------------------------------ */
+[data-crew] {
+  --crew-hero-bg: #0f1320;
+  --crew-hero-fg: #ffffff;
+  --crew-hero-dim: rgba(255, 255, 255, 0.6);
+  --crew-hero-line: rgba(255, 255, 255, 0.13);
+  --crew-hero-chip: rgba(255, 255, 255, 0.12);
+  --crew-hero-spark: #8dbbf9;
+  --crew-hero-up: #7be3ae;
+
+  --crew-lock-bg: linear-gradient(180deg, #1b2334 0%, #0f1320 100%);
+  --crew-lock-fg: #ffffff;
+  --crew-lock-dim: rgba(255, 255, 255, 0.62);
+  --crew-lock-card: rgba(255, 255, 255, 0.12);
+  --crew-lock-border: rgba(255, 255, 255, 0.16);
+}
+
+/*
+ * Dark lifts the hero off the page instead of dropping it further.
+ *
+ * In dark the page is already near-black, so the light theme's #0F1320 card
+ * disappears into it and the revenue figure loses the frame that makes it read
+ * as the headline. The design answers with a lighter navy, and the lock screen
+ * goes the other way — darker, because a phone lock screen at night is the one
+ * place a bright panel is genuinely painful.
+ *
+ * Both selectors, because tokens.css lets a *subtree* force dark
+ * (`[data-theme='dark']`) as well as the document (`.dark`), and the staff app
+ * has to survive being dropped inside either.
+ */
+[data-theme='dark'] [data-crew],
+.dark [data-crew] {
+  --crew-hero-bg: #182545;
+
+  --crew-lock-bg: linear-gradient(180deg, #12161f 0%, #080a11 100%);
+  --crew-lock-fg: #edf0f5;
+  --crew-lock-dim: rgba(237, 240, 245, 0.58);
+  --crew-lock-card: rgba(255, 255, 255, 0.08);
+  --crew-lock-border: rgba(255, 255, 255, 0.11);
+}
+
+/* ------------------------------------------------------------
+   The scroll region
+
+   `min-height: 0` is load-bearing on a flex child. Its default `min-height:
+   auto` refuses to shrink below its content, so without it the column grows
+   past the viewport, `overflow-y` never engages, and a long table list scrolls
+   the document behind the dock rather than under it.
+
+   `overscroll-behavior: contain` stops the rubber-band at the end of the menu
+   from handing the gesture to whatever is beneath.
+   ------------------------------------------------------------ */
+[data-crew] [data-crew-scroll] {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+[data-crew] [data-crew-scroll]::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+[data-crew] [data-crew-scroll]::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+[data-crew] [data-crew-scroll]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Room under the last row for the bar that floats over it. */
+[data-crew] [data-crew-scroll][data-docked='true'] {
+  padding-bottom: var(--crew-dock);
+}
+
+/* ------------------------------------------------------------
+   Press feedback
+
+   Ported from the design file, which drives every tappable thing this way. A
+   phone has no hover, so the press is the only confirmation a waiter gets that
+   the tap landed — without it people tap twice, and on a screen where the
+   second tap fires a kitchen ticket that matters.
+   ------------------------------------------------------------ */
+[data-crew] [data-press] {
+  transition:
+    transform 100ms var(--ease-standard),
+    background 120ms var(--ease-standard),
+    border-color 120ms var(--ease-standard);
+}
+
+[data-crew] [data-press]:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-crew] [data-press] {
+    transition: none;
+  }
+
+  [data-crew] [data-press]:active {
+    transform: none;
+  }
+}
+
+/* Money, counts and timers line up in a column, so they can be compared
+   without being re-read. */
+[data-crew] [data-num] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}

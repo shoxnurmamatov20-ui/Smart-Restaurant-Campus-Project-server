@@ -1,0 +1,37 @@
+/*
+ * The guest surface's own measurements.
+ *
+ * Three values, and each is a decision rather than a preference:
+ *
+ *   --phone-measure  390px, the design's own column. Wider and a menu becomes a
+ *                    two-handed object; narrower and the dish rows wrap.
+ *   --tap-min        44px. Not a suggestion — it is the smallest target a thumb
+ *                    hits reliably, and this screen is used one-handed while
+ *                    holding a menu, a child or a glass.
+ *   --guest-gutter   16px, from the design file.
+ *
+ * They are declared here rather than in packages/ui because they describe THIS
+ * surface. The accent axis and --page, which several surfaces share, live in the
+ * token package where a second copy cannot drift.
+ */
+[data-guest] {
+  --phone-measure: 390px;
+  --tap-min: 44px;
+  --guest-gutter: 16px;
+}
+
+/*
+ * Anything pinned to the bottom clears the home indicator.
+ *
+ * `env(safe-area-inset-bottom)` only returns a real number because the root
+ * viewport sets `viewportFit: 'cover'`. Without that it is 0 on every iPhone,
+ * silently, and the basket bar sits under the indicator line — visible on a
+ * device and on nothing else.
+ */
+[data-guest] [data-sticky-bottom] {
+  padding-bottom: calc(var(--guest-gutter) + env(safe-area-inset-bottom, 0px));
+}
+
+[data-guest] [data-safe-top] {
+  padding-top: calc(var(--guest-gutter) + env(safe-area-inset-top, 0px));
+}

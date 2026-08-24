@@ -1,0 +1,99 @@
+/*
+ * `data-demo` — the marker that says "these figures are not yours".
+ *
+ * Six boards in the merchant panel and two in the marketplace wrap their
+ * fallback content in `<div data-demo className="contents">` when the API did
+ * not answer, and until this file existed the attribute had no CSS anywhere in
+ * the repo. A marker nobody can see is a marker that does not exist: a merchant
+ * whose panel could not reach the server read six invented orders as their own
+ * evening, which is exactly the failure the wrapper was added to prevent.
+ *
+ * ---------------------------------------------------------------------------
+ * Why the rules select children rather than the wrapper
+ *
+ * The wrapper carries `display: contents` on purpose — it must not become a box
+ * in a grid whose columns the boards depend on. An element with `display:
+ * contents` generates no box of its own, so it can carry no border, no
+ * background and no `::before`. It still MATCHES selectors, so everything here
+ * is addressed at `[data-demo] > *`, which are the real boxes.
+ *
+ * ---------------------------------------------------------------------------
+ * Why the word is "DEMO" and not a sentence
+ *
+ * These surfaces do not use the console's message catalogue — they carry their
+ * own copy modules and resolve a language per request — so a sentence here
+ * would be one language hard-coded into a stylesheet, which is the defect this
+ * platform keeps finding. `DEMO` reads the same in uz, ru and en, and it is a
+ * label rather than an explanation: the board's own live/sample strip carries
+ * the explanation in the reader's language, and this makes it impossible to
+ * scroll past.
+ */
+
+[data-demo] > * {
+  position: relative;
+
+  /*
+   * Dashed rather than solid, and offset rather than inset. A solid border
+   * would read as part of the card's own design; a dashed rule floating a few
+   * pixels outside it reads as an annotation over the top of something.
+   *
+   * `outline` and not `border`, because a border changes layout and these boxes
+   * sit in grids the boards measure in fixed columns.
+   */
+  outline: 1px dashed var(--warning-400, #f0b429);
+  outline-offset: 3px;
+
+  /*
+   * A wash rather than a filter. `filter: grayscale()` was the other candidate
+   * and it is wrong here: a merchant still has to read a red margin as red, and
+   * draining the colour out of a warning is how a sample screen hides the one
+   * thing worth noticing on it.
+   */
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--warning-400, #f0b429) 7%, transparent),
+    color-mix(in srgb, var(--warning-400, #f0b429) 7%, transparent)
+  );
+}
+
+/*
+ * One badge per wrapper, not one per child.
+ *
+ * A board can wrap a dozen cards; a dozen badges would be noise, and noise is
+ * what people learn to stop seeing. The first box gets it, pinned to its top
+ * right where a card's own controls are not.
+ */
+[data-demo] > *:first-child::before {
+  content: 'DEMO';
+  position: absolute;
+  top: -0.5rem;
+  right: 0.75rem;
+  z-index: 5;
+
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+
+  background: var(--warning-400, #f0b429);
+  color: #1c1917;
+
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1.5;
+
+  /* Decoration: the sentence a screen reader needs is the board's own live
+     strip, in the reader's language. Announcing "DEMO" here as well would put
+     an English word in the middle of a Russian panel. */
+  speak: never;
+}
+
+/*
+ * Somebody who has asked for less movement and less contrast should still be
+ * able to tell a sample from their own takings — so the badge stays and only
+ * the wash goes, which is the part that is decoration.
+ */
+@media (prefers-contrast: more) {
+  [data-demo] > * {
+    background-image: none;
+    outline-width: 2px;
+  }
+}

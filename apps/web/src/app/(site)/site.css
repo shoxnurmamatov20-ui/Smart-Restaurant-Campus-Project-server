@@ -1,0 +1,181 @@
+/*
+ * A restaurant's own website.
+ *
+ * The only surface in this repository written for a desktop browser AND a phone
+ * with equal weight — every other one is a phone (guest, customer, crew) or a
+ * tablet (POS) or a back office (console). A person reads this on a laptop at
+ * work deciding where to have lunch, and on a phone standing outside deciding
+ * whether to come in.
+ *
+ *   --site-measure  1120px. The reading column. Wider and the menu rows become
+ *                   a line your eye loses its place in.
+ *   --site-gutter   20px on a phone, 32px from the tablet breakpoint. Declared
+ *                   once here so a section cannot invent its own edge.
+ *   --tap-min       44px, the same floor every surface here keeps. A booking
+ *                   form is filled in one-handed on a bus as often as not.
+ */
+[data-site] {
+  --site-measure: 1320px;
+  --site-gutter: 20px;
+  --tap-min: 44px;
+
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+@media (min-width: 768px) {
+  [data-site] {
+    --site-gutter: 32px;
+  }
+}
+
+/* The reading column, used by every section rather than re-declared in each. */
+.site-wrap {
+  width: 100%;
+  max-width: var(--site-measure);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
+/*
+ * The sticky header.
+ *
+ * `backdrop-filter` behind a translucent surface rather than an opaque bar: the
+ * hero photograph runs under it, and a solid strip across the top of a
+ * restaurant's own site throws away the one image the page is selling with.
+ * The fallback is the same colour at full opacity, because a browser without
+ * the filter must not render illegible text over a photo.
+ */
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+@supports (backdrop-filter: blur(12px)) {
+  .site-head {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    backdrop-filter: blur(12px) saturate(1.4);
+  }
+}
+
+/*
+ * Section rhythm, set once.
+ *
+ * A restaurant site is a stack of eight sections and the only thing holding it
+ * together visually is that they breathe identically. Left to each section, the
+ * third one always ends up 8px different from the others.
+ */
+[data-site] section[data-sec] {
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+/*
+ * The hero, and why it is not a full-bleed 100vh photograph.
+ *
+ * That is the default a restaurant site reaches for and it is wrong on the
+ * device most people open one on: 100vh of picture on a phone means the name,
+ * the hours and the "order" button are all below the fold, and the first scroll
+ * is the reader deciding whether to bother. The image is a band; the words are
+ * above it.
+ */
+.site-hero {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+@media (min-width: 900px) {
+  .site-hero {
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+  }
+}
+
+/*
+ * A photograph slot with no photograph.
+ *
+ * The design's uploads are not in this repository and a broken <img> is worse
+ * than none — so the slot is a tinted panel that holds the layout at the right
+ * proportion. When real photography arrives it drops in here and nothing else
+ * moves.
+ */
+.site-shot {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-2xl);
+  background:
+    radial-gradient(
+      120% 100% at 20% 15%,
+      color-mix(in srgb, var(--acc) 22%, transparent),
+      transparent 60%
+    ),
+    var(--bg-muted);
+  border: 1px solid var(--border);
+}
+
+/* A card that lifts on hover only where hovering is a thing. */
+@media (hover: hover) {
+  .site-card {
+    transition:
+      transform var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard);
+  }
+
+  .site-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-card,
+  .site-card:hover {
+    transition: none;
+    transform: none;
+  }
+}
+
+/*
+ * A restaurant's own website, on the device it is opened on.
+ *
+ * This is the one surface in the product a stranger reaches from a search
+ * result, and they reach it on a phone. `FOUNDATIONS` puts a 44px floor on it;
+ * the page was built to the design's drawn sizes instead — 38px social links,
+ * 40px menu buttons, a 39px brand row — every one of them under it.
+ *
+ * Outside any layer, because those sizes come from utilities and a layered rule
+ * would lose to them. `pointer: coarse` so a desktop keeps the drawn geometry.
+ */
+@media (pointer: coarse) {
+  [data-site] a,
+  [data-site] button {
+    min-height: 44px;
+  }
+
+  /* Square controls need the width too: a 38px icon is 38px in both
+     directions, and half a fingertip either way is where the misses are. */
+  [data-site] a[class*='size-'],
+  [data-site] button[class*='size-'] {
+    min-width: 44px;
+  }
+}
+
+/*
+ * The bar takes a second line before it takes the restaurant's name.
+ *
+ * Three 44px language squares, a theme toggle and a monogram leave about
+ * ninety pixels for the name on a 360px screen, so "Demo Restoran" arrived as
+ * "Demo …" — on the one page whose job is to say whose restaurant this is. The
+ * row wraps instead: the name gets the first line and the switches the second.
+ */
+@media (max-width: 600px) {
+  .site-row {
+    height: auto !important;
+    min-height: 68px;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding-block: 8px;
+  }
+}

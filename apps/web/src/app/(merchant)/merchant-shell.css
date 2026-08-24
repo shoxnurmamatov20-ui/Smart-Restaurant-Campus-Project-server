@@ -1,0 +1,54 @@
+/* ============================================================
+   The seller panel on a narrow screen
+
+   The panel was drawn at 1320px and had no phone layout at all: a 246px rail
+   beside the content leaves 74px on a 320px screen, and the shell's
+   `overflow-hidden` hid the remainder rather than scrolling it. A merchant
+   reads the queue on a phone — a ninety-second queue is the reason this surface
+   exists — so the rail slides in over the page instead of standing beside it.
+
+   `[data-mrail]` rather than the consoles' `[data-nav]`: this layout imports
+   `app-shell.css`, which collapses `[data-nav]` to a 76px icon rail below
+   1200px. These rows are words with no icon behind them, and 76px of them is a
+   column of clipped text. The behaviour is still the consoles' — it comes from
+   the same `useNavDrawer` in `@restaurant/ui`.
+   ============================================================ */
+
+@media (max-width: 820px) {
+  [data-mrail] {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform var(--dur-med) var(--ease-standard);
+  }
+
+  [data-mrail][data-open='true'] {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /*
+   * The header stops sticking.
+   *
+   * Wrapped onto four rows — title, trading status, language, shop — it is
+   * 230px tall, and a third of a phone screen permanently occupied by chrome is
+   * a third of the queue nobody can see. It scrolls away with the page and
+   * comes back at the top, which is where a merchant looks for it anyway.
+   *
+   * `[data-mtopbar]` and not `[data-topbar]`: the same attribute is on both
+   * consoles' bars, and theirs sit inside a fixed shell that has nowhere to
+   * scroll to.
+   */
+  [data-mtopbar] {
+    position: static !important;
+  }
+}
+
+/* The drawer is a transition rather than a keyframe, so the shared
+   reduced-motion block — which turns animations off — never reached it. */
+@media (prefers-reduced-motion: reduce) {
+  [data-mrail] {
+    transition: none !important;
+  }
+}

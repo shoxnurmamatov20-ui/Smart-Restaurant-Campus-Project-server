@@ -1,0 +1,65 @@
+/*
+ * The Telegram mini app's own skin.
+ *
+ * Telegram hands a WebView a set of theme variables — `--tg-theme-bg-color`
+ * and friends — chosen by the *client*, not by us: a guest running Telegram in
+ * dark mode should not get a white page inside it. So the surface takes
+ * Telegram's colours when they are there and falls back to the product's own
+ * tokens when the page is opened in an ordinary browser, which is how it is
+ * developed and how a shared link behaves.
+ *
+ * `color-mix` rather than a second palette: there is one accent and the mini
+ * app tints from it, so a restaurant that changes its colour changes this too.
+ */
+[data-tg] {
+  --tg-bg: var(--tg-theme-bg-color, var(--bg-subtle));
+  --tg-card: var(--tg-theme-secondary-bg-color, var(--surface));
+  --tg-text: var(--tg-theme-text-color, var(--fg));
+  --tg-hint: var(--tg-theme-hint-color, var(--fg-subtle));
+  --tg-link: var(--tg-theme-link-color, var(--acc));
+  --tg-button: var(--tg-theme-button-color, var(--acc));
+  --tg-button-text: var(--tg-theme-button-text-color, #fff);
+
+  background: var(--tg-bg);
+  color: var(--tg-text);
+
+  /* Telegram's own bottom bar sits under the WebView on some clients. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/*
+ * 44px everywhere, and 48 for anything that costs money.
+ *
+ * This is a phone inside another app: the reachable area is smaller than a
+ * browser's because Telegram keeps its own header, and a stepper that misses
+ * adds a dish nobody wanted.
+ */
+[data-tg] [data-tap] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+[data-tg] [data-tap='pay'] {
+  min-height: 52px;
+}
+
+/*
+ * A dish photograph that is not here yet.
+ *
+ * The design puts a 64px image slot beside every row of the menu
+ * (`Telegram.dc.html:226-228`). The uploads are not in this repository, so what
+ * is drawn is the slot at the right proportion — a tinted panel carrying the
+ * restaurant's own accent — and a real photograph drops in without anything
+ * moving. Deliberately not a broken `<img>`: a torn-page icon with alt text is
+ * worse than an empty frame in every browser.
+ */
+[data-tg] .tg-shot {
+  overflow: hidden;
+  background:
+    radial-gradient(
+      120% 100% at 22% 18%,
+      color-mix(in srgb, var(--acc) 18%, transparent),
+      transparent 62%
+    ),
+    var(--bg-muted);
+}
