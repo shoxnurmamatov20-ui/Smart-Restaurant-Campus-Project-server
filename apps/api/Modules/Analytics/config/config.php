@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Modules\Analytics\Database\Seeders\DemoFactsSeeder;
 
 return [
     'name' => 'Analytics',
@@ -32,4 +33,21 @@ return [
     | the platform-wide defaults.
     */
     'enabled' => env('MODULE_ANALYTICS_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Demo data
+    |--------------------------------------------------------------------------
+    |
+    | The projection, re-rolled over the demo week after the bills are written.
+    | Registered last among the demo modules, which is the order it needs.
+    |
+    */
+
+    'demo' => [
+        'seeders' => [
+            DemoFactsSeeder::class,
+        ],
+        'tables' => ['analytics.daily_facts'],
+    ],
 ];
