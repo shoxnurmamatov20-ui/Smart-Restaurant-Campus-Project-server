@@ -66,7 +66,38 @@ export type Paginated<T> = {
   meta?: { total?: number; current_page?: number; last_page?: number; per_page?: number };
 };
 
+/**
+ * The same read, asked once per render.
+ *
+ * A page is a layout and a page and often several server components under it,
+ * and they do not know about each other — so the shell asks for `/branches`,
+ * the screen asks for `/branches`, and the API answers the identical question
+ * twice while the reader waits for both. Every one of these is a round trip out
+ * of Node, through nginx, into a php-fpm worker, through the tenancy middleware
+ * and back: ~40ms of nothing when it is the second copy.
+ *
+ * `cache()` is per render, not per process, which is the only reason this is
+ * safe to do at all. The `no-store` below is about *requests*: one restaurant's
+ * figures must never reach the next visitor's page. Two components inside one
+ * render are one visitor by definition, so answering them from one fetch says
+ * nothing new to anybody.
+ *
+ * Keyed on `path` alone, and that is complete: the token and the venue header
+ * are read from this request's own cookies inside the call, so two calls with
+ * the same path in one render cannot differ.
+ *
+ * The one rule this puts on callers: **do not mutate what `apiGet` returns.**
+ * The object is now shared with whoever else asked for the same path, so a
+ * caller that sorts the array in place reorders somebody else's screen. Every
+ * reader here maps into its own shape already.
+ */
+const askOnce = cache(async (path: string): Promise<unknown> => fetchFromApi(path));
+
 export async function apiGet<T>(path: string): Promise<T | null> {
+  return (await askOnce(path)) as T | null;
+}
+
+async function fetchFromApi<T>(path: string): Promise<T | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
 
