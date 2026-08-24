@@ -490,23 +490,63 @@ final class PlatformConsoleTest extends TestCase
     public static function weakPasswords(): array
     {
         return [
-            'too short' => ['Short1'],
+            'one character' => ['1'],
+            'the word itself' => ['parol'],
             'letters only' => ['oshxonatermiz'],
             'digits only' => ['908070605040'],
+            'a space in it' => ['Osh Xona 2026'],
         ];
     }
 
     #[DataProvider('weakPasswords')]
-    public function test_a_weak_password_is_refused_rather_than_stored(string $weak): void
+    public function test_the_operator_types_what_the_restaurant_asked_for(string $typed): void
     {
         /*
-         * The strength rule is what replaced the old blanket refusal, so it is
-         * the thing carrying the risk now. Twelve characters with letters *and*
-         * digits: not the restaurant's name, not a phone number, not `12345678`.
+         * No strength rule, and this test is where that decision is recorded.
          *
-         * `uncompromised()` is deliberately not among the rules — it calls
-         * haveibeenpwned over the network, and a credential screen that hangs
-         * when an outside service is down is worse than the leak it screens for.
+         * It has moved twice: typed passwords refused outright, then allowed
+         * behind `Password::min(12)->letters()->numbers()`, now allowed as
+         * typed. The reason for the last move is operational rather than
+         * technical — restaurants ring up and dictate what they want, and a
+         * console that argues with a customer about their own password is one
+         * the operator works around by writing it on paper, which is worse than
+         * any weak string.
+         *
+         * The risk is not mitigated here and should not be read as mitigated:
+         * a guessable password on an owner account is that restaurant's console,
+         * till and takings. What stands in front of it is the wall — this
+         * endpoint is `super-admin` only — and the audit trail, which names the
+         * operator on every issue and every read.
+         *
+         * Asserted at the door rather than against the hash: what matters is
+         * that the string the operator read down the phone opens the login.
+         */
+        $owner = $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $this->postJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
+            ['password' => $typed],
+        )
+            ->assertOk()
+            ->assertJsonPath('owner.password', $typed);
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => $owner->email,
+            'password' => $typed,
+        ])->assertOk();
+    }
+
+    public function test_a_password_longer_than_bcrypt_reads_is_refused_rather_than_truncated(): void
+    {
+        /*
+         * The one limit left, and it is not a policy. bcrypt reads the first 72
+         * bytes and silently ignores the rest, so a longer password would be
+         * accepted, stored, and then match on **any** string sharing those 72
+         * bytes — a weaker credential than the one the operator thought they set,
+         * and no way to tell from the screen.
+         *
+         * Refusing says so. Truncating quietly does not.
          */
         $owner = $this->restaurantOwner();
         $before = (string) $owner->password;
@@ -515,15 +555,21 @@ final class PlatformConsoleTest extends TestCase
 
         $this->postJson(
             "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
-            ['password' => $weak],
+            ['password' => str_repeat('a', 73)],
         )->assertStatus(422);
 
         $after = $owner->fresh();
         $this->assertNotNull($after);
 
-        // The half that matters: a refused password must not have been written
-        // on the way to being refused.
+        // A refused password must not have been written on the way to being
+        // refused.
         $this->assertSame($before, (string) $after->password);
+
+        // And exactly 72 is fine, because that is what bcrypt reads whole.
+        $this->postJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
+            ['password' => str_repeat('a', 72)],
+        )->assertOk();
     }
 
     public function test_the_operator_may_correct_the_address_the_owner_signs_in_with(): void

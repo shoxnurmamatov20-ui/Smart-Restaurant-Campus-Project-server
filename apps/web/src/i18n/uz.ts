@@ -694,7 +694,7 @@ export const uz = {
         emailSaved: 'Kirish pochtasi yangilandi',
         passwordLabel: 'Yangi parol (ixtiyoriy)',
         passwordPlaceholder: 'Bo‘sh qoldirsangiz — o‘zi yaratiladi',
-        passwordRule: 'Kamida 12 belgi, harf va raqam bilan',
+        passwordRule: 'Istalgan parol — cheklov yo‘q. Eng ko‘pi 72 belgi.',
         setPassword: 'Shu parolni qo‘yish',
         ownerName: 'Egasining ismi',
         ownerPhone: 'Telefon',

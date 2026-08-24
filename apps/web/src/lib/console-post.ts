@@ -146,10 +146,53 @@ export async function post<T>(
   };
 }
 
+/**
+ * What to put in front of the operator, most specific first.
+ *
+ * A failed validation answers `request.validation_failed`, whose sentence is
+ * "the submitted data is not valid, check the highlighted field" — true, and
+ * useless. The thing that tells somebody what to *do* is one level down, in
+ * `errors`, where the rule that refused it wrote its own line: "the password
+ * must be at least 12 characters".
+ *
+ * That was being thrown away. An operator typing a short password got a 422 and
+ * a sentence naming no field, no rule and no fix, and the only way to find out
+ * was to read the API source.
+ *
+ * `field` picks which one, because a form with three refused inputs has three
+ * messages and the envelope already says which one the API considers first.
+ * Falling back to whichever arrived first, then to the general sentence, so a
+ * code that carries no `errors` at all — most of them — reads exactly as before.
+ */
 function sentence(error: Record<string, unknown>, lang: Lang): string | null {
+  const specific = fieldMessage(error);
+
+  if (specific !== null) return specific;
+
   const value = error[`message_${lang}`];
 
   return typeof value === 'string' && value !== '' ? value : null;
+}
+
+/** The first line the failing rule itself wrote, when the envelope carries one. */
+function fieldMessage(error: Record<string, unknown>): string | null {
+  const errors = error.errors;
+
+  if (typeof errors !== 'object' || errors === null) return null;
+
+  const byField = errors as Record<string, unknown>;
+  const named = typeof error.field === 'string' ? error.field : null;
+  const lists = named !== null && named in byField ? [byField[named]] : Object.values(byField);
+
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+
+    const first = list.find((line) => typeof line === 'string' && line !== '');
+
+    if (typeof first === 'string') return first;
+  }
+
+  return null;
 }
 
 /** A numeric id from the API, or null for a fixture row that has no real one. */

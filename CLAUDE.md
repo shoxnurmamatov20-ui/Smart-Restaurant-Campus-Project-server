@@ -930,15 +930,28 @@ nomi va har bir holat so'zi uchun birdan.
     **barcha sessiyalarini yopadi**; pochtani tuzatish yopmaydi. Bittasiga
     birlashtirilsa, telefon raqamini tuzatayotgan operator egani turgan
     kassasidan chiqarib yuborardi. Test yopilmagan tokenni tekshiradi.
-  - **Parolni tanlash mumkin** (`POST .../owner-password` ixtiyoriy `password`,
-    yangi restoran formasida ham). Bu **qaror qaytarilishi**: ilgari faqat
-    generatsiya qilinardi, «tanlay oladigan operator hammaga bitta zaif parol
-    qo'yadi» degan asos bilan. Asos xavfni to'g'ri nomlaydi, chorani noto'g'ri:
-    u to'sgan holat — eng oddiysi, va muqobili operatorning telefon orqali
-    o'n olti tasodifiy belgi o'qishi edi. Endi kuch qoidasi to'sadi:
-    `Password::min(12)->letters()->numbers()`. **`uncompromised()` ataylab yo'q**
-    — u haveibeenpwned'ga tarmoq orqali boradi, ya'ni tashqi xizmat o'chsa
-    hisob ma'lumotlari ekrani osilib qoladi.
+  - **Parolni tanlash mumkin va kuch qoidasi yo'q** (`POST .../owner-password`
+    ixtiyoriy `password`, yangi restoran formasida ham). Qaror bir kunda **uch
+    marta** ko'chdi: tanlash umuman taqiqlangan → `Password::min(12)` ortida
+    ruxsat → qoidasiz. Oxirgisi egasining qarori va sababi texnik emas,
+    operatsion: restoranlar o'zlari aytadi, va mijoz bilan uning o'z paroli
+    haqida tortishadigan konsolni operator aylanib o'tadi — qog'ozga yozib,
+    bu esa har qanday zaif paroldan yomonroq.
+    **Xavf yumshatilmagan va shunday deb o'qilmasin:** egadagi taxmin qilinadigan
+    parol — o'sha restoranning konsoli, kassasi va tushumi. Oldida turgan narsa
+    ikkitagina — eshik `super-admin` ga qulflangan va har berish/o'qish audit
+    jurnaliga operator nomi bilan yoziladi.
+  - **`max:72` qoladi va u qoida emas, bcrypt fakti.** bcrypt birinchi 72 baytni
+    o'qib, qolganini **jimgina tashlab yuboradi** — ya'ni uzunroq parol qabul
+    qilinib saqlanardi va keyin o'sha 72 baytni bo'lishgan **har qanday** satr
+    bilan mos kelardi. Rad etish halol, jimgina kesish yo'q. Brauzerda ham
+    tekshiriladi (`lib/password-rule.ts`), shunda so'rov umuman ketmaydi.
+  - **Xato xabari `error.errors` da, `message_uz` da emas.** `request.validation_failed`
+    ning umumiy jumlasi — «Belgilangan maydonni tekshiring» — hech narsa
+    o'rgatmaydi; qoidaning o'z qatori bir daraja pastda. `console-post.ts`
+    ilgari uni tashlab yuborardi, ya'ni operator 422 va foydasiz gapni ko'rardi.
+    Endi aniq xabar afzal ko'riladi, bo'lmasa umumiysiga qaytadi — bu butun
+    konsolga tegishli, faqat bu ekranga emas.
   - **Bo'sh maydon baribir generatsiya qiladi**, va konsol avval shuni taklif
     qiladi. Farq proxy'da hal bo'ladi: tegilmagan maydon API'ga **yo'q kalit**
     bo'lib borishi shart, `""` bo'lib emas — aks holda `nullable` uni

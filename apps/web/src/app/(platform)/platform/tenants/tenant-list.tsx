@@ -8,6 +8,7 @@ import { formatTiyinAmount } from '@restaurant/utils';
 import type { Messages } from '@/i18n';
 
 import { post } from '@/lib/console-post';
+import { PASSWORD_MAX } from '@/lib/password-rule';
 import { ROLE_IDS, SERVER_ROLE_NAMES } from '@/lib/roles';
 
 import { Chip, Head, Stats, Table, Td, Tr, type ChipTone, type StatTone } from '../../platform-ui';
@@ -751,6 +752,15 @@ function TenantCard({
    * before.
    */
   const [passwordDraft, setPasswordDraft] = useState('');
+  /*
+   * The one refusal a typed password can still meet.
+   *
+   * There is no strength rule any more — the operator types what the restaurant
+   * asked for. `max:72` is not a policy: bcrypt reads the first 72 bytes and
+   * ignores the rest, so a longer one would be stored and then match anything
+   * sharing that prefix. Checked here so the round trip does not happen.
+   */
+  const passwordUsable = passwordDraft.trim().length <= PASSWORD_MAX;
 
   /*
    * The password the platform issued, once an operator has asked to see it.
@@ -1698,7 +1708,16 @@ function TenantCard({
                     somebody, and a field of dots is a field they cannot check
                     before they say it. Nothing is hidden here that the answer
                     below does not print in full anyway. */}
-                <p className="text-fg-muted mt-1.5 text-xs leading-normal">{copy.passwordRule}</p>
+                {/* The rule, and in red once what is typed breaks it. Said while
+                    they are still typing rather than after a round trip that
+                    came back "check the highlighted field". */}
+                <p
+                  className={`mt-1.5 text-xs leading-normal ${
+                    passwordUsable ? 'text-fg-muted' : 'text-danger-600 font-semibold'
+                  }`}
+                >
+                  {copy.passwordRule}
+                </p>
 
                 {issued === null ? null : (
                   <div className="border-warning-500/40 bg-warning-50/40 mt-3.5 rounded-md border p-3.5">
@@ -1737,10 +1756,13 @@ function TenantCard({
                   </button>
                   <button
                     type="button"
-                    disabled={sending}
+                    // A password that breaks the rule cannot be sent at all: the
+                    // API would refuse it, and the round trip taught the operator
+                    // nothing the line above does not already say.
+                    disabled={sending || !passwordUsable}
                     onClick={() => void newOwnerPassword()}
                     className={`h-9 min-w-[160px] flex-1 rounded-md text-sm font-semibold text-white ${
-                      sending ? 'bg-n-300' : 'bg-warning-600'
+                      sending || !passwordUsable ? 'bg-n-300' : 'bg-warning-600'
                     }`}
                   >
                     {passwordDraft.trim() !== ''
@@ -2196,7 +2218,12 @@ function AddRestaurant({
   } | null>(null);
 
   const chosen = PLANS.find((entry) => entry.id === plan) ?? PLANS[1];
-  const ready = name.trim() !== '' && owner.trim() !== '' && email.trim() !== '';
+  // The same single limit the card checks, for the same reason: bcrypt reads 72
+  // bytes and no more, so a longer password is refused rather than truncated.
+  const firstPasswordUsable = firstPassword.trim().length <= PASSWORD_MAX;
+
+  const ready =
+    name.trim() !== '' && owner.trim() !== '' && email.trim() !== '' && firstPasswordUsable;
 
   const create = async () => {
     if (!ready) {
@@ -2419,8 +2446,12 @@ function AddRestaurant({
               placeholder={copy.passwordPlaceholder}
               className="bg-bg-subtle border-border text-md h-[46px] w-full rounded-md border px-3.5 font-mono"
             />
-            <p className="text-fg-muted mt-1.5 mb-5 text-xs leading-normal">
-              {copy.fieldPasswordHint}
+            <p
+              className={`mt-1.5 mb-5 text-xs leading-normal ${
+                firstPasswordUsable ? 'text-fg-muted' : 'text-danger-600 font-semibold'
+              }`}
+            >
+              {firstPasswordUsable ? copy.fieldPasswordHint : copy.passwordRule}
             </p>
 
             <span className="mb-2.5 block text-sm font-semibold">{copy.fieldCity}</span>

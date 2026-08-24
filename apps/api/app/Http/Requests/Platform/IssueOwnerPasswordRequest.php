@@ -5,36 +5,33 @@ declare(strict_types=1);
 namespace App\Http\Requests\Platform;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 /**
  * The owner's next password — typed by the operator, or left to the generator.
  *
- * This used to refuse a typed one outright, and the reason it gave was a real
- * one: an operator who *can* choose would choose the same string for every
- * restaurant they open, and that string ends up in a notebook beside a list of
- * customer names.
+ * No strength rule, and that is the owner of this platform's decision rather
+ * than an oversight. It has moved twice, so the history is worth keeping:
  *
- * It is allowed now because the case it was blocking is the ordinary one. An
- * owner rings and says "change my password to X" — they have it written down,
- * or they want one they can actually remember — and refusing left the operator
- * reading sixteen random characters down a phone line, which is how a password
- * ends up written on the side of a till.
+ *  1. Typed passwords were refused outright — only generated ones — on the
+ *     argument that an operator who can choose will reuse one weak string.
+ *  2. Then allowed, behind `Password::min(12)->letters()->numbers()`.
+ *  3. Now allowed with no strength rule at all, because the restaurants ring up
+ *     and dictate what they want, and a console that argues with the customer
+ *     about their own password is a console the operator works around — by
+ *     writing it on paper, which is worse than any weak string.
  *
- * So the failure the old rule was aimed at is prevented by the rule below
- * rather than by removing the ability. `Password::min(12)->letters()->numbers()`
- * refuses the weak repeat every time: not the restaurant's name, not `12345678`,
- * not the operator's usual. `uncompromised()` is deliberately NOT added — it
- * calls haveibeenpwned over the network, and a credential screen that hangs or
- * fails when an outside service is down is worse than the leak it screens for.
+ * The risk is real and belongs on the record: a short password on an owner
+ * account is a restaurant's whole console, till and takings behind something
+ * guessable. It is not mitigated here. What mitigates it is the audit trail —
+ * every issue and every read is logged with the operator who did it — and the
+ * fact that this endpoint is `super-admin` only.
  *
- * Symbols are not required, and that is a decision about how this is used: the
- * password is read out loud on a call, and "was that an underscore or a dash"
- * is a support call of its own. Length and a mix of letters and digits carry the
- * strength here.
+ * **`max:72` stays, and it is not a policy.** bcrypt reads the first 72 bytes
+ * and silently ignores the rest, so a longer password would be *accepted*,
+ * stored, and then match on any string sharing its first 72 bytes. Refusing is
+ * the honest answer; truncating quietly is not.
  *
- * Leaving it empty still generates one. That is the right default and stays the
- * default in the console.
+ * Leaving it empty still generates one, and the console still offers that first.
  */
 final class IssueOwnerPasswordRequest extends FormRequest
 {
@@ -49,25 +46,19 @@ final class IssueOwnerPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['nullable', 'string', 'max:72', Password::min(12)->letters()->numbers()],
+            'password' => ['nullable', 'string', 'max:72'],
         ];
     }
 
     /**
-     * The three languages, because a Russian operator reads the same refusal.
-     *
-     * Laravel's own message names the rules in English and lists them in a
-     * sentence an operator has to decode. This says the thing to do.
+     * The one refusal left, in words rather than in Laravel's.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'password.min' => __('Parol kamida 12 belgidan iborat bo\'lishi kerak.'),
             'password.max' => __('Parol 72 belgidan uzun bo\'lmasligi kerak.'),
-            'password.letters' => __('Parolda harf ham, raqam ham bo\'lishi kerak.'),
-            'password.numbers' => __('Parolda harf ham, raqam ham bo\'lishi kerak.'),
         ];
     }
 }

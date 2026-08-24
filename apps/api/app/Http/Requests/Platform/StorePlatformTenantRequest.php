@@ -31,8 +31,16 @@ final class StorePlatformTenantRequest extends FormRequest
             'name' => ['required', 'string', 'max:160'],
             'email' => ['required', 'email', 'max:190', Rule::unique('users', 'email')],
             'phone' => ['nullable', 'string', 'max:32', 'regex:/^\+?[0-9]{9,15}$/'],
-            // Optional: left empty, one is generated and shown once.
-            'password' => ['nullable', 'string', 'min:12', 'max:72'],
+            /*
+             * Optional: left empty, one is generated and shown once.
+             *
+             * No minimum, matching `IssueOwnerPasswordRequest` — the operator
+             * types what the restaurant asked for. `max:72` is not a policy but
+             * a fact about bcrypt, which reads the first 72 bytes and ignores
+             * the rest: a longer one would be stored and then match anything
+             * sharing that prefix, so refusing is the honest answer.
+             */
+            'password' => ['nullable', 'string', 'max:72'],
             'locale' => ['nullable', 'string', 'in:uz,ru,en'],
             'timezone' => ['nullable', 'string', 'max:64', 'timezone'],
             'country' => ['nullable', 'string', 'size:2'],

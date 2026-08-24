@@ -258,6 +258,44 @@ describe('the credentials panel', () => {
     expect(calls[0]?.body).toEqual({ tenantId: 42, password: 'Osh7Xona7Termiz' });
   });
 
+  it('posts whatever the operator typed, however weak', async () => {
+    /*
+     * Reported as a bug and fixed as a decision: a short password used to be
+     * refused with a 422 and the sentence "the submitted data is not valid,
+     * check the highlighted field", which names no field and no rule. There is
+     * no strength rule now — restaurants dictate their own password — so this
+     * asserts the console does not invent one.
+     */
+    const calls = upstream();
+
+    openCredentials();
+
+    fireEvent.change(screen.getByPlaceholderText(CARD.passwordPlaceholder), {
+      target: { value: 'parol' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: CARD.setPassword }));
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0]?.body).toEqual({ tenantId: 42, password: 'parol' });
+  });
+
+  it('will not post one longer than bcrypt reads', async () => {
+    // The only refusal left, and it is not a policy: bcrypt reads 72 bytes and
+    // ignores the rest, so a longer one would match anything sharing its prefix.
+    // Caught in the browser so the round trip does not happen.
+    const calls = upstream();
+
+    openCredentials();
+
+    fireEvent.change(screen.getByPlaceholderText(CARD.passwordPlaceholder), {
+      target: { value: 'a'.repeat(73) },
+    });
+    fireEvent.click(screen.getByRole('button', { name: CARD.setPassword }));
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(calls).toHaveLength(0);
+  });
+
   it('prints the issued password once, and empties the field it was typed into', async () => {
     // The answer is the only copy of it that exists; leaving the typed value in
     // an input on a console somebody walks away from is the thing this screen is

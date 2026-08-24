@@ -670,7 +670,7 @@ export const ru: WebMessages = {
         emailSaved: 'Почта для входа обновлена',
         passwordLabel: 'Новый пароль (необязательно)',
         passwordPlaceholder: 'Оставьте пустым — сгенерируется',
-        passwordRule: 'Не менее 12 символов, буквы и цифры',
+        passwordRule: 'Любой пароль — ограничений нет. Максимум 72 символа.',
         setPassword: 'Установить этот пароль',
         ownerName: 'Имя владельца',
         ownerPhone: 'Телефон',

@@ -54,6 +54,38 @@ removes them is letting an owner reset their own password, which needs either th
 Eskiz key (SMS), an SMTP host (email), or the Telegram bot that is already live
 and needs no key at all._
 
+### 🔧 Changed — A typed password is taken as typed (2026-08-24)
+
+The strength rule is gone. `Password::min(12)->letters()->numbers()` is off both
+the create sheet and the reissue endpoint, and an operator can set whatever the
+restaurant dictated.
+
+It moved three times in a day, so the shape of the argument is worth keeping:
+typed passwords refused outright → allowed behind a strength rule → allowed as
+typed. The last move is the platform owner's call and the reason is operational
+rather than technical: restaurants ring up and say what they want, and a console
+that argues with a customer about their own password is a console the operator
+works around — by writing it on paper, which is worse than any weak string.
+
+**The risk is not mitigated and should not be read as mitigated.** A guessable
+password on an owner account is that restaurant's console, till and takings. What
+stands in front of it is the wall — `super-admin` only — and the audit trail,
+which names the operator on every issue and every read. That is the whole of it.
+
+**`max:72` stays, and it is not a policy.** bcrypt reads the first 72 bytes and
+silently ignores the rest, so a longer password would be accepted, stored, and
+then match on _any_ string sharing those bytes — a weaker credential than the one
+the operator thought they set, with nothing on screen to say so. Refusing is
+honest; truncating quietly is not. Checked in the browser too, so the round trip
+does not happen.
+
+Reported as a bug — a short password answered 422 and the console printed "the
+submitted data is not valid, check the highlighted field", naming no field, no
+rule and no fix. **That second half was a real defect and is fixed separately:**
+`console-post.ts` threw away `error.errors`, where the failing rule writes its own
+line. Every refusal in the console now shows the specific message when there is
+one and falls back to the general sentence when there is not.
+
 ### 🔑 Added — The operator can set the owner's credentials, not only mint them (2026-08-24)
 
 Restaurant owners ring the platform and ask two things: "send me my email and

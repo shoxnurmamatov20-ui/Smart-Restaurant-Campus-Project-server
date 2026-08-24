@@ -671,7 +671,7 @@ export const en: WebMessages = {
         emailSaved: 'Sign-in email updated',
         passwordLabel: 'New password (optional)',
         passwordPlaceholder: 'Leave empty to generate one',
-        passwordRule: 'At least 12 characters, letters and digits',
+        passwordRule: 'Any password — no rules. 72 characters at most.',
         setPassword: 'Set this password',
         ownerName: 'Owner name',
         ownerPhone: 'Phone',
