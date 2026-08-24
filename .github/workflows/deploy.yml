@@ -1,0 +1,79 @@
+# Deploy — main, after CI is green, by the same tool an operator runs by hand.
+#
+# Nothing here builds anything. The runner connects over SSH and runs
+# `srcp-deploy --build`, which pulls the tree it is pointed at, builds a release
+# under /srv/srcp/releases, proves it boots and answers its health checks, and
+# swaps the symlink — or rolls back. The deploy tool is the deploy; this file
+# is only the trigger and the audit line.
+#
+# Why a manual approval gate (`environment: production`): a restaurant's tills
+# run on this. A merge at 19:30 on a Friday should not become a restart at
+# 19:31 because the tests passed; it should become one at 03:00 after someone
+# pressed a button. Set the environment's "required reviewers" in the repo
+# settings and the workflow waits for them.
+#
+# Secrets this needs (Settings → Secrets → Actions):
+#   DEPLOY_HOST      the server (87.237.235.107 or its DNS name)
+#   DEPLOY_USER      a user with `sudo srcp-deploy` allowed — see sudoers-srcp
+#   DEPLOY_SSH_KEY   that user's private key, ed25519, used for nothing else
+#   DEPLOY_KNOWN_HOSTS  the output of `ssh-keyscan -H <host>`, so a changed host
+#                    key is a refusal rather than a prompt nobody can answer
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      migrate:
+        description: 'Run database migrations (takes a backup first)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Production
+    # Only after a green CI on main, or a person pressing the button.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://mypos.tashmedunitf.uz
+    timeout-minutes: 30
+
+    steps:
+      - name: Load the deploy key
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
+
+      - name: Pull the commit that passed CI
+        # The server keeps its own checkout; the deploy tool builds from it.
+        # Pulling the exact SHA CI tested — not "latest main" — is what makes
+        # the green tick above mean something about what goes live.
+        run: |
+          ssh -i ~/.ssh/deploy -o BatchMode=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd /home/pos/srcp && git fetch --quiet origin && git checkout --quiet ${{ github.event.workflow_run.head_sha || github.sha }}"
+
+      - name: srcp-deploy --build
+        run: |
+          ssh -i ~/.ssh/deploy -o BatchMode=yes "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "sudo -n srcp-deploy --build ${{ inputs.migrate && '--migrate' || '' }}"
+
+      - name: Health, from the outside
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 10 https://mypos.tashmedunitf.uz/api/health >/dev/null; then
+              echo "healthy"; exit 0
+            fi
+            sleep 10
+          done
+          echo "the site did not answer after the deploy"; exit 1

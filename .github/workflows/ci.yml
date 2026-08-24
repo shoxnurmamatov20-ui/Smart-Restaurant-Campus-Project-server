@@ -49,6 +49,24 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # A real browser against the real build. `pnpm build` above already
+      # produced `.next`; Playwright starts `next start` itself. Chromium only
+      # — the phone project emulates a Pixel in the same engine, and a second
+      # engine would double the minutes for bugs this suite has never found.
+      - name: Install Playwright browser
+        run: pnpm --filter @restaurant/web exec playwright install --with-deps chromium
+
+      - name: End-to-end
+        run: pnpm --filter @restaurant/web e2e
+
+      - name: Upload E2E traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/web/test-results/
+          retention-days: 7
+
   # ========== Laravel / PHP ==========
   php-lint-test:
     name: Laravel — Lint, Test
