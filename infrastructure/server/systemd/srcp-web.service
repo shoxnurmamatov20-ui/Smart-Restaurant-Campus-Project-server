@@ -24,6 +24,13 @@ PartOf=srcp.target
 StartLimitBurst=5
 StartLimitIntervalSec=60
 
+# When this gives up, somebody is told.
+#
+# `Restart=always` means systemd keeps trying, and `StartLimitBurst` means it
+# eventually stops — and the moment it stops is the moment a till stops
+# answering. Until this line, that transition was a journal entry nobody read.
+OnFailure=srcp-notify@%n.service
+
 [Service]
 Type=simple
 User=srcp

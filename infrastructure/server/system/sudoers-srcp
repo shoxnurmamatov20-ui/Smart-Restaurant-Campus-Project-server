@@ -19,7 +19,9 @@
 Cmnd_Alias SRCP_TOOLS = /usr/local/sbin/srcp-deploy,  \
                         /usr/local/sbin/srcp-rollback, \
                         /usr/local/sbin/srcp-apply,    \
-                        /usr/local/sbin/srcp-health
+                        /usr/local/sbin/srcp-health,   \
+                        /usr/local/sbin/srcp-backup,   \
+                        /usr/local/sbin/srcp-apk-publish
 
 Cmnd_Alias SRCP_UNITS = /usr/bin/systemctl start srcp-*,    \
                         /usr/bin/systemctl stop srcp-*,     \

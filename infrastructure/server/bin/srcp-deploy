@@ -4,7 +4,7 @@
 #
 #   sudo srcp-deploy                      # copy the source tree as it stands
 #   sudo srcp-deploy --build              # reinstall dependencies and rebuild
-#   sudo srcp-deploy --build --migrate    # ...and run migrations
+#   sudo srcp-deploy --build --migrate    # ...and run migrations + sync the role matrix
 #   sudo srcp-deploy --from /home/pos/srcp
 #
 # ---------------------------------------------------------------------
@@ -92,6 +92,62 @@ PREVIOUS=""
 
 # Every application command goes through here. env -i is not used: composer and
 # pnpm both need a HOME to cache into, and srcp has no home directory of its own.
+# A copy of the database, taken before anything can change its shape.
+#
+# Runs as the `postgres` superuser over the local socket, NOT as the application
+# role — and that is the whole design of this function, arrived at the hard way.
+#
+# Row-level security is FORCE'd on forty-odd tables here, which means it applies
+# to the table owner too. `pg_dump` sets `row_security = off` and REFUSES to run
+# when a policy would filter what it copies:
+#
+#     ERROR: query would be affected by row-level security policy for "customers"
+#
+# That refusal is pg_dump protecting us, and it is worth understanding rather than
+# working around. The obvious workaround — `--enable-row-security` with the
+# tenancy GUC set — does not fail: it produces a file of the right shape, the
+# right schema and a plausible size, containing zero rows from every guarded
+# table. A backup that fails is an incident. A backup that silently succeeds and
+# is empty is a disaster found on the day somebody restores it.
+#
+# So the dump is taken by a role that genuinely sees everything. `postgres` over
+# the Unix socket needs no password and no credential stored anywhere.
+backup_database() {
+    local dir=/srv/srcp/backups at file db
+    at=$(date -u +%Y%m%dT%H%M%SZ)
+
+    db=$(sed -nE 's/^DB_DATABASE=["'"'"']?([^"'"'"']*)["'"'"']?[[:space:]]*$/\1/p' \
+        /srv/srcp/shared/env/api.env 2>/dev/null | head -1)
+
+    [[ -n $db ]] || die "cannot read DB_DATABASE — refusing to migrate without a backup"
+
+    file="$dir/$db-$at.sql.gz"
+    install -d -o srcp -g srcp -m 0750 "$dir"
+
+    if ! sudo -u postgres pg_dump -d "$db" --no-owner --no-privileges | gzip -9 > "$file"; then
+        rm -f "$file"
+        die "pg_dump failed — refusing to migrate without a backup"
+    fi
+
+    # A dump with no COPY blocks is the empty-backup failure above wearing a
+    # success exit code. Checked rather than trusted, because the whole point of
+    # this function is the case where everything looks fine.
+    local tables
+    tables=$(gzip -cd "$file" | grep -c '^COPY ' || true)
+
+    if (( tables < 1 )); then
+        rm -f "$file"
+        die "the dump contains no table data — refusing to migrate on an empty backup"
+    fi
+
+    chown srcp:srcp "$file"
+    ok "database backed up — $tables tables, $(du -h "$file" | cut -f1) -> $file"
+
+    # A fortnight. Older copies go: a disk that fills is an outage, and a backup
+    # nobody has looked at in two weeks is one nobody was going to restore.
+    find "$dir" -name "$db-*.sql.gz" -mtime +14 -delete 2>/dev/null || true
+}
+
 as_srcp() {
     # CI=true because nothing here has a TTY and every tool must know it.
     # The one that did not was pnpm: finding a node_modules it wanted to
@@ -145,6 +201,12 @@ rsync -rlptD --delete "${LINK_DEST[@]+"${LINK_DEST[@]}"}" \
     --exclude='apps/api/storage/framework/cache/data/' \
     --exclude='apps/api/.env' \
     --exclude='apps/*/.env.local' \
+    --exclude='apps/mobile/android/' \
+    --exclude='apps/mobile/ios/' \
+    --exclude='apps/mobile/dist/' \
+    --exclude='apps/mobile/.expo/' \
+    --exclude='apps/web/test-results/' \
+    --exclude='apps/web/playwright-report/' \
     --exclude='*.log' \
     "$SRCP_SOURCE/" "$RELEASE/"
 
@@ -224,8 +286,12 @@ if (( DO_BUILD )); then
     log "pnpm install --frozen-lockfile"
     ( cd "$RELEASE" && as_srcp pnpm install --frozen-lockfile --prod=false )
 
+    # Only the two things this box serves. `pnpm build` at the root would also
+    # run `apps/mobile`'s Expo export — two Hermes bundles nobody on a server
+    # can open, five minutes of Metro, and a gigabyte of native tooling to
+    # install first. The phone app ships through EAS, not through nginx.
     log "pnpm build (web + admin)"
-    ( cd "$RELEASE" && as_srcp pnpm build )
+    ( cd "$RELEASE" && as_srcp pnpm --filter @restaurant/web --filter @restaurant/admin build )
 else
     # Even without a full build, the development dependencies have no business
     # in a production release: pest, phpunit, rector, faker and larastan are
@@ -311,8 +377,36 @@ as_srcp php "$RELEASE/apps/api/artisan" storage:link >/dev/null 2>&1 || true
 
 if (( DO_MIGRATE )); then
     log "running migrations"
+
+    #-------------------------------------------------------------------------
+    # A dump first, always.
+    #
+    # This is the one step of the deploy that `srcp-rollback` cannot undo: the
+    # symlink goes back, the schema does not. A migration carrying a mistaken
+    # `dropColumn` takes a restaurant's takings with it, and the only thing
+    # between that and a very bad evening is a copy taken beforehand.
+    #
+    # It refuses rather than warns. A backup skipped because it is inconvenient
+    # is a backup missing on the night it was needed.
+    #-------------------------------------------------------------------------
+    backup_database
+
     as_srcp php "$RELEASE/apps/api/artisan" migrate --force --no-interaction \
         || die "migrations failed — release not activated, nothing changed"
+
+    #-------------------------------------------------------------------------
+    # The role matrix is code, and migrations do not carry it.
+    #
+    # `RolesAndPermissionsSeeder` is the canonical definition of which role
+    # may do what — `firstOrCreate` for every permission, `syncPermissions`
+    # for every role, so re-running it is the same as running it once. A new
+    # module ships with `{module}.view` and friends in that seeder, the schema
+    # lands with `migrate`, and without this step the owner gets 403 on every
+    # screen of the module until somebody remembers to seed. Board and
+    # Marketplace went live exactly like that.
+    #-------------------------------------------------------------------------
+    as_srcp php "$RELEASE/apps/api/artisan" db:seed --class='Database\Seeders\RolesAndPermissionsSeeder' --force --no-interaction \
+        || die "role matrix failed to sync — release not activated; the schema migrated, re-run with --migrate after fixing the seeder"
 else
     if as_srcp php "$RELEASE/apps/api/artisan" migrate:status 2>/dev/null | grep -q 'Pending'; then
         warn "there are pending migrations. This deploy does not run them — re-run with --migrate."
@@ -394,7 +488,7 @@ PHPV=$(find /etc/php -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort -V | 
 # resolved realpath and the pool runs with validate_timestamps=0, so workers
 # would keep serving the previous release from memory indefinitely.
 systemctl restart "php$PHPV-fpm"
-systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
+systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service srcp-reverb.service
 systemctl start   srcp-scheduler.timer
 systemctl start   srcp-health.timer
 systemctl start   srcp.target 2>/dev/null || true
@@ -416,7 +510,7 @@ else
         ln -sfnT "$PREVIOUS" "$CURRENT.new"
         mv -fT "$CURRENT.new" "$CURRENT"
         systemctl restart "php$PHPV-fpm"
-        systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service
+        systemctl restart srcp-web.service srcp-admin.service srcp-horizon.service srcp-reverb.service
         sleep 6
         if /usr/local/sbin/srcp-health --quiet; then
             die "rolled back to $(basename "$PREVIOUS"), which is healthy. The failed release is kept at $RELEASE — run srcp-health for the detail."

@@ -97,7 +97,7 @@ install_file() {
     return 0
 }
 
-# Install one of the four operator tools into /usr/local/sbin.
+# Install one of the operator tools into /usr/local/sbin.
 #
 # Separate from install_file for one reason: srcp-apply installs srcp-apply, and
 # it is running while it does. `install` opens the destination with O_TRUNC,
@@ -161,6 +161,19 @@ restore_backup() {
 #-----------------------------------------------------------------------------
 log "directories"
 install_file "$SRC/system/tmpfiles-srcp.conf" /etc/tmpfiles.d/srcp.conf 0644 || true
+
+# The alert channel's credentials, as an example only.
+#
+# Copied rather than installed over: this file holds a bot token once an
+# operator fills it in, and re-running srcp-apply must never overwrite it with
+# a blank. `install_file` compares and replaces, which is right for
+# configuration the repository owns and wrong for a secret it does not.
+if [[ ! -e /etc/srcp/alerts.env ]]; then
+    install -d -m 0750 /etc/srcp
+    install -m 0600 "$SRC/system/alerts.env.example" /etc/srcp/alerts.env 2>/dev/null \
+        && log "wrote /etc/srcp/alerts.env — fill it in, then: srcp-notify --test" \
+        || true
+fi
 run install -d -o root -g adm -m 0750 /var/log/srcp
 run install -d -o root -g root -m 0750 /var/backups/srcp
 
@@ -197,6 +210,12 @@ log "nginx"
 run install -d -m 0755 /etc/nginx/snippets
 install_file "$SRC/nginx/srcp-proxy.conf"   /etc/nginx/snippets/srcp-proxy.conf   0644 && NGINX_TOUCHED=1 || true
 install_file "$SRC/nginx/srcp-fastcgi.conf" /etc/nginx/snippets/srcp-fastcgi.conf 0644 && NGINX_TOUCHED=1 || true
+# Before srcp-routes.conf, which includes it. The section heading says "snippets
+# first, then the site that includes them" — and routes.conf is itself an
+# includer, which is the part that is easy to miss: installed in the other order,
+# `nginx -t` fails on the very first apply of a new snippet, the whole
+# configuration is restored, and nothing ships. Measured, not reasoned about.
+install_file "$SRC/nginx/srcp-websocket.conf" /etc/nginx/snippets/srcp-websocket.conf 0644 && NGINX_TOUCHED=1 || true
 install_file "$SRC/nginx/srcp-routes.conf"  /etc/nginx/snippets/srcp-routes.conf  0644 && NGINX_TOUCHED=1 || true
 install_file "$SRC/nginx/nginx-srcp.conf"   /etc/nginx/sites-available/srcp       0644 && NGINX_TOUCHED=1 || true
 
@@ -227,8 +246,11 @@ fi
 #-----------------------------------------------------------------------------
 log "systemd"
 for unit in srcp-web.service srcp-admin.service srcp-horizon.service \
+            srcp-reverb.service \
             srcp-scheduler.service srcp-scheduler.timer \
-            srcp-health.service srcp-health.timer srcp.target; do
+            srcp-health.service srcp-health.timer \
+            srcp-backup.service srcp-backup.timer \
+            srcp-notify@.service srcp.target; do
     install_file "$SRC/systemd/$unit" "/etc/systemd/system/$unit" 0644 && UNITS_TOUCHED=1 || true
 done
 
@@ -245,7 +267,8 @@ if (( UNITS_TOUCHED )) && ! (( DRY_RUN )); then
     # itself would run the check once at boot and never again, which looks like
     # monitoring and is not.
     systemctl enable srcp-web.service srcp-admin.service srcp-horizon.service \
-                     srcp-scheduler.timer srcp-health.timer srcp.target >/dev/null 2>&1 || true
+                     srcp-reverb.service \
+                     srcp-scheduler.timer srcp-health.timer srcp-backup.timer srcp.target >/dev/null 2>&1 || true
     ok "units installed and enabled"
 fi
 
@@ -261,7 +284,7 @@ fi
 # They belong here: /usr/local/sbin is deployment configuration like /etc is.
 #-----------------------------------------------------------------------------
 log "operator tools"
-for tool in srcp-deploy srcp-rollback srcp-apply srcp-health; do
+for tool in srcp-deploy srcp-rollback srcp-apply srcp-health srcp-notify srcp-apk srcp-apk-publish srcp-backup; do
     install_tool "$SRC/bin/$tool" "$tool" || true
 done
 

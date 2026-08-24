@@ -25,6 +25,12 @@ Documentation=file:///srv/srcp/current/infrastructure/server/bin/srcp-health
 # are down; a dependency would stop it from running in exactly that case.
 After=network-online.target
 
+# And here is the notifier this file's own header promised and nobody hung off
+# it. Without this line the check runs every five minutes, is right about the
+# dead worker or the full disk, and writes it to a journal nobody reads — which
+# is the state this deployment was in.
+OnFailure=srcp-notify@%n.service
+
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/srcp-health --quiet

@@ -36,6 +36,10 @@ Documentation=https://laravel.com/docs/scheduling
 After=network-online.target postgresql.service redis-server.service
 PartOf=srcp.target
 
+# A scheduler run that fails takes the outbox relay with it, so the events other
+# modules are waiting on stop moving. Nothing else would have said so.
+OnFailure=srcp-notify@%n.service
+
 [Service]
 Type=oneshot
 User=srcp

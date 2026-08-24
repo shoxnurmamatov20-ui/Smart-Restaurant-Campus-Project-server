@@ -1,0 +1,26 @@
+# One database dump, verified non-empty, pruned at thirty days.
+#
+# Runs srcp-backup, which runs pg_dump as the postgres superuser over the
+# socket — the only role that sees through FORCE'd row-level security. The
+# unit therefore runs as root and the tool drops to postgres itself; sandboxing
+# that would also sandbox the socket is the one thing this cannot have.
+#
+# Failure is loud: a non-zero exit fires srcp-notify@ with the unit name, the
+# same path every other service here uses, so an empty or failed backup is a
+# message in the morning rather than a surprise on the day of the restore.
+
+[Unit]
+Description=SRCP nightly database backup
+Documentation=file:///srv/srcp/current/infrastructure/server/bin/srcp-backup
+After=postgresql.service
+Requires=postgresql.service
+OnFailure=srcp-notify@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/srcp-backup
+Nice=10
+IOSchedulingClass=idle
+ProtectSystem=strict
+ReadWritePaths=/srv/srcp/backups
+PrivateTmp=true

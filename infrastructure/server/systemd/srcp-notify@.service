@@ -1,0 +1,36 @@
+# Smart Restaurant Campus — the notifier systemd hangs off a failure.
+#
+# A template unit, so one file covers every service that can fail: `%i` is the
+# unit name passed by `OnFailure=srcp-notify@%n.service`. Written once rather
+# than a notifier per service, which is how one of them ends up not having one.
+#
+# Type=oneshot and no dependencies on anything it reports about. This unit's
+# whole job is to run when something else is broken; a Requires= on the thing
+# that just died would stop it starting in exactly that case.
+
+[Unit]
+Description=Alert that %i failed
+Documentation=file:///srv/srcp/current/infrastructure/server/bin/srcp-notify
+
+# Deliberately NOT After=network-online.target. A failure during boot, before
+# the network is up, is still worth queueing — and systemd will run this when it
+# can. Waiting for the network would silence the alert that says the network is
+# the problem.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/srcp-notify %i
+
+# Never fail. A notifier whose own failure is a failed unit invites a second
+# OnFailure and an alert loop; srcp-notify exits 0 whatever happens and says
+# what it did in the journal.
+SuccessExitStatus=0 1
+
+# It reads a token out of /etc/srcp/alerts.env and talks to one host. Nothing
+# else on the box needs to be reachable from it.
+User=root
+Group=root
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes

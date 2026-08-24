@@ -1,6 +1,6 @@
 # One handle for the whole application.
 #
-#   systemctl restart srcp.target    — all four services, in dependency order
+#   systemctl restart srcp.target    — every service, in dependency order
 #   systemctl status  srcp.target    — is the platform up?
 #
 # Each unit declares PartOf=srcp.target, which is what makes stop and restart
@@ -15,7 +15,7 @@
 [Unit]
 Description=Smart Restaurant Campus
 Documentation=file:///srv/srcp/current/docs/deployment/pos26-uzcloud.md
-Wants=srcp-web.service srcp-admin.service srcp-horizon.service srcp-scheduler.timer
+Wants=srcp-web.service srcp-admin.service srcp-horizon.service srcp-reverb.service srcp-scheduler.timer
 After=network-online.target
 
 [Install]

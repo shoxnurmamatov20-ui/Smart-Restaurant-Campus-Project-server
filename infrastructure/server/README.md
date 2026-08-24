@@ -47,17 +47,19 @@ versiya umuman yo'q edi.
 
 ## Kundalik buyruqlar
 
-| Kerak                                  | Buyruq                               |
-| -------------------------------------- | ------------------------------------ |
-| Yangi versiyani chiqarish              | `sudo srcp-deploy`                   |
-| To'liq qayta build bilan               | `sudo srcp-deploy --build`           |
-| Migratsiya bilan                       | `sudo srcp-deploy --build --migrate` |
-| Holatni tekshirish                     | `sudo srcp-health`                   |
-| Orqaga qaytish                         | `sudo srcp-rollback`                 |
-| Qaysi release'lar bor                  | `srcp-rollback --list`               |
-| Faqat konfiguratsiyani qayta o'rnatish | `sudo srcp-apply`                    |
-| Hammasini qayta ishga tushirish        | `sudo systemctl restart srcp.target` |
-| Loglar                                 | `journalctl -u srcp-web -f`          |
+| Kerak                                    | Buyruq                                                                                                               |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Yangi versiyani chiqarish                | `sudo srcp-deploy`                                                                                                   |
+| To'liq qayta build bilan                 | `sudo srcp-deploy --build`                                                                                           |
+| Migratsiya bilan (+ rol matritsasi)      | `sudo srcp-deploy --build --migrate`                                                                                 |
+| Demo restoranni fixture bilan to'ldirish | `sudo -u srcp php /srv/srcp/current/apps/api/artisan demo:seed`                                                      |
+| Android ilovasini qurib nashr qilish     | `srcp-apk` (root emas — dasturchi sifatida); qurilgan APK'ni qayta qurmasdan nashr qilish: `srcp-apk --publish-only` |
+| Holatni tekshirish                       | `sudo srcp-health`                                                                                                   |
+| Orqaga qaytish                           | `sudo srcp-rollback`                                                                                                 |
+| Qaysi release'lar bor                    | `srcp-rollback --list`                                                                                               |
+| Faqat konfiguratsiyani qayta o'rnatish   | `sudo srcp-apply`                                                                                                    |
+| Hammasini qayta ishga tushirish          | `sudo systemctl restart srcp.target`                                                                                 |
+| Loglar                                   | `journalctl -u srcp-web -f`                                                                                          |
 
 Hammasi **parolsiz** ishlaydi (`/etc/sudoers.d/91-srcp`).
 

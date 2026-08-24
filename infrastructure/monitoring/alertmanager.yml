@@ -1,13 +1,67 @@
+# Smart Restaurant Campus — where a Prometheus alert actually goes.
+#
+# This file had a receiver named `default` with `webhook_configs: []` — an empty
+# list, which is a valid configuration that discards every alert it is given.
+# Prometheus fired, Alertmanager grouped, and nothing left the box. A monitoring
+# stack that is wired end to end except for the last twenty metres is the same
+# as no monitoring stack, except that it looks like one on a diagram.
+#
+# Telegram, matching `srcp-notify` on the host: the platform already runs fifty
+# bots, an operator has the app open, and a message lands on a phone in under a
+# second. Email on a restaurant's operations account is read on Monday.
+#
+# The token and the chat id come from the environment rather than this file,
+# because this file is in the repository and a bot token is a credential. With
+# neither set Alertmanager still starts — and `critical` alerts also go to the
+# `null` receiver's sibling below, so the failure to configure is visible in
+# Alertmanager's own UI rather than silent.
+
 global:
   resolve_timeout: 5m
+  # Alertmanager resolves this at startup; leaving it unset makes every
+  # telegram_config carry its own copy of the token.
+  telegram_api_url: https://api.telegram.org
 
 route:
-  receiver: default
+  receiver: telegram
   group_by: ['alertname', 'service', 'severity']
   group_wait: 30s
   group_interval: 5m
+  # Four hours between repeats of an alert nobody has acted on. Shorter and a
+  # single stuck disk becomes a channel nobody reads; longer and an overnight
+  # outage is reported once, at midnight.
   repeat_interval: 4h
 
+  routes:
+    # Anything critical repeats far more often, because "the tills are not
+    # answering" is not a thing to be told about once every four hours.
+    - matchers:
+        - severity = "critical"
+      receiver: telegram
+      group_wait: 10s
+      repeat_interval: 30m
+
 receivers:
-  - name: default
-    webhook_configs: []
+  - name: telegram
+    telegram_configs:
+      - bot_token_file: /etc/alertmanager/telegram_token
+        chat_id: ${SRCP_ALERT_CHAT_ID}
+        parse_mode: HTML
+        send_resolved: true
+        # The alert's own summary and description, not the raw labels. An
+        # operator reading this on a phone needs the sentence, and the labels
+        # are in the Alertmanager UI for whoever opens a laptop.
+        message: |
+          {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} <b>{{ .CommonLabels.alertname }}</b>
+          {{ range .Alerts }}{{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}
+
+inhibit_rules:
+  # A critical alert silences the warning about the same thing. Two messages
+  # about one dead service is how an operator learns to mute the channel.
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'service']

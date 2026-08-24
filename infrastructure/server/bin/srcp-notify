@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-notify — the last twenty metres between a failure and a person.
+#
+#   srcp-notify <unit>            # called by systemd OnFailure=
+#   srcp-notify --test            # prove the channel works, without breaking anything
+#
+# Everything else in this deployment already notices. srcp-health checks eleven
+# things every five minutes and is right about all of them; the outbox relay
+# logs a stall; systemd marks a dead worker failed. None of it reaches anybody.
+# The first report of a Friday-evening outage is still a waiter saying the tills
+# stopped, which is the one failure mode monitoring exists to remove.
+#
+# Telegram, and not email. Email on a Uzbek restaurant's operations account is
+# read on Monday. The platform already runs fifty Telegram bots, every operator
+# has the app open, and a message arrives on a phone in a pocket in under a
+# second. The channel that is actually read is the only one worth building.
+#
+#-----------------------------------------------------------------------------
+# Configured, or loudly silent
+#
+# Reads /etc/srcp/alerts.env. With no token it does NOT fail: a notifier that
+# broke a deploy because nobody had filled in a chat id would be worse than the
+# silence it replaces. It logs one line saying it is unconfigured, to the
+# journal, where the next person looking at why nothing arrived will find it.
+#=============================================================================
+set -uo pipefail
+
+readonly CONF=/etc/srcp/alerts.env
+readonly HOST=$(hostname -s 2>/dev/null || echo srcp)
+
+# shellcheck disable=SC1090
+[[ -r $CONF ]] && . "$CONF"
+
+TOKEN=${SRCP_ALERT_TELEGRAM_TOKEN:-}
+CHAT=${SRCP_ALERT_CHAT_ID:-}
+
+log() { logger -t srcp-notify -- "$*" 2>/dev/null || echo "srcp-notify: $*" >&2; }
+
+send() {
+    local text=$1
+
+    if [[ -z $TOKEN || -z $CHAT ]]; then
+        # The one case that must not look like success and must not look like a
+        # crash. Somebody has to fill in $CONF, and this is where they find out.
+        log "unconfigured — set SRCP_ALERT_TELEGRAM_TOKEN and SRCP_ALERT_CHAT_ID in $CONF"
+        return 0
+    fi
+
+    #  --max-time, because a notifier that hangs holds a systemd job open and
+    #  the next OnFailure never fires. Ten seconds is longer than Telegram
+    #  takes and shorter than anybody waits.
+    local code
+    code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 \
+        "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+        --data-urlencode "chat_id=${CHAT}" \
+        --data-urlencode "text=${text}" \
+        --data-urlencode 'parse_mode=HTML' \
+        --data-urlencode 'disable_web_page_preview=true' 2>/dev/null) || code=000
+
+    if [[ $code == 200 ]]; then
+        log "sent"
+        return 0
+    fi
+
+    # Logged rather than retried. A retry loop inside an OnFailure handler is a
+    # way to turn one outage into a systemd job that never finishes.
+    log "telegram refused (HTTP $code)"
+    return 0
+}
+
+if [[ ${1:-} == --test ]]; then
+    send "🔔 <b>${HOST}</b> — srcp-notify test. Alerting is wired."
+    exit 0
+fi
+
+UNIT=${1:-unknown.service}
+
+#-----------------------------------------------------------------------------
+# What the message says, and why it is not just the unit name
+#
+# "srcp-health.service failed" tells an operator nothing they can act on at
+# 21:40 on a Friday. The last lines of the journal say WHICH of the eleven
+# checks failed — a dead Horizon, a stalled outbox, a full disk — and that is
+# the difference between someone opening a laptop and someone knowing whether
+# they need to.
+#-----------------------------------------------------------------------------
+DETAIL=$(journalctl -u "$UNIT" -n 20 --no-pager --output=cat 2>/dev/null \
+    | sed -E 's/\x1b\[[0-9;]*m//g' \
+    | tail -c 2500)
+
+[[ -z ${DETAIL// } ]] && DETAIL='(journal empty)'
+
+send "🔴 <b>${HOST}</b> — ${UNIT} failed
+
+<pre>${DETAIL}</pre>"

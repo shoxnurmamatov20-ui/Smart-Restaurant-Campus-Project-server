@@ -1,0 +1,22 @@
+# Fires srcp-backup.service every night at 03:30 local time.
+#
+# OnCalendar, not OnUnitActiveSec, because this one has a contract with the
+# clock: 03:30 is after the last till has closed (Z reports run by midnight)
+# and before the first delivery is booked. A backup taken at 19:30 would
+# contain half a service.
+#
+# Persistent=true — the opposite of the health timer — because a box that was
+# off at 03:30 does need last night's backup taken when it comes back.
+
+[Unit]
+Description=SRCP nightly database backup, 03:30
+Documentation=file:///srv/srcp/current/infrastructure/server/systemd/srcp-backup.service
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+AccuracySec=5min
+Persistent=true
+Unit=srcp-backup.service
+
+[Install]
+WantedBy=timers.target

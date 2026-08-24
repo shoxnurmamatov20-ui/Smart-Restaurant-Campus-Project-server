@@ -1,0 +1,97 @@
+# Smart Restaurant Campus — WebSocket server (Laravel Reverb).
+#
+# The kitchen display is the one screen in this platform that cannot be polled.
+# A docket that appears thirty seconds late is a dish that leaves thirty seconds
+# late, every service, and the waiter's chip going amber when the kitchen accepts
+# is what stops them walking to the pass every two minutes to look.
+#
+# Reverb speaks the Pusher protocol on 127.0.0.1:8020 and nginx upgrades /app/
+# onto it — see nginx/srcp-websocket.conf. Bound to loopback for the same reason
+# as the two Next.js consoles: nginx is the only thing that should be able to
+# reach it, so a browser cannot skip the forwarded-proto handling and the log.
+#
+# It does not queue and it does not broadcast on its own. Horizon runs the
+# ShouldBroadcast jobs and posts them to Reverb over the loopback; this process
+# only holds the sockets. That is why a Reverb that is down degrades rather than
+# breaks: the job is queued, the board keeps the state it has, and every button
+# on it still works over http.
+
+[Unit]
+Description=SRCP WebSocket server (Reverb, 127.0.0.1:8020)
+Documentation=https://laravel.com/docs/reverb
+After=network-online.target redis-server.service
+Wants=network-online.target
+PartOf=srcp.target
+
+# In [Unit], not [Service] — systemd 249 parses these under [Service] as unknown
+# keys, logs once and ignores them. See srcp-web.service for the whole story.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# When this gives up, somebody is told.
+#
+# `Restart=always` means systemd keeps trying, and `StartLimitBurst` means it
+# eventually stops — and the moment it stops is the moment a till stops
+# answering. Until this line, that transition was a journal entry nobody read.
+OnFailure=srcp-notify@%n.service
+
+[Service]
+Type=simple
+User=srcp
+Group=srcp
+WorkingDirectory=/srv/srcp/current/apps/api
+
+# --host on loopback explicitly. Reverb's default is 0.0.0.0, which would put an
+# unauthenticated-looking WebSocket endpoint on every interface of this box.
+ExecStart=/usr/bin/php /srv/srcp/current/apps/api/artisan reverb:start \
+    --host=127.0.0.1 --port=8020
+
+# A long-lived event loop holding hundreds of sockets. SIGTERM closes them and
+# lets the clients reconnect through nginx to the new process; pusher-js
+# reconnects on its own, so a restart costs a second of staleness rather than a
+# blank board.
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=15
+
+Restart=always
+RestartSec=3
+
+# ---------------------------------------------------------------------
+# Sandbox — the same shape as the other four, and the same one writable path.
+# ---------------------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/srcp/shared /var/log/srcp
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+UMask=0027
+
+# One PHP process holding sockets, not ten workers holding orders. 512 MB is
+# generous for the connection count a single venue produces and still a ceiling:
+# a leak kills this service instead of the machine.
+MemoryMax=512M
+TasksMax=256
+
+# One file descriptor per connected screen, plus the listener. The default 1024
+# is reached by a chain of venues long before anything else complains, and the
+# symptom is a screen that will not connect rather than an error anybody sees.
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

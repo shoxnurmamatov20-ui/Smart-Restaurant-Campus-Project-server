@@ -91,6 +91,27 @@ fi
 
 [[ $(systemctl is-active nginx 2>/dev/null) == active ]] && pass nginx || crit nginx "not running"
 
+# Reverb — a warning, never critical, and the distinction is deliberate.
+#
+# `crit` here gates deploys and triggers a rollback, and this service must not
+# hold that power: the kitchen display degrades without it rather than breaking.
+# The board still renders the dockets the server gave it and every button on it
+# still posts over http; what is lost is the board moving on its own. Rolling a
+# good release back because a WebSocket was restarting would be the cure being
+# worse than the illness, and that has already happened once on this box.
+if [[ $(systemctl is-active srcp-reverb.service 2>/dev/null) == active ]]; then
+    if ss -ltn 2>/dev/null | grep -q '127.0.0.1:8020'; then
+        pass "srcp-reverb.service" "listening on 127.0.0.1:8020"
+    else
+        # Running but not bound: the port is taken, or the process died inside
+        # its own event loop and systemd has not noticed. Either way no screen
+        # can connect, and the unit's own state says everything is fine.
+        warn "srcp-reverb.service" "active but nothing is listening on 8020"
+    fi
+else
+    warn "srcp-reverb.service" "not running — kitchen screens will not update by themselves"
+fi
+
 #-----------------------------------------------------------------------------
 emit $'\n\033[1mThrough nginx\033[0m'
 #-----------------------------------------------------------------------------
@@ -180,6 +201,67 @@ if [[ -d $CURRENT ]]; then
     else
         pass "event outbox" "empty"
     fi
+fi
+
+#-----------------------------------------------------------------------------
+emit $'\n\033[1mBackups\033[0m'
+#-----------------------------------------------------------------------------
+#
+# The check that catches a backup which stopped, rather than one which failed.
+#
+# Those are different and only the second is noisy. A `backup:run` that throws
+# writes a log line somebody might read. A scheduler that died, a cron that was
+# never installed, a disk that filled, a package that was configured and never
+# scheduled — all of them produce silence and a directory full of last month's
+# files, which looks exactly like a working backup until the day it is needed.
+#
+# So this asks the only question worth asking: how old is the newest copy. It is
+# also why this lives here rather than in the application — `srcp-health` is
+# what `OnFailure=srcp-notify@` already hangs off, so a stale backup reaches a
+# person through machinery that is proven to work.
+
+newest_backup=""
+backup_age_h=""
+
+for dir in "$SHARED/backups" "$CURRENT/storage/app/backups" /srv/srcp/backups; do
+    [[ -d $dir ]] || continue
+
+    # `-newer` would need a reference file; `find -printf %T@` sorts by epoch
+    # and works whatever the archive is called — a spatie .zip, a srcp-deploy
+    # .sql.gz, or whatever a future tool writes.
+    found=$(find "$dir" -type f \( -name '*.zip' -o -name '*.sql.gz' -o -name '*.sql' \) \
+        -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1)
+
+    [[ -z $found ]] && continue
+
+    epoch=${found%% *}
+    path=${found#* }
+    age=$(( ( $(date +%s) - ${epoch%.*} ) / 3600 ))
+
+    if [[ -z $backup_age_h || $age -lt $backup_age_h ]]; then
+        backup_age_h=$age
+        newest_backup=$path
+    fi
+done
+
+if [[ -z $backup_age_h ]]; then
+    crit "database backup" "no copy anywhere — a disk loss destroys every order, payment and Z-report"
+elif (( backup_age_h >= 48 )); then
+    crit "database backup" "newest is ${backup_age_h}h old ($(basename "$newest_backup"))"
+elif (( backup_age_h >= 26 )); then
+    # 26 rather than 24: a daily job at 02:40 is 24h old at 02:39 the next
+    # night, and a check that fired every night at 02:39 would train an
+    # operator to ignore it.
+    warn "database backup" "newest is ${backup_age_h}h old — the daily run may have been missed"
+else
+    size=$(du -h "$newest_backup" 2>/dev/null | cut -f1)
+    pass "database backup" "${backup_age_h}h old, ${size:-?}"
+
+    # A dump far smaller than the last one is a dump of an empty database —
+    # which is what row-level security produces when pg_dump runs as the app
+    # role. It succeeds, it is the right shape, and it restores nothing.
+    bytes=$(stat -c %s "$newest_backup" 2>/dev/null || echo 0)
+    (( bytes < 20480 )) && crit "backup size" "$(basename "$newest_backup") is ${bytes}B — almost certainly empty"
 fi
 
 #-----------------------------------------------------------------------------

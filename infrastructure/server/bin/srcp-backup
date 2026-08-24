@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-backup — a nightly copy of the database that is proven non-empty, kept
+# for thirty days, and restorable by one command.
+#
+#   sudo srcp-backup                 # dump now (+ mirror the uploads)
+#   sudo srcp-backup --verify FILE   # restore FILE into a scratch database,
+#                                    # count its rows, drop the scratch — the
+#                                    # only way to know a backup is a backup
+#   sudo srcp-backup --list
+#
+# ---------------------------------------------------------------------
+# Why this exists beside srcp-deploy's own backup_database()
+#
+# The deploy takes a dump before `--migrate` and nowhere else. A restaurant that
+# has not deployed in a fortnight has a fortnight-old copy of its sales, its
+# tills and its payroll — and the failure that needs the copy (a disk, a bad
+# migration, a `DELETE` with no WHERE) does not wait for the next deploy.
+#
+# Same dump, same rules, on a timer: srcp-backup.timer fires this at 03:30
+# local, when the last till has closed and the first delivery has not started.
+#
+# ---------------------------------------------------------------------
+# The rules, inherited from the deploy and worth repeating
+#
+#   · `postgres` over the socket, not the app role. RLS is FORCE'd on forty-nine
+#     tables; pg_dump as the app role either refuses or — worse — succeeds with
+#     zero rows from every guarded table. A backup that is silently empty is a
+#     disaster found on the day somebody restores it.
+#   · COPY blocks are counted. A dump with none is deleted and reported.
+#   · Thirty days, not fourteen: a month-end close that went wrong is found at
+#     the next month-end.
+#   · `--verify` actually restores. A file that gzips and greps is not yet known
+#     to restore; only a restore is.
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-backup
+readonly DIR=/srv/srcp/backups
+readonly ENV=/srv/srcp/shared/env/api.env
+KEEP_DAYS=30
+MODE=dump
+TARGET=""
+
+log()  { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+ok()   { printf '\033[0;32m[%s] ✓\033[0m %s\n' "$PROG" "$*"; }
+die()  { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit "${2:-1}"; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --verify) MODE=verify; TARGET=${2:?--verify needs a file}; shift 2 ;;
+        --list)   MODE=list; shift ;;
+        --keep)   KEEP_DAYS=${2:?--keep needs days}; shift 2 ;;
+        -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
+        *) die "unknown argument: $1" 2 ;;
+    esac
+done
+
+[[ $EUID -eq 0 ]] || die "must run as root (use sudo)"
+
+db=$(sed -nE 's/^DB_DATABASE=["'"'"']?([^"'"'"']*)["'"'"']?[[:space:]]*$/\1/p' "$ENV" 2>/dev/null | head -1)
+[[ -n $db ]] || die "cannot read DB_DATABASE from $ENV"
+
+install -d -o srcp -g srcp -m 0750 "$DIR"
+
+case $MODE in
+list)
+    ls -lh "$DIR"/"$db"-*.sql.gz 2>/dev/null | awk '{print $6, $7, $8, $5, $9}' || log "no backups yet"
+    exit 0
+    ;;
+
+verify)
+    [[ -r $TARGET ]] || die "cannot read $TARGET"
+    scratch="${db}_verify_$$"
+    log "restoring $(basename "$TARGET") into scratch database $scratch"
+    sudo -u postgres createdb "$scratch"
+    # Whatever happens, the scratch database does not outlive this run.
+    trap 'sudo -u postgres dropdb --if-exists "$scratch" >/dev/null 2>&1 || true' EXIT
+    if ! gzip -cd "$TARGET" | sudo -u postgres psql -q -v ON_ERROR_STOP=1 -d "$scratch" >/dev/null; then
+        die "restore FAILED — this backup cannot be restored"
+    fi
+    # Row counts from the tables that matter most; zero in any of them is the
+    # empty-backup failure wearing a successful restore.
+    rows=$(sudo -u postgres psql -At -d "$scratch" -c "
+        select coalesce(sum(n_live_tup),0) from pg_stat_user_tables
+        where schemaname in ('public','orders','finance','menu','crm','staff')")
+    # n_live_tup is a planner estimate and is 0 right after a restore until
+    # ANALYZE runs, so count the one table a restaurant cannot be without.
+    bills=$(sudo -u postgres psql -At -d "$scratch" -c "select count(*) from orders.bills" 2>/dev/null || echo 0)
+    users=$(sudo -u postgres psql -At -d "$scratch" -c "select count(*) from public.users" 2>/dev/null || echo 0)
+    (( users > 0 )) || die "restored, but public.users is empty — the dump had no data"
+    ok "restores cleanly — $users users, $bills bills (estimate ${rows} rows)"
+    exit 0
+    ;;
+
+dump)
+    at=$(date -u +%Y%m%dT%H%M%SZ)
+    file="$DIR/$db-$at.sql.gz"
+    if ! sudo -u postgres pg_dump -d "$db" --no-owner --no-privileges | gzip -9 > "$file"; then
+        rm -f "$file"
+        die "pg_dump failed"
+    fi
+    tables=$(gzip -cd "$file" | grep -c '^COPY ' || true)
+    if (( tables < 1 )); then
+        rm -f "$file"
+        die "the dump contains no table data — deleted; do not trust tonight's backup"
+    fi
+    chown srcp:srcp "$file"
+    chmod 0640 "$file"
+    ok "$tables tables, $(du -h "$file" | cut -f1) -> $file"
+    pruned=$(find "$DIR" -name "$db-*.sql.gz" -mtime +"$KEEP_DAYS" -print -delete 2>/dev/null | wc -l)
+    (( pruned == 0 )) || log "pruned $pruned backup(s) older than $KEEP_DAYS days"
+
+    # -----------------------------------------------------------------
+    # The uploads — dish photographs — which the dump does not contain.
+    #
+    # The database can rebuild everything else from itself; a photograph
+    # exists only as a file under shared/storage/app/public. One mirror, not
+    # thirty dated tars: every file is named by the hash of its content and
+    # is never rewritten, so a mirror that only ever adds is a complete
+    # history, and `rsync` moves only what is new — a few hundred kilobytes
+    # per dish photographed that day rather than the whole tree every night.
+    # No `--delete`: a photograph a manager removed yesterday is the one a
+    # restore is most likely to be asked for.
+    #
+    # Failure here is reported but does not fail the run: the database dump
+    # above is the backup that must exist; this is the one that should.
+    # -----------------------------------------------------------------
+    uploads=/srv/srcp/shared/storage/app/public
+    if [[ -d $uploads ]]; then
+        install -d -o srcp -g srcp -m 0750 "$DIR/uploads"
+        if rsync -a --chmod=D750,F640 "$uploads/" "$DIR/uploads/"; then
+            ok "uploads mirrored: $(find "$DIR/uploads" -type f | wc -l) files, $(du -sh "$DIR/uploads" | cut -f1) -> $DIR/uploads"
+        else
+            log "WARNING: uploads mirror FAILED — photographs are not in tonight's backup"
+        fi
+    fi
+    # Off-box copy: if SRCP_BACKUP_RSYNC_TARGET is set in /etc/srcp/backup.conf
+    # (user@host:/path), the file goes there too. A backup on the disk that fails
+    # is a backup that fails with it.
+    if [[ -r /etc/srcp/backup.conf ]]; then
+        # shellcheck disable=SC1091
+        . /etc/srcp/backup.conf
+        if [[ -n ${SRCP_BACKUP_RSYNC_TARGET:-} ]]; then
+            if rsync -a --chmod=F640 "$file" "$SRCP_BACKUP_RSYNC_TARGET/"; then
+                ok "copied off-box to $SRCP_BACKUP_RSYNC_TARGET"
+            else
+                die "off-box copy to $SRCP_BACKUP_RSYNC_TARGET FAILED — the only copy is on this disk"
+            fi
+            # The photographs go with it, incrementally — see the mirror above.
+            if [[ -d $DIR/uploads ]]; then
+                rsync -a --chmod=D750,F640 "$DIR/uploads/" "$SRCP_BACKUP_RSYNC_TARGET/uploads/" \
+                    && ok "uploads copied off-box" \
+                    || log "WARNING: off-box copy of uploads FAILED"
+            fi
+        fi
+    fi
+    ;;
+esac

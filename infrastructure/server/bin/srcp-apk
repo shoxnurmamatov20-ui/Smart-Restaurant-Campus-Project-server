@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-apk — build the Android app, sign it, and put it where the site hands
+# it out.
+#
+#   srcp-apk                    # build from /home/pos/srcp, publish
+#   srcp-apk --from DIR         # another checkout
+#   srcp-apk --no-publish       # build only; print the path
+#   srcp-apk --publish-only     # the APK Gradle already built; skip the 40 minutes
+#   srcp-apk --api https://host # the API the app will talk to (default: production)
+#
+# Runs as the developer, NOT as root: it needs the Android SDK and the signing
+# key, both of which live in that user's home, and nothing it does touches
+# /etc or a service. The one privileged step — copying into
+# /srv/srcp/shared/downloads/ — is `sudo srcp-apk-publish` at the end, and that
+# is the only place sudo appears.
+#
+# ---------------------------------------------------------------------
+# Why this is not part of srcp-deploy
+#
+# A web release is pnpm + next build and takes four minutes. An APK is Gradle,
+# the NDK, a keystore, and a quarter of an hour — and it changes on a different
+# rhythm: the site can ship ten times between two app versions. Coupling them
+# would make every deploy wait on a build nobody asked for. So the APK has its
+# own tool, its own directory outside the releases, and its own manifest that
+# the /download page reads at request time.
+#
+# ---------------------------------------------------------------------
+# What the phone needs from us, and why each line below exists
+#
+#   · The same signing key every time. Android identifies an app by package
+#     name AND key; an update signed differently is refused. The key is
+#     ~/.srcp-android/release.keystore and its password is in signing.env
+#     beside it — losing either means every installed phone is orphaned.
+#   · versionCode strictly increasing, or the phone refuses the update as a
+#     downgrade. It is derived from the UTC minute, which only goes up.
+#   · A checksum, so a person who cares can verify what they installed, and so
+#     the page can say "this exact file" rather than "a file".
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-apk
+SOURCE=/home/pos/srcp
+PUBLISH=1
+BUILD=1
+# Where the installed app sends every request. An input to the build, not a
+# constant in the repo (see apps/mobile/app.config.js): the first two APKs
+# went out without it and talked to the phone itself.
+API_BASE=${SRCP_API_BASE:-https://mypos.tashmedunitf.uz}
+readonly TOOLS=$HOME/.srcp-android
+readonly DEST=/srv/srcp/shared/downloads
+
+log()  { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+ok()   { printf '\033[0;32m[%s] ✓\033[0m %s\n' "$PROG" "$*"; }
+die()  { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit "${2:-1}"; }
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --from)       SOURCE=${2:?--from needs a directory}; shift 2 ;;
+        --no-publish) PUBLISH=0; shift ;;
+        --publish-only) BUILD=0; shift ;;
+        --api)        API_BASE=${2:?--api needs an https origin}; shift 2 ;;
+        -h|--help)    sed -n '2,40p' "$0"; exit 0 ;;
+        *)            die "unknown argument: $1" 2 ;;
+    esac
+done
+
+[[ $EUID -ne 0 ]] || die "run as the developer, not root — the SDK and the key are in \$HOME"
+[[ -d $SOURCE/apps/mobile ]] || die "$SOURCE has no apps/mobile"
+[[ -x $TOOLS/jdk/bin/java ]] || die "no JDK at $TOOLS/jdk — see apps/mobile/README.md § Building the APK"
+[[ -d $TOOLS/sdk/platforms ]] || die "no Android SDK at $TOOLS/sdk"
+[[ -r $TOOLS/signing.env ]] || die "no $TOOLS/signing.env — the release key is missing, and a debug-signed APK cannot be updated later"
+
+# Memory, before anything is downloaded or compiled.
+#
+# Six attempts on the 8 GB box ended the same way — "Gradle build daemon
+# disappeared unexpectedly", which is the OOM killer's handwriting — and the
+# sixth took the developer's own session with it. The NDK step needs about
+# 2.5 GB for one clang beside the JVM, and this server is already holding a
+# site, an API, Postgres and an editor. Swap is what turns "killed at 90%" into
+# "slow but finished"; 6 GB of it is what got the first APK out.
+#
+#   sudo fallocate -l 4G /swapfile2 && sudo chmod 600 /swapfile2 \
+#     && sudo mkswap /swapfile2 && sudo swapon /swapfile2
+#
+# Persist it with a line in /etc/fstab, or the next reboot brings this check
+# back. Refusing rather than warning: a build that dies after twenty minutes
+# costs more than reading this message.
+AVAIL=$(( $(awk '/MemAvailable/ {print $2}' /proc/meminfo) / 1024 ))
+SWAP_FREE=$(( $(awk '/SwapFree/ {print $2}' /proc/meminfo) / 1024 ))
+if (( AVAIL + SWAP_FREE < 5000 )); then
+    die "only ${AVAIL} MB RAM + ${SWAP_FREE} MB swap free — the NDK build needs ~5 GB headroom; add swap (see the note above) or stop something"
+fi
+
+export JAVA_HOME=$TOOLS/jdk ANDROID_HOME=$TOOLS/sdk
+export PATH=$JAVA_HOME/bin:$PATH
+# The NDK's ninja would otherwise run one clang per core beside the JVM, and on
+# this 8 GB box that is how the first two builds ended — OOM-killed mid-compile.
+# One clang at a time: each RN translation unit peaks near 700 MB and the JVM
+# holds a gigabyte beside it. Two at once is what the fifth attempt died of.
+# Gradle's own heap and worker caps live in gradle.properties (written by the
+# config plugin); this is the one knob that only the environment reaches.
+export CMAKE_BUILD_PARALLEL_LEVEL=1
+set -a; . "$TOOLS/signing.env"; set +a
+[[ -r ${SRCP_KEYSTORE:-} ]] || die "SRCP_KEYSTORE from signing.env is not readable: ${SRCP_KEYSTORE:-unset}"
+
+cd "$SOURCE/apps/mobile"
+
+# Version from app.json; versionCode from the clock. The minute since
+# 2026-01-01 fits comfortably in Android's 2^31 ceiling for the next 4 000
+# years and is strictly increasing across builds on any machine.
+VERSION=$(node -p "require('./app.json').expo.version")
+VERSION_CODE=$(( ( $(date -u +%s) - $(date -u -d 2026-01-01 +%s) ) / 60 ))
+STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+GIT=$(git -C "$SOURCE" rev-parse --short HEAD 2>/dev/null || echo nogit)
+
+APK=android/app/build/outputs/apk/release/app-release.apk
+
+[[ $API_BASE =~ ^https://[^/[:space:]]+$ ]] || die "--api must be an https origin with no path, got '$API_BASE'"
+export SRCP_API_BASE=$API_BASE
+
+if (( BUILD )); then
+    log "version $VERSION · versionCode $VERSION_CODE · $GIT · api $API_BASE"
+
+    log "expo prebuild (android/ is regenerated from app.json every time)"
+    npx expo prebuild --platform android --no-install --clean >/dev/null
+
+    echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
+    log "gradle assembleRelease"
+    ( cd android && ./gradlew assembleRelease --no-daemon -q \
+        -PversionCode="$VERSION_CODE" -PversionName="$VERSION" )
+
+    [[ -f $APK ]] || die "gradle finished but $APK is missing"
+else
+    [[ -f $APK ]] || die "--publish-only, but there is no $APK to publish — run without it"
+    log "publishing the APK Gradle built at $(date -r "$APK" -u +%Y-%m-%dT%H:%M:%SZ)"
+fi
+
+# The SDK may hold more than one build-tools release, and a glob over them is
+# two paths where a command expects one — that is exactly how a finished build
+# once failed at the very last step. Newest wins.
+BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/*/ 2>/dev/null | sort -V | tail -1 | sed 's|/$||')
+[[ -n $BUILD_TOOLS ]] || die "no build-tools under $ANDROID_HOME"
+
+# What the manifest says about the file must be what the file says about
+# itself — so the version is read back out of the APK rather than taken from
+# the clock that named it. In a normal build the two agree; with --publish-only
+# the clock has moved on and the APK is the one that is right.
+# (`grep`, not `| head -1`: under `pipefail`, head closing the pipe early turns
+# aapt2's SIGPIPE into exit 141 and the script dies between two log lines.)
+BADGING=$("$BUILD_TOOLS/aapt2" dump badging "$APK" 2>/dev/null | grep -m1 '^package:' || true)
+VERSION_CODE=$(sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p" <<<"$BADGING")
+VERSION=$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$BADGING")
+[[ -n $VERSION_CODE && -n $VERSION ]] || die "could not read the version out of $APK"
+
+# And the address, read back out of the APK the same way a phone will read it:
+# expo-constants embeds the resolved config as assets/app.config. An APK whose
+# config carries no apiBase is an app that talks to localhost — refused here,
+# whatever the caller believed it had built.
+EMBEDDED=$(unzip -p "$APK" assets/app.config 2>/dev/null \
+    | sed -n 's/.*"apiBase":"\([^"]*\)".*/\1/p')
+[[ $EMBEDDED == "$API_BASE" ]] \
+    || die "the APK's embedded config says apiBase='${EMBEDDED:-<none>}', expected '$API_BASE' — it was built without SRCP_API_BASE; run without --publish-only"
+ok "the app will talk to $API_BASE"
+
+# Prove it is signed with OUR key, not the debug one the template falls back
+# to. apksigner prints the signer's certificate digest; compare to the
+# keystore's. A debug-signed APK published here would be a one-way door.
+KS_SHA=$(keytool -list -keystore "$SRCP_KEYSTORE" -alias "$SRCP_KEY_ALIAS" \
+    -storepass "$SRCP_KEYSTORE_PASSWORD" -rfc 2>/dev/null \
+    | openssl x509 -noout -fingerprint -sha256 2>/dev/null | sed 's/.*=//; s/://g' | tr 'A-F' 'a-f')
+APK_SHA=$("$BUILD_TOOLS/apksigner" verify --print-certs "$APK" \
+    | sed -n 's/.*SHA-256 digest: //p' | head -1)
+[[ -n $KS_SHA && $KS_SHA == "$APK_SHA" ]] \
+    || die "APK is not signed with $SRCP_KEYSTORE (cert $APK_SHA vs key $KS_SHA) — refusing to publish"
+ok "signed with the release key"
+
+NAME="smart-restaurant-$VERSION-$VERSION_CODE.apk"
+SUM=$(sha256sum "$APK" | cut -d' ' -f1)
+SIZE=$(stat -c %s "$APK")
+ok "built $NAME ($(( SIZE / 1048576 )) MB) sha256 $SUM"
+
+if (( ! PUBLISH )); then
+    echo "$PWD/$APK"
+    exit 0
+fi
+
+# The manifest the /download page reads. Written whole and moved into place,
+# so a reader never sees half of it.
+MANIFEST=$(mktemp)
+cat > "$MANIFEST" <<JSON
+{
+  "app": "Smart Restaurant",
+  "package": "uz.smartrestaurant.campus",
+  "version": "$VERSION",
+  "versionCode": $VERSION_CODE,
+  "file": "$NAME",
+  "url": "/downloads/$NAME",
+  "sizeBytes": $SIZE,
+  "sha256": "$SUM",
+  "builtAt": "$STAMP",
+  "commit": "$GIT",
+  "minAndroid": "7.0",
+  "apiBase": "$API_BASE",
+  "signerSha256": "$APK_SHA"
+}
+JSON
+
+# The copy into the public directory is the only step that needs root, and it
+# is a separate tool on the NOPASSWD list (sudoers-srcp), so this one never
+# asks for a password — a session with no terminal would otherwise die here
+# with the APK built and nothing published. Exactly that happened once.
+log "publishing to $DEST"
+chmod 0644 "$MANIFEST"
+sudo -n srcp-apk-publish "$PWD/$APK" "$MANIFEST" "$NAME" \
+    || die "publish failed — is srcp-apk-publish installed and in SRCP_TOOLS? (sudo srcp-apply)"
+rm -f "$MANIFEST"
+
+ok "live at /downloads/$NAME — the /download page reads the manifest on the next request"

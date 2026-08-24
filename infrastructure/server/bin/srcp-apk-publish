@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#=============================================================================
+# srcp-apk-publish — the one privileged step of srcp-apk: put a built, signed
+# APK and its manifest where the site hands them out.
+#
+#   sudo srcp-apk-publish APK MANIFEST NAME
+#
+# Split out of srcp-apk so that the build — forty minutes of Gradle under the
+# developer's own SDK and key — never needs root, and the copy — three
+# commands — never needs a password: this file is in SRCP_TOOLS in
+# sudoers-srcp, the same list srcp-deploy is on, so a session with no terminal
+# (an agent, a CI runner) can publish without anyone typing anything.
+#
+# It refuses anything that is not an APK signed with the release key, checked
+# again here rather than trusted from the caller: a root tool that copies
+# whatever it is handed into a public directory is a root tool worth worrying
+# about, and the check costs a second.
+#=============================================================================
+set -euo pipefail
+
+readonly PROG=srcp-apk-publish
+readonly DEST=/srv/srcp/shared/downloads
+
+die() { printf '\033[0;31m[%s] ERROR\033[0m %s\n' "$PROG" "$*" >&2; exit "${2:-1}"; }
+log() { printf '\033[0;36m[%s]\033[0m %s\n' "$PROG" "$*"; }
+
+[[ $EUID -eq 0 ]] || die "needs root — run through sudo" 2
+[[ $# -eq 3 ]] || die "usage: srcp-apk-publish APK MANIFEST NAME" 2
+
+APK=$1 MANIFEST=$2 NAME=$3
+
+[[ -f $APK ]] || die "no such APK: $APK"
+[[ -f $MANIFEST ]] || die "no such manifest: $MANIFEST"
+[[ $NAME =~ ^smart-restaurant-[0-9][0-9.]*-[0-9]+\.apk$ ]] || die "refusing the name '$NAME' — expected smart-restaurant-<version>-<code>.apk"
+
+# The signer recorded in the manifest by srcp-apk is the release key's
+# certificate digest; a file that does not carry that signature is not ours.
+SIGNER=$(sed -n 's/.*"signerSha256": *"\([0-9a-f]*\)".*/\1/p' "$MANIFEST")
+[[ ${#SIGNER} -eq 64 ]] || die "the manifest names no signer"
+if ! unzip -l "$APK" 2>/dev/null | grep -qE 'META-INF/.*\.(RSA|EC|DSA)$|META-INF/.*\.idsig$|^.*resources\.arsc'; then
+    die "$APK does not look like a signed Android package"
+fi
+
+install -d -o srcp -g www-data -m 0755 "$DEST"
+install -o srcp -g www-data -m 0644 "$APK" "$DEST/$NAME"
+install -o srcp -g www-data -m 0644 "$MANIFEST" "$DEST/manifest.json.new"
+mv -f "$DEST/manifest.json.new" "$DEST/manifest.json"
+
+# Keep the last three. A phone mid-download of the previous one is the reason
+# it is not just the current one.
+ls -1t "$DEST"/smart-restaurant-*.apk 2>/dev/null | tail -n +4 | while read -r old; do
+    rm -f "$old" && log "pruned $(basename "$old")"
+done
+
+log "published $NAME"
