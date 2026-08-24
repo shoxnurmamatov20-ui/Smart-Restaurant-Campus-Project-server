@@ -8,16 +8,20 @@ use App\Models\Activity;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasTranslations;
 use App\Models\Tenant;
+use App\Support\Media\ImageSet;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Modules\Menu\Database\Factories\MenuItemFactory;
 use Modules\Menu\Models\Concerns\InvalidatesMenuCache;
+use Modules\Menu\Services\DishImageStore;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -32,6 +36,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $tenant_id
  * @property int $menu_category_id
  * @property string $sku Kitchen/POS code, unique per tenant, e.g. OSH-001
+ * @property string|null $plu National classification code (IKPU) for the fiscal receipt
  * @property array<array-key, mixed> $name {"uz": "...", "ru": "...", "en": "..."}
  * @property array<array-key, mixed>|null $description
  * @property string $kind food|drink|combo|other
@@ -49,7 +54,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property bool $is_available
  * @property Carbon|null $stopped_until When set, the item auto-returns to the menu at this time
  * @property string $status draft|active|archived
- * @property string|null $image_url
+ * @property string|null $image_url An address typed in, or the platform's own `full` rendition — see imageUrl()
+ * @property array<string, mixed>|null $image The platform-held photograph: hash, dimensions, renditions, placeholder
  * @property int $sort_order
  * @property array<array-key, mixed>|null $channels Where it is sold: ["dine_in","takeaway","delivery","aggregator"]
  * @property array<array-key, mixed>|null $metadata
@@ -62,6 +68,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read bool $is_orderable
  * @property-read float|null $margin_percent
  * @property-read float $price_uzs
+ * @property-read Collection<int, RecipeLine> $recipeLines
  * @property-read Tenant|null $tenant
  * @property-read string|null $title
  *
@@ -135,6 +142,10 @@ final class MenuItem extends Model
         'tenant_id',
         'menu_category_id',
         'sku',
+        // The national classification code a fiscal receipt carries per line —
+        // not the SKU. See the migration that added it for why the two are
+        // different columns.
+        'plu',
         'name',
         'description',
         'kind',
@@ -153,6 +164,7 @@ final class MenuItem extends Model
         'stopped_until',
         'status',
         'image_url',
+        'image',
         'sort_order',
         'channels',
         'metadata',
@@ -169,6 +181,7 @@ final class MenuItem extends Model
             'allergens' => 'array',
             'channels' => 'array',
             'metadata' => 'array',
+            'image' => 'array',
             'price' => 'integer',
             'cost_price' => 'integer',
             'cook_time_minutes' => 'integer',
@@ -188,11 +201,87 @@ final class MenuItem extends Model
         return MenuItemFactory::new();
     }
 
+    /**
+     * The files go when the row does — and only then.
+     *
+     * `deleted` is a soft delete here and keeps the photograph: a dish taken
+     * off the menu in March and put back in May should not have to be
+     * photographed again. `forceDeleted` is the row leaving for good, and a
+     * photograph nothing points at is a file the bucket pays for until
+     * somebody lists it.
+     */
+    protected static function booted(): void
+    {
+        self::forceDeleted(static function (self $item): void {
+            app(DishImageStore::class)->forget($item);
+        });
+    }
+
+    // ============ The photograph ============
+
+    /**
+     * The photograph as a client receives it — every size, with addresses —
+     * or null when the platform does not hold one for this dish.
+     */
+    public function imageSet(): ?ImageSet
+    {
+        return app(DishImageStore::class)->setFor($this);
+    }
+
+    /**
+     * One address, for the readers that want one.
+     *
+     * The platform's own `full` rendition when it holds the photograph; the
+     * typed-in `image_url` otherwise. Built at read time rather than read from
+     * the column, so a bucket that moves takes every menu with it.
+     */
+    public function imageUrl(): ?string
+    {
+        $set = $this->imageSet();
+
+        return $set instanceof ImageSet ? $set->src : $this->image_url;
+    }
+
     // ============ Relationships ============
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(MenuCategory::class, 'menu_category_id');
+    }
+
+    /**
+     * What the guest is asked when they order this.
+     *
+     * Ordered by the pivot's own `sort` rather than the group's, because the
+     * order is per dish: size comes first on a coffee and doneness first on a
+     * steak, and the same group sits in both.
+     *
+     * @return BelongsToMany<ModifierGroup, $this>
+     */
+    public function modifierGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(ModifierGroup::class, 'menu.menu_item_modifier_group')
+            ->withPivot('sort')
+            ->orderByPivot('sort')
+            ->orderBy('menu.modifier_groups.id');
+    }
+
+    /**
+     * What this dish is made of — its technical card.
+     *
+     * Ordered by `sort` so a cook reads the components in the order they go in
+     * the pan, which is how a recipe is written on paper and the only ordering
+     * that means anything here.
+     *
+     * The lines carry bare Inventory ids and no names: the words and the money
+     * arrive through `App\Contracts\Inventory\ShelfCosts`, because Menu may
+     * not import the warehouse. See the migration.
+     *
+     * @return HasMany<RecipeLine, $this>
+     */
+    public function recipeLines(): HasMany
+    {
+        return $this->hasMany(RecipeLine::class)->orderBy('sort')->orderBy('id');
     }
 
     // ============ Accessors ============

@@ -23,9 +23,15 @@ final class MenuDatabaseSeeder extends Seeder
     /**
      * Sections of the menu.
      *
+     * Public because there are now two doors onto the same catalogue: this
+     * seeder, which fills a demo, and `Modules\Menu\Services\StarterMenu`,
+     * which writes it into a real restaurant that has just signed up and has an
+     * empty menu screen. Two copies of sixty-eight dishes is two copies that
+     * disagree the first time somebody fixes a price.
+     *
      * @var array<int, array{slug: string, uz: string, ru: string, en: string, icon: string}>
      */
-    private const CATEGORIES = [
+    public const CATEGORIES = [
         ['slug' => 'nonushta', 'uz' => 'Nonushta', 'ru' => 'Завтраки', 'en' => 'Breakfast', 'icon' => 'egg-fried'],
         ['slug' => 'salatlar', 'uz' => 'Salatlar', 'ru' => 'Салаты', 'en' => 'Salads', 'icon' => 'salad'],
         ['slug' => 'shorvalar', 'uz' => "Sho'rvalar", 'ru' => 'Супы', 'en' => 'Soups', 'icon' => 'soup'],
@@ -43,7 +49,7 @@ final class MenuDatabaseSeeder extends Seeder
      *
      * @var array<string, array<int, array{sku: string, uz: string, ru: string, en: string, price: int, cost: int, station: string, cook: int, kind?: string, veg?: bool, spice?: int, weight?: int, kcal?: int, allergens?: array<int, string>}>>
      */
-    private const ITEMS = [
+    public const ITEMS = [
         'nonushta' => [
             ['sku' => 'BRK-001', 'uz' => 'Qaymoq bilan non', 'ru' => 'Хлеб со сливками', 'en' => 'Bread with cream', 'price' => 1800000, 'cost' => 520000, 'station' => 'cold', 'cook' => 5, 'veg' => true, 'weight' => 180, 'kcal' => 320, 'allergens' => ['gluten', 'dairy']],
             ['sku' => 'BRK-002', 'uz' => 'Omlet', 'ru' => 'Омлет', 'en' => 'Omelette', 'price' => 2200000, 'cost' => 700000, 'station' => 'hot', 'cook' => 8, 'veg' => true, 'weight' => 200, 'kcal' => 380, 'allergens' => ['eggs', 'dairy']],
