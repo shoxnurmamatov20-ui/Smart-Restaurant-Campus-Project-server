@@ -32,38 +32,88 @@ type Marketing = Messages['marketing'];
  */
 export const SIGN_IN_HREF = '/login';
 
-export const STATS: readonly { key: keyof Marketing['stats']; value: string }[] = [
-  { key: 'restaurants', value: '42' },
-  { key: 'branches', value: '118' },
-  { key: 'uptime', value: '99.98%' },
-  { key: 'response', value: '142 ms' },
+/*
+ * `SITE_LANG_COOKIE` was here — `srcp.site.lang` — and it is gone.
+ *
+ * It was the public site's own memory of a language, kept separate from the
+ * console's `restaurant-campus-locale` on the reasoning that a guest switching
+ * the site to Russian is not the same act as a manager switching the console.
+ * The reasoning was sound and the result was still a bug: two cookies for one
+ * question, and a reader who crossed between the surfaces got whichever had
+ * been written last. It was the second of four places this codebase decided
+ * what language somebody was owed.
+ *
+ * There is one now and it is the first segment of the path. The console cookie
+ * survives, doing the one job a cookie can still do here — saying which
+ * language an *unprefixed* address should be redirected to.
+ */
+
+/**
+ * The design's top-level navigation — `Sayt v2.dc.html:137-806`, one route per
+ * `sc-if value="{{at.*}}"` block.
+ *
+ * Routes, not anchors. The header used to point at `#product`, `#roles`,
+ * `#pricing` and `#faq`, which scrolled to a summary section of the home page;
+ * the design gives each of them a page with several times as much on it, and
+ * the summary sections stay on the home page as the teasers they are.
+ */
+export const SITE_NAV: readonly {
+  key: 'product' | 'roles' | 'pricing' | 'customers' | 'faq' | 'contact';
+  href: string;
+}[] = [
+  { key: 'product', href: '/product' },
+  { key: 'roles', href: '/roles' },
+  { key: 'pricing', href: '/pricing' },
+  { key: 'customers', href: '/customers' },
+  { key: 'faq', href: '/faq' },
+  /*
+   * Aloqa is a nav item as well as a button — `dc.html:1043-1045` lists six.
+   *
+   * The header carried five and reached contact only through the blue "Demo
+   * so'rash" button on the right, which is a different promise: a reader who
+   * wants to ask one question before booking a demo had no link to press, and
+   * the two are the same page.
+   */
+  { key: 'contact', href: '/contact' },
 ];
 
-export const FEATURES: readonly { key: keyof Marketing['product']['items']; number: string }[] = [
-  { key: 'floor', number: '01' },
-  { key: 'kitchen', number: '02' },
-  { key: 'till', number: '03' },
-  { key: 'stock', number: '04' },
-  { key: 'finance', number: '05' },
-  { key: 'multiBranch', number: '06' },
+/**
+ * The four figures under the hero — what the product IS, not who bought it.
+ *
+ * They were sales figures: 42 restaurants running, 118 branches connected,
+ * 99.98% uptime, 142 ms response. The first two were invented for a platform
+ * with no customers yet, and the last two were hard-coded numbers presented as
+ * measurements — nothing on this site was measuring either.
+ *
+ * What replaced them is checkable by anybody, including a reader: the console
+ * draws 24 sections (`lib/roles.ts` and the design file both), the API is
+ * fourteen modules, the product speaks three languages end to end, and the till
+ * runs in four modes. Each is a fact about the software rather than a claim
+ * about the world, which is the only kind of figure this page may carry until
+ * there are real ones to print.
+ */
+export const STATS: readonly { key: string; value: string }[] = [
+  { key: 'sections', value: '24' },
+  { key: 'modules', value: '14' },
+  { key: 'languages', value: '3' },
+  { key: 'modes', value: '4' },
 ];
 
-export const ROLES: readonly { key: keyof Marketing['roles']['items']; initials: string }[] = [
-  { key: 'waiter', initials: 'OF' },
-  { key: 'cashier', initials: 'KS' },
-  { key: 'chef', initials: 'OS' },
-  { key: 'storekeeper', initials: 'OM' },
-  { key: 'manager', initials: 'MN' },
-  { key: 'accountant', initials: 'BX' },
-  { key: 'owner', initials: 'EG' },
-];
-
-export const COMPLIANCE: readonly (keyof Marketing['compliance']['items'])[] = [
-  'fiscal',
-  'einvoice',
-  'vat',
-  'export1c',
-];
+/*
+ * Four lists that used to be here, all retired in the same pass — the home
+ * page's summaries of `/product`, `/roles`, `/pricing`'s plan bullets, the FAQ
+ * and the three sign-in doors.
+ *
+ * `Sayt v2.dc.html:137-341` is five sections long: hero, what changes, devices,
+ * compliance, customers. The summaries were built when those six routes did not
+ * exist and the header scrolled instead of navigating, and each one was a
+ * second copy of a page's numbers with only one of the two maintained — which
+ * is precisely how the roles summary came to claim eight roles above a list of
+ * seven while the product had nine.
+ *
+ * Every one of them now has exactly one source: `pages-data.ts` for structure
+ * and `pages-copy.ts` for prose, both read out of the design file in one pass.
+ */
 
 export type Plan = {
   key: keyof Marketing['pricing']['plans'];
@@ -82,35 +132,26 @@ export type Plan = {
 };
 
 export const PLANS: readonly Plan[] = [
-  { key: 'start', name: 'Start', priceTiyin: 240_000_000, highlighted: false },
-  { key: 'growth', name: 'Growth', priceTiyin: 690_000_000, highlighted: true },
+  { key: 'start', name: 'Start', priceTiyin: 15_000_000, highlighted: false },
+  { key: 'growth', name: 'Growth', priceTiyin: 39_000_000, highlighted: true },
   { key: 'enterprise', name: 'Enterprise', priceTiyin: null, highlighted: false },
 ];
 
+/**
+ * The three scenario cards on the home page — an order, not people.
+ *
+ * They carried a name and two initials each: `Rustam Kamolov`, `Kamola
+ * Yusupova`, `Shahzod Ergashev`, presented as customers of a platform that has
+ * none yet. The cards stay, because the situations in them are the ones the
+ * system is built around; the invented people do not, and the role is what the
+ * card is attributed to now (see `pages-copy.ts` → `quotes[].role`).
+ *
+ * `key` is what remains: it lines the card up with its words in the copy
+ * catalogue and gives React a stable one.
+ */
 export const QUOTES: readonly {
   key: keyof Marketing['quotes']['items'];
-  initials: string;
-  name: string;
-}[] = [
-  { key: 'rustam', initials: 'RK', name: 'Rustam Kamolov' },
-  { key: 'kamola', initials: 'KY', name: 'Kamola Yusupova' },
-  { key: 'shahzod', initials: 'SE', name: 'Shahzod Ergashev' },
-];
-
-export const FAQ: readonly (keyof Marketing['faq']['items'])[] = [
-  'setup',
-  'offline',
-  'hardware',
-  'migration',
-  'training',
-  'security',
-];
-
-export const DOORS: readonly { key: keyof Marketing['signin']['doors']; number: string }[] = [
-  { key: 'owner', number: '01' },
-  { key: 'floor', number: '02' },
-  { key: 'operator', number: '03' },
-];
+}[] = [{ key: 'rustam' }, { key: 'kamola' }, { key: 'shahzod' }];
 
 /**
  * The dashboard still in the hero.

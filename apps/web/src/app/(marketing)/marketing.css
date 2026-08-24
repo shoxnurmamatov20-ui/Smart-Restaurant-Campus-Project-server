@@ -5,6 +5,11 @@
    the markup is Tailwind against the design's tokens; what is left here is the
    layout vocabulary the prototype declares as attributes, because those are
    what its own breakpoints key on.
+
+   Every number below is `Smart Restaurant Cloud - Sayt v2.dc.html:44-80`. The
+   v1 file said 112px sections and hid the nav at 1100px; v2 says 96 and 1180,
+   and v2 wins — the handoff README is explicit that the design file beats any
+   document describing it.
    ============================================================ */
 
 [data-wrap] {
@@ -14,13 +19,33 @@
 }
 
 [data-sec] {
-  padding: 112px 0;
+  padding: 96px 0;
 }
 
 /* ---- Hover, the prototype's `style-hover` made real ---- */
 
 [data-navlink]:hover {
   color: var(--fg);
+}
+
+/*
+ * The current page, marked — `dc.html:51-52`.
+ *
+ * The header had no current state at all: six links that looked identical on
+ * every one of the eight pages, so a reader who followed one had nothing on
+ * the screen telling them where they had arrived. The underline is the
+ * design's own answer and it is drawn inside the link, inset by its padding.
+ */
+[data-navlink][data-on='1'] {
+  color: var(--fg);
+}
+
+[data-navlink][data-on='1'] [data-underline] {
+  opacity: 1;
+}
+
+[data-underline] {
+  transition: opacity 160ms var(--ease-standard);
 }
 
 [data-btn-quiet]:hover {
@@ -31,31 +56,65 @@
   background: var(--brand-600);
 }
 
-[data-card-lift] {
-  transition: box-shadow var(--dur-med) var(--ease-standard);
+/*
+ * `[data-card]` — the prototype's own name for it, `dc.html:56-57`.
+ *
+ * Border and shadow, not just shadow: the design lifts a card by darkening its
+ * hairline as well, which is what stops a hovered card from looking like it is
+ * floating over a page of flat ones. It was `[data-card-lift]` here and hung on
+ * the six home-page feature cards only — the three before/after cards, the five
+ * device cards and the eight integration cards, which the design also marks,
+ * had no hover at all.
+ */
+[data-card] {
+  transition:
+    box-shadow 200ms var(--ease-standard),
+    border-color 200ms var(--ease-standard);
 }
-[data-card-lift]:hover {
+[data-card]:hover {
   box-shadow: var(--shadow-md);
-}
-
-[data-role-row] {
-  transition: background 160ms var(--ease-standard);
-}
-[data-role-row]:hover {
-  background: var(--bg-subtle);
+  border-color: var(--border-strong);
 }
 
 [data-footlink]:hover {
   color: #fff;
 }
 
+/*
+ * The footer sitemap, at a fingertip's spacing.
+ *
+ * It is the one place on the site where a dozen links sit in a column with
+ * nothing between them but leading: 17px of link and 8px of gap means the
+ * target above is a quarter of an inch from the target below. Height rather
+ * than margin, so the column keeps its rhythm and each row grows around its
+ * own text.
+ */
+@media (pointer: coarse) {
+  [data-footlink] {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
 [data-dark-btn]:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/*
+ * `[data-press]` — `dc.html:58`.
+ *
+ * A hair of scale on the way down, on every control the design marks. It is
+ * the only feedback a touch device gets between the tap and the navigation,
+ * and the design puts it on thirty-odd buttons across the eight screens.
+ */
+[data-press]:active {
+  transform: scale(0.985);
+}
+
 /* ---- Responsive, exactly the prototype's breakpoints ---- */
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   [data-navlinks] {
     display: none !important;
   }
@@ -65,6 +124,15 @@
   [data-price] {
     grid-template-columns: 1fr !important;
   }
+  /*
+   * The plan comparison scrolls sideways inside its own box rather than
+   * widening the page. Without this the twelve-row table pushed the document
+   * wider than the viewport and every section below it gained a horizontal
+   * scrollbar.
+   */
+  [data-cmp] {
+    overflow-x: auto;
+  }
 }
 
 @media (max-width: 900px) {
@@ -72,10 +140,13 @@
     padding: 0 20px;
   }
   [data-sec] {
-    padding: 72px 0;
+    padding: 64px 0;
+  }
+  [data-h1] {
+    font-size: 38px !important;
   }
   [data-h2] {
-    font-size: 32px;
+    font-size: 30px;
   }
   [data-lede] {
     font-size: 16px;
@@ -86,11 +157,23 @@
   [data-price] {
     grid-template-columns: 1fr !important;
   }
-  [data-h1] {
-    font-size: 40px !important;
-  }
   [data-stats] {
     grid-template-columns: 1fr 1fr !important;
+  }
+  /*
+   * The two the audit found missing, and they are the same failure twice: a
+   * grid the design collapses on a phone that stayed at two columns here.
+   * `[data-roi]` is the ROI calculator — three steppers beside a dark result
+   * panel, which at 360px gave each column about 150px and broke every figure
+   * across three lines. `[data-modtabs]` is the six module tabs, which wrapped
+   * onto three rows instead of scrolling as one.
+   */
+  [data-roi] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-modtabs] {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
   }
 }
 
@@ -99,10 +182,518 @@
     display: none !important;
   }
   [data-h1] {
-    font-size: 32px !important;
+    font-size: 31px !important;
+  }
+  /* The section headings take the second step the hero takes. At 320 a 30px
+     heading sets the CTA line across five rows; 26 gives it four and leaves the
+     paragraph under it room to be read rather than scanned. */
+  [data-h2] {
+    font-size: 26px;
   }
   [data-herobtn] {
     flex-direction: column !important;
     align-items: stretch !important;
+  }
+  /* Four figures side by side is two too many on a phone: the design drops
+     them to one per row rather than letting "99.98%" wrap. */
+  [data-stats] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/*
+ * The burger, and why it keys on the same breakpoint as the link row.
+ *
+ * `[data-navlinks]` disappears at 1180px and for a long time nothing replaced
+ * it: below that width — every phone, every tablet, a laptop with a window
+ * snapped to half the screen — the site had a logo, two buttons and no way to
+ * reach pricing. Declaring both rules against the same number is what stops the
+ * two states from ever both being hidden.
+ */
+[data-navburger] {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  [data-navburger] {
+    display: grid;
+  }
+}
+
+/* ============================================================
+   The bar between the link row and the burger — measured, not guessed
+   ============================================================ */
+
+/*
+ * The desktop bar did not fit, at any desktop width, in any of the three
+ * languages — and the way it failed was invisible in English on a wide screen,
+ * which is why it stood.
+ *
+ * Measured in a real browser against the 1200px wrap: the row wanted 1214px in
+ * Uzbek, 1235 in Russian and exactly 1200 in English. Over its container, flex
+ * shrinks the items it may; a bare text link may shrink, so the two-word labels
+ * wrapped — "Kim uchun" and "Для кого" on two lines, "Who it's for" on three —
+ * and at a viewport of exactly 1200 the whole document gained a sideways
+ * scrollbar.
+ *
+ * Two fixes, in this order. `white-space: nowrap` on the links, from the
+ * design's own rule (`dc.html:100`), so a label can never break; that alone
+ * would leave the row overflowing, so the rhythm comes in as well. The bar's
+ * gap is 18px where the design says 30, and each link carries 9px of padding
+ * where it says 12 — together 96px, against the 67 Russian was over.
+ *
+ * Note what a viewport media query cannot do here: the wrap is `max-width:
+ * 1200px`, so a 1440px screen gives this row exactly as many pixels as a
+ * 1200px one. There is no wider case to relax into. The only band where the
+ * container is narrower AND the links are still drawn is 1181–1199px — twenty
+ * pixels — and that is what the query below is for.
+ */
+@media (max-width: 1199px) {
+  [data-navbar] {
+    gap: 12px;
+  }
+  /* The row's negative margin exists to cancel the first link's padding
+     against a 18px bar gap. At 12 it would leave three pixels between the
+     wordmark and "Продукт", which reads as a typo rather than as spacing. */
+  [data-navlinks] {
+    margin-left: 0;
+    gap: 0;
+  }
+  [data-navlink] {
+    padding-inline: 7px;
+  }
+  [data-navlink] [data-underline] {
+    left: 7px;
+    right: 7px;
+  }
+}
+
+/*
+ * At 320px the header laid out to 658px and the whole site scrolled sideways.
+ *
+ * The arithmetic, from a real browser at 320: the wordmark is
+ * `whitespace-nowrap` at 185px and cannot shrink, the language pill is 110, the
+ * demo button 131, the burger 38, three `gap-8`s another 96, and the wrap's own
+ * padding 40. Nothing there is wrong on a desktop; all of it together is twice
+ * a phone.
+ *
+ * So each piece leaves at the width where it stops fitting, in the order a
+ * reader can most afford to lose it: the gap tightens first, then the language
+ * moves into the sheet it can still be reached from, then the wordmark stops
+ * being one line and becomes a two-line lockup. The call to action never
+ * leaves — it is what the page is for.
+ */
+@media (max-width: 900px) {
+  [data-navbar] {
+    gap: 18px;
+  }
+}
+
+/*
+ * The call to action leaves the bar at 600, and the paragraph this replaces is
+ * why it used to stay.
+ *
+ * That one was about fitting: the button carried a full label and a one-word
+ * one, and below 400 the bar picked the short form because "Запросить демо"
+ * alone is 157 of 292 usable pixels. It fit — and it still read as three heavy
+ * rectangles in a row, a bordered sign-in beside a filled demo beside a
+ * bordered burger, which is what the owner saw on a phone and called coarse.
+ *
+ * So below 600, where the wordmark stacks and the bar is a phone bar, the
+ * button moves into the sheet at full width. Nothing is lost: every page but
+ * the two that already carry a form still asks in the band above the footer.
+ * Above 600 it keeps its full wording — measured at 601 the row wants 492 of
+ * 561 usable pixels in the longest of the three languages, so the short form
+ * had no width left to appear at and its rules are gone with it.
+ */
+[data-demosheet] {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  [data-navdemo] {
+    display: none !important;
+  }
+  [data-demosheet] {
+    display: inline-flex !important;
+  }
+}
+
+/*
+ * The sign-in, quieter now that nothing shouts next to it.
+ *
+ * Its strong border was drawn to hold its own against a filled blue button
+ * that is no longer beside it; against a bare burger the same border is the
+ * loudest thing on the bar. The tap target is untouched — the 44px rule below
+ * covers every `a` and `button` in the bar and is what a finger needs.
+ *
+ * These rules used to name `[data-btn-brand]` alongside, and that was a leak:
+ * the attribute is on every brand button on the site, not only the one in the
+ * bar, so at 400px the hero's own call to action lost its padding too — with
+ * an `!important`, and nothing in the selector to explain why.
+ */
+@media (max-width: 600px) {
+  [data-navlogin] {
+    border-color: var(--border) !important;
+    padding-inline: 13px !important;
+  }
+}
+
+@media (max-width: 340px) {
+  [data-navlogin] {
+    padding-inline: 10px !important;
+  }
+}
+
+/*
+ * The bar's own controls, at a fingertip's size.
+ *
+ * The design draws a 30px brand square, a 38px burger and a 38px call to
+ * action, all correct for a cursor. On a phone every one of them is under the
+ * 44px both platform guidelines ask for, and they sit next to each other — the
+ * one row on the site where a mis-tap takes you somewhere else entirely.
+ */
+@media (max-width: 900px) {
+  [data-navbar] a,
+  [data-navbar] button {
+    min-height: 44px;
+    /* The brand square is 30px and the burger 38 — both are icons, so width is
+       as much of the target as height. On text the rule is inert: those are
+       already wider than 44. */
+    min-width: 44px;
+  }
+}
+
+/* ============================================================
+   One row, at every width — and what it costs at each of them
+   ============================================================ */
+
+/*
+ * The bar took a second row for a while and the owner was right to reject it:
+ * a preference that drops below the line it belongs on reads as something that
+ * fell off, not as something that was placed.
+ *
+ * So it is one row everywhere, and the arithmetic decides what is on it.
+ * Measured against the live bar, the segmented language pill is 116px wide and
+ * the row that carries it wants 418 of the 292 pixels a 320px screen has. It
+ * clears at 460 — and 320, 360, 375, 390, 393, 412 and 428 are the widths
+ * phones are actually sold at, every one of them below it.
+ *
+ * Two things give, in this order:
+ *
+ * **The language changes shape, not place.** Below 500 the three segments
+ * become one chip that opens: 47px against 116, and the panel it opens has
+ * room to name the languages in words rather than in two-letter codes. Above
+ * 500 the pill is exactly what the design draws.
+ *
+ * **The demo button leaves the bar up to 720, not 600.** From 601 the wordmark
+ * is one line again at 185px, and with the demo back beside it the row wants
+ * 639 of 561. It is in the sheet at full width instead, which is where the
+ * owner asked for it.
+ */
+[data-langchip] {
+  display: none !important;
+}
+
+@media (max-width: 499px) {
+  [data-langpill] {
+    display: none !important;
+  }
+  [data-langchip] {
+    display: block !important;
+  }
+}
+
+@media (max-width: 720px) {
+  [data-navdemo] {
+    display: none !important;
+  }
+  [data-demosheet] {
+    display: inline-flex !important;
+  }
+}
+
+/*
+ * The two preferences keep the desktop's ink and the phone's target.
+ *
+ * The bar's blanket rule below 900 gives every `a` and `button` a 44px box,
+ * and it is right for the three controls it was written for: the sign-in, the
+ * burger and the brand are navigation, where a mis-tap takes you somewhere you
+ * did not ask to go. Applied to the language segments it drew a 50px slab
+ * where the design draws a 34px pill, which is the whole of why this used to
+ * read heavier than the bar around it.
+ *
+ * So these keep the size the design draws and get their 44px back as an
+ * invisible extension of the hit area. Vertical only, and that is worth
+ * writing out: an inline inset on three buttons two pixels apart makes each
+ * target overlap both neighbours, and in an overlap the later element wins —
+ * the boundary between UZ and RU would sit left of the line the reader can
+ * see. A control whose edges are not where they are drawn is worse than a
+ * narrow one, and Apple's own segmented control is 32pt tall with segments
+ * under 44 for the same reason: the group is the target, and a miss costs one
+ * more tap rather than a page nobody asked for.
+ */
+@media (max-width: 900px) {
+  [data-langpill] button,
+  [data-langchip] button,
+  [data-themepill] {
+    position: relative;
+    min-height: 26px !important;
+    min-width: 26px !important;
+  }
+  [data-langchip] > button,
+  [data-themepill] {
+    min-height: 34px !important;
+    min-width: 34px !important;
+  }
+  [data-langpill] button::after,
+  [data-langchip] > button::after,
+  [data-themepill]::after {
+    content: '';
+    position: absolute;
+    inset: -9px 0;
+  }
+  [data-langchip] > button::after,
+  [data-themepill]::after {
+    inset: -5px;
+  }
+  /* The panel's own rows are 44 already; nothing here may reach inside it. */
+  [data-langchip] [role='menu'] button::after {
+    content: none;
+  }
+}
+
+/*
+ * The name on a phone: two lines, not none.
+ *
+ * It used to be `display: none` below 600, which left the bar carrying a 30px
+ * `SR` square as the entire brand — and the square has since gone, on the
+ * owner's call, because two letters are not a name to anybody who has not
+ * already been told what they stand for.
+ *
+ * One line of it is 185px and cannot shrink; at 320 the bar has about 100 to
+ * spare once the sign-in, the demo button and the burger have taken theirs. So
+ * the same three words stack: the name at 13px and CLOUD under it as a spaced
+ * caption, 104px wide and 26 tall inside a 44px target. It reads as a lockup
+ * rather than as a squeezed heading, which is the point — this is the only
+ * place on a phone where the site says who it is.
+ */
+@media (max-width: 600px) {
+  [data-navbar] {
+    gap: 10px;
+  }
+  [data-wordmark] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    font-size: 13px;
+    line-height: 1;
+  }
+  /* The space between the two spans is a text node in the markup; stacking
+     turns it into a flex gap of its own unless it is taken out of flow. */
+  [data-wordmark] {
+    font-size: 0;
+  }
+  [data-wordmark-name] {
+    font-size: 13px;
+    letter-spacing: -0.02em;
+  }
+  [data-wordmark-tail] {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+}
+
+/* The narrowest phones, where those 104px are still worth four. */
+@media (max-width: 360px) {
+  [data-wordmark-name] {
+    font-size: 12px;
+  }
+  [data-wordmark-tail] {
+    font-size: 8.5px;
+  }
+}
+
+/* The narrowest phone still sold. The wrap's 20px gutters are the last thing
+   to give, and 14 is still a gutter rather than an edge. */
+@media (max-width: 360px) {
+  [data-wrap] {
+    padding: 0 14px;
+  }
+  [data-navbar] {
+    gap: 8px;
+  }
+}
+
+/* ============================================================
+   The gap above the first thing on the page
+   ============================================================ */
+
+/*
+ * Every page opens with a section that carries its own top padding — 88px on
+ * the home hero, 76 everywhere else — and nothing stepped either of them down
+ * for a phone. Under a 64px sticky bar that is a screen which begins with a
+ * third of itself empty: the owner's words were that the space in the middle
+ * is unnecessary, and on a 390px phone the eyebrow pill sat 152px from the top
+ * of the viewport with nothing above it but the header.
+ *
+ * The desktop values stay where the design put them. These two steps are the
+ * phone's, and they are steps rather than one value because 900px is a tablet
+ * holding a full-width column and 600 is a hand.
+ */
+@media (max-width: 900px) {
+  [data-pagetop] {
+    padding-top: 48px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  [data-pagetop] {
+    padding-top: 28px !important;
+  }
+}
+
+/* ============================================================
+   Night, on a surface the design only ever drew in daylight
+   ============================================================ */
+
+/*
+ * The marketing stylesheet has a `:root` and nothing else, so this site used
+ * to pin itself to `data-theme="light"` and stay there. The owner asked for the
+ * switch, so the missing half is drawn here rather than refused.
+ *
+ * It is this short because the pages are already token-built: of the 38 tokens
+ * they touch, the product's own dark palette redefines all but thirteen, and
+ * nine of those thirteen are saturated fills that read on either ground. What
+ * is left is the pattern the product's palette uses and this surface does not.
+ *
+ * The product's dark scale puts the readable text colour at `-700` and turns
+ * `-50` into the dark tint under it. Marketing writes its tinted text as
+ * `-600`, which in daylight is the dark ink on a pale chip — and at night was
+ * dark ink on a dark chip, the hero's own eyebrow among them. So `-600` is
+ * mapped onto the value the dark palette already chose for that job.
+ *
+ * `--n-900` is the other kind of fix. It is the dark plate the closing band,
+ * the footer and the pricing card are drawn on, and at night it landed three
+ * shades from the page behind it: a plate that is no longer a plate. Dark mode
+ * inverts that relationship rather than keeping it — the band lifts off the
+ * page instead of sinking into it — so it becomes the lighter surface.
+ *
+ * Scoped to `[data-marketing]`, never to `:root`: these are this surface's
+ * disagreements with the product's night, and the console must not inherit
+ * them. The attribute is `data-marketing` and not `data-site` because
+ * `(site)` — the restaurant's own public page — already owns that one.
+ */
+:where(.dark, [data-theme='dark']) [data-marketing] {
+  --accent-600: #5eead4;
+  --success-600: #6ee7a8;
+  --warning-600: #fbcb63;
+  --danger-600: #fca5a5;
+
+  /* The browser-chrome dots in the hero mock, at #d9dee6 a row of headlights
+     on a dark surface. */
+  --n-200: #2b3242;
+
+  /* The closing band, the footer and the pricing card. */
+  --n-900: #1a1f2c;
+}
+
+/*
+ * The eyebrow, when its sentence is longer than the phone it is on.
+ *
+ * The pill is a fixed 30px, which is right for the one line the design draws
+ * it with. Under about 400px the sentence takes two, and measured at 320, 360
+ * and 390 the text box came out at exactly 30px inside a 30px pill: two lines
+ * of copy touching the border top and bottom, with the round dot floating
+ * between them. It is the first thing under the bar and the owner pointed
+ * straight at it.
+ *
+ * So on a phone the pill stops being a fixed height and becomes a minimum,
+ * with real padding, and the dot moves to the top of the stack — 4.5px down,
+ * which is where the centre of a 15px first line is — instead of centring
+ * itself against the whole block.
+ */
+@media (max-width: 600px) {
+  [data-eyebrow] {
+    height: auto !important;
+    min-height: 30px;
+    align-items: flex-start;
+    padding-block: 6px;
+  }
+  [data-eyebrow] > span:first-child {
+    margin-top: 4.5px;
+  }
+}
+
+/*
+ * The last fifteen pixels of a 320px bar.
+ *
+ * With the language as a chip the row still wanted 303 of 292, and flex paid
+ * for the difference the only way it can: by shrinking the one item that may
+ * shrink. `[data-navlogin]` is `whitespace-nowrap`, so shrinking it does not
+ * wrap the word — it clips it, and at 320 and 375 the bar was drawing a 44px
+ * box with "Kirish" running out of both sides of it. `flex-none` on that link
+ * stops the shrinking; these three rules pay the 15px honestly instead.
+ *
+ * The burger is the piece that can afford it. It is an icon with no box now,
+ * so its drawn size and its target were never the same number anyway — 34 to
+ * look at, 44 to hit, which is exactly what the glyph beside it already does.
+ */
+@media (max-width: 400px) {
+  [data-navburger] {
+    position: relative;
+    min-height: 34px !important;
+    min-width: 34px !important;
+    width: 34px;
+  }
+  [data-navburger]::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+  }
+}
+
+@media (max-width: 360px) {
+  [data-navbar] {
+    column-gap: 6px !important;
+  }
+  /* Two more pixels off each side of the sign-in, which is the only control
+     left in the row with padding to give. */
+  [data-navlogin] {
+    padding-inline: 11px !important;
+  }
+}
+
+/*
+ * 320px, and what pays for it.
+ *
+ * The row still wanted 312 of 292 with six items in it, and the two cheapest
+ * pixels on the bar are a spacer's gaps and a border.
+ *
+ * The spacer is a zero-width `flex-1` whose only job is to push the right-hand
+ * group over. It costs nothing itself and one whole column gap on each side of
+ * it; `margin-inline-start: auto` on the first item of that group does the same
+ * job for free.
+ *
+ * The sign-in loses its box, not its word. A bordered pill beside a bordered
+ * language chip is two frames competing on a bar that has room for one, and
+ * the one that has to be a frame is the chip — it is a control that opens, and
+ * nothing else on the row says so. "Kirish" as a plain word is what iOS puts
+ * in the same corner, and it stays the same 44px target it was.
+ */
+@media (max-width: 400px) {
+  [data-navspacer] {
+    display: none !important;
+  }
+  [data-langchip] {
+    margin-inline-start: auto;
+  }
+  [data-navlogin] {
+    border: 0 !important;
+    background: transparent !important;
+    padding-inline: 4px !important;
   }
 }
