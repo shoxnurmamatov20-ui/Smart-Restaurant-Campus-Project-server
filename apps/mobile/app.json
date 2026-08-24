@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Smart Restaurant",
+    "slug": "smart-restaurant-campus",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "srcp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "uz.smartrestaurant.campus",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Stol QR kodini o'qish uchun kamera kerak.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "uz.smartrestaurant.campus",
+      "permissions": ["android.permission.CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-localization",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Stol QR kodini o'qish uchun kamera kerak."
+        }
+      ],
+      "./plugins/with-release-signing.js"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "defaultTenant": "demo-restaurant"
+    }
+  }
+}
