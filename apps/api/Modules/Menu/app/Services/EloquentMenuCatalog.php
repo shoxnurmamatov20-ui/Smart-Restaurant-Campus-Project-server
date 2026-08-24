@@ -177,7 +177,8 @@ final class EloquentMenuCatalog implements MenuCatalog
     }
 
     /**
-     * @param  array<int, int>  $choiceIds
+     * @param array<int, int> $choiceIds
+     *
      * @return array<int, ModifierChoice>
      */
     public function priceChoices(int $dishId, array $choiceIds): array
@@ -229,7 +230,7 @@ final class EloquentMenuCatalog implements MenuCatalog
      * Enforced here and not only in the client because a rule a client enforces
      * is a rule an offline queue, an aggregator and a stale bundle do not.
      *
-     * @param  array<int, ModifierOption>  $chosen
+     * @param array<int, ModifierOption> $chosen
      */
     private function assertRulesHold(int $dishId, array $chosen): void
     {

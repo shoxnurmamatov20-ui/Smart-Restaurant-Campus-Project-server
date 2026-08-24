@@ -83,8 +83,8 @@ final readonly class MarketOrders
     /**
      * Take an order.
      *
-     * @param  array<int, array{menu_item_id: int, quantity: int, note?: string|null}>  $basket
-     * @param  array{address: string, address_note?: string|null, pay_rail?: string, promo_code?: string|null, client_reference?: string|null, latitude_e6?: int|null, longitude_e6?: int|null}  $details
+     * @param array<int, array{menu_item_id: int, quantity: int, note?: string|null}> $basket
+     * @param array{address: string, address_note?: string|null, pay_rail?: string, promo_code?: string|null, client_reference?: string|null, latitude_e6?: int|null, longitude_e6?: int|null} $details
      */
     public function place(Consumer $consumer, Store $store, array $basket, array $details): MarketOrder
     {
@@ -311,7 +311,7 @@ final readonly class MarketOrders
      * The ladder itself is `MarketOrderState::canBecome()`; this adds the side
      * effects, and they are what make each move more than a column update.
      *
-     * @param  array{reason?: string|null, courier_id?: int|null}  $context
+     * @param array{reason?: string|null, courier_id?: int|null} $context
      */
     public function advance(MarketOrder $order, MarketOrderState $target, array $context = []): MarketOrder
     {

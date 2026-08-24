@@ -202,7 +202,8 @@ final class OfflineController extends Controller
      * to the pass, where a silently absent one makes them think they misremembered
      * the menu.
      *
-     * @param  list<string>  $channels
+     * @param list<string> $channels
+     *
      * @return array<string, mixed>
      */
     private function priceBook(MenuCatalog $menu, array $channels): array

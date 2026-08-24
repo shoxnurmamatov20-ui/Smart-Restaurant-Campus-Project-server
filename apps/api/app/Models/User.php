@@ -233,8 +233,8 @@ class User extends Authenticatable
      * refuse three of the four at the one place every permission question goes
      * through.
      *
-     * @param  \Spatie\Permission\Contracts\Permission|\BackedEnum|string|int  $permission
-     * @param  string|null  $guardName
+     * @param \Spatie\Permission\Contracts\Permission|\BackedEnum|string|int $permission
+     * @param string|null $guardName
      */
     public function checkPermissionTo($permission, $guardName = null): bool
     {

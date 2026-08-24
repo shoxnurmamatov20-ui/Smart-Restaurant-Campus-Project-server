@@ -100,7 +100,7 @@ final class Promotion extends Model
      * `now()` — `ModuleBoundaryTest` refuses the latter by name, because a
      * replica in another timezone answers a different day.
      *
-     * @param  Builder<Promotion>  $query
+     * @param Builder<Promotion> $query
      */
     public function scopeSpendable(Builder $query): void
     {

@@ -464,11 +464,11 @@ final class EloquentTillLedger implements TillLedger
      * account. Recording a payout for it would take notes out of a till for money
      * that was never in it.
      *
-     * @param  int|null  $refundingShiftId  The drawer the notes come out of. Optional
-     *                                      while the contract cannot carry it: with
-     *                                      one till open there is no ambiguity, and
-     *                                      with several this refuses rather than
-     *                                      guessing.
+     * @param int|null $refundingShiftId The drawer the notes come out of. Optional
+     *                                   while the contract cannot carry it: with
+     *                                   one till open there is no ambiguity, and
+     *                                   with several this refuses rather than
+     *                                   guessing.
      */
     /**
      * The same refund, answering with what it actually did.
@@ -737,11 +737,11 @@ final class EloquentTillLedger implements TillLedger
     // ============ Internals ============
 
     /**
-     * @param  bool  $forUpdate  Take the row lock. Only on write paths: it serialises
-     *                           everything touching this drawer, which is what keeps a
-     *                           payment from landing between "what should be in the
-     *                           till" and "write down the difference". A read that
-     *                           locked would block a sale to answer an X-report.
+     * @param bool $forUpdate Take the row lock. Only on write paths: it serialises
+     *                        everything touching this drawer, which is what keeps a
+     *                        payment from landing between "what should be in the
+     *                        till" and "write down the difference". A read that
+     *                        locked would block a sale to answer an X-report.
      */
     private function shiftOrFail(int $shiftId, bool $forUpdate = false): CashShift
     {

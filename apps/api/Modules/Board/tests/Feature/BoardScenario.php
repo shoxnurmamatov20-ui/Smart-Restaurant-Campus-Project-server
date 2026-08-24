@@ -189,7 +189,8 @@ abstract class BoardScenario extends TestCase
      *
      * @template T
      *
-     * @param  callable(): T  $work
+     * @param callable(): T $work
+     *
      * @return T
      */
     protected function asRestaurant(Tenant $tenant, ?Branch $branch, callable $work): mixed

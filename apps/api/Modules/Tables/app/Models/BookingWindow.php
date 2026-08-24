@@ -95,7 +95,8 @@ final class BookingWindow extends Model
     }
 
     /**
-     * @param  Builder<BookingWindow>  $query
+     * @param Builder<BookingWindow> $query
+     *
      * @return Builder<BookingWindow>
      */
     public function scopeActive(Builder $query): Builder

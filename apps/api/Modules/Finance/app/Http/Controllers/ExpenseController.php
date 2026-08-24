@@ -75,7 +75,8 @@ final class ExpenseController extends Controller
      * total summed from fifty rows of a busier month is a smaller number that
      * looks exactly as authoritative.
      *
-     * @param  QueryBuilder<Expense>  $query
+     * @param QueryBuilder<Expense> $query
+     *
      * @return array{total_tiyin: int, unpaid_tiyin: int, unpaid_count: int}
      */
     private function windowTotals(QueryBuilder $query): array

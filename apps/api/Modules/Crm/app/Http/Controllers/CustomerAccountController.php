@@ -153,7 +153,7 @@ final class CustomerAccountController extends Controller
      * them on this list is how a collections call gets made to somebody the
      * restaurant owes money to.
      *
-     * @param  Builder<Customer>  $query
+     * @param Builder<Customer> $query
      */
     private function filterInDebt(Builder $query, mixed $value): void
     {
@@ -171,7 +171,7 @@ final class CustomerAccountController extends Controller
      * that stopped being able to sign for lunch, and the guest will find out at
      * the till unless somebody rings them first.
      *
-     * @param  Builder<Customer>  $query
+     * @param Builder<Customer> $query
      */
     private function filterOverLimit(Builder $query, mixed $value): void
     {

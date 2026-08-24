@@ -22,7 +22,8 @@ final readonly class ImageRendition
     ) {}
 
     /**
-     * @param  array<string, array{width?: int|string, quality?: int|string}>  $config
+     * @param array<string, array{width?: int|string, quality?: int|string}> $config
+     *
      * @return array<int, self>
      */
     public static function fromConfig(array $config): array

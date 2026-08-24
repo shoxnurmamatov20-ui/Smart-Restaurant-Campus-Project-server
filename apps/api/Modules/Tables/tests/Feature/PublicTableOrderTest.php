@@ -83,7 +83,7 @@ final class PublicTableOrderTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $body
+     * @param array<string, mixed> $body
      */
     private function guest(string $method, string $path, array $body = [], ?string $token = null): TestResponse
     {
@@ -96,7 +96,7 @@ final class PublicTableOrderTest extends TestCase
     }
 
     /**
-     * @param  array<int, array<string, mixed>>|null  $items
+     * @param array<int, array<string, mixed>>|null $items
      */
     private function order(?array $items = null, ?string $token = null): TestResponse
     {

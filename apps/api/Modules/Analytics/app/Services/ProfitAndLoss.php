@@ -67,8 +67,9 @@ final class ProfitAndLoss
     ) {}
 
     /**
-     * @param  string  $month  `YYYY-MM`
-     * @param  int|null  $branchId  Null is the business, which is how an owner reads it
+     * @param string $month `YYYY-MM`
+     * @param int|null $branchId Null is the business, which is how an owner reads it
+     *
      * @return array<string, mixed>
      */
     public function forMonth(string $month, ?int $branchId = null): array

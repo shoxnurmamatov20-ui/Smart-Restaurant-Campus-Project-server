@@ -29,15 +29,15 @@ interface StockLedger
     /**
      * Take spoilt, dropped or expired stock off the shelf.
      *
-     * @param  int  $quantity  base units, always positive — the direction is the method's, not the caller's
-     * @param  string  $reason  required, and it is the whole point: unexplained shrinkage is what this module exists to surface
+     * @param int $quantity base units, always positive — the direction is the method's, not the caller's
+     * @param string $reason required, and it is the whole point: unexplained shrinkage is what this module exists to surface
      */
     public function writeOff(int $ingredientId, int $quantity, string $reason, ?string $reference = null): ?StockChange;
 
     /**
      * Record what was actually on the shelf and post the difference.
      *
-     * @param  int  $counted  base units, absolute — what the person counted, not the gap
+     * @param int $counted base units, absolute — what the person counted, not the gap
      */
     public function recordCount(int $ingredientId, int $counted, ?string $reference = null): ?StockChange;
 }

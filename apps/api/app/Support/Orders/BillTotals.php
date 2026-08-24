@@ -54,12 +54,12 @@ final readonly class BillTotals
     public const SERVICE_PERCENT = 10;
 
     /**
-     * @param  int  $subtotal  Sum of the lines, tiyin.
-     * @param  int  $discount  What came off, tiyin, as a positive number.
-     * @param  int  $serviceCharge  10% of (subtotal − discount) on dine-in, else 0.
-     * @param  int  $deliveryFee  Tiyin. Outside VAT.
-     * @param  int  $vat  The tax already inside `total`, tiyin. Not added to it.
-     * @param  int  $total  What the guest pays, tiyin.
+     * @param int $subtotal Sum of the lines, tiyin.
+     * @param int $discount What came off, tiyin, as a positive number.
+     * @param int $serviceCharge 10% of (subtotal − discount) on dine-in, else 0.
+     * @param int $deliveryFee Tiyin. Outside VAT.
+     * @param int $vat The tax already inside `total`, tiyin. Not added to it.
+     * @param int $total What the guest pays, tiyin.
      */
     public function __construct(
         public int $subtotal,
@@ -73,10 +73,10 @@ final readonly class BillTotals
     /**
      * Work out a bill from its lines and its channel.
      *
-     * @param  int  $subtotal  Sum of the lines, tiyin.
-     * @param  int  $discount  Positive tiyin to take off.
-     * @param  int  $servicePercent  Whole percent, e.g. 10. Ignored off dine-in.
-     * @param  int  $vatPercent  Whole percent, e.g. 12. Already inside prices.
+     * @param int $subtotal Sum of the lines, tiyin.
+     * @param int $discount Positive tiyin to take off.
+     * @param int $servicePercent Whole percent, e.g. 10. Ignored off dine-in.
+     * @param int $vatPercent Whole percent, e.g. 12. Already inside prices.
      */
     public static function of(
         int $subtotal,

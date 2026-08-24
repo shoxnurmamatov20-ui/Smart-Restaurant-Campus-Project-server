@@ -102,7 +102,7 @@ final class Subscription extends Model
     }
 
     /**
-     * @param  Builder<Subscription>  $query
+     * @param Builder<Subscription> $query
      */
     public function scopeActive(Builder $query): void
     {

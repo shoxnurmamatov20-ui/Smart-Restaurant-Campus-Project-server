@@ -74,7 +74,8 @@ final class CashAccount extends Model
     }
 
     /**
-     * @param  Builder<CashAccount>  $query
+     * @param Builder<CashAccount> $query
+     *
      * @return Builder<CashAccount>
      */
     public function scopeActive(Builder $query): Builder

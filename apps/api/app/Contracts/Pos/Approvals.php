@@ -42,9 +42,9 @@ interface Approvals
      * it costs nothing: everybody who can reach those screens either holds the
      * approving permission or genuinely needs a signature.
      *
-     * @param  int  $amountTiyin  What is at stake. A 2% discount on a coffee is not
-     *                            a 2% discount on a wedding.
-     * @param  int  $subtotalTiyin  What the amount is a share of.
+     * @param int $amountTiyin What is at stake. A 2% discount on a coffee is not
+     *                         a 2% discount on a wedding.
+     * @param int $subtotalTiyin What the amount is a share of.
      */
     public function requiredFor(int $userId, string $action, int $amountTiyin = 0, int $subtotalTiyin = 0): bool;
 
@@ -74,9 +74,10 @@ interface Approvals
      * longest is the one who matters, and a queue sorted any other way teaches a
      * manager to answer whoever asked most recently.
      *
-     * @param  int|null  $branchId  Null is a roll-up across the estate — convention
-     *                              3: an empty tenant is a hole, an empty branch is
-     *                              a total.
+     * @param int|null $branchId Null is a roll-up across the estate — convention
+     *                           3: an empty tenant is a hole, an empty branch is
+     *                           a total.
+     *
      * @return array<int, PendingApproval>
      */
     public function waiting(?int $branchId = null, int $limit = 50): array;

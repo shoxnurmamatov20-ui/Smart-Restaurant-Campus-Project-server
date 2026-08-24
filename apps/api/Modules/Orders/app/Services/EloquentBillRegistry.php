@@ -121,7 +121,7 @@ final class EloquentBillRegistry implements BillRegistry
     }
 
     /**
-     * @param  array<int, int>  $modifierChoiceIds
+     * @param array<int, int> $modifierChoiceIds
      */
     public function addLine(
         int $billId,
@@ -390,7 +390,7 @@ final class EloquentBillRegistry implements BillRegistry
     }
 
     /**
-     * @param  array<int, int>  $lineIds
+     * @param array<int, int> $lineIds
      */
     public function split(int $billId, array $lineIds): Bill
     {
@@ -783,7 +783,8 @@ final class EloquentBillRegistry implements BillRegistry
      *
      * @template T
      *
-     * @param  callable(): T  $work
+     * @param callable(): T $work
+     *
      * @return T
      */
     private function atTheBranchThatIsCookingIt(Order $order, callable $work): mixed
@@ -1037,7 +1038,8 @@ final class EloquentBillRegistry implements BillRegistry
      * them side by side, and a share whose header said something different would
      * look like somebody else's bill.
      *
-     * @param  list<int>  $shares
+     * @param list<int> $shares
+     *
      * @return array<int, Bill>
      */
     private function divide(Order $order, array $shares): array

@@ -52,7 +52,8 @@ final readonly class DeliveryReach
      * to type first and charges a guest across the street the outer-ring fee.
      * Distance only breaks a tie between two circles of the same size.
      *
-     * @param  iterable<int, DeliveryZone>  $zones
+     * @param iterable<int, DeliveryZone> $zones
+     *
      * @return array{status: 'covered'|'outside'|'unknown', zone: DeliveryZone|null, metres: int|null}
      */
     public function reach(iterable $zones, ?int $latitudeE6, ?int $longitudeE6): array

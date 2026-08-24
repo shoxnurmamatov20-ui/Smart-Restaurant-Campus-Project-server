@@ -123,7 +123,8 @@ final class EloquentPurchasing implements Purchasing
      * `withTrashed()` on both, for the reason the class docblock gives: a
      * supplier that has been struck off is still owed for what it delivered.
      *
-     * @param  Builder<PurchaseOrder>  $query
+     * @param Builder<PurchaseOrder> $query
+     *
      * @return Builder<PurchaseOrder>
      */
     private function withSupplier(Builder $query): Builder

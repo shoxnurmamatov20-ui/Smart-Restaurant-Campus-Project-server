@@ -41,7 +41,7 @@ final class CustomerIdentity
     /**
      * The guest behind this number, creating the row if this is their first time.
      *
-     * @param  string  $phone  Already normalised — {@see Customer::normalisePhone()}
+     * @param string $phone Already normalised — {@see Customer::normalisePhone()}
      */
     public function forPhone(string $phone, ?string $locale = null): Customer
     {

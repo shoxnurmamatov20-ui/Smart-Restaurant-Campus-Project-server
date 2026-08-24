@@ -38,7 +38,7 @@ final class IdlePreviewRequested implements ShouldBroadcast
     use SerializesModels;
 
     /**
-     * @param  array<string, mixed>  $idle  the unsaved draft, as the console has it
+     * @param array<string, mixed> $idle the unsaved draft, as the console has it
      */
     public function __construct(
         public readonly Terminal $terminal,

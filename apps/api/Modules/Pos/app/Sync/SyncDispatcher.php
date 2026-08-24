@@ -75,7 +75,8 @@ final class SyncDispatcher
     /**
      * Do one queued thing.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      *
      * Conflict checks are NOT here — see {@see self::conflictsFor()}. Online,
@@ -115,7 +116,8 @@ final class SyncDispatcher
     // ============ Bills ============
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function openBill(array $payload, TerminalSession $session): array
@@ -133,7 +135,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function addLine(array $payload): array
@@ -177,7 +180,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function voidLine(array $payload): array
@@ -188,7 +192,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function discount(array $payload): array
@@ -199,7 +204,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function send(array $payload): array
@@ -210,7 +216,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function split(array $payload): array
@@ -249,7 +256,8 @@ final class SyncDispatcher
      * array of bills. `split` carries all of them in payment order, which is
      * what the till prints and what the cashier reads out.
      *
-     * @param  array<int, Bill>  $family
+     * @param array<int, Bill> $family
+     *
      * @return array<string, mixed>
      */
     private static function family(array $family): array
@@ -260,7 +268,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function merge(array $payload): array
@@ -271,7 +280,8 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function transfer(array $payload): array
@@ -289,7 +299,8 @@ final class SyncDispatcher
     /**
      * Void or comp — the same shape, two events, and never one with a flag.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function endBill(
@@ -321,7 +332,8 @@ final class SyncDispatcher
     // ============ Money ============
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function tender(
@@ -377,7 +389,7 @@ final class SyncDispatcher
      * Ordered cheapest first — a stop-list read and a price lookup before the
      * bill, because an entry that fails on the dish never needs the bill.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      *
      * @throws ConflictException
      */
@@ -394,7 +406,7 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function checkLine(array $payload): void
     {
@@ -406,7 +418,7 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function checkTender(array $payload, TerminalSession $session): void
     {
@@ -465,7 +477,7 @@ final class SyncDispatcher
      * One check for every write onto an existing bill, so the question is asked
      * once rather than in nine places that would each have to remember.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function refuseIfSettled(array $payload): void
     {
@@ -520,7 +532,7 @@ final class SyncDispatcher
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function refuseIfPriceMoved(int $dishId, array $payload): void
     {
@@ -554,7 +566,7 @@ final class SyncDispatcher
      * It is a question because the answer — fold them together, keep them apart,
      * move one — is a judgement about what the guests actually did.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function refuseIfTableTaken(array $payload): void
     {

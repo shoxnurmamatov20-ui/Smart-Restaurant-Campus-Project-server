@@ -88,7 +88,8 @@ interface MenuCatalog
      * refuses rather than silently dropping: a kitchen ticket that quietly lost
      * "no onion" is worse than an order that failed loudly.
      *
-     * @param  array<int, int>  $choiceIds
+     * @param array<int, int> $choiceIds
+     *
      * @return array<int, ModifierChoice>
      *
      * @throws \RuntimeException when a choice is unknown, inactive, not offered

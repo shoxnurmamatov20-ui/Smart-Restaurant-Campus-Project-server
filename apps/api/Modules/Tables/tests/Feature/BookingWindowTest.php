@@ -95,7 +95,7 @@ final class BookingWindowTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function book(array $over = []): TestResponse
     {

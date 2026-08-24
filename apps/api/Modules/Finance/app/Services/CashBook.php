@@ -66,11 +66,12 @@ final class CashBook
     /**
      * The ledger for one window.
      *
-     * @param  string  $from  `Y-m-d`, inclusive
-     * @param  string  $to  `Y-m-d`, inclusive
-     * @param  int|null  $branchId  Null means the whole business — the platform's
-     *                              usual reading of an unset branch, and the one an
-     *                              owner reads with
+     * @param string $from `Y-m-d`, inclusive
+     * @param string $to `Y-m-d`, inclusive
+     * @param int|null $branchId Null means the whole business — the platform's
+     *                           usual reading of an unset branch, and the one an
+     *                           owner reads with
+     *
      * @return array{
      *     window: array{from: string, to: string, branch_id: int|null},
      *     opening_balance: int,
@@ -144,8 +145,9 @@ final class CashBook
      * the other an account. Both ends being drawers is legal too — a till handing
      * change to another till — and both being accounts is the safe-to-bank run.
      *
-     * @param  array{shift?: int|null, account?: int|null}  $source
-     * @param  array{shift?: int|null, account?: int|null}  $destination
+     * @param array{shift?: int|null, account?: int|null} $source
+     * @param array{shift?: int|null, account?: int|null} $destination
+     *
      * @return array{0: CashMovement, 1: CashMovement} The out leg, then the in leg
      */
     public function transfer(array $source, array $destination, int $amount, string $reason, ?int $userId = null): array

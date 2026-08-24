@@ -91,7 +91,7 @@ final class BranchPerformanceTest extends TestCase
      * leaving it at zero would trip the unbanked guard-rail on every fixture
      * that did not think about it. A test that wants a credit sale says so.
      *
-     * @param  array<string, int>  $figures
+     * @param array<string, int> $figures
      */
     private function fact(Branch $at, string $day, array $figures, ?Tenant $of = null): void
     {

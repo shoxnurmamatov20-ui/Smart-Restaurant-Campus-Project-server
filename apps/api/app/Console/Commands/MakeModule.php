@@ -742,7 +742,7 @@ final class MakeModule extends Command
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $data
      */
     private function json(array $data): string
     {

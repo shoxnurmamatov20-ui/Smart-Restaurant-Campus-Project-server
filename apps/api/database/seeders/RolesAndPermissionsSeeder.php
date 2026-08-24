@@ -425,9 +425,10 @@ final class RolesAndPermissionsSeeder extends Seeder
     /**
      * Build a permission collection from module × action pairs plus extras.
      *
-     * @param  array<int, string>  $modules
-     * @param  array<int, string>  $actions
-     * @param  array<int, string>  $extra
+     * @param array<int, string> $modules
+     * @param array<int, string> $actions
+     * @param array<int, string> $extra
+     *
      * @return Collection<int, Permission>
      */
     private function permissions(array $modules, array $actions, array $extra = [])

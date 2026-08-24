@@ -21,18 +21,18 @@ namespace App\Contracts\Finance;
 final readonly class PaymentInvoice
 {
     /**
-     * @param  string  $provider  Short and stable: `payme`, `click`, `uzum`, `sandbox`.
-     * @param  string  $token  Our handle for this attempt, opaque and unguessable.
-     *                         What a guest polls and what a return URL carries — never
-     *                         the row id, because that is a number a stranger can
-     *                         count up from.
-     * @param  string|null  $invoiceId  The provider's own transaction id, once it has
-     *                                  issued one. Null until the provider's first
-     *                                  callback: Payme and Click both mint theirs
-     *                                  when the guest actually starts paying, so an
-     *                                  invoice can exist without one.
-     * @param  int  $amount  Tiyin, never a float. 1 UZS = 100 tiyin.
-     * @param  string  $state  One of PaymentResult::STATES.
+     * @param string $provider Short and stable: `payme`, `click`, `uzum`, `sandbox`.
+     * @param string $token Our handle for this attempt, opaque and unguessable.
+     *                      What a guest polls and what a return URL carries — never
+     *                      the row id, because that is a number a stranger can
+     *                      count up from.
+     * @param string|null $invoiceId The provider's own transaction id, once it has
+     *                               issued one. Null until the provider's first
+     *                               callback: Payme and Click both mint theirs
+     *                               when the guest actually starts paying, so an
+     *                               invoice can exist without one.
+     * @param int $amount Tiyin, never a float. 1 UZS = 100 tiyin.
+     * @param string $state One of PaymentResult::STATES.
      */
     public function __construct(
         public string $provider,

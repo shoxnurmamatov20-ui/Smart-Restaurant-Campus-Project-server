@@ -29,8 +29,9 @@ final class ExpoPush
     private const BATCH = 100;
 
     /**
-     * @param  Collection<int, PushToken>  $tokens
-     * @param  array<string, mixed>  $data  Rides along to the app; `url` is what the tap opens.
+     * @param Collection<int, PushToken> $tokens
+     * @param array<string, mixed> $data Rides along to the app; `url` is what the tap opens.
+     *
      * @return int how many messages Expo accepted
      */
     public function send(Collection $tokens, string $title, string $body, array $data = []): int

@@ -165,7 +165,7 @@ final class StockMovementSeeder extends Seeder
     /**
      * One ingredient's week, written in order.
      *
-     * @param  array<int, array{quantity: int, number: string, at: Carbon}>  $deliveries
+     * @param array<int, array{quantity: int, number: string, at: Carbon}> $deliveries
      */
     private function writeLedgerFor(Ingredient $ingredient, array $deliveries): int
     {
@@ -242,7 +242,8 @@ final class StockMovementSeeder extends Seeder
     /**
      * The week's events for one ingredient, oldest first.
      *
-     * @param  array<int, array{quantity: int, number: string, at: Carbon}>  $deliveries
+     * @param array<int, array{quantity: int, number: string, at: Carbon}> $deliveries
+     *
      * @return array<int, array{kind: string, quantity: int, at: Carbon, reason: ?string, reference: ?string}>
      */
     private function eventsFor(Ingredient $ingredient, array $deliveries): array

@@ -74,7 +74,7 @@ final class ImagePipeline
      * else's job, and a pipeline that cannot be run without a bucket cannot be
      * tested without one either.
      *
-     * @param  array<int, ImageRendition>  $renditions
+     * @param array<int, ImageRendition> $renditions
      *
      * @throws ImageRejected when the bytes are not an image this build can read,
      *                       or are larger than the ceiling allows

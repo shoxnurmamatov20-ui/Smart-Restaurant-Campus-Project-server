@@ -160,7 +160,7 @@ final class BoardComposer
      * duration against wrong all day. `rotationSeconds()` in `board-data.ts`
      * says the same thing on the other side of the wire.
      *
-     * @param  array<int, BoardScreen>  $screens
+     * @param array<int, BoardScreen> $screens
      */
     private function rotationSeconds(array $screens): int
     {

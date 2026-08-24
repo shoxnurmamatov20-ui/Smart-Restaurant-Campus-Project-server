@@ -176,7 +176,7 @@ final class BookingDiary
      * fifteen-minute one, and counting it against both would refuse bookings
      * a restaurant could take.
      *
-     * @param  array<int, int>  $booked
+     * @param array<int, int> $booked
      */
     private function guestsIn(array $booked, Carbon $at, int $slotMinutes): int
     {

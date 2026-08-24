@@ -328,8 +328,8 @@ final class ExportTenantData implements ShouldQueue
      * archive is read by a person with a text editor at least as often as by a
      * program, and `json_decode` on a member has to just work.
      *
-     * @param  array<string, string>  $types  column => PostgreSQL data type
-     * @param  list<string>  $keyOrder  the table's primary key columns
+     * @param array<string, string> $types column => PostgreSQL data type
+     * @param list<string> $keyOrder the table's primary key columns
      */
     private function writeTable(string $table, int $tenantId, array $types, array $keyOrder, string $path): int
     {
@@ -378,7 +378,8 @@ final class ExportTenantData implements ShouldQueue
      * table with no primary key is a schema problem before it is an export
      * problem.
      *
-     * @param  list<string>  $keyOrder
+     * @param list<string> $keyOrder
+     *
      * @return iterable<int, object>
      */
     private function readInChunks(string $table, int $tenantId, array $keyOrder): iterable
@@ -453,8 +454,9 @@ final class ExportTenantData implements ShouldQueue
      * dropped, so the reader can tell the difference between "we hold nothing
      * here" and "we are not printing this".
      *
-     * @param  array<string, mixed>  $row
-     * @param  array<string, string>  $types
+     * @param array<string, mixed> $row
+     * @param array<string, string> $types
+     *
      * @return array<string, mixed>
      */
     private function present(array $row, array $types): array
@@ -570,7 +572,7 @@ final class ExportTenantData implements ShouldQueue
      * reader who finds `[redacted]` where a password hash used to be knows it
      * was a decision rather than a corrupt file.
      *
-     * @param  list<array{table: string, rows: int, redacted_columns: list<string>}>  $tables
+     * @param list<array{table: string, rows: int, redacted_columns: list<string>}> $tables
      */
     private function manifest(int $tenantId, array $tables, int $rows): string
     {

@@ -34,13 +34,13 @@ namespace Modules\Pos\Sync;
 final readonly class ShiftChoice
 {
     /**
-     * @param  int  $shiftId  The drawer that will carry the money.
-     * @param  string|null  $amendReason  Set when `$shiftId` names a shift that has
-     *                                    already been counted and sealed. Null means
-     *                                    an ordinary capture into an open drawer.
-     * @param  int|null  $decidedByUserId  Who chose. Recorded on the amendment so an
-     *                                     auditor reading it back has a name, not
-     *                                     just a timestamp.
+     * @param int $shiftId The drawer that will carry the money.
+     * @param string|null $amendReason Set when `$shiftId` names a shift that has
+     *                                 already been counted and sealed. Null means
+     *                                 an ordinary capture into an open drawer.
+     * @param int|null $decidedByUserId Who chose. Recorded on the amendment so an
+     *                                  auditor reading it back has a name, not
+     *                                  just a timestamp.
      */
     public function __construct(
         public int $shiftId,

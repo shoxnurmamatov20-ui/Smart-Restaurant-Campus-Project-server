@@ -28,13 +28,15 @@ namespace App\Contracts\Inventory;
 interface ShelfCosts
 {
     /**
-     * @param  list<int>  $ids
+     * @param list<int> $ids
+     *
      * @return array<int, ShelfComponent> keyed by ingredient id; missing ids are absent
      */
     public function ingredients(array $ids): array;
 
     /**
-     * @param  list<int>  $ids
+     * @param list<int> $ids
+     *
      * @return array<int, ShelfComponent> keyed by prep item id; missing ids are absent
      */
     public function prepItems(array $ids): array;

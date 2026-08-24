@@ -223,7 +223,7 @@ final class OrderController extends Controller
      * order and hand the guest a smaller bill than the one they agreed to on
      * the telephone.
      *
-     * @param  array{menu_item_id: int, quantity: int, note?: string|null}  $line
+     * @param array{menu_item_id: int, quantity: int, note?: string|null} $line
      */
     private function writeLine(Order $order, array $line, MenuCatalog $menu): void
     {

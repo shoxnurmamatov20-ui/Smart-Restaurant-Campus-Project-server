@@ -372,7 +372,7 @@ final class MenuImportTest extends TestCase
     /**
      * Multipart goes through `call()`, which does not mint a key — see TestCase.
      *
-     * @param  array<string, string>  $extra
+     * @param array<string, string> $extra
      */
     private function upload(UploadedFile $file, array $extra = []): TestResponse
     {

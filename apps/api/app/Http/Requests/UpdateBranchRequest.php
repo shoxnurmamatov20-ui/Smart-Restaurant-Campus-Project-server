@@ -87,7 +87,8 @@ final class UpdateBranchRequest extends FormRequest
     /**
      * The branch group's paths, rooted at the `settings` key the request sends.
      *
-     * @param  array<string, list<string>>  $rules
+     * @param array<string, list<string>> $rules
+     *
      * @return array<string, list<string>>
      */
     private static function nested(array $rules): array

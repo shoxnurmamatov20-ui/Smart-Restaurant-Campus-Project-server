@@ -49,7 +49,8 @@ final class MenuCache
      *
      * @template TValue
      *
-     * @param  Closure(): TValue  $build
+     * @param Closure(): TValue $build
+     *
      * @return TValue
      */
     public function remember(string $variant, Closure $build): mixed

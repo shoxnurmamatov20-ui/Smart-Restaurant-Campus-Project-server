@@ -212,7 +212,7 @@ final class TelegramNotifier
      * Three modules publish an amount under three names — a threshold that only
      * understood one of them would silently pass every event from the other two.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function amountOf(array $payload): ?int
     {

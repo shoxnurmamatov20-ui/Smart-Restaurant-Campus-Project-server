@@ -79,7 +79,8 @@ final class RecipeController extends Controller
      * per dish, which on the chef's screen is a hundred round trips for a menu
      * nobody would call large.
      *
-     * @param  list<MenuItem>  $items
+     * @param list<MenuItem> $items
+     *
      * @return list<array<string, mixed>>
      */
     private function cards(array $items, ShelfCosts $shelf): array
@@ -102,7 +103,8 @@ final class RecipeController extends Controller
     }
 
     /**
-     * @param  list<RecipeLine>  $lines
+     * @param list<RecipeLine> $lines
+     *
      * @return list<int>
      */
     private function idsOf(array $lines, string $column): array
@@ -121,8 +123,9 @@ final class RecipeController extends Controller
     }
 
     /**
-     * @param  array<int, ShelfComponent>  $ingredients
-     * @param  array<int, ShelfComponent>  $prep
+     * @param array<int, ShelfComponent> $ingredients
+     * @param array<int, ShelfComponent> $prep
+     *
      * @return array<string, mixed>
      */
     private function card(MenuItem $item, array $ingredients, array $prep): array

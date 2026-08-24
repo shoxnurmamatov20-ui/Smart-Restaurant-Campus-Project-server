@@ -55,7 +55,7 @@ final class AcquirerFees
     ];
 
     /**
-     * @param  array<string, int|string>  $overrides  From tenants.settings, keyed by method.
+     * @param array<string, int|string> $overrides From tenants.settings, keyed by method.
      */
     public static function bps(string $method, array $overrides = []): int
     {

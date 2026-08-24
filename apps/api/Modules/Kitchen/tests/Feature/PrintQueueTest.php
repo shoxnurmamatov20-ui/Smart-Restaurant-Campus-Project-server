@@ -628,7 +628,7 @@ final class PrintQueueTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function printer(
         string $code,

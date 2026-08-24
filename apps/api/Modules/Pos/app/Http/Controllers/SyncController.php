@@ -442,8 +442,9 @@ final class SyncController extends Controller
      * inventing a bill for the lines to land on would put a guest's food onto
      * somebody else's table.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, int>  $opened
+     * @param array<string, mixed> $payload
+     * @param array<string, int> $opened
+     *
      * @return array<string, mixed>
      */
     private function resolveReferences(array $payload, array $opened): array
@@ -470,7 +471,7 @@ final class SyncController extends Controller
      * given, so a conflict is a 409 with its kind and its options whether it
      * arrived alone or forty-first in a queue.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     private function asSingleRefusal(array $row): JsonResponse
     {
@@ -484,7 +485,8 @@ final class SyncController extends Controller
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
+     *
      * @return array<string, int>
      */
     private function summarise(array $rows): array
@@ -525,7 +527,7 @@ final class SyncController extends Controller
      * The manager's signature this entry needs, spent — or the request that has
      * just been put in front of a manager, thrown.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      *
      * @throws ApiException
      */
@@ -607,7 +609,8 @@ final class SyncController extends Controller
      * nobody should be asked to authorise an operation that is going to be
      * refused by name a moment later.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: int, 2: int, 3: string, 4: int}|null
      */
     private function stakeFor(string $action, array $payload): ?array

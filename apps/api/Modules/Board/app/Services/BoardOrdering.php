@@ -32,8 +32,9 @@ final class BoardOrdering
      *
      * @template TModel of Model
      *
-     * @param  Builder<TModel>  $query  the venue's rows, already tenant- and branch-scoped
-     * @param  array<int, int>  $ids  the ids, in the order they should be drawn
+     * @param Builder<TModel> $query the venue's rows, already tenant- and branch-scoped
+     * @param array<int, int> $ids the ids, in the order they should be drawn
+     *
      * @return int how many rows were positioned
      *
      * @throws ValidationException when the list is not exactly this venue's rows
@@ -69,8 +70,8 @@ final class BoardOrdering
     }
 
     /**
-     * @param  array<int, int>  $existing
-     * @param  array<int, int>  $given
+     * @param array<int, int> $existing
+     * @param array<int, int> $given
      */
     private function refuseAnythingButTheWholeList(array $existing, array $given): void
     {

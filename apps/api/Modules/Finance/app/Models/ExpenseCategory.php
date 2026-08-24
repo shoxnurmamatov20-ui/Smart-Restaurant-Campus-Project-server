@@ -98,7 +98,8 @@ final class ExpenseCategory extends Model
     /**
      * Categories a new entry may still be filed under.
      *
-     * @param  Builder<ExpenseCategory>  $query
+     * @param Builder<ExpenseCategory> $query
+     *
      * @return Builder<ExpenseCategory>
      */
     public function scopeLive(Builder $query): Builder
@@ -107,7 +108,8 @@ final class ExpenseCategory extends Model
     }
 
     /**
-     * @param  Builder<ExpenseCategory>  $query
+     * @param Builder<ExpenseCategory> $query
+     *
      * @return Builder<ExpenseCategory>
      */
     public function scopeOfDirection(Builder $query, string $direction): Builder
@@ -116,7 +118,8 @@ final class ExpenseCategory extends Model
     }
 
     /**
-     * @param  Builder<ExpenseCategory>  $query
+     * @param Builder<ExpenseCategory> $query
+     *
      * @return Builder<ExpenseCategory>
      */
     public function scopeOrdered(Builder $query): Builder

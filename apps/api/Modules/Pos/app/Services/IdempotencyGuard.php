@@ -38,7 +38,8 @@ use Throwable;
 final class IdempotencyGuard
 {
     /**
-     * @param  Closure(): array<string, mixed>  $work
+     * @param Closure(): array<string, mixed> $work
+     *
      * @return array{result: array<string, mixed>, replayed: bool}
      */
     public function run(
@@ -128,9 +129,10 @@ final class IdempotencyGuard
      * were applied on a previous attempt alike, because a half-drained queue is
      * the normal case rather than the exception.
      *
-     * @param  array<int, array{local_id: string, local_seq: int, action: string, payload: array<string, mixed>}>  $entries
-     * @param  Closure(string, array<string, mixed>): array<string, mixed>  $dispatch
-     * @param  Closure(string, string, array<string, mixed>): void|null  $onApplied  local id, action, result
+     * @param array<int, array{local_id: string, local_seq: int, action: string, payload: array<string, mixed>}> $entries
+     * @param Closure(string, array<string, mixed>): array<string, mixed> $dispatch
+     * @param Closure(string, string, array<string, mixed>): void|null $onApplied local id, action, result
+     *
      * @return array<int, array<string, mixed>>
      */
     public function replayBatch(Terminal $terminal, array $entries, Closure $dispatch, ?Closure $onApplied = null): array

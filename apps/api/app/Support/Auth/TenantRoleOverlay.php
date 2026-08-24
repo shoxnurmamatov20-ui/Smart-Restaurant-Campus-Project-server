@@ -116,8 +116,8 @@ final class TenantRoleOverlay
      * denials, rather than storing the list itself — see the class note for why
      * a stored list rots the day the platform adds a permission.
      *
-     * @param  list<string>  $baseline  what the role holds on the shared platform
-     * @param  list<string>  $wanted  what this restaurant wants it to hold
+     * @param list<string> $baseline what the role holds on the shared platform
+     * @param list<string> $wanted what this restaurant wants it to hold
      */
     public static function put(Tenant $tenant, string $role, array $baseline, array $wanted): void
     {
@@ -143,7 +143,8 @@ final class TenantRoleOverlay
     /**
      * What a role effectively holds inside one restaurant.
      *
-     * @param  list<string>  $baseline
+     * @param list<string> $baseline
+     *
      * @return list<string>
      */
     public static function effective(?Tenant $tenant, string $role, array $baseline): array
@@ -168,7 +169,8 @@ final class TenantRoleOverlay
     }
 
     /**
-     * @param  array<string, mixed>  $rule
+     * @param array<string, mixed> $rule
+     *
      * @return list<string>
      */
     private static function list(array $rule, string $key): array

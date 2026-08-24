@@ -60,9 +60,10 @@ final class EloquentGuestAccounts implements GuestAccounts
      * and a repeat with a DIFFERENT amount is refused rather than reconciled,
      * because nothing here can know which of the two figures is the sale.
      *
-     * @param  int  $amount  Tiyin, positive — what the guest is signing for.
-     * @param  int|null  $approvalId  The `pos.approvals` row that authorised going
-     *                                over the limit. Recorded, not verified — see the class docblock.
+     * @param int $amount Tiyin, positive — what the guest is signing for.
+     * @param int|null $approvalId The `pos.approvals` row that authorised going
+     *                             over the limit. Recorded, not verified — see the class docblock.
+     *
      * @return int The account entry id.
      *
      * @throws RuntimeException when the guest has no tab, is inactive, the amount
@@ -228,11 +229,12 @@ final class EloquentGuestAccounts implements GuestAccounts
      * and names what is actually owed, and a genuine deposit is the caller
      * SAYING it is one.
      *
-     * @param  int  $amount  Tiyin, positive.
-     * @param  int|null  $paymentId  The `finance.payments` row the money arrived on,
-     *                               when it came through a till rather than a bank.
-     * @param  bool  $acceptDeposit  Let the balance go below zero, because the excess
-     *                               is money the restaurant is knowingly holding.
+     * @param int $amount Tiyin, positive.
+     * @param int|null $paymentId The `finance.payments` row the money arrived on,
+     *                            when it came through a till rather than a bank.
+     * @param bool $acceptDeposit Let the balance go below zero, because the excess
+     *                            is money the restaurant is knowingly holding.
+     *
      * @return int The account entry id.
      *
      * @throws RuntimeException when the money is more than the guest owes and
@@ -312,7 +314,7 @@ final class EloquentGuestAccounts implements GuestAccounts
      * left of it — the caller refunding a cash sale should not have to know
      * whether it was ever a credit one.
      *
-     * @param  int|null  $amount  Tiyin. Null means all of what is left.
+     * @param int|null $amount Tiyin. Null means all of what is left.
      */
     public function reverseCharge(
         int $orderId,
@@ -390,7 +392,7 @@ final class EloquentGuestAccounts implements GuestAccounts
      * that is {@see writeOff()}, and the two are different words in a year-end
      * report for a reason.
      *
-     * @param  int  $amount  Tiyin, signed. Positive means the guest owes more.
+     * @param int $amount Tiyin, signed. Positive means the guest owes more.
      */
     public function adjust(int $customerId, int $amount, string $reason, ?int $userId = null): int
     {
@@ -419,7 +421,7 @@ final class EloquentGuestAccounts implements GuestAccounts
      * never paid" — the first is a correction, the second is money the business
      * actually lost, and only one of them belongs in that figure.
      *
-     * @param  int  $amount  Tiyin, positive — how much is being forgiven.
+     * @param int $amount Tiyin, positive — how much is being forgiven.
      */
     public function writeOff(int $customerId, int $amount, string $reason, ?int $userId = null): int
     {
@@ -506,7 +508,8 @@ final class EloquentGuestAccounts implements GuestAccounts
      * the alternative — reading every entry of every debtor into PHP — is the
      * shape that stops working in the second year of trading.
      *
-     * @param  list<int>  $customerIds
+     * @param list<int> $customerIds
+     *
      * @return array<int, string> Customer id => ISO 8601 timestamp
      */
     public function oldestUnsettled(array $customerIds): array
@@ -565,8 +568,8 @@ final class EloquentGuestAccounts implements GuestAccounts
      * them. `balance_after` is computed from the row that was locked, which is
      * what makes the column trustworthy rather than decorative.
      *
-     * @param  int  $delta  Tiyin, signed — what this line does to the balance.
-     * @param  array<string, mixed>  $attributes
+     * @param int $delta Tiyin, signed — what this line does to the balance.
+     * @param array<string, mixed> $attributes
      */
     private function post(Customer $customer, string $kind, int $delta, array $attributes = []): AccountEntry
     {

@@ -108,7 +108,7 @@ final class TriggerController extends Controller
      *
      * Two grouped queries for the whole page rather than two per row.
      *
-     * @param  Collection<int, Trigger>  $triggers
+     * @param Collection<int, Trigger> $triggers
      */
     private function stampCounters(Collection $triggers): void
     {

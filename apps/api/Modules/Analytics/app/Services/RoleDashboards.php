@@ -172,7 +172,8 @@ final class RoleDashboards
      * nightly projection has run. Null and zero are different answers and only
      * one of them is a reason to go and look at something.
      *
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
+     *
      * @return array<int, array<string, mixed>>
      */
     private function kpis(string $role, array $summary, ReportWindow $window): array
@@ -262,7 +263,7 @@ final class RoleDashboards
      * expense, and tax is not modelled at all — so it is the accountant's
      * working figure and is null whenever gross profit is.
      *
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
      */
     private function netMargin(array $summary): ?float
     {
@@ -295,7 +296,7 @@ final class RoleDashboards
      * figure — the ratio over every line, times the sales of every line.
      * Nothing costed, or nothing sold: null, and the card draws a dash.
      *
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
      */
     public static function grossProfitEstimate(array $summary): ?int
     {
@@ -703,7 +704,8 @@ final class RoleDashboards
      * of this method: an unknown must never render as a warning, because a
      * panel that cries about missing data is a panel people learn to close.
      *
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
+     *
      * @return array<int, array<string, mixed>>
      */
     private function attention(array $summary): array
@@ -1319,7 +1321,8 @@ final class RoleDashboards
     // ============ Operator ============
 
     /**
-     * @param  array<string, mixed>  $summary
+     * @param array<string, mixed> $summary
+     *
      * @return array<string, mixed>
      */
     private function operatorBlock(ReportWindow $window, array $summary): array

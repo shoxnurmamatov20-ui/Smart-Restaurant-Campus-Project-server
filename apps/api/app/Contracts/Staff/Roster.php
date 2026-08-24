@@ -38,8 +38,8 @@ interface Roster
      * matching the bank. An attendance still open is counted up to now, so the
      * figure moves during a shift rather than jumping when it ends.
      *
-     * @param  string  $from  `Y-m-d`, inclusive
-     * @param  string  $to  `Y-m-d`, inclusive
+     * @param string $from `Y-m-d`, inclusive
+     * @param string $to `Y-m-d`, inclusive
      */
     public function payrollBetween(string $from, string $to, ?int $branchId = null): int;
 
@@ -63,8 +63,9 @@ interface Roster
      * SITS, and charging it all to the hour somebody clocked in draws a spike at
      * every shift start.
      *
-     * @param  string  $from  `Y-m-d`, inclusive
-     * @param  string  $to  `Y-m-d`, inclusive
+     * @param string $from `Y-m-d`, inclusive
+     * @param string $to `Y-m-d`, inclusive
+     *
      * @return array<int, int> Hour of day (0–23) => cost in tiyin. Hours with
      *                         nobody at work are absent rather than zero.
      */

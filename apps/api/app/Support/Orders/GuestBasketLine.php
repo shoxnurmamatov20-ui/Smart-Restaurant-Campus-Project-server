@@ -16,7 +16,7 @@ use App\Contracts\Menu\Dish;
 final readonly class GuestBasketLine
 {
     /**
-     * @param  array<int, int>  $choiceIds
+     * @param array<int, int> $choiceIds
      */
     public function __construct(
         public Dish $dish,

@@ -28,7 +28,7 @@ use RuntimeException;
 final readonly class CashCount
 {
     /**
-     * @param  array<int, int>  $breakdown  Denomination in tiyin => how many of them.
+     * @param array<int, int> $breakdown Denomination in tiyin => how many of them.
      */
     private function __construct(
         public array $breakdown,
@@ -38,7 +38,7 @@ final readonly class CashCount
     /**
      * Counted note by note.
      *
-     * @param  array<int, int>  $breakdown  Denomination in tiyin => count.
+     * @param array<int, int> $breakdown Denomination in tiyin => count.
      *
      * @throws RuntimeException on a negative count or a denomination of zero — both
      *                          are a client sending nonsense, and a drawer total

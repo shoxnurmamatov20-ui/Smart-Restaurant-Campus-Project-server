@@ -53,7 +53,8 @@ final readonly class CampaignDispatcher
      * list. The list is passed in rather than being turned into a segment,
      * because a segment is a rule and this is an answer.
      *
-     * @param  Collection<int, Customer>|null  $only
+     * @param Collection<int, Customer>|null $only
+     *
      * @return int how many people it will reach
      */
     public function send(Campaign $campaign, ?Collection $only = null): int

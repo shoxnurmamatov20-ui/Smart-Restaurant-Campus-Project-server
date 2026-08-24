@@ -19,11 +19,11 @@ use App\Contracts\Menu\Dish;
 final readonly class BillLine
 {
     /**
-     * @param  int  $unitPrice  Tiyin, never a float. 1 UZS = 100 tiyin.
-     * @param  int  $totalPrice  Tiyin. quantity × (unitPrice + modifiers), server-side.
-     * @param  int  $seatNo  Which guest ordered it. Never null — see Q4.
-     * @param  int  $billNo  Which of the table's bills it goes on, 1-4.
-     * @param  array<int, LineModifier>  $modifiers  Frozen at the moment they were chosen.
+     * @param int $unitPrice Tiyin, never a float. 1 UZS = 100 tiyin.
+     * @param int $totalPrice Tiyin. quantity × (unitPrice + modifiers), server-side.
+     * @param int $seatNo Which guest ordered it. Never null — see Q4.
+     * @param int $billNo Which of the table's bills it goes on, 1-4.
+     * @param array<int, LineModifier> $modifiers Frozen at the moment they were chosen.
      */
     public function __construct(
         public int $id,

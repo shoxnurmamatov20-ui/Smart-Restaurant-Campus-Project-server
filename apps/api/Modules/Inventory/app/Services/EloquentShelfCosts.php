@@ -26,7 +26,8 @@ use Modules\Inventory\Models\PrepItem;
 final class EloquentShelfCosts implements ShelfCosts
 {
     /**
-     * @param  list<int>  $ids
+     * @param list<int> $ids
+     *
      * @return array<int, ShelfComponent>
      */
     public function ingredients(array $ids): array
@@ -50,7 +51,8 @@ final class EloquentShelfCosts implements ShelfCosts
     }
 
     /**
-     * @param  list<int>  $ids
+     * @param list<int> $ids
+     *
      * @return array<int, ShelfComponent>
      */
     public function prepItems(array $ids): array

@@ -30,7 +30,7 @@ use App\Support\Events\DomainEvent;
 final class BoardPublished extends DomainEvent
 {
     /**
-     * @param  array<string, int>  $stamped  how many rows of each list reached the screens
+     * @param array<string, int> $stamped how many rows of each list reached the screens
      */
     public function __construct(
         private readonly int $branchId,

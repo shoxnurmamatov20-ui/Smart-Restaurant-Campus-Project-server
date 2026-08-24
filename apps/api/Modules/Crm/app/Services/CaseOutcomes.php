@@ -54,8 +54,8 @@ final class CaseOutcomes
     /**
      * Apply one answer. Runs inside the caller's transaction.
      *
-     * @param  string  $outcome  One of ComplaintCase::OUTCOMES
-     * @param  int  $amount  Tiyin. Zero for a decline.
+     * @param string $outcome One of ComplaintCase::OUTCOMES
+     * @param int $amount Tiyin. Zero for a decline.
      */
     public function apply(ComplaintCase $case, string $outcome, int $amount, ?int $userId): void
     {

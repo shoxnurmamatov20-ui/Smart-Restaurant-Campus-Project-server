@@ -286,7 +286,8 @@ final class LossControl
      * line is routine, a voided bill less so, and a discount share well above
      * the room's is the one that repays a conversation.
      *
-     * @param  array<int, array<string, mixed>>  $staff
+     * @param array<int, array<string, mixed>> $staff
+     *
      * @return array<int, array<string, mixed>>
      */
     private function ranked(array $staff): array

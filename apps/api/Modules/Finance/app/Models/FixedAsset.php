@@ -96,7 +96,8 @@ final class FixedAsset extends Model
     /**
      * Assets the restaurant still has.
      *
-     * @param  Builder<FixedAsset>  $query
+     * @param Builder<FixedAsset> $query
+     *
      * @return Builder<FixedAsset>
      */
     public function scopeLive(Builder $query): Builder

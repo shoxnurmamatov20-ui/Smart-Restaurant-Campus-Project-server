@@ -57,13 +57,13 @@ interface PaymentGateway
      * spoken to — otherwise a guest whose browser dies mid-redirect has no handle
      * to come back with.
      *
-     * @param  int  $amountTiyin  What is owed, in tiyin. Never a float, never a
-     *                            so'm figure — providers disagree about which unit
-     *                            they take, and each driver converts on its own way
-     *                            out.
-     * @param  string|null  $returnUrl  Where the provider sends the browser once the
-     *                                  guest is finished. Optional because two of the
-     *                                  three providers treat it as advisory.
+     * @param int $amountTiyin What is owed, in tiyin. Never a float, never a
+     *                         so'm figure — providers disagree about which unit
+     *                         they take, and each driver converts on its own way
+     *                         out.
+     * @param string|null $returnUrl Where the provider sends the browser once the
+     *                               guest is finished. Optional because two of the
+     *                               three providers treat it as advisory.
      *
      * @throws RuntimeException when the provider is unavailable or refuses to
      *                          open the invoice. The caller turns this into the
@@ -95,9 +95,9 @@ interface PaymentGateway
     /**
      * Send the money back.
      *
-     * @param  int  $amountTiyin  The amount to return, which is not always the whole
-     *                            invoice: a table that paid online for four and sent
-     *                            one dish back is a partial reversal.
+     * @param int $amountTiyin The amount to return, which is not always the whole
+     *                         invoice: a table that paid online for four and sent
+     *                         one dish back is a partial reversal.
      *
      * @throws RuntimeException when the provider refuses, or does not support
      *                          reversal through its API at all — several in this

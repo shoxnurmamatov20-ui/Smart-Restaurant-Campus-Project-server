@@ -47,7 +47,8 @@ interface StopList
      * expiry rather than opening a second row, because two cooks tapping the same
      * dish on two screens within a second of each other is the normal case.
      *
-     * @param  Carbon|null  $until  when it comes back on its own
+     * @param Carbon|null $until when it comes back on its own
+     *
      * @return bool whether this changed anything — false means it was already off
      *              on the same terms, and a caller should not broadcast
      */

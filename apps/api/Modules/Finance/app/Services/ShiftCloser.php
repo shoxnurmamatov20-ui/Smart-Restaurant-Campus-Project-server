@@ -96,9 +96,9 @@ final class ShiftCloser
     /**
      * Count the drawer and close the shift.
      *
-     * @param  array<array-key, int|string>  $denominations  Note value in tiyin => how many.
-     *                                                       The total comes from here when it is given.
-     * @param  string  $kind  `close`, or `handover` when the notes stay in the till.
+     * @param array<array-key, int|string> $denominations Note value in tiyin => how many.
+     *                                                    The total comes from here when it is given.
+     * @param string $kind `close`, or `handover` when the notes stay in the till.
      *
      * @throws ApiException on anything a cashier has to be told rather than have
      *                      silently accepted
@@ -193,7 +193,8 @@ final class ShiftCloser
      * The link between the two shifts is stored, so "her float was his closing
      * count" is provable rather than a coincidence of two matching numbers.
      *
-     * @param  array<array-key, int|string>  $denominations
+     * @param array<array-key, int|string> $denominations
+     *
      * @return array{shift: CashShift, next: CashShift}
      */
     public function handOver(
@@ -272,7 +273,7 @@ final class ShiftCloser
      * the count, and both are worth a refusal: silently preferring one of them
      * would make the Z depend on which branch of an if-statement ran.
      *
-     * @param  array<array-key, int|string>  $denominations
+     * @param array<array-key, int|string> $denominations
      */
     private function countedTotal(?int $countedCash, array $denominations): int
     {

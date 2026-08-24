@@ -67,9 +67,10 @@ final readonly class StorefrontDirectory
     /**
      * Every storefront trading on the platform, filtered.
      *
-     * @param  string|null  $vertical  VERTICALS key — food, grocery, bakery, drinks
-     * @param  string|null  $cuisine  CUISINES key — osh, lavash, burger…
-     * @param  string|null  $query  Matches the trading name and the subtitle, any language
+     * @param string|null $vertical VERTICALS key — food, grocery, bakery, drinks
+     * @param string|null $cuisine CUISINES key — osh, lavash, burger…
+     * @param string|null $query Matches the trading name and the subtitle, any language
+     *
      * @return Collection<int, Store>
      */
     public function live(
@@ -254,7 +255,8 @@ final readonly class StorefrontDirectory
      *
      * @template TReturn
      *
-     * @param  Closure(Tenant): TReturn  $work
+     * @param Closure(Tenant): TReturn $work
+     *
      * @return TReturn
      */
     public function asStore(Store $store, Closure $work): mixed

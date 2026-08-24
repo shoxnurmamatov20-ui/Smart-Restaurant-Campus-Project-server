@@ -60,7 +60,8 @@ final class SettingsSchema
      * makes the error message actionable — "legal.stir is not a setting" tells
      * the sender what to fix, "legal is invalid" does not.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return list<string>
      */
     public static function undeclared(string $group, array $payload): array
@@ -89,7 +90,8 @@ final class SettingsSchema
      * the path that holds them — `channels.0` has to match the declared
      * `channels.*`, and `hours.mon` sent as `{}` is a leaf nobody declared.
      *
-     * @param  array<array-key, mixed>  $payload
+     * @param array<array-key, mixed> $payload
+     *
      * @return list<string>
      */
     private static function leaves(array $payload): array
@@ -109,8 +111,9 @@ final class SettingsSchema
      * key at a time; a list (`channels`) replaces wholesale, because "these are
      * the channels" is the only thing sending a list can mean.
      *
-     * @param  array<array-key, mixed>|null  $current
-     * @param  array<array-key, mixed>  $patch
+     * @param array<array-key, mixed>|null $current
+     * @param array<array-key, mixed> $patch
+     *
      * @return array<array-key, mixed>
      */
     public static function merge(?array $current, array $patch): array

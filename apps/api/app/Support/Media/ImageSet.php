@@ -31,7 +31,7 @@ namespace App\Support\Media;
 final readonly class ImageSet
 {
     /**
-     * @param  array<string, array{url: string, width: int, height: int}>  $sizes
+     * @param array<string, array{url: string, width: int, height: int}> $sizes
      */
     public function __construct(
         public string $src,
@@ -48,7 +48,7 @@ final readonly class ImageSet
      * version, or one damaged by hand — rather than an exception: a menu with
      * one dish drawn without its photograph is a menu; a menu that 500s is not.
      *
-     * @param  array<string, mixed>  $record
+     * @param array<string, mixed> $record
      */
     public static function fromRecord(
         array $record,

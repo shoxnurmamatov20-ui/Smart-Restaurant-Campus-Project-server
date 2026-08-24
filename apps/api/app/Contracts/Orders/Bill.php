@@ -17,11 +17,11 @@ use App\Support\Orders\OrderState;
 final readonly class Bill
 {
     /**
-     * @param  int  $subtotal  Tiyin — the lines, before adjustments.
-     * @param  int  $discountTotal  Tiyin — always positive; it is subtracted.
-     * @param  int  $serviceCharge  Tiyin.
-     * @param  int  $total  Tiyin — what the guest owes.
-     * @param  array<int, BillLine>  $lines
+     * @param int $subtotal Tiyin — the lines, before adjustments.
+     * @param int $discountTotal Tiyin — always positive; it is subtracted.
+     * @param int $serviceCharge Tiyin.
+     * @param int $total Tiyin — what the guest owes.
+     * @param array<int, BillLine> $lines
      */
     public function __construct(
         public int $id,

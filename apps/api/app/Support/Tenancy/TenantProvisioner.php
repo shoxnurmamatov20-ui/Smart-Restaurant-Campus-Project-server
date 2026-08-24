@@ -45,6 +45,7 @@ final readonly class TenantProvisioner
      *     plan_key?: string|null,
      *     trial_days?: int|null,
      * } $input
+     *
      * @return array{tenant: Tenant, user: User, branch: Branch}
      */
     public function create(array $input): array

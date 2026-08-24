@@ -42,9 +42,9 @@ use Modules\Kitchen\Models\Printer;
 final class ReceiptRenderer
 {
     /**
-     * @param  array<int, Tender>  $tenders  How the money actually arrived.
-     * @param  bool  $copy  A reprint. Marked, because two identical slips for one
-     *                      bill is how a refund gets claimed twice.
+     * @param array<int, Tender> $tenders How the money actually arrived.
+     * @param bool $copy A reprint. Marked, because two identical slips for one
+     *                   bill is how a refund gets claimed twice.
      */
     public function render(
         Bill $bill,
@@ -193,7 +193,7 @@ final class ReceiptRenderer
     }
 
     /**
-     * @param  array<int, Tender>  $tenders
+     * @param array<int, Tender> $tenders
      */
     private function payments(Document $document, ?TenderPlan $plan, array $tenders): void
     {

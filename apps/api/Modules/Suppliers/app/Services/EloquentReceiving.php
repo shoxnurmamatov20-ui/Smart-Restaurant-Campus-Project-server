@@ -63,7 +63,7 @@ final class EloquentReceiving implements Receiving
      * `confirm()`; the controller reaches this via `post()` after making its
      * own refusals, so the two doors cannot drift on what "received" does.
      *
-     * @param  array<int, int>  $counted  line id → base units actually counted; absent lines are received whole
+     * @param array<int, int> $counted line id → base units actually counted; absent lines are received whole
      */
     public function post(PurchaseOrder $purchaseOrder, array $counted = []): void
     {

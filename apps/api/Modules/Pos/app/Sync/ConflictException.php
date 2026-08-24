@@ -25,9 +25,9 @@ use Throwable;
 final class ConflictException extends RuntimeException
 {
     /**
-     * @param  array<string, mixed>  $context  Everything a screen needs to phrase the
-     *                                         question: which bill, which dish, both prices, the other
-     *                                         till's name. Never a model — this crosses to a client.
+     * @param array<string, mixed> $context Everything a screen needs to phrase the
+     *                                      question: which bill, which dish, both prices, the other
+     *                                      till's name. Never a model — this crosses to a client.
      */
     public function __construct(
         public readonly ConflictKind $kind,
@@ -39,7 +39,7 @@ final class ConflictException extends RuntimeException
     }
 
     /**
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     public static function of(ConflictKind $kind, string $message, array $context = []): self
     {

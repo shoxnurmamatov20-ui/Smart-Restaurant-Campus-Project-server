@@ -62,7 +62,7 @@ final class PeriodLock
      * on the platform, migrations and seeders included, would be a worse
      * failure than allowing one.
      *
-     * @param  string|Carbon|null  $businessDate  The trading day, `Y-m-d`
+     * @param string|Carbon|null $businessDate The trading day, `Y-m-d`
      */
     public function isClosed(string|Carbon|null $businessDate): bool
     {
@@ -101,7 +101,7 @@ final class PeriodLock
      * wrong — "the period is closed" alone sends them looking at today's date,
      * which is not the one that was refused.
      *
-     * @param  string  $what  What was being written, for the audit trail
+     * @param string $what What was being written, for the audit trail
      *
      * @throws ApiException
      */

@@ -69,7 +69,7 @@ final class PublicOrderTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function place(array $over = [], ?Tenant $as = null): TestResponse
     {

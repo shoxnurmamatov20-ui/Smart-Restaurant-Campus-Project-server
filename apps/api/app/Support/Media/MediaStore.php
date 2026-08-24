@@ -57,11 +57,11 @@ final class MediaStore
     /**
      * The key for one rendition of one photograph.
      *
-     * @param  string  $kind  what this is a photograph of — `dish` today
-     * @param  int  $tenantId  the restaurant, which is also what shards the tree
-     * @param  int  $ownerId  the row the photograph belongs to
-     * @param  string  $hash  the content hash of the upload
-     * @param  string  $rendition  the size's name
+     * @param string $kind what this is a photograph of — `dish` today
+     * @param int $tenantId the restaurant, which is also what shards the tree
+     * @param int $ownerId the row the photograph belongs to
+     * @param string $hash the content hash of the upload
+     * @param string $rendition the size's name
      */
     public function key(string $kind, int $tenantId, int $ownerId, string $hash, string $rendition): string
     {

@@ -320,7 +320,7 @@ final class CaseController extends Controller
     /**
      * Write the row, stamp the number and the deadline, and open the history.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function open(array $payload, ?int $userId): ComplaintCase
     {

@@ -60,7 +60,8 @@ final class UnavailableMenuCatalog implements MenuCatalog
     }
 
     /**
-     * @param  array<int, int>  $choiceIds
+     * @param array<int, int> $choiceIds
+     *
      * @return array<int, ModifierChoice>
      */
     public function priceChoices(int $dishId, array $choiceIds): array

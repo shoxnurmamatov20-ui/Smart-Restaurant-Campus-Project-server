@@ -16,8 +16,8 @@ namespace App\Contracts\Menu;
 final readonly class Dish
 {
     /**
-     * @param  int  $price  Tiyin, never a float. 1 UZS = 100 tiyin.
-     * @param  array<int, string>  $allergens
+     * @param int $price Tiyin, never a float. 1 UZS = 100 tiyin.
+     * @param array<int, string> $allergens
      */
     public function __construct(
         public int $id,

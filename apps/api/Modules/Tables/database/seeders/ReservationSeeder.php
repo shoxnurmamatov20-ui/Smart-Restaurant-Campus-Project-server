@@ -181,7 +181,7 @@ final class ReservationSeeder extends Seeder
      * Touching ends do not clash: a table released at 19:00 can be booked from
      * 19:00, which is how a restaurant turns a table twice in an evening.
      *
-     * @param  array<int, array{0: Carbon, 1: Carbon}>  $windows
+     * @param array<int, array{0: Carbon, 1: Carbon}> $windows
      */
     private static function clashes(array $windows, Carbon $starts, Carbon $ends): bool
     {

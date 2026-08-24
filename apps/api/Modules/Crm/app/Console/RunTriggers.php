@@ -234,7 +234,7 @@ final class RunTriggers extends Command
      * campaign list needs to tell "the birthday run" from "the birthday run"
      * without opening either.
      *
-     * @param  Collection<int, Customer>  $due
+     * @param Collection<int, Customer> $due
      */
     private function campaignFor(Trigger $trigger, Collection $due): Campaign
     {
@@ -259,7 +259,7 @@ final class RunTriggers extends Command
     }
 
     /**
-     * @param  Collection<int, Customer>  $due
+     * @param Collection<int, Customer> $due
      */
     private function recordSends(Trigger $trigger, Collection $due, Campaign $campaign): void
     {

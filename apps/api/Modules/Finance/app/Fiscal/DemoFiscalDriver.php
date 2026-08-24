@@ -34,9 +34,9 @@ use RuntimeException;
 final class DemoFiscalDriver implements FiscalDriver
 {
     /**
-     * @param  string  $moduleNo  Eight digits, because the probe checks for them
-     *                            and a demo that failed its own probe would teach
-     *                            nothing about the real one.
+     * @param string $moduleNo Eight digits, because the probe checks for them
+     *                         and a demo that failed its own probe would teach
+     *                         nothing about the real one.
      */
     public function __construct(
         private readonly string $moduleNo = '00000000',

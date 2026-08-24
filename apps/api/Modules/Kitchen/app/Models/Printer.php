@@ -281,7 +281,8 @@ final class Printer extends Model
     // ============ Scopes ============
 
     /**
-     * @param  Builder<Printer>  $query
+     * @param Builder<Printer> $query
+     *
      * @return Builder<Printer>
      */
     public function scopeActive(Builder $query): Builder
@@ -290,7 +291,8 @@ final class Printer extends Model
     }
 
     /**
-     * @param  Builder<Printer>  $query
+     * @param Builder<Printer> $query
+     *
      * @return Builder<Printer>
      */
     public function scopeOfRole(Builder $query, string $role): Builder

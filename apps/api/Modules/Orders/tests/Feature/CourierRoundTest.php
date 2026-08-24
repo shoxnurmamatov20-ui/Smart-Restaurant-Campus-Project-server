@@ -70,7 +70,7 @@ final class CourierRoundTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function drop(User $courier, string $status = 'assigned', array $over = []): Delivery
     {

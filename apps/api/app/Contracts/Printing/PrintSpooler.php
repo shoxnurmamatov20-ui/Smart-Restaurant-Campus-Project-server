@@ -38,12 +38,12 @@ interface PrintSpooler
      * till having got their order wrong. The plan carries the rounding, the tip and
      * the change together, and all three belong on the paper.
      *
-     * @param  array<int, Tender>  $tenders  How it was paid, for
-     *                                       the payment lines. Cards want their last four and their reference.
-     * @param  int|null  $printerId  Override the branch's default — a re-print at a
-     *                               second till, or a manager reprinting at the office printer.
-     * @param  string|null  $idempotencyKey  The device's own id for this print. A
-     *                                       retried settlement must not put two receipts on the counter.
+     * @param array<int, Tender> $tenders How it was paid, for
+     *                                    the payment lines. Cards want their last four and their reference.
+     * @param int|null $printerId Override the branch's default — a re-print at a
+     *                            second till, or a manager reprinting at the office printer.
+     * @param string|null $idempotencyKey The device's own id for this print. A
+     *                                    retried settlement must not put two receipts on the counter.
      */
     public function receipt(
         Bill $bill,
@@ -88,8 +88,9 @@ interface PrintSpooler
      * qayta navbatga qo'yildi" is an answer; a spinner that says "reconnected"
      * is a cashier walking away from a printer that is still dead.
      *
-     * @param  int|null  $branchId  Null means the whole restaurant, which only a
-     *                              back-office caller should ever pass.
+     * @param int|null $branchId Null means the whole restaurant, which only a
+     *                           back-office caller should ever pass.
+     *
      * @return int How many jobs were re-queued.
      */
     public function requeueFailed(?int $branchId = null): int;

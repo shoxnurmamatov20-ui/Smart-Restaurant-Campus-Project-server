@@ -11,10 +11,10 @@ namespace App\Support\Media;
 final readonly class ProcessedImage
 {
     /**
-     * @param  array<string, EncodedImage>  $renditions  keyed by rendition name
-     * @param  string|null  $placeholder  a `data:image/webp;base64,…` URI, or null
-     *                                    when the encoder produced something too
-     *                                    large to inline
+     * @param array<string, EncodedImage> $renditions keyed by rendition name
+     * @param string|null $placeholder a `data:image/webp;base64,…` URI, or null
+     *                                 when the encoder produced something too
+     *                                 large to inline
      */
     public function __construct(
         /** The source's own dimensions, after rotation — what a client uses for aspect ratio. */

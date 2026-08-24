@@ -215,7 +215,8 @@ final class ExpenseCategoryController extends Controller
     }
 
     /**
-     * @param  array<string, array{count: int, total: int}>|null  $totals
+     * @param array<string, array{count: int, total: int}>|null $totals
+     *
      * @return array<string, mixed>
      */
     private function present(ExpenseCategory $row, Request $request, ?array $totals): array
@@ -233,7 +234,8 @@ final class ExpenseCategoryController extends Controller
     /**
      * One of the eight, for a restaurant that has never edited it.
      *
-     * @param  array<string, array{count: int, total: int}>|null  $totals
+     * @param array<string, array{count: int, total: int}>|null $totals
+     *
      * @return array<string, mixed>
      */
     private function builtIn(string $code, int $position, ?array $totals): array

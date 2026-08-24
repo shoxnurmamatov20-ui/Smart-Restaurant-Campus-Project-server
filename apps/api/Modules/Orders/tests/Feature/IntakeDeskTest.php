@@ -200,7 +200,7 @@ final class IntakeDeskTest extends TestCase
     // ============ The sitting a guest asked for ============
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function place(array $over = []): TestResponse
     {

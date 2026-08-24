@@ -206,7 +206,7 @@ final class BillActionController extends Controller
      * split. None of those is a server fault, and a 500 would make the console
      * retry something that will never succeed.
      *
-     * @param  callable(): mixed  $work
+     * @param callable(): mixed $work
      */
     private function answer(callable $work, Order $order): JsonResponse
     {

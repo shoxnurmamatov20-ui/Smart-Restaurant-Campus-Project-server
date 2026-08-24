@@ -87,7 +87,7 @@ final class OneCReport
     ];
 
     /**
-     * @param  array<string, mixed>  $report  a table from {@see StandardReports}
+     * @param array<string, mixed> $report a table from {@see StandardReports}
      */
     public static function from(array $report): string
     {

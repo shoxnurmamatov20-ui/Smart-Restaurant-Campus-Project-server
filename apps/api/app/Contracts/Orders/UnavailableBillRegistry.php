@@ -41,7 +41,7 @@ final class UnavailableBillRegistry implements BillRegistry
     }
 
     /**
-     * @param  array<int, int>  $modifierChoiceIds
+     * @param array<int, int> $modifierChoiceIds
      */
     public function addLine(
         int $billId,
@@ -73,7 +73,7 @@ final class UnavailableBillRegistry implements BillRegistry
     }
 
     /**
-     * @param  array<int, int>  $lineIds
+     * @param array<int, int> $lineIds
      */
     public function split(int $billId, array $lineIds): Bill
     {

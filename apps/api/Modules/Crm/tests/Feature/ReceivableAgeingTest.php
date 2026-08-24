@@ -57,7 +57,7 @@ final class ReceivableAgeingTest extends TestCase
      * A tab, written as the ledger writes it: signed amounts and the balance
      * each line left behind.
      *
-     * @param  list<array{0: string, 1: int, 2: string}>  $lines  kind, signed amount, date
+     * @param list<array{0: string, 1: int, 2: string}> $lines kind, signed amount, date
      */
     private function ledger(Customer $customer, array $lines): void
     {

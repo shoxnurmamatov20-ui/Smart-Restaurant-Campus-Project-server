@@ -92,7 +92,7 @@ final class EloquentPrintSpooler implements PrintSpooler
     /**
      * The guest's receipt.
      *
-     * @param  array<int, Tender>  $tenders
+     * @param array<int, Tender> $tenders
      */
     public function receipt(
         Bill $bill,
@@ -111,7 +111,7 @@ final class EloquentPrintSpooler implements PrintSpooler
      * disputed line. Marked because two unmarked identical receipts for one bill
      * is how the same refund gets claimed twice.
      *
-     * @param  array<int, Tender>  $tenders
+     * @param array<int, Tender> $tenders
      */
     public function reprintReceipt(
         Bill $bill,
@@ -182,7 +182,7 @@ final class EloquentPrintSpooler implements PrintSpooler
     // ============ Internals ============
 
     /**
-     * @param  array<int, Tender>  $tenders
+     * @param array<int, Tender> $tenders
      */
     private function spoolReceipt(
         Bill $bill,

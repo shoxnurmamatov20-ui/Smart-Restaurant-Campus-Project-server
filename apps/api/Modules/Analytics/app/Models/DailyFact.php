@@ -102,7 +102,8 @@ final class DailyFact extends Model
      * caller reading the roll-up without this would sum the group total AND
      * every venue that makes it up, and report a restaurant that earned twice.
      *
-     * @param  Builder<DailyFact>  $query
+     * @param Builder<DailyFact> $query
+     *
      * @return Builder<DailyFact>
      */
     public function scopeRollup(Builder $query): Builder

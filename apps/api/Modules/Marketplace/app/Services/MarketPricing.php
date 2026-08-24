@@ -56,13 +56,13 @@ namespace Modules\Marketplace\Services;
 final readonly class MarketPricing
 {
     /**
-     * @param  int  $subtotal  Tiyin — the lines, at market prices.
-     * @param  int  $discount  Tiyin, positive; it is subtracted.
-     * @param  int  $serviceFee  Tiyin — the platform's cut from the guest.
-     * @param  int  $deliveryFee  Tiyin — zero for a Plus subscriber.
-     * @param  int  $total  Tiyin — what leaves the guest's card.
-     * @param  int  $commission  Tiyin — the platform's cut from the merchant.
-     * @param  int  $merchantDue  Tiyin — what the settlement pays out.
+     * @param int $subtotal Tiyin — the lines, at market prices.
+     * @param int $discount Tiyin, positive; it is subtracted.
+     * @param int $serviceFee Tiyin — the platform's cut from the guest.
+     * @param int $deliveryFee Tiyin — zero for a Plus subscriber.
+     * @param int $total Tiyin — what leaves the guest's card.
+     * @param int $commission Tiyin — the platform's cut from the merchant.
+     * @param int $merchantDue Tiyin — what the settlement pays out.
      */
     private function __construct(
         public int $subtotal,

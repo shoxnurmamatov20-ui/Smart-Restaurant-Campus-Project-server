@@ -130,7 +130,8 @@ final class Delivery extends Model
     // ============ Scopes ============
 
     /**
-     * @param  Builder<Delivery>  $query
+     * @param Builder<Delivery> $query
+     *
      * @return Builder<Delivery>
      */
     public function scopeLive(Builder $query): Builder

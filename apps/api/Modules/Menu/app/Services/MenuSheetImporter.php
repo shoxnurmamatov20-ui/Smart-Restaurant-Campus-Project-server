@@ -360,8 +360,9 @@ final class MenuSheetImporter
      * mapping decides which cell becomes money, and a price parsed in the
      * browser is a second implementation of `tiyinOf()`.
      *
-     * @param  list<string>  $columns
-     * @param  array<string, string>  $requested  column name → field
+     * @param list<string> $columns
+     * @param array<string, string> $requested column name → field
+     *
      * @return array<string, string> column name → field, only for columns that exist
      */
     public function resolveMapping(array $columns, array $requested): array
@@ -411,9 +412,10 @@ final class MenuSheetImporter
      * half-apply: 41 dishes at the new price and 7 at the old, with nobody able
      * to name the boundary, is the failure this endpoint exists to prevent.
      *
-     * @param  list<string>  $columns
-     * @param  array<string, string>  $mapping  column name → field
-     * @param  list<list<string>>  $rows
+     * @param list<string> $columns
+     * @param array<string, string> $mapping column name → field
+     * @param list<list<string>> $rows
+     *
      * @return array<string, mixed>
      */
     public function import(array $columns, array $mapping, array $rows, bool $dryRun, string $locale): array
@@ -475,8 +477,9 @@ final class MenuSheetImporter
     }
 
     /**
-     * @param  array<string, int>  $indexes  field → column index
-     * @param  list<list<string>>  $rows
+     * @param array<string, int> $indexes field → column index
+     * @param list<list<string>> $rows
+     *
      * @return array{summary: array<string, int>, categories_created: list<string>, refusals: list<array{row: int, reason: string}>}
      */
     private function applyRows(array $indexes, array $rows, string $locale): array
@@ -747,7 +750,7 @@ final class MenuSheetImporter
      * a manager typing them by hand before trying again. The report lists every
      * one by name under `categories_created`, so nothing appears silently.
      *
-     * @param  array<string, bool>  $slugsTaken  normalised slug → true, trashed rows included
+     * @param array<string, bool> $slugsTaken normalised slug → true, trashed rows included
      */
     private function createCategory(string $name, ?int $tenantId, string $locale, array &$slugsTaken): MenuCategory
     {
@@ -786,8 +789,9 @@ final class MenuSheetImporter
     // =====================================================================
 
     /**
-     * @param  list<string>  $columns
-     * @param  array<string, string>  $mapping  column name → field
+     * @param list<string> $columns
+     * @param array<string, string> $mapping column name → field
+     *
      * @return array<string, int> field → column index
      */
     private static function fieldIndexes(array $columns, array $mapping): array
@@ -873,7 +877,7 @@ final class MenuSheetImporter
      * on a kitchen ticket and "OSH-TOSHKENT" tells them something "IMP-0042"
      * does not. Cyrillic transliterates, so «Плов» becomes PLOV.
      *
-     * @param  array<string, MenuItem>  $taken
+     * @param array<string, MenuItem> $taken
      */
     private static function skuFor(string $name, array $taken): string
     {

@@ -203,7 +203,7 @@ final class MarketOrder extends Model
     /**
      * The merchant's ninety-second queue.
      *
-     * @param  Builder<MarketOrder>  $query
+     * @param Builder<MarketOrder> $query
      */
     public function scopeWaiting(Builder $query): void
     {
@@ -276,7 +276,7 @@ final class MarketOrder extends Model
      * column in a function and loses the index on the table that grows fastest,
      * and `ModuleBoundaryTest` refuses it by name.
      *
-     * @param  Builder<MarketOrder>  $query
+     * @param Builder<MarketOrder> $query
      */
     public function scopeBetweenTradingDays(Builder $query, string $from, string $to): void
     {

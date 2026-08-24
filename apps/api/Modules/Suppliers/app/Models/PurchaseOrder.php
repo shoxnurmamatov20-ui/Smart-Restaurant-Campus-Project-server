@@ -214,7 +214,8 @@ final class PurchaseOrder extends Model
      * Cancelled orders are excluded because nobody owes anything on a delivery
      * that was called off.
      *
-     * @param  Builder<PurchaseOrder>  $query
+     * @param Builder<PurchaseOrder> $query
+     *
      * @return Builder<PurchaseOrder>
      */
     public function scopeOutstanding(Builder $query): Builder

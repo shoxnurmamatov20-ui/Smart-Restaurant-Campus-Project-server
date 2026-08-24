@@ -7,7 +7,7 @@ namespace App\Contracts\Menu;
 /**
  * One answer a guest may give about a dish.
  *
- * @param  int  $priceDelta  Tiyin, per unit of the line. May be negative.
+ * @param int $priceDelta Tiyin, per unit of the line. May be negative.
  */
 final readonly class ModifierChoice
 {

@@ -66,9 +66,9 @@ final readonly class GuestTokens
      * than gaining a second row. Anything else leaves the first person's
      * notifications arriving on a handset they no longer hold.
      *
-     * @param  string  $type  One of `PushToken::OF_*`.
-     * @param  int|null  $tenantId  Null for a marketplace consumer; the restaurant for a CRM customer.
-     * @param  array{token: string, platform: string, device_name?: string|null, locale?: string|null}  $data
+     * @param string $type One of `PushToken::OF_*`.
+     * @param int|null $tenantId Null for a marketplace consumer; the restaurant for a CRM customer.
+     * @param array{token: string, platform: string, device_name?: string|null, locale?: string|null} $data
      */
     public function register(string $type, int $id, ?int $tenantId, string $surface, array $data): PushToken
     {

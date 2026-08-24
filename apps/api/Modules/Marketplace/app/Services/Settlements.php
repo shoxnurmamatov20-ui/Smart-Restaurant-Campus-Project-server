@@ -163,7 +163,7 @@ final readonly class Settlements
      * Both land in a later week when they close, which is the correct place for
      * them — a statement is a record of what was known when it was issued.
      *
-     * @param  array<int, int>  $orderIds
+     * @param array<int, int> $orderIds
      */
     private function disputeCredits(array $orderIds): int
     {

@@ -42,15 +42,15 @@ interface TillLedger
      * Z-report reconciling a shortfall should be able to say which one it is
      * looking at.
      *
-     * @param  string|null  $varianceReason  Why the drawer disagrees. Required by the
-     *                                       closing ladder above the first threshold — a shift that will not close
-     *                                       without an explanation is the only thing that makes anyone write one.
-     * @param  int|null  $approvedByUserId  The manager who authorised a large
-     *                                      difference. Checked against `finance.manage`, and refused when it is
-     *                                      the person who counted: a signature you can give yourself is not one.
-     * @param  int|null  $closedByUserId  Who counted, which is not always who opened —
-     *                                    a till handed over mid-day is closed by the second cashier, and the
-     *                                    self-approval check rests on knowing the difference.
+     * @param string|null $varianceReason Why the drawer disagrees. Required by the
+     *                                    closing ladder above the first threshold — a shift that will not close
+     *                                    without an explanation is the only thing that makes anyone write one.
+     * @param int|null $approvedByUserId The manager who authorised a large
+     *                                   difference. Checked against `finance.manage`, and refused when it is
+     *                                   the person who counted: a signature you can give yourself is not one.
+     * @param int|null $closedByUserId Who counted, which is not always who opened —
+     *                                 a till handed over mid-day is closed by the second cashier, and the
+     *                                 self-approval check rests on knowing the difference.
      *
      * @throws RuntimeException when the shift is unknown, already closed, locked,
      *                          or the difference needs an authorisation it lacks
@@ -67,14 +67,15 @@ interface TillLedger
     /**
      * Record money actually taken for a bill.
      *
-     * @param  int  $rounding  Tiyin that cash rounding added to this tender, signed —
-     *                         DECISIONS Q7. Passed in rather than computed here
-     *                         because the rounding step is a property of the terminal
-     *                         (a counter that deals in exact change sets it to 1), and
-     *                         Finance does not know which terminal took the money. The
-     *                         caller has already applied it to `$tender->amount`; this
-     *                         is the audit trail for how much it moved, and what makes
-     *                         the drawer still reconcile afterwards.
+     * @param int $rounding Tiyin that cash rounding added to this tender, signed —
+     *                      DECISIONS Q7. Passed in rather than computed here
+     *                      because the rounding step is a property of the terminal
+     *                      (a counter that deals in exact change sets it to 1), and
+     *                      Finance does not know which terminal took the money. The
+     *                      caller has already applied it to `$tender->amount`; this
+     *                      is the audit trail for how much it moved, and what makes
+     *                      the drawer still reconcile afterwards.
+     *
      * @return int The payment id.
      *
      * @throws RuntimeException when the shift is closed or the method is unknown
@@ -109,14 +110,15 @@ interface TillLedger
      * between the two is a human's; `ConflictKind::ShiftClosed` is where it is
      * asked, and it defaults to amending precisely because the reflex is wrong.
      *
-     * @param  string  $reason  Why a sealed shift is being written into. Not
-     *                          optional: an amendment with no explanation is
-     *                          indistinguishable from a mistake when it is read
-     *                          back six months later in an audit.
-     * @param  int|null  $amendedByUserId  Who authorised it. Recorded, never
-     *                                     checked here — Finance cannot see the
-     *                                     POS's approval ladder, so the caller
-     *                                     owns the permission.
+     * @param string $reason Why a sealed shift is being written into. Not
+     *                       optional: an amendment with no explanation is
+     *                       indistinguishable from a mistake when it is read
+     *                       back six months later in an audit.
+     * @param int|null $amendedByUserId Who authorised it. Recorded, never
+     *                                  checked here — Finance cannot see the
+     *                                  POS's approval ladder, so the caller
+     *                                  owns the permission.
+     *
      * @return int The payment id.
      *
      * @throws RuntimeException when the shift is unknown, is still open, or the
@@ -148,11 +150,11 @@ interface TillLedger
      * bill is still a sale. And how much cash left the drawer is not the refunded
      * amount: a card refund reaches a bank days later and the box never opens.
      *
-     * @param  int|null  $refundingShiftId  The shift paying it out, which is not
-     *                                      necessarily the one that took it — yesterday's takings come
-     *                                      out of today's drawer, and that shift's Z-report is the one
-     *                                      that has to account for it. Null resolves it from the caller's
-     *                                      own open shift.
+     * @param int|null $refundingShiftId The shift paying it out, which is not
+     *                                   necessarily the one that took it — yesterday's takings come
+     *                                   out of today's drawer, and that shift's Z-report is the one
+     *                                   that has to account for it. Null resolves it from the caller's
+     *                                   own open shift.
      *
      * @throws RuntimeException when the payment is unknown, already refunded, or
      *                          the paying shift cannot be resolved

@@ -45,7 +45,7 @@ interface BillRegistry
     /**
      * Open a new bill on a channel.
      *
-     * @param  string  $channel  One of dine_in|takeaway|delivery|aggregator.
+     * @param string $channel One of dine_in|takeaway|delivery|aggregator.
      */
     public function open(
         string $channel,
@@ -68,7 +68,8 @@ interface BillRegistry
      * a busy evening is three hundred bills and this runs while a cashier
      * waits to close the drawer.
      *
-     * @param  list<int>  $billIds
+     * @param list<int> $billIds
+     *
      * @return array<int, array{waiter_user_id: int|null, waiter_name: string|null, guests: int}>
      */
     public function servedBy(array $billIds): array;
@@ -93,7 +94,7 @@ interface BillRegistry
      * offered for this dish or breaks its group's rules is refused rather than
      * dropped.
      *
-     * @param  array<int, int>  $modifierChoiceIds
+     * @param array<int, int> $modifierChoiceIds
      *
      * ---------------------------------------------------------------------
      * Recording food that was already served
@@ -120,9 +121,9 @@ interface BillRegistry
      *                          is stopped and no `$servedBeforeStop` was given
      */
     /**
-     * @param  string|null  $servedBeforeStop  Why this line may carry a dish that is
-     *                                         on the stop list. See below — null is
-     *                                         the normal case and refuses.
+     * @param string|null $servedBeforeStop Why this line may carry a dish that is
+     *                                      on the stop list. See below — null is
+     *                                      the normal case and refuses.
      */
     public function addLine(
         int $billId,
@@ -150,7 +151,7 @@ interface BillRegistry
     /**
      * Apply a discount to the whole bill, in tiyin.
      *
-     * @param  int  $amountTiyin  Positive; it is subtracted from the total.
+     * @param int $amountTiyin Positive; it is subtracted from the total.
      *
      * @throws RuntimeException when the bill is closed or the discount exceeds the subtotal
      */
@@ -185,7 +186,7 @@ interface BillRegistry
      * The classic "four people, four cards" case. The new bill inherits the
      * table and the waiter; the original keeps whatever was not moved.
      *
-     * @param  array<int, int>  $lineIds
+     * @param array<int, int> $lineIds
      *
      * @throws RuntimeException when a line is not on the bill, or all lines would move
      */
@@ -223,8 +224,9 @@ interface BillRegistry
      * seventh until they settle. That is exactly what is true — the table is
      * mid-payment — and the shares are minted at the end of the meal.
      *
-     * @param  int  $ways  2..12 — one guest is not a split, and twelve is the
-     *                     guest app's own stepper.
+     * @param int $ways 2..12 — one guest is not a split, and twelve is the
+     *                  guest app's own stepper.
+     *
      * @return array<int, Bill> The parent first, then each sibling in payment order.
      *
      * @throws RuntimeException when the bill is closed, empty, already part of a
@@ -240,8 +242,9 @@ interface BillRegistry
      * amount is NOT floored to a note, because it is money somebody has already
      * handed over or typed into a card terminal.
      *
-     * @param  int  $amountTiyin  Strictly greater than zero and strictly less than
-     *                            the bill's total. Paying all of it is not a split.
+     * @param int $amountTiyin Strictly greater than zero and strictly less than
+     *                         the bill's total. Paying all of it is not a split.
+     *
      * @return array<int, Bill> The parent (carrying the amount) first, then the remainder.
      *
      * @throws RuntimeException when the bill is closed, already part of a split,
@@ -313,11 +316,11 @@ interface BillRegistry
      * like every other, and one entry that cannot land must not strand the
      * eleven beside it.
      *
-     * @param  string  $status  One of picked|enroute|delivered|failed.
-     * @param  Carbon|null  $at  When the rider did it, not when
-     *                           we heard. An entry queued in a
-     *                           stairwell at 19:12 and drained
-     *                           at 21:00 belongs to 19:12.
+     * @param string $status One of picked|enroute|delivered|failed.
+     * @param Carbon|null $at When the rider did it, not when
+     *                        we heard. An entry queued in a
+     *                        stairwell at 19:12 and drained
+     *                        at 21:00 belongs to 19:12.
      */
     public function markDelivery(int $billId, string $status, ?Carbon $at = null): bool;
 

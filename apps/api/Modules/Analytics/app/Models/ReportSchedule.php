@@ -149,7 +149,8 @@ final class ReportSchedule extends Model
     // ============ Scopes ============
 
     /**
-     * @param  Builder<ReportSchedule>  $query
+     * @param Builder<ReportSchedule> $query
+     *
      * @return Builder<ReportSchedule>
      */
     public function scopeDue(Builder $query): Builder

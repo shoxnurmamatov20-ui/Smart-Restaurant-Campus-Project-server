@@ -71,7 +71,7 @@ final class StaffApprovalTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function ask(array $over = []): TestResponse
     {

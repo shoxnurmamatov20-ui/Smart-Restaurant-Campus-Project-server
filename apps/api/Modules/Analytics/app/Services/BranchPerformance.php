@@ -172,8 +172,9 @@ final class BranchPerformance
     /**
      * One venue's row.
      *
-     * @param  Totals  $now
-     * @param  Totals  $before
+     * @param Totals $now
+     * @param Totals $before
+     *
      * @return array<string, mixed>
      */
     private function row(Branch $venue, ReportWindow $window, array $now, array $before, int $staff): array
@@ -299,9 +300,9 @@ final class BranchPerformance
      * has no share to be below — an absence is not a performance problem, and a
      * closed venue lighting up the alert column is how a real one gets ignored.
      *
-     * @param  Totals  $totals
-     * @param  int  $target  This venue's monthly target in tiyin, or 0 if unset
-     * @param  int  $days  How many trading days the window spans
+     * @param Totals $totals
+     * @param int $target This venue's monthly target in tiyin, or 0 if unset
+     * @param int $days How many trading days the window spans
      */
     private function alertsFor(array $totals, int $target, int $days): int
     {

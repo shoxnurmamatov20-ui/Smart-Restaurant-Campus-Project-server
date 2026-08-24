@@ -19,21 +19,21 @@ namespace Modules\Finance\Fiscal;
 final readonly class FiscalDocument
 {
     /**
-     * @param  string  $kind  sale|refund|correction
-     * @param  int  $total  Tiyin declared.
-     * @param  int  $cashTotal  Tiyin of it taken in notes.
-     * @param  int  $cardTotal  Tiyin of it taken by any non-cash method.
-     * @param  int  $vatTotal  Tiyin of VAT already inside `$total` — the price a
-     *                         guest sees includes it, so this is a breakdown and
-     *                         never an addition.
-     * @param  string|null  $correctsSign  The fiscal sign of the document this one
-     *                                     reverses. A refund the authority cannot
-     *                                     match to a sale is a new negative sale.
-     * @param  array<int, array<string, mixed>>  $lines  What was sold, when the
-     *                                                   classification codes are
-     *                                                   available. Empty is legal
-     *                                                   for providers that take a
-     *                                                   total-only declaration.
+     * @param string $kind sale|refund|correction
+     * @param int $total Tiyin declared.
+     * @param int $cashTotal Tiyin of it taken in notes.
+     * @param int $cardTotal Tiyin of it taken by any non-cash method.
+     * @param int $vatTotal Tiyin of VAT already inside `$total` — the price a
+     *                      guest sees includes it, so this is a breakdown and
+     *                      never an addition.
+     * @param string|null $correctsSign The fiscal sign of the document this one
+     *                                  reverses. A refund the authority cannot
+     *                                  match to a sale is a new negative sale.
+     * @param array<int, array<string, mixed>> $lines What was sold, when the
+     *                                                classification codes are
+     *                                                available. Empty is legal
+     *                                                for providers that take a
+     *                                                total-only declaration.
      */
     public function __construct(
         public string $kind,

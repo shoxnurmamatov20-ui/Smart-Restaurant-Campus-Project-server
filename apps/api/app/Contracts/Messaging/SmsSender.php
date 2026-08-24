@@ -34,8 +34,8 @@ namespace App\Contracts\Messaging;
 interface SmsSender
 {
     /**
-     * @param  string  $phone  E.164, e.g. `+998901234567`
-     * @param  string  $text  Already in the reader's language
+     * @param string $phone E.164, e.g. `+998901234567`
+     * @param string $text Already in the reader's language
      */
     public function send(string $phone, string $text): SmsDelivery;
 }

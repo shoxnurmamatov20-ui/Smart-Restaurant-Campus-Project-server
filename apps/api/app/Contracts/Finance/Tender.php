@@ -14,11 +14,11 @@ namespace App\Contracts\Finance;
 final readonly class Tender
 {
     /**
-     * @param  string  $method  One of the methods Finance accepts — see Payment::METHODS.
-     * @param  int  $amount  Tiyin, never a float. What is owed on the bill, before rounding.
-     * @param  int  $tip  Tiyin on top, DECISIONS Q6. Never revenue and never taxed as a
-     *                    sale, but in the drawer at counting time — which is why it
-     *                    travels beside the amount rather than inside it.
+     * @param string $method One of the methods Finance accepts — see Payment::METHODS.
+     * @param int $amount Tiyin, never a float. What is owed on the bill, before rounding.
+     * @param int $tip Tiyin on top, DECISIONS Q6. Never revenue and never taxed as a
+     *                 sale, but in the drawer at counting time — which is why it
+     *                 travels beside the amount rather than inside it.
      */
     public function __construct(
         public string $method,
@@ -28,7 +28,7 @@ final readonly class Tender
     ) {}
 
     /**
-     * @param  array{method: string, amount: int|string, reference?: string|null, tip?: int|string|null}  $payload
+     * @param array{method: string, amount: int|string, reference?: string|null, tip?: int|string|null} $payload
      */
     public static function fromArray(array $payload): self
     {

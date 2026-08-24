@@ -286,7 +286,7 @@ final class BillController extends Controller
      * silently does not when replayed is the shape that bug takes, and the
      * shifts where it matters are exactly the ones nobody was watching.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function dispatch(
         Request $request,
@@ -392,8 +392,8 @@ final class BillController extends Controller
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  callable(): array<string, mixed>  $work
+     * @param array<string, mixed> $payload
+     * @param callable(): array<string, mixed> $work
      */
     private function idempotent(
         Request $request,

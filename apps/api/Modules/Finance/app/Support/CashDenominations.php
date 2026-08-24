@@ -78,7 +78,7 @@ final class CashDenominations
      * makes a fat-fingered `250000` into a quarter-million so'm surplus that the
      * Z-report reports as fact.
      *
-     * @param  array<array-key, int|string>  $breakdown  Denomination in tiyin => how many notes.
+     * @param array<array-key, int|string> $breakdown Denomination in tiyin => how many notes.
      *
      * @throws ApiException when a key is not a note, or a count is negative
      */
@@ -102,7 +102,8 @@ final class CashDenominations
      * make every stored count mostly padding, and a reader could not tell a note
      * that was counted as none from one that was never offered.
      *
-     * @param  array<array-key, int|string>  $breakdown
+     * @param array<array-key, int|string> $breakdown
+     *
      * @return array<int, int>
      *
      * @throws ApiException
@@ -154,7 +155,8 @@ final class CashDenominations
     }
 
     /**
-     * @param  list<int>  $som
+     * @param list<int> $som
+     *
      * @return list<int>
      */
     private static function inTiyin(array $som): array

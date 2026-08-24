@@ -52,17 +52,17 @@ use RuntimeException;
 final readonly class TenderPlan
 {
     /**
-     * @param  int  $due  What the bill came to, tiyin.
-     * @param  int  $offered  Everything handed over across all methods, tiyin.
-     * @param  int  $applied  What went onto the bill — offered minus tips, minus change.
-     * @param  int  $cashRevenue  The cash share of `applied`, un-rounded. This is
-     *                            revenue; the rounding below is a separate gain or loss.
-     * @param  int  $rounding  Signed. What rounding the cash remainder moved (Q7).
-     * @param  int  $tips  Tiyin handed over as tips across all methods (Q6).
-     * @param  int  $cashTips  The share of them in notes — the part that is in the drawer.
-     * @param  int  $change  Tiyin to hand back. Cash only, and exact.
-     * @param  bool  $settled  Whether this closes the bill.
-     * @param  int  $remaining  What is still owed, tiyin. Zero on a settled bill.
+     * @param int $due What the bill came to, tiyin.
+     * @param int $offered Everything handed over across all methods, tiyin.
+     * @param int $applied What went onto the bill — offered minus tips, minus change.
+     * @param int $cashRevenue The cash share of `applied`, un-rounded. This is
+     *                         revenue; the rounding below is a separate gain or loss.
+     * @param int $rounding Signed. What rounding the cash remainder moved (Q7).
+     * @param int $tips Tiyin handed over as tips across all methods (Q6).
+     * @param int $cashTips The share of them in notes — the part that is in the drawer.
+     * @param int $change Tiyin to hand back. Cash only, and exact.
+     * @param bool $settled Whether this closes the bill.
+     * @param int $remaining What is still owed, tiyin. Zero on a settled bill.
      */
     private function __construct(
         public int $due,
@@ -80,8 +80,8 @@ final readonly class TenderPlan
     /**
      * Work out a settlement.
      *
-     * @param  array<int, array{method: string, amount: int|string, tip?: int|string|null}>  $tenders
-     * @param  int  $step  How far this terminal rounds cash — see Terminal::cashRoundingStep().
+     * @param array<int, array{method: string, amount: int|string, tip?: int|string|null}> $tenders
+     * @param int $step How far this terminal rounds cash — see Terminal::cashRoundingStep().
      *
      * @throws RuntimeException on anything a cashier must be told rather than have
      *                          silently adjusted: a non-positive amount, a tip
@@ -231,7 +231,7 @@ final readonly class TenderPlan
      * out of a cash tender is not what was handed over — the difference walked out
      * as change.
      *
-     * @param  array{method: string, amount: int|string, tip?: int|string|null}  $line
+     * @param array{method: string, amount: int|string, tip?: int|string|null} $line
      */
     public function appliedFor(array $line): int
     {

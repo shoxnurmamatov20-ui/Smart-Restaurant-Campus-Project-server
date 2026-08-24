@@ -196,7 +196,8 @@ final class StopListEnforcementTest extends TestCase
     }
 
     /**
-     * @param  array<int, Section>  $sections
+     * @param array<int, Section> $sections
+     *
      * @return array<int, string>
      */
     private function slugsOf(array $sections): array

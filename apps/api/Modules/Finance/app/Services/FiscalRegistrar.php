@@ -127,14 +127,14 @@ final class FiscalRegistrar
      * from inside the settlement's own transaction, and a failure escaping it
      * would roll back a payment that has physically happened.
      *
-     * @param  CashShift|null  $shift  The drawer this sale was taken at, when there
-     *                                 was one. Null for money that arrived through
-     *                                 a payment provider at an hour when no till was
-     *                                 open — a delivery paid at 03:00 is still a
-     *                                 declarable sale, and refusing to declare it
-     *                                 because nobody was standing at a cash desk
-     *                                 would leave the one category of revenue that
-     *                                 has no cash to hide behind undeclared.
+     * @param CashShift|null $shift The drawer this sale was taken at, when there
+     *                              was one. Null for money that arrived through
+     *                              a payment provider at an hour when no till was
+     *                              open — a delivery paid at 03:00 is still a
+     *                              declarable sale, and refusing to declare it
+     *                              because nobody was standing at a cash desk
+     *                              would leave the one category of revenue that
+     *                              has no cash to hide behind undeclared.
      */
     public function recordSale(?CashShift $shift, Payment $payment): ?FiscalReceipt
     {

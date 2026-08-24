@@ -114,7 +114,8 @@ final class WaiterCall extends Model
     /**
      * Calls somebody still has to answer.
      *
-     * @param  Builder<WaiterCall>  $query
+     * @param Builder<WaiterCall> $query
+     *
      * @return Builder<WaiterCall>
      */
     public function scopeLive(Builder $query): Builder

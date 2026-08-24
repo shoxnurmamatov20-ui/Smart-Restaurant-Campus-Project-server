@@ -171,7 +171,7 @@ final class GatewayRegistry implements PaymentGateways
      * merchant id is exactly as unusable as a missing one — but it is truthy
      * enough to pass a careless check and produce a checkout URL with `m=` in it.
      *
-     * @param  array<string, mixed>  $config
+     * @param array<string, mixed> $config
      */
     private function string(array $config, string $key): ?string
     {

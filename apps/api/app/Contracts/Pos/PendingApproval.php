@@ -21,9 +21,9 @@ use Illuminate\Support\Carbon;
 final readonly class PendingApproval
 {
     /**
-     * @param  string  $action  void_line|void_order|discount|comp|refund|…
-     * @param  string|null  $subjectType  bill|line|payment|drawer|shift
-     * @param  int  $amountTiyin  What is at stake. Zero when the request named no figure.
+     * @param string $action void_line|void_order|discount|comp|refund|…
+     * @param string|null $subjectType bill|line|payment|drawer|shift
+     * @param int $amountTiyin What is at stake. Zero when the request named no figure.
      */
     public function __construct(
         public int $id,

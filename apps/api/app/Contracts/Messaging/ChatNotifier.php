@@ -33,13 +33,14 @@ namespace App\Contracts\Messaging;
 interface ChatNotifier
 {
     /**
-     * @param  int  $tenantId  whose bot to speak with — a chat id means nothing
-     *                         without knowing which bot has met it
-     * @param  string  $chatId  Telegram's own id, positive for a person and
-     *                          negative for a group
-     * @param  string  $text  already in the reader's language
-     * @param  array{name: string, contents: string}|null  $document  a file to
-     *                                                                attach, contents already rendered
+     * @param int $tenantId whose bot to speak with — a chat id means nothing
+     *                      without knowing which bot has met it
+     * @param string $chatId Telegram's own id, positive for a person and
+     *                       negative for a group
+     * @param string $text already in the reader's language
+     * @param array{name: string, contents: string}|null $document a file to
+     *                                                             attach, contents already rendered
+     *
      * @return bool whether the chat actually received it
      */
     public function notify(int $tenantId, string $chatId, string $text, ?array $document = null): bool;

@@ -86,9 +86,9 @@ final class ConflictResolution
     ) {}
 
     /**
-     * @param  array<string, mixed>  $payload  The entry exactly as it was queued.
-     * @param  array<string, mixed>  $with  What the person supplied alongside their
-     *                                      choice — a substitute dish, a table, a reason.
+     * @param array<string, mixed> $payload The entry exactly as it was queued.
+     * @param array<string, mixed> $with What the person supplied alongside their
+     *                                   choice — a substitute dish, a table, a reason.
      *
      * @throws ApiException when the option is not one this kind offers
      */
@@ -131,8 +131,8 @@ final class ConflictResolution
     /**
      * Somebody settled the bill while this till was away.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $with
      */
     private function billSettled(string $option, string $action, array $payload, array $with): ResolvedEntry
     {
@@ -168,7 +168,7 @@ final class ConflictResolution
     /**
      * The bill is already paid and this queued tender would charge again.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function paymentDuplicate(string $option, string $action, array $payload): ResolvedEntry
     {
@@ -198,8 +198,8 @@ final class ConflictResolution
     /**
      * The dish went on the stop list while the till was offline.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $with
      */
     private function itemUnavailable(string $option, string $action, array $payload, array $with): ResolvedEntry
     {
@@ -253,7 +253,7 @@ final class ConflictResolution
     /**
      * The price moved between the quote and the queue draining.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function priceMoved(string $option, string $action, array $payload): ResolvedEntry
     {
@@ -281,8 +281,8 @@ final class ConflictResolution
     /**
      * Two waiters, one table, one dead router.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $with
      */
     private function tableTaken(string $option, string $action, array $payload, array $with): ResolvedEntry
     {
@@ -326,8 +326,8 @@ final class ConflictResolution
     /**
      * The money belongs to a drawer that has already been counted and sealed.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $with
      */
     private function shiftClosed(
         string $option,
@@ -378,8 +378,8 @@ final class ConflictResolution
     // ============ The two that act first ============
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $with
      */
     private function reopened(int $billId, string $action, array $payload, array $with): ResolvedEntry
     {
@@ -392,7 +392,7 @@ final class ConflictResolution
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     private function onANewBill(int $billId, string $action, array $payload): ResolvedEntry
     {
@@ -434,7 +434,7 @@ final class ConflictResolution
     // ============ Internals ============
 
     /**
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $with
      */
     private function requireExtras(string $option, array $with): void
     {
@@ -459,7 +459,7 @@ final class ConflictResolution
      * row an auditor cannot tell from a mistake, and the two operations this
      * feeds are the two most abusable in the module.
      *
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $with
      */
     private function reasonFrom(array $with, string $fallback): string
     {

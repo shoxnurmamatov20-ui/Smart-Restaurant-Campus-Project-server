@@ -762,7 +762,7 @@ final class ModuleBoundaryTest extends TestCase
      * for the map — is covered by any declared child of it: the document under
      * that key is writable, one leaf at a time, which is what the reader needs.
      *
-     * @param  list<string>  $declared
+     * @param list<string> $declared
      */
     private function settingIsDeclared(string $key, array $declared): bool
     {

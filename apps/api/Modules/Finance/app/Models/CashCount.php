@@ -190,7 +190,7 @@ final class CashCount extends Model
     /**
      * Record a count. The total comes from the notes, never from the caller.
      *
-     * @param  array<array-key, int|string>  $breakdown  Denomination in tiyin => how many.
+     * @param array<array-key, int|string> $breakdown Denomination in tiyin => how many.
      */
     public static function record(
         CashShift $shift,

@@ -17,9 +17,9 @@ namespace App\Contracts\Crm;
 final readonly class GuestAccount
 {
     /**
-     * @param  int  $creditLimit  What the guest may owe at once. 0 means no tab at all.
-     * @param  int  $balance  Signed. Positive means the guest owes the restaurant.
-     * @param  int  $available  What is left of the ceiling, floored at zero.
+     * @param int $creditLimit What the guest may owe at once. 0 means no tab at all.
+     * @param int $balance Signed. Positive means the guest owes the restaurant.
+     * @param int $available What is left of the ceiling, floored at zero.
      */
     public function __construct(
         public int $customerId,

@@ -21,15 +21,15 @@ namespace App\Contracts\Crm;
 final readonly class PromoQuote
 {
     /**
-     * @param  string  $code  The code as stored — normalised, never as typed.
-     * @param  string  $kind  percent|fixed|free_delivery.
-     * @param  int  $value  Percent points for `percent`, tiyin for `fixed`.
-     * @param  int  $discountTiyin  Tiyin to take off the food, already capped at the basket.
-     * @param  bool  $freeDelivery  Whether the carriage is waived.
-     * @param  bool  $personal  True for a loyalty coupon this guest is holding,
-     *                          false for a campaign anybody may type. The two are
-     *                          spent differently and only the module knows which
-     *                          table the row came from.
+     * @param string $code The code as stored — normalised, never as typed.
+     * @param string $kind percent|fixed|free_delivery.
+     * @param int $value Percent points for `percent`, tiyin for `fixed`.
+     * @param int $discountTiyin Tiyin to take off the food, already capped at the basket.
+     * @param bool $freeDelivery Whether the carriage is waived.
+     * @param bool $personal True for a loyalty coupon this guest is holding,
+     *                       false for a campaign anybody may type. The two are
+     *                       spent differently and only the module knows which
+     *                       table the row came from.
      */
     public function __construct(
         public string $code,

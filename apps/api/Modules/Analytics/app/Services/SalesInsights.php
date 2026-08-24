@@ -708,7 +708,7 @@ final class SalesInsights
      * under-performing. A median is what makes the four quadrants describe the
      * menu rather than its outlier.
      *
-     * @param  array<int, int>  $values
+     * @param array<int, int> $values
      */
     private function median(array $values): int
     {

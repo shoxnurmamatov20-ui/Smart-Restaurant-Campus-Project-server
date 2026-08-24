@@ -17,11 +17,11 @@ namespace Modules\Finance\Support;
 final readonly class VarianceVerdict
 {
     /**
-     * @param  int  $difference  Counted − expected, in tiyin. Signed: negative is short.
-     * @param  array{reason: int, approval: int, owner: int}  $thresholds  The rungs in tiyin,
-     *                                                                     so a client can say
-     *                                                                     how far over the line
-     *                                                                     a drawer is.
+     * @param int $difference Counted − expected, in tiyin. Signed: negative is short.
+     * @param array{reason: int, approval: int, owner: int} $thresholds The rungs in tiyin,
+     *                                                                  so a client can say
+     *                                                                  how far over the line
+     *                                                                  a drawer is.
      */
     public function __construct(
         public int $difference,

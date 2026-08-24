@@ -34,7 +34,7 @@ final class TenderPlanTest extends TestCase
     private const STEP = CashRounding::STEP_TIYIN;
 
     /**
-     * @param  array<int, array{method: string, amount: int, tip?: int}>  $tenders
+     * @param array<int, array{method: string, amount: int, tip?: int}> $tenders
      */
     private function plan(int $due, array $tenders, int $step = self::STEP): TenderPlan
     {

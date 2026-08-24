@@ -22,7 +22,7 @@ use App\Support\Events\DomainEvent;
 final class RotaPublished extends DomainEvent
 {
     /**
-     * @param  list<int>  $staffMemberIds  everybody who appears on the published week
+     * @param list<int> $staffMemberIds everybody who appears on the published week
      */
     public function __construct(
         private readonly string $from,

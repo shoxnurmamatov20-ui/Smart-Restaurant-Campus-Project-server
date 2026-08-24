@@ -44,10 +44,10 @@ final class ApprovalGate
     /**
      * Does this person need an authorisation for this act?
      *
-     * @param  int  $amount  Tiyin at stake — a 2% discount on a coffee is not a
-     *                       2% discount on a wedding.
-     * @param  bool  $alreadyFired  whether the food this concerns is already with
-     *                              the kitchen. Only `void_line` reads it — see below.
+     * @param int $amount Tiyin at stake — a 2% discount on a coffee is not a
+     *                    2% discount on a wedding.
+     * @param bool $alreadyFired whether the food this concerns is already with
+     *                           the kitchen. Only `void_line` reads it — see below.
      */
     public function requires(
         ?Terminal $terminal,

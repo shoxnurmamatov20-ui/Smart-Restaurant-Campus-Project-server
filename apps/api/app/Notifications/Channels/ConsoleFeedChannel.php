@@ -37,7 +37,8 @@ final class ConsoleFeedChannel extends DatabaseChannel
     public function __construct(private readonly TenantContext $tenants) {}
 
     /**
-     * @param  mixed  $notifiable
+     * @param mixed $notifiable
+     *
      * @return array<string, mixed>
      */
     protected function buildPayload($notifiable, Notification $notification): array

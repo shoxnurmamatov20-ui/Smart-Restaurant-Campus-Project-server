@@ -304,7 +304,7 @@ final class AcquirerFeeTest extends TestCase
     /**
      * Record this restaurant's own deal with its bank.
      *
-     * @param  array<string, int>  $bps  Basis points, keyed by payment method.
+     * @param array<string, int> $bps Basis points, keyed by payment method.
      */
     private function negotiate(array $bps): void
     {

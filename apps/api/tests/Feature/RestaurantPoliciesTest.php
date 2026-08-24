@@ -79,7 +79,7 @@ final class RestaurantPoliciesTest extends TestCase
      * tenant the context is holding — an update that only touched the database
      * row would be read back by nothing in the same request.
      *
-     * @param  array<string, mixed>  $rules
+     * @param array<string, mixed> $rules
      */
     private function policy(array $rules): void
     {

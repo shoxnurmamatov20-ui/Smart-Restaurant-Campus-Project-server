@@ -40,7 +40,7 @@ final class Depreciation
      *   divides by the life, and sixty equal instalments leave a few tiyin on
      *   the books forever.
      *
-     * @param  string  $month  `YYYY-MM`
+     * @param string $month `YYYY-MM`
      */
     public function forAsset(FixedAsset $asset, string $month): int
     {
@@ -81,7 +81,7 @@ final class Depreciation
      * months before a fryer was sold and make a quarter's statement disagree
      * with the two months of it that were already printed.
      *
-     * @param  string  $month  `YYYY-MM`
+     * @param string $month `YYYY-MM`
      */
     public function forMonth(string $month, ?int $branchId = null): int
     {

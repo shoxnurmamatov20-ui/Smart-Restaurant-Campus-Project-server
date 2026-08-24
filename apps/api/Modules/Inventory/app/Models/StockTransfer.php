@@ -191,7 +191,8 @@ final class StockTransfer extends Model
     /**
      * Transfers this venue is either end of.
      *
-     * @param  Builder<StockTransfer>  $query
+     * @param Builder<StockTransfer> $query
+     *
      * @return Builder<StockTransfer>
      */
     public function scopeTouching(Builder $query, int $branchId): Builder

@@ -37,8 +37,8 @@ namespace Modules\Pos\Sync;
 final readonly class ResolvedEntry
 {
     /**
-     * @param  array<string, mixed>  $payload  The entry as it should now apply.
-     * @param  string  $note  What was decided, in one line, for the audit trail.
+     * @param array<string, mixed> $payload The entry as it should now apply.
+     * @param string $note What was decided, in one line, for the audit trail.
      */
     private function __construct(
         public Mode $mode,
@@ -51,7 +51,7 @@ final readonly class ResolvedEntry
     /**
      * Apply it, possibly rewritten.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public static function apply(
         string $action,
@@ -70,7 +70,7 @@ final readonly class ResolvedEntry
      * settled bill; the tenders go to the ledger directly and are reversed in
      * the same request.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public static function recordAndReverse(string $action, array $payload, string $note): self
     {
@@ -80,7 +80,7 @@ final readonly class ResolvedEntry
     /**
      * Do not apply it, and stop asking.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public static function discard(string $action, array $payload, string $note): self
     {

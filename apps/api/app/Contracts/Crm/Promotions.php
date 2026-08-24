@@ -58,14 +58,14 @@ interface Promotions
      * gets the five refusals in three languages. This one answers "worth
      * nothing", and the caller charges full price and says what it charged.
      *
-     * @param  string  $code  As typed. Normalisation is the implementation's job —
-     *                        a guest types lower case and a caller must not have to
-     *                        know the storage convention.
-     * @param  int|null  $customerId  The signed-in guest, when there is one. A
-     *                                personal coupon is invisible without it, and
-     *                                a per-customer limit cannot be counted.
-     * @param  int  $subtotalTiyin  The food, after line discounts and before the
-     *                              delivery fee. Tiyin.
+     * @param string $code As typed. Normalisation is the implementation's job —
+     *                     a guest types lower case and a caller must not have to
+     *                     know the storage convention.
+     * @param int|null $customerId The signed-in guest, when there is one. A
+     *                             personal coupon is invisible without it, and
+     *                             a per-customer limit cannot be counted.
+     * @param int $subtotalTiyin The food, after line discounts and before the
+     *                           delivery fee. Tiyin.
      */
     public function quote(string $code, ?int $customerId, int $subtotalTiyin): ?PromoQuote;
 
@@ -80,10 +80,10 @@ interface Promotions
      * order_id)` — because the alternative is a retried request spending one
      * campaign twice against one dinner.
      *
-     * @param  int  $discountTiyin  What came off, not what was quoted. The two
-     *                              differ whenever the basket changed between the
-     *                              quote and the write, and the record must match
-     *                              the bill rather than the browser.
+     * @param int $discountTiyin What came off, not what was quoted. The two
+     *                           differ whenever the basket changed between the
+     *                           quote and the write, and the record must match
+     *                           the bill rather than the browser.
      *
      * @throws RuntimeException when the code cannot be spent at all
      */

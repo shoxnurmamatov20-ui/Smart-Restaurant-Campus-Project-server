@@ -51,8 +51,8 @@ final class EscPos
     private const CUT = self::ESC."d\x04".self::GS.'V'."\x01";
 
     /**
-     * @param  int  $columns  Characters per line. Overrides the document's own,
-     *                        because the printer in front of us is the authority.
+     * @param int $columns Characters per line. Overrides the document's own,
+     *                     because the printer in front of us is the authority.
      */
     public function render(Document $document, string $codepage = 'cp866', ?int $columns = null): string
     {

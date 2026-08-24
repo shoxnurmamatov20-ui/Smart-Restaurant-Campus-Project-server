@@ -54,9 +54,10 @@ interface GuestAccounts
      * A charge with no order — a deposit, a correction — is always accepted,
      * because there is nothing to be idempotent against.
      *
-     * @param  int|null  $approvalId  The manager's signature, when the amount went
-     *                                past the ceiling. Recorded here; ENFORCED in the POS. See the class
-     *                                note.
+     * @param int|null $approvalId The manager's signature, when the amount went
+     *                             past the ceiling. Recorded here; ENFORCED in the POS. See the class
+     *                             note.
+     *
      * @return int The ledger entry id.
      *
      * @throws RuntimeException when the guest has no tab, is inactive, or the
@@ -104,7 +105,7 @@ interface GuestAccounts
      * Answers null when the bill was never on a tab, so the POS does not have to
      * know whether a settlement was a credit sale before asking.
      *
-     * @param  int|null  $amount  Part of the charge, or null for all of it.
+     * @param int|null $amount Part of the charge, or null for all of it.
      */
     public function reverseCharge(
         int $orderId,

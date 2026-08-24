@@ -1040,7 +1040,7 @@ final class PublicOrderController extends Controller
      * in the payload, so a client that cares can say more; this is only the
      * progress bar's argument.
      *
-     * @param  list<string>  $ladder
+     * @param list<string> $ladder
      */
     private function stageOf(Order $order, array $ladder): ?int
     {

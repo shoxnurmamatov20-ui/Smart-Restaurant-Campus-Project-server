@@ -95,7 +95,8 @@ final class PaymentMethod extends Model
     // ============ Scopes ============
 
     /**
-     * @param  Builder<PaymentMethod>  $query
+     * @param Builder<PaymentMethod> $query
+     *
      * @return Builder<PaymentMethod>
      */
     public function scopeEnabled(Builder $query): Builder
@@ -110,7 +111,8 @@ final class PaymentMethod extends Model
      * has every row at zero, and a list whose order changed between two renders
      * of the same screen is a cashier pressing where the button used to be.
      *
-     * @param  Builder<PaymentMethod>  $query
+     * @param Builder<PaymentMethod> $query
+     *
      * @return Builder<PaymentMethod>
      */
     public function scopeOrdered(Builder $query): Builder

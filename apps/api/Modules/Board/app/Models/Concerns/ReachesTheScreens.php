@@ -45,7 +45,8 @@ trait ReachesTheScreens
      * banner a venue has ever written to find out whether any of them is newer
      * than the last push.
      *
-     * @param  Builder<static>  $query
+     * @param Builder<static> $query
+     *
      * @return Builder<static>
      */
     public function scopeBehindTheScreens(Builder $query): Builder

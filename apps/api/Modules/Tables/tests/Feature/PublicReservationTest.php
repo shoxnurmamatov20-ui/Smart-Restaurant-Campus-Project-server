@@ -54,7 +54,7 @@ final class PublicReservationTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function book(array $over = []): TestResponse
     {

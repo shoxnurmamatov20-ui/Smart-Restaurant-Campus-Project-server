@@ -153,7 +153,8 @@ final class SettingsController extends Controller
      * would send `published` back, `UpdateSiteSettingsRequest` would refuse it
      * as an undeclared path, and the page would be unsaveable.
      *
-     * @param  array<array-key, mixed>  $site
+     * @param array<array-key, mixed> $site
+     *
      * @return array<array-key, mixed>
      */
     private function withoutSnapshot(array $site): array
@@ -166,7 +167,8 @@ final class SettingsController extends Controller
     /**
      * What is live right now, without the whole snapshot.
      *
-     * @param  array<array-key, mixed>  $site
+     * @param array<array-key, mixed> $site
+     *
      * @return array{at: string|null, version: int, live: bool}
      */
     private function publication(array $site): array
@@ -253,7 +255,8 @@ final class SettingsController extends Controller
     /**
      * One group's slice of the stored document.
      *
-     * @param  array<array-key, mixed>|null  $settings
+     * @param array<array-key, mixed>|null $settings
+     *
      * @return array<array-key, mixed>
      */
     private function group(?array $settings, string $group): array
@@ -278,7 +281,8 @@ final class SettingsController extends Controller
      * Returning only what this endpoint accepts back is what makes the round
      * trip work.
      *
-     * @param  array<array-key, mixed>|null  $settings
+     * @param array<array-key, mixed>|null $settings
+     *
      * @return array<array-key, mixed>
      */
     private function restaurantGroup(?array $settings): array

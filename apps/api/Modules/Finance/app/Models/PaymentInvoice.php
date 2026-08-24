@@ -217,7 +217,7 @@ final class PaymentInvoice extends Model
     /**
      * Anything that will never move again — for the sweeper and for reports.
      *
-     * @param  Builder<static>  $query
+     * @param Builder<static> $query
      */
     public function scopeSettled(Builder $query): Builder
     {

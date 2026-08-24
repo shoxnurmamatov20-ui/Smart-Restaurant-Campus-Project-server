@@ -16,7 +16,7 @@ namespace App\Contracts\Menu;
 final readonly class ModifierQuestion
 {
     /**
-     * @param  array<int, ModifierChoice>  $choices
+     * @param array<int, ModifierChoice> $choices
      */
     public function __construct(
         public int $id,

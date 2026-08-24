@@ -46,12 +46,12 @@ final class CsvReport
     private const FORMULA_PREFIXES = ['=', '+', '-', '@'];
 
     /**
-     * @param  array<string, mixed>  $report  A table from {@see StandardReports}.
-     * @param  string  $header  which key on a column carries its heading — `key`
-     *                          for this platform's own names, `label` for a dialect
-     *                          that renames them ({@see OneCReport}). The ROWS are
-     *                          always read by `key`, because that is what the row
-     *                          arrays are keyed on.
+     * @param array<string, mixed> $report A table from {@see StandardReports}.
+     * @param string $header which key on a column carries its heading — `key`
+     *                       for this platform's own names, `label` for a dialect
+     *                       that renames them ({@see OneCReport}). The ROWS are
+     *                       always read by `key`, because that is what the row
+     *                       arrays are keyed on.
      */
     public static function from(array $report, string $header = 'key'): string
     {

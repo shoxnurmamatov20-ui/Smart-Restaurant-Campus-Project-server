@@ -67,11 +67,11 @@ final class HttpOfdDriver implements FiscalDriver
     private const TIMEOUT_SECONDS = 8;
 
     /**
-     * @param  string  $provider  Stored on every receipt row: `soliq`, `multibank`.
-     * @param  array<string, string>  $fields  The operator's own names for the four
-     *                                         values that come back. Configuration
-     *                                         rather than constants — see the class
-     *                                         docblock.
+     * @param string $provider Stored on every receipt row: `soliq`, `multibank`.
+     * @param array<string, string> $fields The operator's own names for the four
+     *                                      values that come back. Configuration
+     *                                      rather than constants — see the class
+     *                                      docblock.
      */
     public function __construct(
         private readonly string $provider,

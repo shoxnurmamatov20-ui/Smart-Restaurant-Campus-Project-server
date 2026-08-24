@@ -193,8 +193,9 @@ final class PublicMenuController extends Controller
      * has it without inferring it — and so the guest surfaces read the same key
      * the till board reads.
      *
-     * @param  array<int, array<string, mixed>>|mixed  $categories
-     * @param  array<int, int>  $stopped
+     * @param array<int, array<string, mixed>>|mixed $categories
+     * @param array<int, int> $stopped
+     *
      * @return array<int, array<string, mixed>>
      */
     private static function flagStopped(mixed $categories, array $stopped): array
@@ -223,8 +224,9 @@ final class PublicMenuController extends Controller
     }
 
     /**
-     * @param  array<int, mixed>  $items
-     * @param  array<int, int>  $stopped
+     * @param array<int, mixed> $items
+     * @param array<int, int> $stopped
+     *
      * @return array<int, mixed>
      */
     private static function flagItems(array $items, array $stopped): array

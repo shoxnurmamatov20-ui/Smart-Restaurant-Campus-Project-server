@@ -113,7 +113,8 @@ final class PaymentController extends Controller
      * payment (see `EloquentTillLedger::refundPayment()`), so the money handed
      * back IS the amount of the row that carries `refunded_at`.
      *
-     * @param  QueryBuilder<Payment>  $query
+     * @param QueryBuilder<Payment> $query
+     *
      * @return array{captured_tiyin: int, refunded_tiyin: int, refunded_count: int}
      */
     private function windowTotals(QueryBuilder $query): array

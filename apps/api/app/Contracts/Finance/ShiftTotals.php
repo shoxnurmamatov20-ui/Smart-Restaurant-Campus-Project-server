@@ -16,7 +16,7 @@ namespace App\Contracts\Finance;
 final readonly class ShiftTotals
 {
     /**
-     * @param  array<string, int>  $byMethod  Tiyin taken per payment method.
+     * @param array<string, int> $byMethod Tiyin taken per payment method.
      */
     public function __construct(
         public int $shiftId,

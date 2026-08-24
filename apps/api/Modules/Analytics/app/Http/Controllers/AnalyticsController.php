@@ -459,7 +459,8 @@ final class AnalyticsController extends Controller
     /**
      * Sixty seconds, keyed by restaurant, venue, period and trading day.
      *
-     * @param  \Closure(): array<string, mixed>  $compute
+     * @param \Closure(): array<string, mixed> $compute
+     *
      * @return array<string, mixed>
      */
     /**
@@ -520,7 +521,8 @@ final class AnalyticsController extends Controller
     }
 
     /**
-     * @param  \Closure(): array<string, mixed>  $compute
+     * @param \Closure(): array<string, mixed> $compute
+     *
      * @return array<string, mixed>
      */
     private function remember(string $report, ReportWindow $window, \Closure $compute): array

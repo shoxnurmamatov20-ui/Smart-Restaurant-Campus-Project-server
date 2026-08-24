@@ -266,7 +266,8 @@ final class ShiftReporter
      * `cashMovements()` — the same array `computeExpectedCash()` adds up — so a
      * report cannot show one set of components and a total derived from another.
      *
-     * @param  array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int}  $terms
+     * @param array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int} $terms
+     *
      * @return array<string, mixed>
      */
     private function drawer(CashShift $shift, array $terms): array
@@ -320,7 +321,8 @@ final class ShiftReporter
      * cashier who is blamed for the acquirer's percentage twice stops reading
      * the report at all.
      *
-     * @param  array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int}  $terms
+     * @param array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int} $terms
+     *
      * @return array<string, mixed>
      */
     private function adjustments(CashShift $shift, array $terms): array
@@ -357,7 +359,8 @@ final class ShiftReporter
      * and neither is a shortfall, but they are not the same event and a manager
      * reading one number cannot tell them apart.
      *
-     * @param  array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int}  $terms
+     * @param array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int} $terms
+     *
      * @return array<string, mixed>
      */
     private function payouts(CashShift $shift, array $terms): array
@@ -388,7 +391,8 @@ final class ShiftReporter
      * not sold anything. Before it was recorded the drawer simply came out over
      * by that much at closing, which reads as a cashier who cannot count.
      *
-     * @param  array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int}  $terms
+     * @param array{opening: int, cash_in: int, rounding: int, cash_tips: int, brought_in: int, cash_out: int} $terms
+     *
      * @return array<string, mixed>
      */
     private function broughtIn(CashShift $shift, array $terms): array

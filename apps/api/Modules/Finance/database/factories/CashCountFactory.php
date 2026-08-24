@@ -38,7 +38,7 @@ final class CashCountFactory extends Factory
     }
 
     /**
-     * @param  array<int, int>  $breakdown
+     * @param array<int, int> $breakdown
      */
     public function of(array $breakdown): static
     {

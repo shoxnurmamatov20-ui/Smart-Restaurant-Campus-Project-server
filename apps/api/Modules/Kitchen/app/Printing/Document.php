@@ -30,9 +30,9 @@ final class Document implements JsonSerializable
     private array $blocks = [];
 
     /**
-     * @param  int  $columns  Characters per line on the printer this was built for.
-     *                        Kept with the document so a job read back a week later
-     *                        still lays out the way it did when it was fired.
+     * @param int $columns Characters per line on the printer this was built for.
+     *                     Kept with the document so a job read back a week later
+     *                     still lays out the way it did when it was fired.
      */
     public function __construct(public readonly int $columns = 48) {}
 
@@ -171,7 +171,7 @@ final class Document implements JsonSerializable
      * fatal — losing a line off a docket is bad, refusing to print the docket at
      * all is worse.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
      */
     public static function fromArray(array $payload): self
     {

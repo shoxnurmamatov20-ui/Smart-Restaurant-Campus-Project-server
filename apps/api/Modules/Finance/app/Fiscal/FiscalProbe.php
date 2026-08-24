@@ -16,11 +16,11 @@ namespace Modules\Finance\Fiscal;
 final readonly class FiscalProbe
 {
     /**
-     * @param  bool  $reachable  Something answered.
-     * @param  string|null  $moduleNo  The fiscal module this till files under.
-     * @param  string  $message  Human-readable, for the screen. Uzbek: this is read
-     *                           by whoever is standing at the till, not by a client
-     *                           that would branch on it.
+     * @param bool $reachable Something answered.
+     * @param string|null $moduleNo The fiscal module this till files under.
+     * @param string $message Human-readable, for the screen. Uzbek: this is read
+     *                        by whoever is standing at the till, not by a client
+     *                        that would branch on it.
      */
     public function __construct(
         public string $provider,

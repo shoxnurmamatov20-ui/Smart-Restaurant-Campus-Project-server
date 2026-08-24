@@ -620,8 +620,9 @@ final class StandardReports
     // ============ Shape ============
 
     /**
-     * @param  array<int, array{key: string, type: string}>  $columns
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array{key: string, type: string}> $columns
+     * @param array<int, array<string, mixed>> $rows
+     *
      * @return array<string, mixed>
      */
     private function table(ReportWindow $window, string $kind, array $columns, array $rows): array
@@ -643,8 +644,9 @@ final class StandardReports
      * nine margins is not a margin, and a footer showing 612% would be laughed
      * at once and then quoted in a meeting.
      *
-     * @param  array<int, array{key: string, type: string}>  $columns
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array{key: string, type: string}> $columns
+     * @param array<int, array<string, mixed>> $rows
+     *
      * @return array<string, int>
      */
     private function totals(array $columns, array $rows): array

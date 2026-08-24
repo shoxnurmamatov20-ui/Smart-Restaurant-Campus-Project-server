@@ -411,7 +411,7 @@ final class CustomerJourneyTest extends TestCase
     // ============ Helpers ============
 
     /**
-     * @param  array<string, mixed>  $body
+     * @param array<string, mixed> $body
      */
     private function guest(string $method, string $uri, array $body = [], ?string $token = null): TestResponse
     {
@@ -445,7 +445,7 @@ final class CustomerJourneyTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $over
+     * @param array<string, mixed> $over
      */
     private function order(array $over = [], ?string $token = null): TestResponse
     {

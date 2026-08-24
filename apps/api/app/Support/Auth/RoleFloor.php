@@ -72,7 +72,8 @@ final class RoleFloor
      * "you may not grant this" is a support ticket, "you may not grant
      * `pos.void` to `waiter`" is an answer.
      *
-     * @param  list<string>  $permissions
+     * @param list<string> $permissions
+     *
      * @return list<string>
      */
     public static function refusals(string $role, array $permissions): array

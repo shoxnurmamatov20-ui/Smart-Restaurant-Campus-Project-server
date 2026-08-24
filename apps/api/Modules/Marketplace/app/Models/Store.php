@@ -207,7 +207,7 @@ final class Store extends Model
      * because a payout that silently stops on the Thursday it was due is worse
      * than one that was never promised.
      *
-     * @param  array{bank_name: string, mfo: string, account: string, inn: string, holder: string}  $details
+     * @param array{bank_name: string, mfo: string, account: string, inn: string, holder: string} $details
      */
     public function savePayout(array $details): void
     {
@@ -246,7 +246,7 @@ final class Store extends Model
      * is NOT part of this: a closed shop is drawn dimmed with its hours, which
      * is what the design does and what a guest planning tomorrow needs.
      *
-     * @param  Builder<Store>  $query
+     * @param Builder<Store> $query
      */
     public function scopeLive(Builder $query): void
     {

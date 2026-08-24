@@ -147,7 +147,7 @@ final class OfflineSyncTest extends TestCase
      * A batch, sent the way a till sends one: no `X-Pos-Local-Id` on the request
      * itself, because the ids are inside it, one per queued operation.
      *
-     * @param  array<int, array<string, mixed>>  $entries
+     * @param array<int, array<string, mixed>> $entries
      */
     private function drain(array $entries, ?string $token = null): TestResponse
     {
@@ -156,7 +156,8 @@ final class OfflineSyncTest extends TestCase
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array<string, mixed>
      */
     private function entry(string $action, array $payload, int $seq = 1, ?string $localId = null): array
@@ -441,7 +442,7 @@ final class OfflineSyncTest extends TestCase
      * that never drains — which is the failure the whole conflict design exists
      * to avoid.
      *
-     * @param  array<string, mixed>  $with
+     * @param array<string, mixed> $with
      */
     private function answer(
         string $kind,

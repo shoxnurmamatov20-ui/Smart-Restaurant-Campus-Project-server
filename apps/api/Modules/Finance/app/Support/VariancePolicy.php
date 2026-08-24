@@ -94,7 +94,7 @@ final class VariancePolicy
      * thinks in so'm and a settings blob full of hundred-thousands invites the
      * factor-of-a-hundred mistake. This is the one place that conversion happens.
      *
-     * @param  array<string, int|string>  $overrides
+     * @param array<string, int|string> $overrides
      */
     private function rung(string $name, array $overrides): int
     {

@@ -159,7 +159,8 @@ final class CustomReports
     /**
      * Run one.
      *
-     * @param  list<string>  $columns
+     * @param list<string> $columns
+     *
      * @return array<string, mixed> the same `{columns, rows, totals}` envelope
      *                              the five standard reports answer, which is
      *                              what lets the viewer and the CSV writer be
@@ -194,7 +195,8 @@ final class CustomReports
     }
 
     /**
-     * @param  list<string>  $chosen
+     * @param list<string> $chosen
+     *
      * @return list<array<string, mixed>>
      */
     private function aggregate(array $chosen, string $groupBy, ReportWindow $window): array
@@ -284,7 +286,7 @@ final class CustomReports
     /**
      * One cell, from the sums the database returned.
      *
-     * @param  array<string, mixed>  $stored
+     * @param array<string, mixed> $stored
      */
     private function figure(string $column, array $stored): int
     {
@@ -318,8 +320,9 @@ final class CustomReports
      * margin, and a footer reading 612% gets laughed at once and quoted in a
      * meeting afterwards. An average cheque is the same shape of mistake.
      *
-     * @param  list<string>  $chosen
-     * @param  list<array<string, mixed>>  $rows
+     * @param list<string> $chosen
+     * @param list<array<string, mixed>> $rows
+     *
      * @return array<string, int>
      */
     private function totals(string $base, array $chosen, array $rows): array

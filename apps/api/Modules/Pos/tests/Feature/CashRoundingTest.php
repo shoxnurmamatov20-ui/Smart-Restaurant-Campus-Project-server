@@ -173,7 +173,7 @@ final class CashRoundingTest extends TestCase
      * By method rather than by position, so the assertions do not silently move
      * when the order of the tenders in a request changes.
      *
-     * @param  array<int, int>  $paymentIds
+     * @param array<int, int> $paymentIds
      */
     private function payment(array $paymentIds, string $method): Payment
     {

@@ -42,18 +42,18 @@ final readonly class PaymentResult
     public const STATES = [self::PENDING, self::PAID, self::CANCELLED, self::FAILED];
 
     /**
-     * @param  string  $state  One of self::STATES.
-     * @param  int  $amount  Tiyin the provider says it is holding. Zero when the
-     *                       callback carried no amount — a status probe, a cancel.
-     * @param  string|null  $reference  The provider's transaction id, which is what
-     *                                  an accountant quotes when a guest disputes a
-     *                                  charge. Stored on the payment row.
-     * @param  array<string, mixed>  $reply  The body to send back, in the provider's
-     *                                       own shape. See the class docblock.
-     * @param  int  $status  The HTTP status for that body. Payme wants 200 even for
-     *                       its own errors — the error lives inside the JSON-RPC
-     *                       envelope, and a 4xx makes it retry a document it has
-     *                       already rejected.
+     * @param string $state One of self::STATES.
+     * @param int $amount Tiyin the provider says it is holding. Zero when the
+     *                    callback carried no amount — a status probe, a cancel.
+     * @param string|null $reference The provider's transaction id, which is what
+     *                               an accountant quotes when a guest disputes a
+     *                               charge. Stored on the payment row.
+     * @param array<string, mixed> $reply The body to send back, in the provider's
+     *                                    own shape. See the class docblock.
+     * @param int $status The HTTP status for that body. Payme wants 200 even for
+     *                    its own errors — the error lives inside the JSON-RPC
+     *                    envelope, and a 4xx makes it retry a document it has
+     *                    already rejected.
      */
     public function __construct(
         public string $provider,

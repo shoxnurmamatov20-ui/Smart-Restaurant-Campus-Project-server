@@ -102,7 +102,8 @@ final class ModifierOption extends Model
     }
 
     /**
-     * @param  Builder<static>  $query
+     * @param Builder<static> $query
+     *
      * @return Builder<static>
      */
     public function scopeActive(Builder $query): Builder

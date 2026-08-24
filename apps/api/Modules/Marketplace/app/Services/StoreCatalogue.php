@@ -155,7 +155,7 @@ final readonly class StoreCatalogue
      * delivery window is added on top by the caller — that part is the road, not
      * the stove.
      *
-     * @param  array<int, int>  $menuItemIds
+     * @param array<int, int> $menuItemIds
      */
     public function prepMinutes(array $menuItemIds): int
     {
@@ -171,7 +171,8 @@ final readonly class StoreCatalogue
     /**
      * Sections flattened to a dish-by-id map.
      *
-     * @param  array<int, Section>  $sections
+     * @param array<int, Section> $sections
+     *
      * @return array<int, Dish>
      */
     private function indexed(array $sections): array

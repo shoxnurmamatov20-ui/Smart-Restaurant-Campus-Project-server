@@ -158,7 +158,8 @@ final class StaffActionController extends Controller
     /**
      * One entry: journal it, and put it where it belongs if there is anywhere.
      *
-     * @param  array{local_id: string, kind: string, at: string, payload?: array<string, mixed>|null}  $entry
+     * @param array{local_id: string, kind: string, at: string, payload?: array<string, mixed>|null} $entry
+     *
      * @return array{local_id: string, status: string, reason?: string, applied_to?: string|null}
      */
     private function apply(
@@ -301,7 +302,8 @@ final class StaffActionController extends Controller
     /**
      * A tray of spoiled salad, off the shelf.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function writeOff(array $payload, string $localId, StockLedger $stock): array
@@ -335,7 +337,8 @@ final class StaffActionController extends Controller
      * panel enqueues each row as the storekeeper types it, so a phone that dies
      * halfway through has still recorded the half that was counted.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function countIn(array $payload, string $localId, StockLedger $stock): array
@@ -363,7 +366,8 @@ final class StaffActionController extends Controller
      * claimed it in the ninety minutes since — and `already_claimed` is the
      * answer that tells the person which of their tables is not theirs.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function claimTable(array $payload, User $person, FloorPlan $floor): array
@@ -387,7 +391,8 @@ final class StaffActionController extends Controller
      * and two waiters walking to one table is exactly what the call board is
      * meant to prevent.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function resolveCall(array $payload, User $person, FloorPlan $floor): array
@@ -411,7 +416,8 @@ final class StaffActionController extends Controller
      * a queue that drains twice from doubling a delivery on the shelf — see
      * `App\Contracts\Suppliers\Receiving`.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function confirmDelivery(array $payload, User $person, Receiving $receiving): array
@@ -435,7 +441,8 @@ final class StaffActionController extends Controller
      * is a delivery that left at 19:12, and stamping it with the drain time
      * would report every courier as instant and every kitchen as late.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function moveDelivery(array $payload, Carbon $happenedAt, BillRegistry $bills): array
@@ -472,7 +479,8 @@ final class StaffActionController extends Controller
      * to declare, and a row saying "0" would read as a hand-over that happened
      * when none did — which is precisely the gap the cashier is looking for.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function declareCash(array $payload): array
@@ -513,7 +521,8 @@ final class StaffActionController extends Controller
      * stored verdict, and two genuine ticks of the same step by two people on
      * one phone are two facts worth keeping.
      *
-     * @param  array<string, mixed>  $payload
+     * @param array<string, mixed> $payload
+     *
      * @return array{0: string, 1: string|null, 2: string|null}
      */
     private function tickChecklist(array $payload): array
@@ -559,7 +568,8 @@ final class StaffActionController extends Controller
     /**
      * Write the journal row. This is the part that never fails to happen.
      *
-     * @param  array{local_id: string, kind: string, at: string, payload?: array<string, mixed>|null}  $entry
+     * @param array{local_id: string, kind: string, at: string, payload?: array<string, mixed>|null} $entry
+     *
      * @return array{local_id: string, status: string, reason?: string, applied_to?: string|null}
      */
     private function record(

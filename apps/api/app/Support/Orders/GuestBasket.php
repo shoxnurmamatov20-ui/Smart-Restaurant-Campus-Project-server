@@ -37,17 +37,17 @@ use App\Support\Errors\ApiException;
 final readonly class GuestBasket
 {
     /**
-     * @param  array<int, GuestBasketLine>  $lines
+     * @param array<int, GuestBasketLine> $lines
      */
     private function __construct(public array $lines) {}
 
     /**
      * Read a validated `items` array and prove every line is sellable.
      *
-     * @param  array<int, array<string, mixed>>  $items  As validated: menu_item_id,
-     *                                                   quantity, and optionally
-     *                                                   modifier_choice_ids and note.
-     * @param  string  $field  The request field to blame, so the phone can highlight it.
+     * @param array<int, array<string, mixed>> $items As validated: menu_item_id,
+     *                                                quantity, and optionally
+     *                                                modifier_choice_ids and note.
+     * @param string $field The request field to blame, so the phone can highlight it.
      *
      * @throws ApiException when a dish is unknown, withdrawn, or 86'd tonight
      */

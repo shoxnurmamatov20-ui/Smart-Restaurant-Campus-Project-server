@@ -97,7 +97,7 @@ final class CrewQueueTest extends TestCase
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $entries
+     * @param array<int, array<string, mixed>> $entries
      */
     private function send(array $entries): TestResponse
     {

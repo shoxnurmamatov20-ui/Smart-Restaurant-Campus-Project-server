@@ -117,7 +117,8 @@ final class AccountingPeriod extends Model
     // ============ Scopes ============
 
     /**
-     * @param  Builder<AccountingPeriod>  $query
+     * @param Builder<AccountingPeriod> $query
+     *
      * @return Builder<AccountingPeriod>
      */
     public function scopeClosed(Builder $query): Builder

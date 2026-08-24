@@ -12,7 +12,7 @@ namespace App\Contracts\Orders;
  * that way: an offer gains "is this still available", a record gains nothing
  * ever, because the whole point of it is that it cannot change.
  *
- * @param  int  $priceDelta  Tiyin, per unit of the line, frozen at ring-up.
+ * @param int $priceDelta Tiyin, per unit of the line, frozen at ring-up.
  */
 final readonly class LineModifier
 {

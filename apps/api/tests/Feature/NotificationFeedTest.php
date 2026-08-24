@@ -405,7 +405,8 @@ final class NotificationFeedTest extends TestCase
     /**
      * One row straight into the table, so a test can decide its clock.
      *
-     * @param  array<string, mixed>|null  $data
+     * @param array<string, mixed>|null $data
+     *
      * @return string the row's uuid
      */
     private function plant(

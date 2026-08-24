@@ -93,7 +93,8 @@ final class CashShiftController extends Controller
     /**
      * The window's counting record, over the same filters the page used.
      *
-     * @param  QueryBuilder<CashShift>  $query
+     * @param QueryBuilder<CashShift> $query
+     *
      * @return array{closed_count: int, unreconciled_count: int, difference_tiyin: int}
      */
     private function windowTotals(QueryBuilder $query): array

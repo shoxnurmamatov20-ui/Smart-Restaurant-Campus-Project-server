@@ -192,7 +192,8 @@ final class PrintJob extends Model
     /**
      * Everything a printer still owes: waiting, or in somebody's hands.
      *
-     * @param  Builder<PrintJob>  $query
+     * @param Builder<PrintJob> $query
+     *
      * @return Builder<PrintJob>
      */
     public function scopeOutstanding(Builder $query): Builder
@@ -208,7 +209,8 @@ final class PrintJob extends Model
      * `claimed` forever and the docket never prints, which is the same outcome
      * as having no spool at all — just slower to notice.
      *
-     * @param  Builder<PrintJob>  $query
+     * @param Builder<PrintJob> $query
+     *
      * @return Builder<PrintJob>
      */
     public function scopeDue(Builder $query): Builder

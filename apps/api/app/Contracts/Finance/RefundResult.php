@@ -34,13 +34,13 @@ namespace App\Contracts\Finance;
 final readonly class RefundResult
 {
     /**
-     * @param  int  $amount  Tiyin taken off this payment.
-     * @param  int  $cashReturned  Tiyin that left the drawer — zero for anything but cash.
-     * @param  int  $liveTenders  How many captured payments the order still has.
-     * @param  int|null  $refundingShiftId  The shift that paid it out, which is not
-     *                                      necessarily the one that took it: yesterday's takings are
-     *                                      refunded from today's drawer, and the Z-report of the shift
-     *                                      handing the notes over is the one that has to account for it.
+     * @param int $amount Tiyin taken off this payment.
+     * @param int $cashReturned Tiyin that left the drawer — zero for anything but cash.
+     * @param int $liveTenders How many captured payments the order still has.
+     * @param int|null $refundingShiftId The shift that paid it out, which is not
+     *                                   necessarily the one that took it: yesterday's takings are
+     *                                   refunded from today's drawer, and the Z-report of the shift
+     *                                   handing the notes over is the one that has to account for it.
      */
     public function __construct(
         public int $paymentId,

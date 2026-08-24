@@ -110,7 +110,7 @@ final class Placement extends Model
      * still holding its dates against anybody who wants them, which is what the
      * queue counts.
      *
-     * @param  Builder<Placement>  $query
+     * @param Builder<Placement> $query
      */
     public function scopeLive(Builder $query): void
     {
