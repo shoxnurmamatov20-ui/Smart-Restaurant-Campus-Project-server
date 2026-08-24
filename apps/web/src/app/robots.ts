@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { siteUrl } from '@/lib/site-url';
+import { URL_LOCALES, withLocale } from '@/lib/locale-path';
 import { MODULE_PATHS, SURFACE_PATHS } from '@/lib/roles';
 
 /**
@@ -26,6 +27,36 @@ import { MODULE_PATHS, SURFACE_PATHS } from '@/lib/roles';
  * paths come from the same maps middleware reads, so a screen added later cannot
  * be guarded in one place and advertised in the other.
  */
+/**
+ * Every rule below, once bare and once per language.
+ *
+ * `Disallow` is a prefix match on the path as written, and the path as written
+ * now begins with a language: `Disallow: /dashboard` does not cover
+ * `/uz/dashboard`, which is the only address that page has. Left alone, this
+ * file would have gone on saying the console was closed while every screen in
+ * it — named branches, named staff, the ledger, the till — sat open to a
+ * crawler at three URLs each.
+ *
+ * The bare form stays because the middleware still answers it, with a 308 to
+ * the prefixed one, and a crawler should be told not to follow it rather than
+ * be redirected into a page it is then told to leave.
+ *
+ * A wildcard (`/*​/dashboard`) would be shorter and is not worth it: it is an
+ * extension the major crawlers support and the spec does not, and this file's
+ * whole job is being believed by whoever reads it.
+ */
+const NEVER_PREFIXED: readonly string[] = ['/api/', '/_next/', '/admin/'];
+
+function withEveryLanguage(path: string): string[] {
+  // Three of these never get a language and saying `/uz/api/` would be noise
+  // in a file whose only value is being read literally: `/api/` and `/_next/`
+  // are cut out of the middleware's matcher, and `/admin/` is a different
+  // application on the same host.
+  if (NEVER_PREFIXED.includes(path)) return [path];
+
+  return [path, ...URL_LOCALES.map((locale) => withLocale(path, locale))];
+}
+
 export default function robots(): MetadataRoute.Robots {
   // First segment only. Disallow is a prefix match, so `/finance` already
   // covers `/finance/till`, and listing both says the same thing twice.
@@ -47,8 +78,34 @@ export default function robots(): MetadataRoute.Robots {
         '/_next/',
         // The component gallery. Real pages, no reader.
         '/design',
+        /*
+         * The two guest surfaces. Not back-office screens and not secret — a
+         * guest reaches them with no session at all — but not content either:
+         * `/customer` is one person's basket, addresses and order history, and
+         * `/qr` is one table in one restaurant. Indexed, they would publish a
+         * profile page under the restaurant's own domain and spend crawl budget
+         * on a landing page that means nothing to a reader who did not scan the
+         * code on the table.
+         */
+        '/customer',
+        '/qr',
+        /*
+         * The Telegram mini app. Same reasoning again, and one more: these URLs
+         * only mean anything inside a Telegram client that has passed an
+         * `initData` signature, so a crawler reaching one indexes an empty
+         * basket under the restaurant's own domain.
+         */
+        '/tg',
+        /*
+         * The marketplace and its merchant panel. Temporary rather than
+         * principled — a consumer marketplace is the one surface here that
+         * *should* be crawled — but it stays out until there is a backend, so
+         * a crawler cannot index prices no restaurant agreed to.
+         */
+        '/mp',
+        '/merchant',
         ...guarded,
-      ],
+      ].flatMap(withEveryLanguage),
     },
     sitemap: new URL('/sitemap.xml', siteUrl()).toString(),
   };

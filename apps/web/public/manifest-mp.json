@@ -1,0 +1,25 @@
+{
+  "name": "MyPOS — Yetkazib berish",
+  "short_name": "MyPOS",
+  "description": "Yaqin atrofdagi restoranlardan buyurtma",
+  "start_url": "/mp?src=pwa",
+  "scope": "/mp",
+  "id": "/mp",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2E74EA",
+  "lang": "uz",
+  "dir": "ltr",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Do'konlar", "url": "/mp?src=pwa" },
+    { "name": "Savat", "url": "/mp/cart?src=pwa" },
+    { "name": "Buyurtmalarim", "url": "/mp/orders?src=pwa" }
+  ]
+}

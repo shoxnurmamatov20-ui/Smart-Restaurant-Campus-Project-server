@@ -2,7 +2,7 @@
   "name": "@restaurant/web",
   "version": "0.0.0",
   "private": true,
-  "description": "Smart Restaurant Campus — staff web console (Next.js 16, React 19, Tailwind v4)",
+  "description": "Smart Restaurant Campus \u2014 staff web console (Next.js 16, React 19, Tailwind v4)",
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build",
@@ -13,18 +13,22 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "clean": "rm -rf .next .turbo node_modules"
+    "clean": "rm -rf .next .turbo node_modules",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
     "@restaurant/i18n": "workspace:*",
+    "@restaurant/surfaces": "workspace:*",
     "@restaurant/ui": "workspace:*",
     "@restaurant/utils": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-query-devtools": "^5.101.4",
+    "laravel-echo": "^2.4.0",
     "lucide-react": "^1.31.0",
     "next": "catalog:",
     "next-intl": "catalog:",
+    "pusher-js": "^8.6.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "catalog:",
@@ -32,6 +36,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/react": "^16.3.2",
     "@types/node": "catalog:",

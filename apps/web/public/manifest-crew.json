@@ -1,0 +1,25 @@
+{
+  "name": "Smart Restaurant — Xodimlar",
+  "short_name": "Xodimlar",
+  "description": "Stollar, buyurtmalar, tasdiqlar va smena — telefondan",
+  "start_url": "/crew?src=pwa",
+  "scope": "/crew",
+  "id": "/crew",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2E74EA",
+  "lang": "uz",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Bugun", "url": "/crew?src=pwa" },
+    { "name": "Stollar", "url": "/crew/waiter/tables?src=pwa" },
+    { "name": "Navbat", "url": "/crew/manager/queue?src=pwa" }
+  ]
+}

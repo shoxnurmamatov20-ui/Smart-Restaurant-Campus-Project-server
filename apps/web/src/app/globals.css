@@ -8,6 +8,13 @@
  * matches the `@source` line below, which has to be relative anyway.
  */
 @import '../../../../packages/ui/src/styles/tokens.css';
+/*
+ * The motion layer, separate from the token contract on purpose: tokens declare
+ * what a colour or a duration *is*, this declares what moves. The design ships
+ * both in one preamble; splitting them keeps the contract readable and makes it
+ * obvious that nothing in here sets a colour.
+ */
+@import '../../../../packages/ui/src/styles/motion.css';
 
 /*
  * Tailwind v4 finds classes by scanning the files it can see, and a workspace
