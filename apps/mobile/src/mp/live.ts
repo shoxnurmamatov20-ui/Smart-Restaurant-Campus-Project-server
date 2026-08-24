@@ -25,6 +25,7 @@ import {
   type Reach,
 } from '@restaurant/surfaces/mp/geo';
 import { dishImageFrom, type DishImage, type ImagePayload } from '@restaurant/surfaces/media/image';
+import { writtenClock } from '@restaurant/surfaces/time/written';
 
 import { Failure, get, patch, post } from '@/lib/api';
 import { registerForPush } from '@/lib/push';
@@ -503,21 +504,31 @@ const KIND_WORD: Readonly<Record<string, Trilingual>> = {
 };
 
 /**
- * `2026-08-22T19:34:05+05:00` → `19:34`, in the reader's own timezone.
+ * `2026-08-22T19:34:05+05:00` → `19:34`, on the clock the venue wrote.
  *
- * The guest's clock is the right one: the courier is coming to where they are
- * standing, and a stamp rendered in the restaurant's timezone would be off by
- * whatever the phone is roaming through. Null when nothing is stamped, which
- * the ladder draws as an em dash rather than as a guess.
+ * This used to read the stamp with `getHours()` and argued that the guest's own
+ * zone was the right one, because the courier is coming to where the guest is
+ * standing. It is the wrong reading, and the argument answers a question nobody
+ * asked: a courier delivers inside a radius, so the kitchen and the doorstep are
+ * in the same city and the same hour. What `getHours()` actually varies with is
+ * not where the guest is but what their handset's clock is set to — so a phone
+ * left on UTC after a flight draws a ladder five hours before the order was
+ * placed, and a courier due at 00:20 is shown as 19:20 the previous evening,
+ * which is worse than a wrong time. `@restaurant/surfaces/customer/order.ts`
+ * reads the same stamps as written, and one guest holding one phone must not be
+ * promised two different times by two of this platform's screens.
+ *
+ * The minutes beside these labels stay instants — `Date.parse` in
+ * `minutesLeftOf` and `trackFrom` — and must: a gap between two instants carries
+ * no zone, so nine minutes is nine minutes wherever the phone thinks it is.
+ *
+ * Null when nothing is stamped, which the ladder draws as an em dash rather than
+ * as a guess.
  */
 export function clock(iso: string | null | undefined): string | null {
-  if (iso === null || iso === undefined) return null;
+  const written = writtenClock(iso, '');
 
-  const at = new Date(iso);
-
-  if (Number.isNaN(at.getTime())) return null;
-
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  return written === '' ? null : written;
 }
 
 export function storeFrom(card: ApiStoreCard, delivery?: ApiDelivery | null): LiveStore {

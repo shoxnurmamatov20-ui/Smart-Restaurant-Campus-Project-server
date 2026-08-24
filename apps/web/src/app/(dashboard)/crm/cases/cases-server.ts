@@ -1,5 +1,6 @@
 import { apiGet, type Paginated } from '@/lib/api-server';
 
+import { writtenClock } from '@restaurant/surfaces/time/written';
 import {
   CASES,
   CAUSES,
@@ -298,13 +299,21 @@ function agoOf(at: string | null): Trilingual {
   return { uz: `${days} kun oldin`, ru: `${days} дн назад`, en: `${days} d ago` };
 }
 
-/** "Settled by X · 11:24" — the sentence the card draws on an answered case. */
+/**
+ * "Settled by X · 11:24" — the sentence the card draws on an answered case.
+ *
+ * The clock is the venue's, read as written. `new Date(decided_at).getHours()`
+ * re-expressed the stamp in whatever zone the renderer sits in, so a refund a
+ * manager signed at 11:24 in the dining room was filed as 06:24 by a server
+ * running UTC — and one settled just after midnight moved onto the day before.
+ * This line is the record of who decided and when; an hour nobody can reconcile
+ * against the till is worse on it than no hour at all.
+ *
+ * The em dash belongs to `decided_by`. A case with a decision but no time on it
+ * reads as the name alone, which is why the fallback here is the empty string.
+ */
 function settledBy(row: ApiCase): string {
-  const at = row.decided_at === null ? null : new Date(row.decided_at);
-  const clock =
-    at === null || Number.isNaN(at.getTime())
-      ? ''
-      : ` · ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  const clock = writtenClock(row.decided_at, '');
 
-  return `${row.decided_by ?? '—'}${clock}`;
+  return `${row.decided_by ?? '—'}${clock === '' ? '' : ` · ${clock}`}`;
 }

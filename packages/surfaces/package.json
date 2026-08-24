@@ -25,7 +25,8 @@
     "./customer/order": "./src/customer/order.ts",
     "./mp/geo": "./src/mp/geo.ts",
     "./tg/live": "./src/tg/live.ts",
-    "./media/image": "./src/media/image.ts"
+    "./media/image": "./src/media/image.ts",
+    "./time/written": "./src/time/written.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

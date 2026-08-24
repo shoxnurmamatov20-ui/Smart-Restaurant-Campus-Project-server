@@ -1,3 +1,5 @@
+import { writtenClock } from '@restaurant/surfaces/time/written';
+
 import type {
   AccountantOverview,
   CashMonth,
@@ -753,19 +755,20 @@ export function cashierFrom(payload: ApiDashboard, fixture: CashierOverview): Ca
 }
 
 /**
- * An ISO instant → `13:42`, which is how the payment log reads.
+ * An ISO stamp → `13:42`, which is how the payment log reads.
  *
- * The server sends an offset-aware timestamp, so this renders in the machine's
- * zone — the same thing `staff-server.ts` does for the rota column, and correct
- * for a console whose reader is standing in the venue.
+ * The hour comes out as the venue wrote it. This used to read it back through
+ * `new Date(iso).getHours()` on the reasoning that a console's reader stands in
+ * the venue — but the reader's machine does the converting, and this page is
+ * rendered on the server, whose zone nobody in the room chose. On a box set to
+ * UTC every row printed five hours early, so the log the cashier counts against
+ * at close disagreed with the receipts in their hand, and a payment taken at
+ * 00:30 moved to the day before.
+ *
+ * An em dash when the row carries nothing readable — the log still shows the
+ * money, the same way a deleted bill number does.
  */
-function clockFrom(iso: string): string {
-  const at = new Date(iso);
-
-  if (Number.isNaN(at.getTime())) return '—';
-
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
-}
+const clockFrom = (iso: string): string => writtenClock(iso);
 
 /* ---------------------------------------------------------- the accountant */
 

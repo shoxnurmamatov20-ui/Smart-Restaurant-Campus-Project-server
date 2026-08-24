@@ -1,5 +1,6 @@
 import { apiGet, translate, type Paginated, type Translated } from '@/lib/api-server';
 
+import { writtenClock } from '@restaurant/surfaces/time/written';
 import { isOccupied, TABLES, ZONES, type Table, type TableStatus } from './tables-data';
 // The state map is a sibling module, not this one: the live board applies it
 // too, and this file reads `next/headers`.
@@ -261,8 +262,22 @@ function holdsByTable(bookings: readonly ApiReservation[]): Map<number, string> 
     if (id === null || Number.isNaN(at) || at < now) continue;
     if (!HOLDING.has(booking.status) || held.has(id)) continue;
 
-    // `19:00 · Kamolov, 6` — the design's own shorthand: when, who, how many.
-    held.set(id, `${clock(at)} · ${booking.guest_name ?? '—'}, ${booking.guests_count}`);
+    /*
+     * `19:00 · Kamolov, 6` — the design's own shorthand: when, who, how many.
+     *
+     * Two readings of one stamp, deliberately. "Has it started yet" is a
+     * question about instants, and `Date.parse` above answers it correctly
+     * anywhere, because the offset in the stamp puts the booking on the same
+     * line as this machine's clock. What the tile PRINTS is not an instant but
+     * the written fact — 19:00 means seven o'clock in that room — so it is read
+     * back as written. Putting the converted hour on the tile captioned the
+     * same booking 14:00 on a console in UTC, and 14:00 is the hour a host
+     * would then hold the table for.
+     */
+    held.set(
+      id,
+      `${writtenClock(booking.starts_at)} · ${booking.guest_name ?? '—'}, ${booking.guests_count}`,
+    );
   }
 
   return held;
@@ -301,25 +316,24 @@ function billsByTable(orders: readonly ApiOpenOrder[]): Map<number, ApiOpenOrder
 }
 
 /**
- * When this party sat, as the tile writes it — `10:42`.
+ * When this party sat, as the bill writes it — `10:42`.
  *
- * Undefined rather than a placeholder when the stamp is missing or unreadable:
- * `new Date(NaN)` formats as `NaN:NaN`, and the panel already draws nothing at
- * all for a table whose bill does not say when it opened.
+ * The venue's own hour, never the reader's. `placed_at` arrives with the
+ * restaurant's offset — `…T10:42:00+05:00` is "10:42, in that room" — and
+ * turning that instant into the machine's zone printed 05:42 for the same party
+ * on a console running in UTC. A host reads this figure as "how long have they
+ * been sitting", so five hours of drift is a party asked to settle up while
+ * their mains are still coming.
+ *
+ * Undefined rather than a placeholder when the stamp is missing or unreadable,
+ * which is why the em dash `writtenClock` would give is refused here: the panel
+ * already draws nothing at all for a table whose bill does not say when it
+ * opened, and a dash under an occupied tile reads as a broken till.
  */
 function satAt(iso: string | null): string | undefined {
-  if (iso === null) return undefined;
+  const written = writtenClock(iso, '');
 
-  const at = Date.parse(iso);
-
-  return Number.isNaN(at) ? undefined : clock(at);
-}
-
-/** `HH:MM`, in the reader's own clock. */
-function clock(at: number): string {
-  const time = new Date(at);
-
-  return `${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
+  return written === '' ? undefined : written;
 }
 
 /** Today as `YYYY-MM-DD`, which is what the diary filter takes. */

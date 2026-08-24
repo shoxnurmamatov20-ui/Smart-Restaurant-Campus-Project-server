@@ -110,6 +110,47 @@ describe('swapOptionsFrom', () => {
     expect(swapOptionsFrom(answer, 'en').shifts[0]?.time).toBe('18:00 – 02:00');
   });
 
+  it('reads the clock the venue wrote, whatever zone the reader is in', () => {
+    /*
+     * The pair is the test. Both stamps say 18:00 and they are five hours apart
+     * as instants, so under the old reading — `new Date(iso).getHours()` — they
+     * could never both come out as 18:00, in any timezone: one of the two was
+     * always wrong by the offset between them. Asserting a single stamp would
+     * have passed in Asia/Tashkent and failed in CI, which is exactly how this
+     * got here.
+     */
+    const at = (iso: string): string | undefined =>
+      swapOptionsFrom(
+        { shifts: [{ id: 1, starts_at: iso, ends_at: iso, role: 'waiter' }], colleagues: [] },
+        'en',
+      ).shifts[0]?.time;
+
+    expect(at('2026-08-27T18:00:00+05:00')).toBe('18:00 – 18:00');
+    expect(at('2026-08-27T18:00:00+00:00')).toBe('18:00 – 18:00');
+    expect(at('2026-08-27T18:00:00-04:00')).toBe('18:00 – 18:00');
+  });
+
+  it('keeps a late finish on the day it was written', () => {
+    // 02:00 with a +05:00 offset is 21:00 UTC on the *previous* date. Converted,
+    // the swap form would offer Thursday for a shift that ends Friday morning.
+    const day = swapOptionsFrom(
+      {
+        shifts: [
+          {
+            id: 1,
+            starts_at: '2026-08-28T02:00:00+05:00',
+            ends_at: '2026-08-28T06:00:00+05:00',
+            role: 'waiter',
+          },
+        ],
+        colleagues: [],
+      },
+      'en',
+    ).shifts[0]?.day;
+
+    expect(day).toContain('28');
+  });
+
   it('gives a colleague an id, a name and initials and nothing else', () => {
     const person = swapOptionsFrom(answer, 'en').colleagues[0];
 

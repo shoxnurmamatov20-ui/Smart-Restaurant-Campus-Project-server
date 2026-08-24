@@ -1,5 +1,6 @@
 import { apiGet, type Paginated } from '@/lib/api-server';
 
+import { writtenClock } from '@restaurant/surfaces/time/written';
 import type { Lang, Trilingual } from './stock-ops-data';
 
 /**
@@ -200,15 +201,7 @@ export async function fetchTransfers(): Promise<readonly LiveTransfer[] | null> 
  * a transfer list is read the day it happens, and a full timestamp on every row
  * costs the width the route needs.
  */
-function clock(at: string | null): string {
-  if (at === null) return '—';
-
-  const when = new Date(at);
-
-  return Number.isNaN(when.getTime())
-    ? '—'
-    : `${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`;
-}
+const clock = (at: string | null): string => writtenClock(at);
 
 /** A jsonb `{uz,ru,en}` column, or a plain string from an older row. */
 function translate(value: Record<string, string> | string | null, lang: Lang): string {

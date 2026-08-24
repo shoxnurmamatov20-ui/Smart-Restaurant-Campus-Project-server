@@ -1,10 +1,14 @@
 /*
- * The payment log prints a wall clock, so a test that pins the exact minute has
- * to pin the zone with it — otherwise it passes on a laptop in Tashkent and
- * fails on a CI runner in UTC. Set before the first `Date` in this file, which
- * is what makes Node re-read it.
+ * Nothing is pinned to a zone here, and that is the point.
+ *
+ * This file used to open with `process.env.TZ = 'Asia/Tashkent'`, because the
+ * payment log read its minutes back through the machine's clock and the
+ * assertions below name exact minutes. The pin made the suite agree with itself
+ * on a laptop in Tashkent and on a UTC runner alike — while saying nothing about
+ * either, since it was hiding the one difference between them. The log is read
+ * as the venue wrote it now, so these minutes have to hold in whatever zone the
+ * run happens to be in.
  */
-process.env.TZ = 'Asia/Tashkent';
 
 import { describe, expect, it } from 'vitest';
 
@@ -338,6 +342,77 @@ describe('cashierFrom — one drawer, one shift', () => {
         amount: 4_200_000,
       },
     ]);
+  });
+
+  it('prints the hour the venue wrote, in any zone the console runs in', async () => {
+    const fixture = await getCashierOverview('today');
+
+    /*
+     * Two payments naming the same wall clock behind different offsets, and one
+     * taken after midnight.
+     *
+     * `13:42` is a fact about the room, not an instant to be converted: read
+     * either row through the reader's clock and one of the two comes out five
+     * hours wrong — whichever zone the run is in, it is always one of them, so
+     * this pair fails everywhere the old reading survives. The 00:30 row is the
+     * worse half of the same fault: converted backwards it is 19:30, which puts
+     * a payment on the previous day's log and makes a drawer count irreconcilable
+     * on both days.
+     */
+    const mapped = cashierFrom(
+      payload({
+        recent_payments: [
+          {
+            id: 601,
+            at: '2026-08-22T13:42:00+05:00',
+            order: 'A-1301',
+            method: 'card',
+            amount_tiyin: 7_400_000,
+            refund: false,
+          },
+          {
+            id: 602,
+            at: '2026-08-22T13:42:00+00:00',
+            order: 'A-1302',
+            method: 'cash',
+            amount_tiyin: 4_200_000,
+            refund: false,
+          },
+          {
+            id: 603,
+            at: '2026-08-23T00:30:00+05:00',
+            order: 'A-1303',
+            method: 'cash',
+            amount_tiyin: 1_100_000,
+            refund: false,
+          },
+        ],
+      }),
+      fixture,
+    );
+
+    expect(mapped.recent.map((row) => row.time)).toEqual(['13:42', '13:42', '00:30']);
+
+    // An unreadable stamp keeps the em dash it always returned. The row belongs
+    // in the log either way — the money moved — and a blank cell in the time
+    // column reads as a broken row rather than a missing minute.
+    const nameless = cashierFrom(
+      payload({
+        recent_payments: [
+          {
+            id: 604,
+            at: '',
+            order: 'A-1304',
+            method: 'card',
+            amount_tiyin: 900_000,
+            refund: false,
+          },
+        ],
+      }),
+      fixture,
+    );
+
+    expect(nameless.recent[0]?.time).toBe('—');
   });
 
   it('shows an empty log for a cashier who has taken nothing', async () => {

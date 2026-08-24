@@ -1,3 +1,5 @@
+import { writtenClock } from '../time/written';
+
 import { DEFAULT_PORTION, type OrderState, type TrackedOrder } from './data';
 
 /**
@@ -156,13 +158,22 @@ export function trackedOrderFrom(
   };
 }
 
-/** `HH:MM` in the reader's own device clock, from an ISO 8601 instant. */
+/**
+ * `HH:MM` on the clock the venue wrote, not on the reader's.
+ *
+ * Every stamp here — `promised_at` and each rung of `reached_at` — arrives with
+ * the kitchen's own offset, so reading it back with `getHours()` re-states it in
+ * whatever zone the machine drawing the screen keeps. On one set to UTC the guest
+ * is promised `15:15` for food the kitchen said `20:15`, and an order accepted at
+ * 00:30 is stamped `19:30` — the previous evening, hours before the guest placed
+ * it. See `time/written.ts`.
+ *
+ * The empty string, not an em dash, for a stamp that cannot be read: `eta` is
+ * printed raw at 4xl on the tracking card, so nothing is the honest answer there
+ * and a dash would look like a promise the restaurant made.
+ */
 function clock(iso: string): string {
-  const moment = new Date(iso);
-
-  if (Number.isNaN(moment.getTime())) return '';
-
-  return `${String(moment.getHours()).padStart(2, '0')}:${String(moment.getMinutes()).padStart(2, '0')}`;
+  return writtenClock(iso, '');
 }
 
 /** Two letters for the courier's avatar, as the design draws it. */

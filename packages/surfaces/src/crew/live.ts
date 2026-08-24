@@ -1,3 +1,5 @@
+import { writtenAt, writtenClock } from '../time/written';
+
 import {
   CURRENCY_WORD,
   MINUTE_WORD,
@@ -366,14 +368,8 @@ export type MyDay = {
   live: boolean;
 };
 
-/** The two digits of the hour and the two of the minute, from an ISO stamp. */
-function clockOf(iso: string): string {
-  const at = new Date(iso);
-
-  if (Number.isNaN(at.getTime())) return '—';
-
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
-}
+/** The two digits of the hour and the two of the minute, as the venue wrote them. */
+const clockOf = (iso: string): string => writtenClock(iso);
 
 /**
  * Hours and minutes, never a decimal.
@@ -395,11 +391,11 @@ function hoursAndMinutes(minutes: number): string {
  * push the line past the edge of a phone.
  */
 function shortDay(iso: string, lang: string): string {
-  const at = new Date(iso);
+  const at = writtenAt(iso);
 
-  if (Number.isNaN(at.getTime())) return '';
+  if (at === null) return '';
 
-  return new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(at);
+  return new Intl.DateTimeFormat(lang, { weekday: 'short', timeZone: 'UTC' }).format(at);
 }
 
 /**
@@ -1283,15 +1279,20 @@ export type SwapOptions = {
  * string.
  */
 export function swapOptionsFrom(answer: ApiUpcoming, lang: string): SwapOptions {
-  const day = new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long' });
+  const day = new Intl.DateTimeFormat(lang, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  });
 
   return {
     shifts: answer.shifts.map((shift): SwapShiftChoice => {
-      const starts = new Date(shift.starts_at);
+      const starts = writtenAt(shift.starts_at);
 
       return {
         id: String(shift.id),
-        day: Number.isNaN(starts.getTime()) ? '' : day.format(starts),
+        day: starts === null ? '' : day.format(starts),
         time: `${clockOf(shift.starts_at)} – ${clockOf(shift.ends_at)}`,
       };
     }),

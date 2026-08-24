@@ -1,3 +1,5 @@
+import { writtenClock } from '@restaurant/surfaces/time/written';
+
 import { apiGet, type Paginated } from '@/lib/api-server';
 
 import { POSITIONS, STAFF, type StaffRow } from './staff-data';
@@ -93,14 +95,17 @@ export const ROLE: Readonly<Record<string, StaffRow['role']>> = Object.fromEntri
   POSITIONS.map((position) => [position.value, position.label]),
 );
 
-/** `2026-08-22T10:00:00+05:00` → `10:00`, which is how the column reads. */
-const clock = (iso: string): string => {
-  const at = new Date(iso);
-
-  if (Number.isNaN(at.getTime())) return '—';
-
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
-};
+/**
+ * `2026-08-22T10:00:00+05:00` → `10:00`, which is how the column reads.
+ *
+ * As written, never as the rendering machine reads it. The stamp carries the
+ * venue's own offset because that is the fact — ten hundred, in that room — and
+ * `new Date(iso).getHours()` re-expresses it in whatever zone the renderer sits
+ * in. A bartender rostered 18:00–02:00 then draws as 13:00–21:00 on a UTC box,
+ * which is a shift nobody was ever put on; the finish also crosses back over
+ * midnight, so the row claims a night that ended the day before it started.
+ */
+const clock = (iso: string): string => writtenClock(iso);
 
 /**
  * The roster for this render — the API's when there is a session.

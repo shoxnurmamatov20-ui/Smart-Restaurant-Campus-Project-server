@@ -1,5 +1,6 @@
 import { apiGet, type Paginated } from '@/lib/api-server';
 
+import { writtenAt, writtenClock } from '@restaurant/surfaces/time/written';
 import {
   isStoreId,
   levelOf,
@@ -155,7 +156,7 @@ export type StockBoard = {
  * list requests resolve every row at once; a request per ingredient would be
  * eleven on this page and a hundred on a real one.
  */
-export async function getStockBoard(): Promise<StockBoard> {
+export async function getStockBoard(now: Date = new Date()): Promise<StockBoard> {
   const [stock, movements, orders] = await Promise.all([
     apiGet<Paginated<ApiIngredient>>('/inventory/ingredients?per_page=200'),
     apiGet<Paginated<ApiMovement>>('/inventory/movements?per_page=100&sort=-happened_at'),
@@ -208,7 +209,7 @@ export async function getStockBoard(): Promise<StockBoard> {
         lastMove:
           move === undefined
             ? null
-            : { quantity: round(move.quantity), at: timeIfToday(move.happened_at) },
+            : { quantity: round(move.quantity), at: timeIfToday(move.happened_at, now) },
       };
     });
 
@@ -222,7 +223,7 @@ export async function getStockBoard(): Promise<StockBoard> {
         .filter((item) => item.is_active)
         .reduce((total, item) => total + Math.max(0, item.stock_quantity) * item.cost_per_unit, 0),
       belowPar: rows.filter((row) => levelOf(row) !== 'healthy').length,
-      wasteTodayTiyin: wasteToday(movements?.data ?? [], stock.data),
+      wasteTodayTiyin: wasteToday(movements?.data ?? [], stock.data, now),
       openPurchases: (orders?.data ?? []).filter((order) => OPEN_STATUSES.has(order.status)).length,
     },
   };
@@ -296,13 +297,18 @@ function stampOf(order: ApiPurchaseOrder): number {
  * two can disagree for a write-off logged after midnight — the direction of the
  * error is a figure that is too small for an hour, which is the safe way round
  * for a number nobody acts on until morning.
+ *
+ * The clock comes from the caller so that one render answers "today" once. Read
+ * here and again per row, a page drawn across midnight would price the day's
+ * waste against one date and time the rows against the next.
  */
 function wasteToday(
   movements: readonly ApiMovement[],
   ingredients: readonly ApiIngredient[],
+  now: Date,
 ): number {
   const cost = new Map(ingredients.map((item) => [item.id, item.cost_per_unit]));
-  const midnight = new Date();
+  const midnight = new Date(now);
   midnight.setHours(0, 0, 0, 0);
 
   return movements
@@ -322,23 +328,41 @@ function isAfter(stamp: string | null, from: Date): boolean {
   return !Number.isNaN(at) && at >= from.getTime();
 }
 
-/** `HH:MM` for something that happened today, and nothing for anything older. */
-function timeIfToday(stamp: string | null): string | null {
+/**
+ * `HH:MM` for something that happened today, and nothing for anything older.
+ *
+ * The hour is the one the venue wrote. `happened_at` carries the venue's own
+ * offset — `2026-08-28T08:20:00+05:00` is twenty past eight on that shelf — and
+ * `new Date(stamp).getHours()` re-expressed it in whichever zone the console
+ * runs in, so a write-off counted at 08:20 in the kitchen printed 03:20 on a box
+ * set to UTC, beside a quantity that was right. That pairing is the damage: a
+ * figure a storekeeper can check against an hour they cannot.
+ *
+ * The day is read from the written fields for the same reason, and that half
+ * costs the whole label rather than mistyping it. Converted, a movement logged
+ * at 01:10 lands on the previous date, fails the same-day check and shows no
+ * time at all — so the freshest line on the shelf becomes the one that reads
+ * "at some point", which is the thing this column exists to rule out.
+ *
+ * `now` stays in the reader's own zone, because it is the reader asking whether
+ * this happened today; on the console standing in the venue the two frames are
+ * one frame anyway.
+ */
+function timeIfToday(stamp: string | null, now: Date): string | null {
   if (stamp === null) return null;
 
-  const at = new Date(stamp);
+  const at = writtenAt(stamp);
 
-  if (Number.isNaN(at.getTime())) return null;
+  if (at === null) return null;
 
-  const today = new Date();
   const sameDay =
-    at.getFullYear() === today.getFullYear() &&
-    at.getMonth() === today.getMonth() &&
-    at.getDate() === today.getDate();
+    at.getUTCFullYear() === now.getFullYear() &&
+    at.getUTCMonth() === now.getMonth() &&
+    at.getUTCDate() === now.getDate();
 
   if (!sameDay) return null;
 
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  return writtenClock(stamp);
 }
 
 /* ============================================================
