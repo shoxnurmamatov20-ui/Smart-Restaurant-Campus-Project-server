@@ -22,6 +22,16 @@ final class FeedbackResource extends JsonResource
             'id' => $this->id,
             'customer_id' => $this->customer_id,
             'order_id' => $this->order_id,
+            /*
+             * The four a review left at a table brings instead of an account.
+             * `order_number` is what a manager can search for, because it is
+             * what is printed on the guest's receipt; the two guest fields are
+             * how they ring back about a one-star.
+             */
+            'table_id' => $this->table_id,
+            'order_number' => $this->order_number,
+            'guest_name' => $this->guest_name,
+            'guest_phone' => $this->guest_phone,
             'score' => $this->score,
             'comment' => $this->comment,
             'aspect' => $this->aspect,

@@ -24,6 +24,10 @@ final class CustomerFactory extends Factory
             'cashback' => 0,
             'visits_count' => $this->faker->numberBetween(1, 40),
             'total_spent' => $this->faker->numberBetween(5000000, 300000000),
+            // No tab unless a test asks for one — the same default the column has,
+            // so a factory guest can never accidentally be a credit customer.
+            'credit_limit' => 0,
+            'account_balance' => 0,
             'is_active' => true,
         ];
     }
@@ -36,5 +40,14 @@ final class CustomerFactory extends Factory
     public function withPoints(int $points): static
     {
         return $this->state(['points' => $points]);
+    }
+
+    /** A guest the restaurant lets sign for lunch. Tiyin, like every other amount. */
+    public function withTab(int $creditLimit, int $balance = 0): static
+    {
+        return $this->state([
+            'credit_limit' => $creditLimit,
+            'account_balance' => $balance,
+        ]);
     }
 }

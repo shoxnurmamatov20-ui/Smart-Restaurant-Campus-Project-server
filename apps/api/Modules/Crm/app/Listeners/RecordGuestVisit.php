@@ -6,7 +6,9 @@ namespace Modules\Crm\Listeners;
 
 use App\Support\Events\ProcessedEvents;
 use App\Support\Events\ReceivedEvent;
+use Illuminate\Support\Carbon;
 use Modules\Crm\Models\Customer;
+use Modules\Crm\Services\GuestVisits;
 
 /**
  * Credits a settled bill to the guest who ate it.
@@ -17,7 +19,10 @@ use Modules\Crm\Models\Customer;
  */
 final readonly class RecordGuestVisit
 {
-    public function __construct(private ProcessedEvents $processed) {}
+    public function __construct(
+        private ProcessedEvents $processed,
+        private GuestVisits $visits,
+    ) {}
 
     public function handle(ReceivedEvent $event): void
     {
@@ -36,7 +41,7 @@ final readonly class RecordGuestVisit
 
         // Delivery is at-least-once, and counting one dinner twice would move a
         // guest into a tier they did not earn.
-        $this->processed->once($event, self::class, function () use ($customerId, $total): void {
+        $this->processed->once($event, self::class, function () use ($customerId, $total, $event): void {
             // Locked because the same guest can settle two bills at once — one
             // at the table, one at the bar — and a read-modify-write on an
             // unlocked row silently drops the smaller of them.
@@ -46,12 +51,22 @@ final readonly class RecordGuestVisit
                 return;
             }
 
-            $customer->forceFill([
-                'visits_count' => $customer->visits_count + 1,
-                'total_spent' => $customer->total_spent + $total,
-            ])->save();
+            /*
+             * The visit's own clock, not the relay's.
+             *
+             * `closed_at` is when the bill was actually settled; the relay may
+             * be sweeping up an event a crash left behind, hours later. "Last
+             * seen" computed from now() would quietly report that everybody came
+             * in whenever the queue drained.
+             */
+            $closedAt = $event->get('closed_at');
 
-            $customer->recalculateTier();
+            $this->visits->record(
+                $customer,
+                $total,
+                $event->integer('order_id') ?: null,
+                is_string($closedAt) ? Carbon::parse($closedAt) : null,
+            );
         });
     }
 }

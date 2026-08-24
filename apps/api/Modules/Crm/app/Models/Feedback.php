@@ -25,6 +25,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $tenant_id
  * @property int|null $customer_id
  * @property int|null $order_id
+ * @property int|null $table_id
+ * @property string|null $order_number
+ * @property string|null $guest_name
+ * @property string|null $guest_phone
  * @property int $score 1..5
  * @property string|null $comment
  * @property string|null $aspect food
@@ -86,6 +90,19 @@ final class Feedback extends Model
         'tenant_id',
         'customer_id',
         'order_id',
+        /*
+         * The three a review left at a table brings instead of an account.
+         *
+         * `table_id` says where it happened, `order_number` is what the guest
+         * can actually read off their receipt, and the two guest fields are so
+         * a manager can ring back about a one-star. None is required: a form
+         * that demands a phone number collects fewer complaints, which reads on
+         * a dashboard as a better week.
+         */
+        'table_id',
+        'order_number',
+        'guest_name',
+        'guest_phone',
         'score',
         'comment',
         'aspect',
