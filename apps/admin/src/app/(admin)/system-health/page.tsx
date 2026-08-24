@@ -39,7 +39,7 @@ export default async function SystemHealthPage() {
   const health = await getTranslations('platform.health');
 
   return (
-    <div className="grid [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] gap-5">
+    <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-5">
       <section className={CARD}>
         <h3 className={`${H3} mb-5`}>{t('health')}</h3>
 

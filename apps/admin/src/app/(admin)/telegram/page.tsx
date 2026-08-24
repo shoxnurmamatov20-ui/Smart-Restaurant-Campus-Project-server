@@ -50,7 +50,7 @@ export default async function TelegramBotsPage() {
         <span data-num>{formatNumber(total)}</span> {t('intro')}
       </PageIntro>
 
-      <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))] overflow-hidden rounded-lg border">
+      <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr))] overflow-hidden rounded-lg border">
         {[
           { label: t('totalBots'), value: formatNumber(total) },
           { label: t('enabled'), value: '0' },
@@ -78,7 +78,7 @@ export default async function TelegramBotsPage() {
               {group.title}
             </h3>
 
-            <div className="grid [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))] gap-2.5">
+            <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-2.5">
               {group.bots.map((bot) => (
                 <Link
                   key={bot.key}

@@ -127,7 +127,7 @@ export default async function PlatformOverviewPage() {
 
   return (
     <>
-      <div className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(212px,1fr))] gap-3.5">
+      <div className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(212px,100%),1fr))] gap-3.5">
         {kpis.map((kpi) => (
           <div key={kpi.label} className={`${CARD} px-5 pt-[18px] pb-4`}>
             <div className="text-fg-subtle mb-2.5 text-xs">{kpi.label}</div>

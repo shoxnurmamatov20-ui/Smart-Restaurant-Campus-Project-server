@@ -57,7 +57,7 @@ export function DeviceTable() {
 
   return (
     <>
-      <div className="bg-surface mb-[18px] grid [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))] overflow-hidden rounded-lg border">
+      <div className="bg-surface mb-[18px] grid [grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr))] overflow-hidden rounded-lg border">
         {[
           { label: devices('total'), value: counts.total },
           { label: state('online'), value: counts.online, tone: 'text-success-700' },

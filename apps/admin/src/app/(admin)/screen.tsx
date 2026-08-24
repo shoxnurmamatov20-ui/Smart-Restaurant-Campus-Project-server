@@ -51,8 +51,8 @@ export function StatStrip({
     <div
       className={`${CARD} mb-5 grid overflow-hidden ${
         wide
-          ? '[grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]'
-          : '[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]'
+          ? '[grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))]'
+          : '[grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr))]'
       }`}
     >
       {stats.map((stat) => (

@@ -8,6 +8,9 @@
  * matches the `@source` line below, which has to be relative anyway.
  */
 @import '../../../../packages/ui/src/styles/tokens.css';
+/* The motion layer — see the note in apps/web/src/app/globals.css. Both consoles
+   share it so a KPI card arrives the same way in either window. */
+@import '../../../../packages/ui/src/styles/motion.css';
 
 /*
  * Tailwind v4 finds classes by scanning the files it can see, and a workspace

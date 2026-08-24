@@ -75,7 +75,7 @@ export default async function TelegramGlobalSettingsPage() {
         {t('intro')}
       </PageIntro>
 
-      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(340px,1fr))] gap-5">
+      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-5">
         {PANELS.map((panel) => (
           <section key={panel.key} className={`${CARD} px-6 py-[22px]`}>
             <h3 className={`${H3} mb-3.5`}>{t(panel.key)}</h3>

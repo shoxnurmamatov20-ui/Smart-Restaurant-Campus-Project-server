@@ -129,7 +129,11 @@
   [data-nav] {
     width: 76px;
   }
-  [data-nav] [data-navlabel] {
+  /* `:not([data-open])` so the drawer below 820px is exempt. Undoing the
+     collapse afterwards cannot work: `margin: 0` here would have to be undone
+     as `revert`, and revert restores the user agent's margin, not the badge's
+     own `ml-auto` — the count would slide off its row. */
+  [data-nav]:not([data-open='true']) [data-navlabel] {
     opacity: 0;
     width: 0;
     min-width: 0;
@@ -137,8 +141,11 @@
     padding: 0;
     overflow: hidden;
   }
-  [data-nav] [data-navsection] {
+  [data-nav]:not([data-open='true']) [data-navsection] {
     opacity: 0;
+    /* Invisible is not the same as narrow — the heading kept its own word's
+       width and made the collapsed rail scroll sideways. */
+    overflow: hidden;
   }
 }
 
@@ -151,9 +158,43 @@
   }
 }
 
+/*
+ * The hamburger belongs to the drawer.
+ *
+ * Declared before the media query that turns it on, not after: the two rules
+ * have the same specificity, so whichever comes last wins — a base rule at the
+ * foot of the file would hide the button at every width, drawer and all.
+ */
+[data-nav-open] {
+  display: none;
+}
+
+/*
+ * The rail becomes a drawer rather than disappearing.
+ *
+ * It used to be `display: none` here with nothing in its place, which left the
+ * whole platform console unreachable below 820px — every screen still rendered,
+ * but the only way to another one was to type its URL. It slides now, at full
+ * width and with its labels, because a 76px icon rail on a phone is the worst
+ * of both.
+ */
 @media (max-width: 820px) {
+  [data-nav-open] {
+    display: grid;
+  }
+
   [data-nav] {
-    display: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
+    width: 252px !important;
+    transform: translateX(-100%);
+    transition: transform var(--dur-med) var(--ease-standard);
+  }
+
+  [data-nav][data-open='true'] {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
   }
   main[data-scroll] {
     padding: 18px 14px 36px !important;
@@ -162,5 +203,64 @@
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 14px !important;
+  }
+  /* The actions under it wrap rather than run off the side. They are a row of
+     `whitespace-nowrap` buttons — two of them are wider than a phone, and the
+     head is the one part of a screen that should never need scrolling to
+     read. */
+  [data-pageactions] {
+    flex-wrap: wrap !important;
+  }
+  /* "Add a restaurant" is a five-word button beside a title on a 320px bar.
+     The drawer's Restaurants row reaches the same screen in one more tap, and
+     the title is what a person needs to see here. */
+  [data-cta] {
+    display: none !important;
+  }
+
+  /*
+   * The bar takes a second row rather than a scrollbar.
+   *
+   * Even with the title truncating and the button gone, a 44px hamburger, the
+   * language-and-theme box and the operator's avatar come to more than a 320px
+   * screen. The shell clips rather than scrolls — that is what keeps the
+   * document from sliding sideways — so anything that does not fit is simply
+   * not there. Height is the one dimension a console can spend freely.
+   */
+  [data-topbar] {
+    height: auto !important;
+    min-height: 64px;
+    flex-wrap: wrap;
+    padding: 8px 12px !important;
+    row-gap: 6px;
+  }
+
+  /* And the groups inside it. Wrapping only the bar puts the whole right-hand
+     cluster on one line of its own, and that line is wider than the screen —
+     which is how the account menu ended up past the edge with the shell
+     clipping it. Measured: the bar wrapped, and 82px of it was still gone. */
+  [data-topbar] > div {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
+
+/*
+ * The top bar's controls, at a fingertip's size.
+ *
+ * The bar is a row of 36px icon buttons — search, notifications, the branch
+ * switcher, the account menu — all correct for a cursor and all under the 44px
+ * both platform guidelines ask for. They sit shoulder to shoulder, which is the
+ * arrangement where a miss costs the most: the button beside "notifications" is
+ * the one that changes which branch the console is showing.
+ *
+ * Outside any layer, because `size-9` and `h-9` are utilities and a layered
+ * rule loses to them.
+ */
+@media (pointer: coarse) {
+  [data-topbar] a,
+  [data-topbar] button {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

@@ -72,7 +72,7 @@ export default async function TelegramUserDetailPage({ params }: Props) {
         {t('intro')} <span className="font-mono">{id}</span>
       </PageIntro>
 
-      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(320px,1fr))] gap-5">
+      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-5">
         {PANELS.map((panel) => (
           <section key={panel} className={`${CARD} px-6 py-[22px]`}>
             <h3 className={H3}>{t(panel)}</h3>

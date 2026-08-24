@@ -30,7 +30,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       {/* Declares its own language — see the note in (admin)/layout.tsx. */}
       <div
         lang={locale}
-        className="bg-bg-subtle text-fg text-md flex min-h-screen flex-col items-center justify-center px-5 py-12"
+        className="bg-bg-subtle text-fg text-md flex min-h-dvh flex-col items-center justify-center px-5 py-12"
       >
         <div className="mb-7 flex items-center gap-3">
           <span className="font-display grid size-9 flex-none place-items-center rounded-[10px] bg-[var(--n-900)] text-[15px] font-bold tracking-[-0.03em] text-white">

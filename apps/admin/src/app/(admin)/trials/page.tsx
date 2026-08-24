@@ -39,7 +39,7 @@ export default async function TrialsPage() {
 
   return (
     <>
-      <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] overflow-hidden rounded-lg border">
+      <div className="bg-surface mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))] overflow-hidden rounded-lg border">
         {[
           { label: t('open'), value: formatNumber(trials.length) },
           {

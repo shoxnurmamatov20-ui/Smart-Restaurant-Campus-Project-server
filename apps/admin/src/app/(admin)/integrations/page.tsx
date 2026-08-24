@@ -98,7 +98,7 @@ export default async function IntegrationsPage() {
               {t(group.key)}
             </h3>
 
-            <div className="grid [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))] gap-3.5">
+            <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-3.5">
               {group.items.map((item) => {
                 const status = STATUS[item.status];
 

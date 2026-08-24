@@ -7,6 +7,7 @@ import { formatNumber } from '@restaurant/utils';
 import './admin-shell.css';
 import { EXTRA_NAV, PLATFORM_NAV, SETTINGS_ITEM } from './nav';
 import { PLATFORM, TEAM, initials } from './platform-data';
+import { NavDrawer, NavMenuButton } from './nav-drawer';
 import { LanguageAndTheme, NavLink, PageTitle } from './shell-client';
 
 /**
@@ -42,8 +43,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Declares its own language: the document root is static Uzbek, and a
           console rendered in Russian must say so or a screen reader reads it
           with Uzbek pronunciation rules. */}
-      <div lang={locale} className="bg-bg-subtle text-fg text-md flex h-screen">
-        <aside data-nav className="bg-surface flex flex-none flex-col overflow-hidden border-r">
+      <div lang={locale} className="bg-bg-subtle text-fg text-md flex h-dvh overflow-hidden">
+        <NavDrawer>
           <div className="border-divider flex h-[60px] flex-none items-center gap-3 border-b px-5">
             <div className="font-display grid size-7 flex-none place-items-center rounded-[8px] bg-[var(--n-900)] text-[12px] font-bold tracking-[-0.03em] text-white">
               SR
@@ -59,7 +60,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </div>
 
-          <nav data-scroll className="flex flex-1 flex-col gap-0.5 px-3 py-4">
+          {/* `min-h-0` beside `flex-1`: a column flex item will not shrink
+              below its content without it, so the rail grew past the sidebar
+              instead of scrolling inside it — and the rows, which had nothing
+              holding their height, were squeezed from 40px down to 23. */}
+          <nav data-scroll className="flex min-h-0 flex-1 flex-col gap-0.5 px-3 py-4">
             {PLATFORM_NAV.map((item) => (
               <NavLink key={item.href} item={item} label={nav(item.key)} />
             ))}
@@ -84,13 +89,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="border-divider flex-none border-t p-3">
             <NavLink item={SETTINGS_ITEM} label={nav(SETTINGS_ITEM.key)} />
           </div>
-        </aside>
+        </NavDrawer>
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header
             data-topbar
-            className="bg-surface flex h-16 flex-none items-center gap-5 border-b pr-5 pl-6"
+            className="bg-surface flex h-16 flex-none items-center gap-3 border-b pr-5 pl-6 lg:gap-5"
           >
+            <NavMenuButton label={t('menu')} />
+
             <PageTitle />
 
             <span data-rolelabel data-num className="text-fg-subtle text-xs whitespace-nowrap">

@@ -12,7 +12,10 @@ export function Providers({ children }: { children: ReactNode }) {
       <QueryProvider>
         <TooltipProvider delayDuration={300}>
           {children}
-          <Toaster richColors closeButton position="top-right" />
+          {/* Bottom centre, one at a time, 2.8s — the design's own toast.
+              Everything about it is configured in packages/ui; passing
+              `richColors` or `position` here would override the design. */}
+          <Toaster />
         </TooltipProvider>
       </QueryProvider>
     </ThemeProvider>

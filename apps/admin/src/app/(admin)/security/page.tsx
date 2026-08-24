@@ -30,7 +30,7 @@ export default async function SecurityPage() {
     <>
       <PageIntro>{t('intro')}</PageIntro>
 
-      <div className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))] gap-3.5">
+      <div className="mb-5 grid [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))] gap-3.5">
         {STATS.map((stat) => (
           <div key={stat} className={`${CARD} px-5 pt-[18px] pb-4`}>
             <div className="text-fg-subtle mb-2.5 text-xs">{t(stat)}</div>

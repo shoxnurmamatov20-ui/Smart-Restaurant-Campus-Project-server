@@ -14,6 +14,8 @@ export const ru: AdminMessages = {
   platform: {
     shell: {
       title: 'Супер-админ',
+      /* The drawer's hamburger, which only exists below 820px. */
+      menu: 'Открыть меню',
       product: 'Smart Restaurant Cloud',
       audit: 'Режим аудита · все действия записываются',
       newTenant: 'Добавить ресторан',
@@ -35,6 +37,8 @@ export const ru: AdminMessages = {
       failed: 'Неверная почта, пароль или код',
       unreachable: 'Сервер не ответил. Проверьте соединение и попробуйте снова.',
       fieldPass: 'Пароль',
+      showPass: 'Показать пароль',
+      hidePass: 'Скрыть пароль',
     },
 
     nav: {

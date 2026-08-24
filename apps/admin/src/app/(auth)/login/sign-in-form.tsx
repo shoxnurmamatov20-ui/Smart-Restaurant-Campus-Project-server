@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useMessages } from 'next-intl';
+import { PasswordEye } from '@restaurant/ui';
 
 import type { Messages } from '@/i18n';
 import { SESSION_ENDPOINT } from '@/lib/base-path';
@@ -43,6 +44,9 @@ export function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
+  /* Never persisted: a field that came back readable after a reload would be
+     readable to whoever walks past the operator's desk next. */
+  const [showPass, setShowPass] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,17 +116,25 @@ export function SignInForm() {
       <label className={`${LABEL} mt-4`} htmlFor="admin-password">
         {m.fieldPass}
       </label>
-      <input
-        id="admin-password"
-        type="password"
-        required
-        autoComplete="current-password"
-        placeholder="••••••••"
-        className={FIELD}
-        value={password}
-        disabled={submitting}
-        onChange={(event) => setPassword(event.target.value)}
-      />
+      <div className="relative">
+        <input
+          id="admin-password"
+          type={showPass ? 'text' : 'password'}
+          required
+          autoComplete="current-password"
+          placeholder="••••••••"
+          className={`${FIELD} pr-12`}
+          value={password}
+          disabled={submitting}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        <PasswordEye
+          shown={showPass}
+          onToggle={() => setShowPass(!showPass)}
+          showLabel={m.showPass}
+          hideLabel={m.hidePass}
+        />
+      </div>
 
       <label className={`${LABEL} mt-4`} htmlFor="admin-totp">
         {m.fieldCode}

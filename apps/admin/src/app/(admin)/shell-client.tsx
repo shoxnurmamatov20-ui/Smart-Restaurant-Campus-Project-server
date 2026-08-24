@@ -34,7 +34,8 @@ export function NavLink({ item, label }: { item: AdminNavItem; label: string }) 
       data-navitem
       data-active={active}
       aria-current={active ? 'page' : undefined}
-      className="text-fg-muted flex h-10 items-center gap-3 rounded-md px-2.5 text-sm font-medium"
+      data-press
+      className="text-fg-muted flex h-10 flex-none items-center gap-3 rounded-md px-2.5 text-sm font-medium"
     >
       <svg
         width="19"
@@ -84,7 +85,13 @@ export function PageTitle() {
     .sort((a, b) => b.length - a.length)[0];
 
   return (
-    <h1 className="font-display tracking-snug text-lg font-semibold whitespace-nowrap">
+    /*
+     * `truncate`, not `whitespace-nowrap`. Nowrap made the title unshrinkable,
+     * so on a phone it pushed the whole bar — the language box, the button, the
+     * avatar — off the right of the document, and every screen in this console
+     * scrolled sideways by however long its own name happened to be.
+     */
+    <h1 className="font-display tracking-snug min-w-0 truncate text-lg font-semibold">
       {match ? nav(PAGE_TITLE_KEYS[match]!) : 'Platforma'}
     </h1>
   );
@@ -150,7 +157,7 @@ export function LanguageAndTheme() {
   }
 
   return (
-    <div className="bg-surface flex h-9 flex-none items-center rounded-md border">
+    <div data-langtheme className="bg-surface flex h-9 flex-none items-center rounded-md border">
       <div ref={ref} className="relative flex-none">
         <button
           type="button"

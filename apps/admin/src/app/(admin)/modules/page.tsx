@@ -48,7 +48,7 @@ export default async function ModulesPage() {
     <>
       <PageIntro>{t('intro')}</PageIntro>
 
-      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(340px,1fr))] gap-3.5">
+      <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-3.5">
         {MODULES.map((module) => (
           <div key={module.key} className={`${CARD} flex items-center gap-5 px-5 py-4`}>
             <div className="min-w-0 flex-1">

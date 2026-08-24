@@ -26,7 +26,7 @@ export default async function PlansPage() {
   const t = await getTranslations('platform.plans');
 
   return (
-    <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-5">
+    <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-5">
       {PLANS.map((plan) => (
         <section
           key={plan.id}

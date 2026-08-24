@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function AdminNotFoundPage() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+    <div className="bg-background flex min-h-dvh items-center justify-center p-4">
       <div className="bg-card w-full max-w-md space-y-6 rounded-lg border p-8 text-center shadow">
         <div className="text-muted-foreground text-7xl font-bold">404</div>
         <h1 className="text-2xl font-bold">Admin sahifa topilmadi</h1>

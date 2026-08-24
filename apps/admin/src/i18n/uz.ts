@@ -17,6 +17,8 @@ export const uz = {
   platform: {
     shell: {
       title: 'Super admin',
+      /* The drawer's hamburger, which only exists below 820px. */
+      menu: 'Menyuni ochish',
       product: 'Smart Restaurant Cloud',
       audit: 'Audit rejimi · barcha amallar yoziladi',
       newTenant: "Restoran qo'shish",
@@ -46,6 +48,8 @@ export const uz = {
       failed: "Pochta, parol yoki kod noto'g'ri",
       unreachable: "Server javob bermadi. Ulanishni tekshirib, qayta urinib ko'ring.",
       fieldPass: 'Parol',
+      showPass: "Parolni ko'rsatish",
+      hidePass: 'Parolni yashirish',
     },
 
     nav: {

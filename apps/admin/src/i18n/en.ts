@@ -14,6 +14,8 @@ export const en: AdminMessages = {
   platform: {
     shell: {
       title: 'Super admin',
+      /* The drawer's hamburger, which only exists below 820px. */
+      menu: 'Open the menu',
       product: 'Smart Restaurant Cloud',
       audit: 'Audit mode · every action is recorded',
       newTenant: 'Add restaurant',
@@ -35,6 +37,8 @@ export const en: AdminMessages = {
       failed: 'That email, password or code is wrong',
       unreachable: 'The server did not answer. Check the connection and try again.',
       fieldPass: 'Password',
+      showPass: 'Show password',
+      hidePass: 'Hide password',
     },
 
     nav: {

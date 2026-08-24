@@ -164,7 +164,7 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
           </div>
         </div>
 
-        <div className="mt-[22px] grid [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))] gap-3">
+        <div className="mt-[22px] grid [grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-3">
           {facts.map((fact) => (
             <div key={fact.label} className="bg-surface rounded-md border px-4 py-3.5">
               <div className="text-fg-subtle text-2xs mb-1.5">{fact.label}</div>
