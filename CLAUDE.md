@@ -866,6 +866,46 @@ nomi va har bir holat so'zi uchun birdan.
   Tip va konstanta — `*-data.ts` da; `*-server.ts` ni client faqat
   `import type` bilan oladi (bitta sof funksiya uchun ham import qilinmaydi —
   `next/headers` brauzer bundle'iga tushib build yiqiladi).
+- **`middleware.ts` rewrite qiladi, shuning uchun `skipProxyUrlNormalize` shart
+  (2026-08-24).** Ilovada `[locale]` segmenti yo'q: `/uz/x` sahifasiga `/x` ga
+  rewrite orqali yetadi. Next esa RSC so'rovidagi rewrite'ni **mijozga
+  redirect** qilib javob beradi, va o'sha so'rovda til yo'q — middleware uni
+  308 bilan `/uz/x` ga qaytaradi, u yana rewrite bo'ladi, va halqa yopilmaydi.
+  Hech qanday xato chiqmaydi: router payload'ni **hech qachon olmaydi**,
+  shuning uchun marshrut `loading.tsx` ni chizib turadi. `<Link>` prefetch
+  qilgani uchun bu bitta sahifa emas — ko'rinishdagi **har bir havola** o'z
+  halqasini boshlaydi, konsolda esa 24 qatorli yon panel bor. O'lchangan:
+  brauzer marketing sahifasida qimirlamasdan turib **8 soniyada 56 so'rov,
+  40 tasi 3xx**; nginx logida 2251 so'rovdan **1249 tasi 3xx — 55%**, va
+  juftlar aynan mos (`/uz/contact` 107 · `/contact` 107).
+  - **Nega birinchi tuzatish ishlamadi va bu qoida shundan:** Next `rsc`,
+    `next-router-state-tree`, `next-router-prefetch` sarlavhalarini va
+    `?_rsc` ni middleware ko'rishidan **oldin olib tashlaydi** — ataylab, RSC
+    so'rovini HTML so'rovidan boshqacha ishlatmaslik uchun
+    (`node_modules/next/dist/docs/…/proxy.md`, «RSC requests and rewrites»).
+    Ya'ni `request.headers.get('rsc')` va `searchParams.has('_rsc')` unit
+    testda ishlaydi (so'rovni test o'zi yasaydi) va production'da **hech qachon
+    ishlamaydi**. Hujjatdagi kalit — `skipProxyUrlNormalize: true`.
+  - **Ikkala yarim ham kerak:** config markerni ko'rinadigan qiladi,
+    `middleware.ts` esa unga qarab **redirect qilmaydi** (`softNavigation`).
+    Bittasi yolg'iz hech narsa qilmaydi. Marker faqat tilni beradi — quyidagi
+    barcha qo'riqchilar o'sha yalang'och yo'lda ishlashda davom etadi.
+  - Natija: zanjir `/uz/contact →307→ /uz/contact?_rsc →200` da to'xtaydi;
+    o'sha brauzer sessiyasi **18 so'rov, 0 ta 3xx**; toza nginx oynasida
+    64 so'rovdan 3xx **1 ta** (u `/` → `/uz`, ataylab).
+  - **Yon oqibat, tezlikdan jiddiyroq:** `router.refresh()` ham RSC so'rovi
+    yuboradi, ya'ni KDS · zal · kassadagi 10–15 soniyalik polling — Reverb
+    proxy ortida ishlamagani uchun qo'yilgan **zaxira** — jimgina o'lik edi.
+    Ekran tirik ko'rinardi, yangi buyurtmani bilmasdi.
+- **`nginx` `gzip_types` ga `text/x-component` kirishi shart.** Bu Next'ning
+  RSC javobining MIME turi, ya'ni har bosishda ketadigan payload. Ro'yxatda
+  yo'q edi — HTML siqilardi, navigatsiya payload'i esa xom ketardi. Tashqi
+  proxy HTTP/1.1 ga tushirgani uchun (quti o'zi HTTP/2 beradi) brauzerda 6 ta
+  ulanish bo'ladi, ya'ni har ortiqcha bayt navbatda turadi.
+- **`apiGet` render ichida memoizatsiya qilingan (`cache()`).** Layout va
+  sahifa bir xil `/branches` ni so'rasa bitta so'rov ketadi. **Qoida:
+  `apiGet` qaytargan obyektni o'zgartirmang** — u o'sha yo'lni so'ragan
+  boshqa komponent bilan umumiy.
 - **`Intl` natijasi client komponentida render qilinmaydi.** Node va brauzer
   ICU'si «Sha»/«Shan» deb turlicha yozadi → hydration #418. Sana/kun
   yorliqlari serverda hisoblanib prop bilan beriladi (`bookDays()`), pul
