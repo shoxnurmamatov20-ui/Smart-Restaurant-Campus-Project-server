@@ -18,10 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `version:` here on purpose. package.json carries
+      # `"packageManager": "pnpm@11.0.8"`, and pnpm/action-setup@v4 refuses to
+      # run when it is given a version as well as finding one there — "Multiple
+      # versions of pnpm specified" — rather than picking one and risking
+      # ERR_PNPM_BAD_PM_VERSION later. It failed in eight seconds, at the second
+      # step, so nothing after it had ever run: type-check, lint, tests, build
+      # and the E2E pack were all "not green", they were *not attempted*. main's
+      # CI had been red since 2026-08-12 for this and nothing else.
+      #
+      # One source of truth is also the right answer: the version the developers
+      # run is the version CI runs, and bumping it is one edit.
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 11
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
