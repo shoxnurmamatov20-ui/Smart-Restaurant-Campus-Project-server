@@ -36,6 +36,69 @@ ishlatadi — bitta restoran boshqasining ma'lumotini hech qachon ko'rmaydi.
 
 ---
 
+## Qurilgan qismi — e'lon qilingan rota, almashinuv va telefon navbati (2026-08-22)
+
+### Rota — qoralama va va'da
+
+`staff.shifts.published_at` gacha menejerning ish nusxasi bilan xodimga
+berilgan va'da bir xil narsa edi: har bir tahrir darhol ko'rinardi, va
+seshanbada ko'rgan smena chorshanbada yo'q bo'lardi. Endi `published_at`
+qo'yilmaguncha hafta menejerniki.
+
+```
+POST /api/v1/staff/shifts/publish   — {from, to}; staff.manage
+GET  /api/v1/staff/shifts?filter[published]=1
+```
+
+Qayta e'lon qilish oldingi vaqtni **surmaydi**: nizoli rota faqat "hafta qachon
+va'da qilingan" degan savolga tayanadi.
+
+### Smena almashinuvi — `staff.shift_swaps`
+
+Alohida jadval, chunki so'rov — u haqidagi narsaning xususiyati emas: ikki
+ofitsiant bitta payshanba haqida so'rashi mumkin, menejer birini rad etadi, va
+ikkala rad ham tarixda qolishi kerak. Bitta shiftga bitta ochiq so'rov —
+qisman unique indeks (`status = 'pending'`).
+
+So'rash `staff.update`, hal qilish `staff.manage`. Tasdiqlanganda smena qo'l
+almashadi va `status` tegilmaydi: `swapped` qo'yish uni e'lon qilingan rotadan
+tushirib yuborardi (`shifts-server.ts` faqat `cancelled` ni tashlaydi).
+
+### Telefon navbati — `staff.actions`
+
+`apps/mobile/src/crew/queue.ts` ning ikkinchi yarmi. Sakkiz turdan to'rttasi
+bugun haqiqiy joyga tushadi (ikkitasi davomatga, ikkitasi `StockLedger` orqali
+omborga), qolgan to'rttasi — Tables, Orders va Suppliers ishi — jurnalga
+yoziladi. **Rad etish emas:** ofitsiant stolni bir soat oldin, haqiqatda
+olgan; rad etsak telefon yozuvni o'chiradi va fakt yo'qoladi.
+
+Idempotentlik `local_id` bo'yicha, **odamga bog'langan**. Sarlavhadagi kalit
+so'rovni himoya qiladi; navbat esa boshqa holatni tug'diradi — o'n ikkitasi
+yuborildi, to'qqiztasi yozildi, ulanish uzildi, va qayta urinish boshqa
+so'rovda ustma-ust tushadigan o'n ikkitani olib keladi.
+
+```
+POST /api/v1/staff/actions   — batch; ruxsat har bir fe'l uchun ichkarida
+GET  /api/v1/staff/me/today  — o'z smenasi, soatlari, keyingi smena
+```
+
+Ikkalasi ham marshrutda ruxsat ko'tarmaydi va `ModuleRouteGuardTest::UNGUARDED`
+da sababi bilan yozilgan: hech bir ruxsatni barcha crew rollari ushlamaydi —
+ofitsiant, kuryer va omborchi umumiy hech narsaga ega emas. `actions` esa
+mohiyatan qo'riqlanmagan emas: sakkizala fe'l
+`StaffActionController::PERMISSION_FOR` ga qarshi tekshiriladi, xuddi
+`SyncController` kassa uchun qilgani kabi.
+
+### Ro'yxat ekranining hisoblangan ustunlari
+
+`attendance_rate`, `last_shift_at`, `has_pin` —
+`StaffMember::scopeWithRosterFigures()`, bitta so'rovda subquery. "Keldi" degani
+smenaning o'z oynasi ichidagi davomat, boshlanishidan uch soat oldin ham:
+08:00–20:00 ga yozilgan oshpaz 05:40 da tayyorgarlikka kelsa, o'sha smenaga
+kelgan.
+
+---
+
 ## API endpointlar (rejalashtirilgan)
 
 ```

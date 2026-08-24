@@ -26,6 +26,8 @@ final class ShiftResource extends JsonResource
             'planned_hours' => $this->planned_hours,
             'role' => $this->role,
             'status' => $this->status,
+            // Null while the week is still the manager's working copy.
+            'published_at' => $this->published_at?->toIso8601String(),
             'note' => $this->note,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

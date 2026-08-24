@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
+use App\Models\UserPin;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -96,12 +97,27 @@ final class StaffMember extends Model
 
     protected $table = 'staff.staff_members';
 
-    public const POSITIONS = ['waiter', 'cook', 'chef', 'cashier', 'bartender', 'host', 'courier', 'storekeeper', 'manager'];
+    /*
+     * Eleven, and the last two are desk jobs: an accountant and an order
+     * operator sit at the console rather than carry a phone, and both are
+     * roles the console's own matrix names (`roles.ts`). They were missing
+     * here, which meant an owner could not hire either of them — the two
+     * roles existed on the server with nobody able to be given them.
+     */
+    public const POSITIONS = ['waiter', 'cook', 'chef', 'cashier', 'bartender', 'host', 'courier', 'storekeeper', 'manager', 'accountant', 'operator'];
 
     public const STATUSES = ['active', 'on_leave', 'suspended', 'terminated'];
 
     protected $fillable = [
         'tenant_id',
+        /*
+         * The column has existed since `2026_08_13_000200` and was never
+         * fillable, so every member created through the API landed at whatever
+         * branch the request context happened to hold — and the roster screen's
+         * branch column had nothing to read. A manager hiring somebody for
+         * another venue could not say so.
+         */
+        'branch_id',
         'user_id',
         'employee_code',
         'first_name',
@@ -143,6 +159,12 @@ final class StaffMember extends Model
         return $this->hasMany(Attendance::class)->latest('checked_in_at');
     }
 
+    /** Swaps this person asked for. The ones offered to them hang off `offered_to_id`. */
+    public function shiftSwaps(): HasMany
+    {
+        return $this->hasMany(ShiftSwap::class, 'requested_by_id');
+    }
+
     // ============ Accessors ============
 
     protected function fullName(): Attribute
@@ -158,6 +180,76 @@ final class StaffMember extends Model
     {
         return Attribute::get(fn (): bool => $this->health_book_expires_at !== null
             && $this->health_book_expires_at->isPast());
+    }
+
+    // ============ Derived figures ============
+
+    /**
+     * The three roster columns that are facts about history, not about the
+     * person.
+     *
+     * Turnout, when they last worked, and whether they can sign in at all. None
+     * of them can be a column — every one would be right on the day it was
+     * written and wrong the next morning, with nothing on the screen to say
+     * which — and none of them can be a per-row query either, because that is
+     * three statements times thirty people on a list a manager opens daily.
+     *
+     * So: subqueries, one statement for the whole page.
+     *
+     * "Turned up" is an attendance that starts inside the shift's own window,
+     * from three hours before it to the moment it ends. The lead-in is what
+     * makes it correct rather than approximately correct: a cook rostered
+     * 08:00–20:00 who clocks in at 05:40 for the morning prep turned up for
+     * that shift, and counting only from 08:00 would mark them absent for a day
+     * they worked twelve hours of.
+     */
+    public function scopeWithRosterFigures(Builder $query, ?Carbon $since = null): Builder
+    {
+        $from = $since ?? now()->subDays(30);
+        $attended = <<<'SQL'
+            exists (
+                select 1 from staff.attendances a
+                where a.staff_member_id = staff.shifts.staff_member_id
+                  and a.deleted_at is null
+                  and a.checked_in_at >= staff.shifts.starts_at - interval '3 hours'
+                  and a.checked_in_at <= staff.shifts.ends_at
+            )
+        SQL;
+
+        /** @param Builder<Shift> $shifts */
+        $due = static fn (Builder $shifts): Builder => $shifts
+            ->whereNotNull('published_at')
+            ->where('status', '!=', 'cancelled')
+            // Already happened. A shift next Friday is not turnout yet, and
+            // counting it would drag every rate down as the week is published.
+            ->where('starts_at', '<=', now())
+            ->where('starts_at', '>=', $from);
+
+        return $query
+            ->withCount([
+                'shifts as shifts_due_count' => $due,
+                'shifts as shifts_attended_count' => static fn (Builder $shifts): Builder => $due($shifts)
+                    ->whereRaw($attended),
+            ])
+            ->addSelect([
+                'last_shift_at' => Shift::query()
+                    ->selectRaw('max(starts_at)')
+                    ->whereColumn('staff.shifts.staff_member_id', 'staff.staff_members.id')
+                    ->whereNotNull('published_at')
+                    ->where('status', '!=', 'cancelled')
+                    ->where('starts_at', '<=', now()),
+                /*
+                 * Whether they can sign in — at a till or on their own phone.
+                 *
+                 * Read as an existence check rather than as a join, because
+                 * `public.user_pins` holds a hash and a lockout counter and
+                 * neither belongs anywhere near a roster list. The column
+                 * answers one bit: has this person been given a PIN.
+                 */
+                'has_pin' => UserPin::query()
+                    ->selectRaw('count(*)')
+                    ->whereColumn('public.user_pins.user_id', 'staff.staff_members.user_id'),
+            ]);
     }
 
     // ============ Scopes ============
@@ -177,7 +269,7 @@ final class StaffMember extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['tenant_id', 'employee_code', 'first_name', 'last_name', 'position', 'status', 'hourly_rate'])
+            ->logOnly(['tenant_id', 'branch_id', 'employee_code', 'first_name', 'last_name', 'position', 'status', 'hourly_rate'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('staff.staff_member');

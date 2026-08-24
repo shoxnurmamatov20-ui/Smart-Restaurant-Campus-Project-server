@@ -10,6 +10,7 @@ use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
 use App\Support\Tenancy\BusinessDay;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -88,6 +89,18 @@ final class Attendance extends Model
 
     protected $fillable = [
         'tenant_id',
+        /*
+         * Not the request's branch context — the member's own venue.
+         *
+         * This was missing, so `StaffActionController::clockIn()`'s explicit
+         * `'branch_id' => $member->branch_id` was silently dropped and
+         * `BelongsToBranch` filled the column from whatever `X-Branch` the
+         * phone happened to send. A waiter clocking in from the crew app with
+         * no venue pinned was attributed to the whole business, and per-venue
+         * labour cost in `analytics.daily_facts` was wrong for exactly the
+         * shifts that matter most.
+         */
+        'branch_id',
         'staff_member_id',
         'checked_in_at',
         'checked_out_at',
@@ -144,15 +157,33 @@ final class Attendance extends Model
      */
     public function checkOut(): bool
     {
+        return $this->closeAt(now());
+    }
+
+    /**
+     * Close it at a stated moment rather than at this one.
+     *
+     * The wall tablet by the service entrance is right there when somebody
+     * leaves, so `checkOut()` above is correct for it. A phone that was in a
+     * basement is not: an entry queued at 23:10 and drained at 07:00 the next
+     * morning would otherwise pay eight hours nobody worked. See
+     * StaffActionController.
+     *
+     * Minutes are stored rather than derived on read for the same reason as
+     * before: an hourly rate that changes next month must not silently rewrite
+     * what somebody earned last month.
+     */
+    public function closeAt(CarbonInterface $at): bool
+    {
         if ($this->checked_out_at !== null) {
             return false;
         }
 
-        $now = now();
-
         return $this->update([
-            'checked_out_at' => $now,
-            'minutes_worked' => max(0, (int) $this->checked_in_at->diffInMinutes($now)),
+            'checked_out_at' => $at,
+            // Clamped at zero: a handset whose clock is behind ours would
+            // otherwise store a negative shift in an unsigned column.
+            'minutes_worked' => max(0, (int) $this->checked_in_at->diffInMinutes($at)),
         ]);
     }
 

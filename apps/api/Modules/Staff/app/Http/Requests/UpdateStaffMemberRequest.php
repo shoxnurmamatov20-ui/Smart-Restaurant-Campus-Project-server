@@ -35,6 +35,17 @@ final class UpdateStaffMemberRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:32'],
             'position' => ['sometimes', Rule::in(StaffMember::POSITIONS)],
             'branch_code' => ['nullable', 'string', 'max:32'],
+            /*
+             * Which venue they work at, by id.
+             *
+             * `branch_code` above is the older, free-text spelling of the same
+             * relationship and stays because `staff.devices` reads it; this is
+             * the one with a foreign key behind it, and it is what the roster
+             * screen's branch column is drawn from. Both are kept in step by
+             * whoever writes them — the backfill in `2026_08_13_000200` did it
+             * once and nothing has done it since.
+             */
+            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
             'hourly_rate' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', Rule::in(StaffMember::STATUSES)],
             'hired_at' => ['nullable', 'date', 'before_or_equal:today'],

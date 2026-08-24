@@ -104,6 +104,18 @@ final class StaffShiftSeeder extends Seeder
                         // One still ahead is only planned until someone agrees
                         // to it, which is the manager's job on this screen.
                         'status' => $past || $offset === 0 ? 'confirmed' : 'planned',
+                        /*
+                         * Published, all of it.
+                         *
+                         * A seeded rota that stayed a draft would draw an empty
+                         * week on every screen that reads the promise rather
+                         * than the manager's working copy — the crew app's
+                         * "today" panel among them. Stamped at the moment the
+                         * week was built rather than at `now()`, which is also
+                         * what a real manager does: the week goes out on
+                         * Thursday for the following Monday.
+                         */
+                        'published_at' => now()->startOfDay()->subDays(self::DAYS_BACK + 1),
                     ],
                 );
 

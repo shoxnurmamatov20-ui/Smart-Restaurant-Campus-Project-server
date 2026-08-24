@@ -31,6 +31,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property Carbon $ends_at
  * @property string|null $role
  * @property string $status planned
+ * @property Carbon|null $published_at
  * @property string|null $note
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -47,6 +48,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|Shift newModelQuery()
  * @method static Builder<static>|Shift newQuery()
  * @method static Builder<static>|Shift onlyTrashed()
+ * @method static Builder<static>|Shift published()
  * @method static Builder<static>|Shift query()
  * @method static Builder<static>|Shift upcoming()
  * @method static Builder<static>|Shift whereBranchId($value)
@@ -55,6 +57,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|Shift whereEndsAt($value)
  * @method static Builder<static>|Shift whereId($value)
  * @method static Builder<static>|Shift whereNote($value)
+ * @method static Builder<static>|Shift wherePublishedAt($value)
  * @method static Builder<static>|Shift whereRole($value)
  * @method static Builder<static>|Shift whereStaffMemberId($value)
  * @method static Builder<static>|Shift whereStartsAt($value)
@@ -88,6 +91,7 @@ final class Shift extends Model
         'ends_at',
         'role',
         'status',
+        'published_at',
         'note',
     ];
 
@@ -96,6 +100,7 @@ final class Shift extends Model
         return [
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
+            'published_at' => 'datetime',
         ];
     }
 
@@ -127,12 +132,24 @@ final class Shift extends Model
         return $query->where('starts_at', '>=', now())->whereIn('status', ['planned', 'confirmed']);
     }
 
+    /**
+     * The week as everybody but the manager sees it.
+     *
+     * A shift with no `published_at` is still being moved around, and showing
+     * it is how a waiter comes to plan a Wednesday that stops existing on
+     * Thursday. See the migration.
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->whereNotNull('published_at');
+    }
+
     // ============ Spatie ActivityLog ============
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['tenant_id', 'staff_member_id', 'starts_at', 'ends_at', 'status'])
+            ->logOnly(['tenant_id', 'staff_member_id', 'starts_at', 'ends_at', 'status', 'published_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('staff.shift');

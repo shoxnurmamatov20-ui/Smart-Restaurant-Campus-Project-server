@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Modules\Staff\Database\Seeders\StaffShiftSeeder;
 
 return [
     'name' => 'Staff',
@@ -32,4 +33,23 @@ return [
     | the platform-wide defaults.
     */
     'enabled' => env('MODULE_STAFF_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Demo data
+    |--------------------------------------------------------------------------
+    |
+    | What `demo:seed` runs for the demo tenant — every morning, on a box that
+    | has one, because the rota is a window around today and a window seeded
+    | on Monday is empty by Friday. Idempotent: `updateOrCreate` per person
+    | and day.
+    |
+    */
+
+    'demo' => [
+        'seeders' => [
+            StaffShiftSeeder::class,
+        ],
+        'tables' => ['staff.shifts', 'staff.attendances'],
+    ],
 ];
