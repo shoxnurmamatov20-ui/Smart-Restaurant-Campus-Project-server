@@ -200,14 +200,78 @@ final class BillRegistryContractTest extends TestCase
         $this->bills->applyDiscount($bill->id, 9_999_999_9, 'nope');
     }
 
-    public function test_a_service_charge_is_added_on_top(): void
+    public function test_the_service_charge_is_a_rule_not_an_amount(): void
     {
+        /*
+         * There used to be `applyServiceCharge($billId, $amountTiyin)` and this
+         * test set 900 000 by hand. Both are gone: totals are derived on every
+         * change from the channel and the restaurant's own percentage, so an
+         * amount written by a caller was overwritten by the next line added —
+         * two mechanisms for one number, one of them silently losing.
+         *
+         * DECISIONS Q2 is the rule: ten percent, dine-in only. A restaurant
+         * that wants a different rate sets one; a restaurant that has set
+         * nothing charges nothing, because a charge nobody configured is money
+         * nobody agreed to.
+         */
+        $this->tenantCharges(10);
+
         $dish = $this->dish(4_500_000);
         $bill = $this->bills->addLine($this->bills->open('dine_in')->id, $dish->id, 2);
 
-        $bill = $this->bills->applyServiceCharge($bill->id, 900_000);
-
+        // 9 000 000 of food, ten percent on top.
+        $this->assertSame(9_000_000, $bill->subtotal);
+        $this->assertSame(900_000, $bill->serviceCharge);
         $this->assertSame(9_900_000, $bill->total);
+    }
+
+    public function test_takeaway_is_never_charged_for_a_table_it_did_not_use(): void
+    {
+        $this->tenantCharges(10);
+
+        $dish = $this->dish(4_500_000);
+        $bill = $this->bills->addLine($this->bills->open('takeaway')->id, $dish->id, 2);
+
+        $this->assertSame(0, $bill->serviceCharge);
+        $this->assertSame(9_000_000, $bill->total);
+    }
+
+    public function test_a_restaurant_that_configured_nothing_charges_nothing(): void
+    {
+        // No `tenantCharges()` call. The absence is the test.
+        $dish = $this->dish(4_500_000);
+        $bill = $this->bills->addLine($this->bills->open('dine_in')->id, $dish->id, 2);
+
+        $this->assertSame(0, $bill->serviceCharge);
+        $this->assertSame(9_000_000, $bill->total);
+    }
+
+    public function test_vat_is_read_out_of_the_price_not_added_to_it(): void
+    {
+        /*
+         * Q1: Uzbek menu prices already contain 12%. So a 45 000 dish is 45 000
+         * on the receipt, with the tax shown *within* it. Adding 12% instead
+         * would inflate every price on the menu and the first guest to add up
+         * their own bill would find it.
+         */
+        $dish = $this->dish(4_500_000);
+        $bill = $this->bills->addLine($this->bills->open('dine_in')->id, $dish->id, 1);
+
+        $this->assertSame(4_500_000, $bill->total, 'The price is what the guest pays');
+        // 4 500 000 × 12 ÷ 112.
+        $this->assertSame(482_143, $bill->vatIncluded);
+    }
+
+    /** Give the restaurant under test a service-charge rate. */
+    private function tenantCharges(int $percent): void
+    {
+        $tenant = app(TenantContext::class)->tenant();
+
+        $tenant?->forceFill([
+            'settings' => array_merge($tenant->settings ?? [], [
+                'service_charge_percent' => $percent,
+            ]),
+        ])->save();
     }
 
     // ============ Flow ============
@@ -367,8 +431,19 @@ final class BillRegistryContractTest extends TestCase
         $this->assertSame(
             ['id', 'number', 'channel', 'status', 'is_open', 'table_id', 'table_label',
                 'waiter_user_id', 'customer_id', 'guests_count', 'subtotal', 'discount_total',
-                'service_charge', 'total', 'note', 'lines'],
+                'service_charge', 'delivery_fee', 'vat_included', 'total', 'note', 'lines'],
             array_keys($bill->toArray()),
+        );
+
+        // A line carries the guest and the bill it belongs to, and whatever was
+        // chosen with it — the three fields the cart is built on. `plu` sits
+        // beside `sku` and is the fiscal driver's: the national classification
+        // code, snapshotted at sale time so a dish reclassified next month
+        // cannot rewrite a receipt the tax authority already holds.
+        $this->assertSame(
+            ['id', 'order_id', 'menu_item_id', 'plu', 'sku', 'title', 'station', 'quantity',
+                'unit_price', 'total_price', 'status', 'note', 'seat_no', 'bill_no', 'modifiers'],
+            array_keys($bill->lines[0]->toArray()),
         );
     }
 }

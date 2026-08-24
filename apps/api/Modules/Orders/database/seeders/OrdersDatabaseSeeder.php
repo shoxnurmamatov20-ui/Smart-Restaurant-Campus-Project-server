@@ -41,7 +41,21 @@ final class OrdersDatabaseSeeder extends Seeder
 
         for ($i = 1; $i <= 25; $i++) {
             $order = Order::query()->create([
-                'number' => sprintf('A-%04d', $i),
+                /*
+                 * Through the counter, never `sprintf` — and the difference is
+                 * a whole broken feature.
+                 *
+                 * `Order::nextNumber()` reads and advances `branch_counters`;
+                 * this loop used to format the number itself and leave the
+                 * counter at zero. So on any seeded database — every laptop,
+                 * every demo, every staging box — the first guest to order from
+                 * their phone was handed `A-0001`, which the seeder had already
+                 * written, and `orders_orders_tenant_id_number_unique` refused
+                 * it. The customer app's whole ordering path was dead on
+                 * arrival and every test passed, because tests start from an
+                 * empty table where the counter and the data agree.
+                 */
+                'number' => Order::nextNumber(),
                 'channel' => $i % 5 === 0 ? 'delivery' : 'dine_in',
                 'status' => $i % 4 === 0 ? 'paid' : 'placed',
                 'table_label' => $i % 5 === 0 ? null : sprintf('A-%d', ($i % 12) + 1),

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Modules\Orders\Database\Factories\OrderItemFactory;
@@ -27,8 +28,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $order_id
  * @property int|null $menu_item_id Menu module id, no FK on purpose
  * @property string $sku
+ * @property string|null $plu Fiscal classification code (IKPU), snapshotted at sale time
  * @property string $title Dish name as printed on the bill
  * @property string $station
+ * @property int $seat_no Which guest at the table ordered this line (Q4)
+ * @property int $bill_no Which of the table's bills it goes on, 1-4
  * @property int $quantity
  * @property int $unit_price Amount in tiyin (1 UZS = 100 tiyin)
  * @property int $total_price Amount in tiyin (1 UZS = 100 tiyin)
@@ -89,6 +93,7 @@ final class OrderItem extends Model
         'order_id',
         'menu_item_id',
         'sku',
+        'plu',
         'title',
         'station',
         'quantity',
@@ -96,12 +101,16 @@ final class OrderItem extends Model
         'total_price',
         'status',
         'note',
+        'seat_no',
+        'bill_no',
     ];
 
     protected function casts(): array
     {
         return [
             'quantity' => 'integer',
+            'seat_no' => 'integer',
+            'bill_no' => 'integer',
             'unit_price' => 'integer',
             'total_price' => 'integer',
         ];
@@ -117,6 +126,16 @@ final class OrderItem extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * What was chosen with this line.
+     *
+     * @return HasMany<OrderItemModifier, $this>
+     */
+    public function modifiers(): HasMany
+    {
+        return $this->hasMany(OrderItemModifier::class, 'order_item_id');
     }
 
     // ============ Accessors ============

@@ -39,6 +39,13 @@ final class UpdateOrderRequest extends FormRequest
             'discount_total' => ['nullable', 'integer', 'min:0'],
             'service_charge' => ['nullable', 'integer', 'min:0'],
             'note' => ['nullable', 'string', 'max:2000'],
+
+            // The intake desk's three fields — see StoreOrderRequest for why
+            // the operator is accepted rather than taken from the token, and why
+            // `scheduled_for` may sit slightly in the past.
+            'intake_channel' => ['nullable', Rule::in(Order::INTAKE_CHANNELS)],
+            'operator_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'scheduled_for' => ['nullable', 'date', 'after:-1 hour', 'before:+30 days'],
         ];
     }
 }

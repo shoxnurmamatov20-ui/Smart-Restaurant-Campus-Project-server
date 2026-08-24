@@ -6,6 +6,7 @@ namespace Modules\Orders\Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Tenancy\TenantContext;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Menu\Models\MenuItem;
@@ -179,19 +180,46 @@ final class OrderFlowTest extends TestCase
         $this->assertSame(2000000, $order->refresh()->total);
     }
 
-    public function test_discount_and_service_charge_are_applied_to_the_total(): void
+    public function test_discount_comes_off_before_the_service_charge_goes_on(): void
     {
+        /*
+         * The order of operations, which is worth a test of its own because
+         * getting it backwards is invisible: charging service on a pre-discount
+         * subtotal quietly turns a 10% discount into a 9% one, and the totals
+         * still look plausible.
+         *
+         * The service charge is no longer something a caller writes — this test
+         * used to seed `service_charge` on the factory and expect it honoured,
+         * and it is now derived from the channel and the restaurant's rate.
+         */
         $this->actingAsWaiter();
-        $order = Order::factory()->create(['discount_total' => 500000, 'service_charge' => 1000000]);
-        $dish = $this->dish(4000000);
+        $this->tenantCharges(10);
+
+        $order = Order::factory()->create(['channel' => 'dine_in', 'discount_total' => 500_000]);
+        $dish = $this->dish(4_000_000);
 
         $this->postJson("/api/v1/orders/orders/{$order->id}/items", [
             'menu_item_id' => $dish->id,
             'quantity' => 1,
         ])->assertCreated();
 
-        // 40 000 − 5 000 + 10 000 = 45 000 so'm
-        $this->assertSame(4500000, $order->refresh()->total);
+        // 40 000 food − 5 000 discount = 35 000, then 10% of THAT = 3 500.
+        $fresh = $order->refresh();
+        $this->assertSame(4_000_000, $fresh->subtotal);
+        $this->assertSame(350_000, $fresh->service_charge);
+        $this->assertSame(3_850_000, $fresh->total);
+    }
+
+    /** Give the restaurant under test a service-charge rate. */
+    private function tenantCharges(int $percent): void
+    {
+        $tenant = app(TenantContext::class)->tenant();
+
+        $tenant?->forceFill([
+            'settings' => array_merge($tenant->settings ?? [], [
+                'service_charge_percent' => $percent,
+            ]),
+        ])->save();
     }
 
     // ============ Flow ============
@@ -254,6 +282,36 @@ final class OrderFlowTest extends TestCase
         $this->getJson('/api/v1/orders/orders?filter[open]=1')
             ->assertOk()
             ->assertJsonCount(3, 'data');
+    }
+
+    /**
+     * One guest's own bills — the CRM card's order history.
+     *
+     * The console drew four invented visits under every real guest's name, in
+     * the panel a manager uses to decide how to treat them. A guest with no
+     * history has to come back EMPTY, which is the half of this that matters:
+     * an unfiltered read would answer the restaurant's whole book and every
+     * guest would look like a regular.
+     */
+    public function test_orders_can_be_listed_for_one_guest(): void
+    {
+        $this->actingAsWaiter();
+
+        $mine = Order::factory()->count(2)->create(['customer_id' => 77]);
+        Order::factory()->create(['customer_id' => 88]);
+        Order::factory()->create(['customer_id' => null]);
+
+        $this->getJson('/api/v1/orders/orders?filter[customer]=77')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.customer_id', 77);
+
+        $this->assertCount(2, $mine);
+
+        // A guest who has never ordered: no rows, not the whole book.
+        $this->getJson('/api/v1/orders/orders?filter[customer]=99')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
     }
 
     // ============ Module info ============
