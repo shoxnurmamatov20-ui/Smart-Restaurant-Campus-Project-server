@@ -157,6 +157,37 @@ final class TablesControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
+    /**
+     * A partial label, which is how a person asks for a table.
+     *
+     * `filter[label]` beside it is exact and stays exact — the floor plan and
+     * the QR route both pin one table by it. This is the crew app's search box:
+     * somebody types "a1" while carrying two plates and expects A-12 back.
+     */
+    public function test_search_filter_matches_part_of_a_label(): void
+    {
+        $this->actingAsOwner();
+        RestaurantTable::factory()->create(['label' => 'A-12']);
+        RestaurantTable::factory()->create(['label' => 'A-13']);
+        RestaurantTable::factory()->create(['label' => 'B-1']);
+
+        $this->getJson('/api/v1/tables/tables?filter[search]=a-1')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    /** Case does not decide whether a waiter finds their table. */
+    public function test_search_filter_ignores_case(): void
+    {
+        $this->actingAsOwner();
+        RestaurantTable::factory()->create(['label' => 'VIP-2']);
+
+        $this->getJson('/api/v1/tables/tables?filter[search]=vip')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.label', 'VIP-2');
+    }
+
     public function test_status_endpoint_moves_a_table_through_the_floor_cycle(): void
     {
         $this->actingAsOwner();

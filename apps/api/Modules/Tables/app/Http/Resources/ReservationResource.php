@@ -27,6 +27,9 @@ final class ReservationResource extends JsonResource
             'ends_at' => $this->ends_at?->toIso8601String(),
             'status' => $this->status,
             'source' => $this->source,
+            // Which venue. An owner reads across the whole business and the
+            // diary is the one screen where two branches' bookings interleave.
+            'branch_id' => $this->branch_id,
             'note' => $this->note,
             'is_upcoming' => $this->is_upcoming,
             'table' => [

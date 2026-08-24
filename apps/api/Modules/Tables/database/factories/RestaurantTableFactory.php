@@ -23,7 +23,8 @@ final class RestaurantTableFactory extends Factory
             'seats' => $this->faker->randomElement([2, 4, 4, 6, 8]),
             'kind' => 'regular',
             'status' => 'free',
-            'qr_token' => bin2hex(random_bytes(16)),
+            // No `qr_token`: the model mints one in `creating`, and a second
+            // generator here would be a second alphabet and a second length.
             'is_active' => true,
         ];
     }

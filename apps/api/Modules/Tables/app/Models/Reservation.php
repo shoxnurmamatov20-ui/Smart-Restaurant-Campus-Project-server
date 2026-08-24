@@ -33,9 +33,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $guests_count
  * @property Carbon $starts_at
  * @property Carbon|null $ends_at
- * @property string $status pending
+ * @property string $status pending|confirmed|seated|completed|cancelled|no_show
  * @property string $source phone
  * @property string|null $note
+ * @property string|null $code What the guest quotes to read, confirm or cancel their own booking
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -87,12 +88,52 @@ final class Reservation extends Model
 
     protected $table = 'tables.reservations';
 
-    public const STATUSES = ['pending', 'confirmed', 'seated', 'cancelled', 'no_show'];
+    /**
+     * The whole life of a booking: pending → confirmed → seated → completed,
+     * with `no_show` and `cancelled` as the two ways out.
+     *
+     * `completed` was missing and its absence had a cost. Without it a party who
+     * came, ate and left stays `seated` for ever — so "who is sitting at a held
+     * table right now" and "who came tonight" are the same query, the diary
+     * never empties, and the only way to close a booking was to cancel it,
+     * which files an honoured reservation under the same word as one the guest
+     * called off.
+     */
+    public const STATUSES = ['pending', 'confirmed', 'seated', 'completed', 'cancelled', 'no_show'];
+
+    /** Nothing follows these — a booking that reached one is history. */
+    public const CLOSED_STATUSES = ['completed', 'cancelled', 'no_show'];
 
     public const SOURCES = ['phone', 'web', 'bot', 'walk_in'];
 
+    /**
+     * The alphabet a guest's code is drawn from, and what is missing from it.
+     *
+     * No `0`, `O`, `1`, `I` or `L`. This code is read aloud down a telephone
+     * and typed by somebody standing outside a restaurant in the dark, and the
+     * pairs above are the ones people get wrong — a booking that cannot be found
+     * because a guest read an O as a zero is a guest arguing at a door.
+     *
+     * Ten characters of a 31-letter alphabet is roughly 49 bits, which is not a
+     * password and does not need to be: what it has to survive is somebody
+     * typing the next code along, not an offline attack. See the migration.
+     */
+    private const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+
+    private const CODE_LENGTH = 10;
+
     protected $fillable = [
         'tenant_id',
+        /*
+         * A booking happens at an address.
+         *
+         * `BelongsToBranch` fills this from `X-Branch` on create, which is right
+         * for a host booking from the venue they are standing in and wrong for
+         * the one case that actually needs the column: an owner reading the whole
+         * business, whose requests carry no branch, taking a booking for
+         * Chilonzor over the phone. Fillable so they can say which.
+         */
+        'branch_id',
         'restaurant_table_id',
         'guest_name',
         'guest_phone',
@@ -102,6 +143,12 @@ final class Reservation extends Model
         'status',
         'source',
         'note',
+        /*
+         * Fillable so a staff-side import or a fixture can carry one, but never
+         * required: `booted()` mints it when nobody did. A booking with no code
+         * is a booking whose guest can never be sent a link.
+         */
+        'code',
     ];
 
     protected function casts(): array
@@ -116,6 +163,61 @@ final class Reservation extends Model
     protected static function newFactory(): ReservationFactory
     {
         return ReservationFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        // Minted on the way in, exactly as a table's QR token is: the guest has
+        // to be told something the moment the booking is taken, and a code
+        // written later is a code the confirmation email did not carry.
+        self::creating(static function (self $reservation): void {
+            $reservation->code ??= self::newCode();
+        });
+    }
+
+    /**
+     * A fresh code for a guest to quote.
+     *
+     * `random_int` rather than `rand`, because this is a bearer credential: it
+     * is the only thing standing between a stranger and somebody else's name,
+     * telephone number and evening. Unguessable rather than secret — it travels
+     * by SMS and gets read aloud — which is the same property a table's sticker
+     * needs and the same reasoning `RestaurantTable::newQrToken()` gives.
+     */
+    public static function newCode(): string
+    {
+        $last = strlen(self::CODE_ALPHABET) - 1;
+        $code = '';
+
+        for ($i = 0; $i < self::CODE_LENGTH; $i++) {
+            $code .= self::CODE_ALPHABET[random_int(0, $last)];
+        }
+
+        return $code;
+    }
+
+    /**
+     * The booking a code names, or null.
+     *
+     * Upper-cased and trimmed first: the code is printed in capitals and typed
+     * by a guest whose keyboard is not, and a lookup that failed on case would
+     * be a booking that "does not exist" in front of a person holding it.
+     *
+     * Tenant-scoped by the global scope it inherits, which is the guarantee that
+     * matters: a code from one restaurant cannot resolve inside another even
+     * though the uniqueness index is platform-wide. The request carries
+     * `X-Tenant` from the restaurant's own URL segment, so both halves have to
+     * agree before anything is found.
+     */
+    public static function findByCode(string $code): ?self
+    {
+        $code = strtoupper(trim($code));
+
+        if ($code === '') {
+            return null;
+        }
+
+        return self::query()->where('code', $code)->first();
     }
 
     // ============ Relationships ============
@@ -166,13 +268,46 @@ final class Reservation extends Model
         return $this->update(['status' => 'seated']);
     }
 
+    /**
+     * They came, they ate, they left.
+     *
+     * Only from `seated`, because that is the only state it can honestly follow:
+     * a booking that was never sat is either a no-show or a cancellation, and
+     * letting a host mark a `pending` booking complete would put parties in
+     * tonight's numbers who never walked through the door.
+     *
+     * The table is not touched. Guests leaving means the table needs clearing,
+     * which is `release()` and belongs to whoever is looking at the floor — and
+     * frequently the party has already moved to the bar while the table is being
+     * turned. Doing both here would have this method lie about one of them.
+     */
+    public function complete(): bool
+    {
+        if ($this->status !== 'seated') {
+            return false;
+        }
+
+        return $this->update(['status' => 'completed']);
+    }
+
     public function cancel(): bool
     {
         return $this->update(['status' => 'cancelled']);
     }
 
+    /**
+     * Nobody came.
+     *
+     * Refused once the party is seated or the booking is already closed: a
+     * no-show is a fact about a table that stayed empty, and marking a party who
+     * ate as one is how a restaurant ends up with a regular on a blacklist.
+     */
     public function markNoShow(): bool
     {
+        if (! in_array($this->status, ['pending', 'confirmed'], true)) {
+            return false;
+        }
+
         return $this->update(['status' => 'no_show']);
     }
 

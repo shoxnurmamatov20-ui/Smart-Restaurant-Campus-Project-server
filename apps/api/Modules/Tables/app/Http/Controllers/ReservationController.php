@@ -97,6 +97,28 @@ final class ReservationController extends Controller
         return new ReservationResource($reservation->refresh());
     }
 
+    /**
+     * The party ate and left — the booking is history, not a cancellation.
+     *
+     * 422 rather than a silent no-op when the booking was never seated: a host
+     * who tapped the wrong row has to be told, because the alternative is a
+     * screen that looks like it worked and a diary that did not change.
+     */
+    public function complete(Reservation $reservation): ReservationResource
+    {
+        abort_unless($reservation->complete(), 422, 'Faqat mehmon o\'tirgan bronni yakunlash mumkin.');
+
+        return new ReservationResource($reservation->refresh());
+    }
+
+    /** Nobody came. Refused once the party is seated — see the model. */
+    public function noShow(Reservation $reservation): ReservationResource
+    {
+        abort_unless($reservation->markNoShow(), 422, 'Bu bronni kelmagan deb belgilab bo\'lmaydi.');
+
+        return new ReservationResource($reservation->refresh());
+    }
+
     public function cancel(Reservation $reservation): ReservationResource
     {
         $reservation->cancel();
