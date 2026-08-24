@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Inventory\Http\Controllers;
 
+use App\Contracts\Inventory\StockLedger;
 use App\Http\Controllers\Controller;
 use App\Support\Errors\ApiException;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Modules\Inventory\Http\Requests\StoreIngredientRequest;
+use Modules\Inventory\Http\Requests\StoreStockCountRequest;
 use Modules\Inventory\Http\Requests\UpdateIngredientRequest;
 use Modules\Inventory\Http\Resources\IngredientResource;
 use Modules\Inventory\Http\Resources\StockMovementResource;
@@ -37,8 +39,13 @@ final class IngredientController extends Controller
         $records = QueryBuilder::for(Ingredient::class)
             ->allowedFilters([
                 AllowedFilter::exact('sku'),
+                AllowedFilter::exact('barcode'),
                 AllowedFilter::exact('unit'),
                 AllowedFilter::exact('storage'),
+                // The store screen's three chips. Exact rather than partial:
+                // the list is closed and a partial match on 'bar' would also
+                // answer for a shelf called 'barrel'.
+                AllowedFilter::exact('store'),
                 AllowedFilter::exact('is_active'),
                 AllowedFilter::partial('name'),
                 AllowedFilter::callback('low', function ($query, $value): void {
@@ -47,7 +54,7 @@ final class IngredientController extends Controller
                     }
                 }),
             ])
-            ->allowedSorts(['sku', 'name', 'stock_quantity', 'created_at'])
+            ->allowedSorts(['sku', 'name', 'store', 'stock_quantity', 'created_at'])
             ->allowedIncludes(['movements'])
             ->defaultSort('name')
             ->paginate($perPage)
@@ -83,6 +90,97 @@ final class IngredientController extends Controller
         $ingredient->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * What is this thing in my hand?
+     *
+     * The lookup behind the staff app's scanner, and the half that was missing:
+     * the camera has been one component away for as long as the screen has
+     * existed, and `packages/surfaces/src/crew/data.ts` names this endpoint by
+     * URL in its own TODO.
+     *
+     * Answers a list rather than a single row even for a barcode, and that is
+     * not indecision. A scanner that answered 404 for an unregistered barcode
+     * would give a storekeeper holding a crate nothing to do; an empty list is
+     * a screen that can say "not on file — add it?" and carry on. It also lets
+     * the same route serve the search box, which is what a person falls back to
+     * when a label will not read.
+     */
+    public function lookup(Request $request): ResourceCollection
+    {
+        $validated = $request->validate([
+            'barcode' => ['nullable', 'string', 'max:32'],
+            'q' => ['nullable', 'string', 'max:64'],
+        ]);
+
+        $barcode = $validated['barcode'] ?? null;
+        $term = $validated['q'] ?? null;
+
+        $query = Ingredient::query()->active();
+
+        if ($barcode !== null && $barcode !== '') {
+            $query->where('barcode', $barcode);
+        } elseif ($term !== null && $term !== '') {
+            // `sku` is exact and `name` is a contains: a person typing a code
+            // types all of it, and a person typing a name types the middle of
+            // it. `ilike` because Uzbek shelf labels are not consistently cased.
+            $query->where(function ($inner) use ($term): void {
+                $inner->where('sku', $term)->orWhere('name', 'ilike', '%'.$term.'%');
+            });
+        } else {
+            // Neither given. An empty answer rather than the whole store: this
+            // route is a lookup, and a scanner that fired with no code should
+            // not page through four hundred ingredients.
+            $query->whereRaw('1 = 0');
+        }
+
+        return IngredientResource::collection($query->orderBy('name')->limit(25)->get());
+    }
+
+    /**
+     * Close a count sheet: post every variance, leave the agreements alone.
+     *
+     * The whole sheet in one call because a count is one act. Line by line, a
+     * tablet that lost the network halfway through would leave a shelf half
+     * counted, and the storekeeper would have no way to tell which half.
+     *
+     * Every line goes through the same StockLedger the staff app's queue uses,
+     * so a count typed at a desk and a count typed on a phone post identically
+     * — including the two of them writing the same movement kind, which is what
+     * makes the ledger readable afterwards.
+     */
+    public function count(StoreStockCountRequest $request, StockLedger $ledger): JsonResponse
+    {
+        /** @var array<int, array{ingredient_id: int, counted: int}> $lines */
+        $lines = $request->validated()['lines'];
+        $reference = $request->validated()['reference'] ?? null;
+
+        $results = [];
+
+        foreach ($lines as $line) {
+            $change = $ledger->recordCount($line['ingredient_id'], $line['counted'], $reference);
+
+            $results[] = $change === null
+                // An id this restaurant does not have. Reported rather than
+                // refused: one bad line must not throw away a sheet somebody
+                // spent an hour on.
+                ? ['ingredient_id' => $line['ingredient_id'], 'status' => 'unknown']
+                : [
+                    'ingredient_id' => $change->ingredientId,
+                    'status' => $change->delta === 0 ? 'matched' : 'adjusted',
+                    'variance' => $change->delta,
+                    'balance' => $change->balance,
+                ];
+        }
+
+        return response()->json([
+            'data' => [
+                'lines' => $results,
+                'counted' => count($results),
+                'adjusted' => count(array_filter($results, static fn (array $row): bool => $row['status'] === 'adjusted')),
+            ],
+        ], 201);
     }
 
     /**

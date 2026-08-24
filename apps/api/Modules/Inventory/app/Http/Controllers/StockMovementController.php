@@ -34,6 +34,25 @@ final class StockMovementController extends Controller
                 AllowedFilter::exact('ingredient', 'ingredient_id'),
                 AllowedFilter::exact('kind'),
                 AllowedFilter::exact('reference'),
+                /*
+                 * Which shelf, through the ingredient that lives on it.
+                 *
+                 * A movement has no store of its own and should not: stock
+                 * moves, shelves do not, and a copied label would be the second
+                 * place the truth lives. `whereHas` costs a semi-join and keeps
+                 * one answer to "where is this kept".
+                 */
+                AllowedFilter::callback('store', function ($query, $value): void {
+                    $query->whereHas('ingredient', fn ($inner) => $inner->where('store', (string) $value));
+                }),
+                /*
+                 * Everything from a moment onward. A plain comparison, not
+                 * whereDate(): wrapping the column in a function loses the
+                 * index, and ModuleBoundaryTest refuses it by name.
+                 */
+                AllowedFilter::callback('since', function ($query, $value): void {
+                    $query->where('happened_at', '>=', $value);
+                }),
             ])
             ->allowedSorts(['happened_at', 'quantity', 'created_at'])
             ->allowedIncludes(['ingredient'])

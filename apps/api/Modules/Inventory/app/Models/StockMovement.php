@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Inventory\Models;
 
 use App\Models\Activity;
+use App\Models\Branch;
+use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Concerns\HasBusinessDate;
 use App\Models\Tenant;
@@ -24,6 +26,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property int $id
  * @property int|null $tenant_id
+ * @property int|null $branch_id Which venue the gram moved at; null is the business
  * @property int $ingredient_id
  * @property string $kind receipt
  * @property int $quantity Signed: positive in, negative out
@@ -36,6 +39,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read Branch|null $branch
  * @property-read Ingredient|null $ingredient
  * @property-read Tenant|null $tenant
  *
@@ -47,6 +51,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|StockMovement onlyTrashed()
  * @method static Builder<static>|StockMovement query()
  * @method static Builder<static>|StockMovement whereBalanceAfter($value)
+ * @method static Builder<static>|StockMovement whereBranchId($value)
  * @method static Builder<static>|StockMovement whereCreatedAt($value)
  * @method static Builder<static>|StockMovement whereDeletedAt($value)
  * @method static Builder<static>|StockMovement whereHappenedAt($value)
@@ -65,6 +70,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class StockMovement extends Model
 {
+    /*
+     * A gram moves somewhere. The trait's usual meaning holds — no branch in
+     * context is every venue, which is what a restaurant-wide loss report and
+     * the nightly roll-up both read — and the history that predates the column
+     * carries null, so it is counted by the business and by no single venue.
+     */
+    use BelongsToBranch;
     use BelongsToTenant;
     use HasBusinessDate;
 
@@ -87,6 +99,7 @@ final class StockMovement extends Model
     protected $fillable = [
         'business_date',
         'tenant_id',
+        'branch_id',
         'ingredient_id',
         'kind',
         'quantity',
@@ -135,7 +148,7 @@ final class StockMovement extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['tenant_id', 'ingredient_id', 'kind', 'quantity', 'balance_after', 'reason'])
+            ->logOnly(['tenant_id', 'branch_id', 'ingredient_id', 'kind', 'quantity', 'balance_after', 'reason'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('inventory.stock_movement');
