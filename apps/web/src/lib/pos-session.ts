@@ -24,6 +24,9 @@
  */
 import { cookies } from 'next/headers';
 
+import type { ImagePayload } from '@restaurant/surfaces/media/image';
+
+import { FALLBACK_LADDER, ladderFrom, type ApiCashLadder, type CashLadder } from './cash-notes';
 import { apiBase, SESSION_COOKIE_SECURE } from './server-session';
 
 /** The device token from pairing. httpOnly. */
@@ -124,6 +127,178 @@ export type PosStaff = {
   is_locked: boolean;
 };
 
+/** One dish, as GET /v1/pos/menu returns it. */
+export type PosDish = {
+  id: number;
+  sku: string;
+  title: string;
+  description: string | null;
+  station: string | null;
+  price_tiyin: number;
+  is_orderable: boolean;
+  /**
+   * 86'd in this kitchen tonight.
+   *
+   * Not the same as `is_orderable`, which is the business's answer — a dish
+   * withdrawn from the menu, a draft, one archived. Those never come down at all.
+   * This one does, drawn dashed: a waiter shown Manti crossed out knows the answer
+   * to "do you have Manti" without walking to the pass, and knows they have not
+   * misremembered the menu — which is what a silently missing tile makes them
+   * think.
+   */
+  is_stopped: boolean;
+  cook_time_minutes: number | null;
+  kind: string;
+  /**
+   * The photograph at every size the platform keeps, or null — see
+   * `@restaurant/surfaces/media/image`. The tile draws `thumb`: 160px for a
+   * 44px box, crisp at 3× and five kilobytes rather than the hundred and
+   * twenty the full file costs, two hundred times over, every time a waiter
+   * opens the board.
+   */
+  image: ImagePayload | null;
+  /** One address, for readers that want one. The tile does not. */
+  image_url: string | null;
+};
+
+/** A section of the board — a category with dishes under it. */
+export type PosSection = {
+  id: number;
+  slug: string;
+  title: string;
+  dishes: PosDish[];
+};
+
+/** One answer a guest may give, and what it adds. */
+export type PosChoice = {
+  id: number;
+  title: string;
+  price_delta_tiyin: number;
+};
+
+/** A question about a dish, with the rules for answering it. */
+export type PosQuestion = {
+  id: number;
+  title: string;
+  is_multi: boolean;
+  min_choices: number;
+  max_choices: number;
+  choices: PosChoice[];
+};
+
+/**
+ * The whole sellable board for a channel.
+ *
+ * Read once when the order screen opens rather than per category: a waiter
+ * switching from Salatlar to Ichimliklar mid-order must not wait on a network,
+ * and on a tablet in a basement dining room that wait is not hypothetical.
+ * The stop list is already folded in by the API — a dish the kitchen pulled is
+ * absent rather than present-and-greyed, because the till must not offer it.
+ */
+export async function fetchPosMenu(channel = 'dine_in'): Promise<PosSection[] | null> {
+  const terminal = await pairedTerminal();
+  const shift = await shiftToken();
+
+  if (terminal === null || shift === null) return null;
+
+  try {
+    const response = await fetch(`${apiBase()}/pos/menu?channel=${encodeURIComponent(channel)}`, {
+      headers: {
+        Accept: 'application/json',
+        // The person's token: reading the board is a permission
+        // (`pos.view`), and a device holds none.
+        Authorization: `Bearer ${shift}`,
+        'X-Tenant': terminal.tenantSlug,
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+
+    if (!response.ok) return null;
+
+    const body = (await response.json()) as { sections?: PosSection[] };
+
+    return body.sections ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** A table as the till needs it: enough to open a bill against. */
+export type PosTable = {
+  id: number;
+  label: string;
+  seats: number;
+  status: string;
+  /**
+   * Which room the table stands in — `hall` on the API's own resource.
+   *
+   * `name` is `null` unless the controller eager-loaded the relation, and the
+   * floor screen has to cope with that rather than print "undefined" across the
+   * top of a dining room: a zone with no name falls back to its id, and a
+   * restaurant with one unnamed hall gets no rail at all, which is right —
+   * a filter with one option is furniture.
+   */
+  zone: { id: number | null; name: string | null };
+};
+
+/**
+ * The tables this terminal's branch can seat.
+ *
+ * Its own read rather than the console's `getFloor()`, for two reasons that
+ * both matter. That one authenticates with the console session cookie, which a
+ * paired tablet does not have; and it drops the table's id on the way through,
+ * because the floor screen draws labels while the till has to open a bill
+ * against a specific row.
+ *
+ * Inactive tables are filtered out here rather than by the caller: a table taken
+ * out of service still exists — its QR code still resolves — but nobody should
+ * be offered it.
+ */
+export async function fetchPosFloor(): Promise<PosTable[] | null> {
+  const terminal = await pairedTerminal();
+  const shift = await shiftToken();
+
+  if (terminal === null || shift === null) return null;
+
+  try {
+    const response = await fetch(`${apiBase()}/tables/tables?per_page=200`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${shift}`,
+        'X-Tenant': terminal.tenantSlug,
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+
+    if (!response.ok) return null;
+
+    const body = (await response.json()) as {
+      data?: {
+        id: number;
+        label: string;
+        seats: number;
+        status: string;
+        is_active: boolean;
+        hall?: { id: number | null; name?: string | null };
+      }[];
+    };
+
+    return (body.data ?? [])
+      .filter((table) => table.is_active)
+      .map((table) => ({
+        id: table.id,
+        label: table.label,
+        seats: table.seats,
+        status: table.status,
+        zone: { id: table.hall?.id ?? null, name: table.hall?.name ?? null },
+      }));
+  } catch {
+    return null;
+  }
+}
+
 /** How long a POS read waits before the screen decides it is on its own. */
 const TIMEOUT_MS = 4_000;
 
@@ -134,8 +309,38 @@ export type ShiftSession = {
   opened_at: string | null;
   /** The cash shift this session is filing money into, if one is open. */
   cash_shift_id: number | null;
-  user?: { id: number; name: string; roles: string[]; permissions?: string[] };
-  terminal?: { code: string; name: string; branch?: { name: string } | null };
+  user?: {
+    id: number;
+    name: string;
+    roles: string[];
+    permissions?: string[];
+    /**
+     * The largest discount this person may apply at THIS till without anybody
+     * else agreeing — whole percent, P9's ladder.
+     *
+     * `TerminalSessionResource` has sent this since the ceiling existed; the
+     * client just never declared it, so the discount sheet drew a hard-coded 5
+     * with a TODO asking for the number that was already in the payload. Five is
+     * the cashier's row: a waiter saw four chips the server would refuse and a
+     * manager saw one chip where they were entitled to four.
+     */
+    discount_ceiling?: number;
+  };
+  terminal?: {
+    code: string;
+    name: string;
+    /**
+     * Which room this till stands in.
+     *
+     * Read for one thing: the branch channel the order screen listens on, so a
+     * waiter's chip turns amber when the kitchen accepts. The name below is what
+     * the header prints; this is what the socket needs, and they are not
+     * interchangeable — a channel keyed on a name would break the day two venues
+     * were both called "Markaz".
+     */
+    branch_id?: number | null;
+    branch?: { id: number; name: string } | null;
+  };
 };
 
 /**
@@ -225,6 +430,42 @@ export type IdleScreen = {
   business_date: string;
   server_time: string;
 };
+
+/**
+ * The notes this restaurant counts in, for the till on this tablet.
+ *
+ * Read with the person's token rather than the device's: the endpoint sits
+ * behind `finance.view`, which a cashier holds and a waiter does not — and a
+ * waiter never reaches the count screen, because they hold no drawer.
+ *
+ * Falls back to the built-in eight rather than to nothing. A till has to open
+ * when the network does not, and a count screen with no rows on it is a till
+ * that cannot be opened at all.
+ */
+export async function fetchCashLadder(): Promise<CashLadder> {
+  const terminal = await pairedTerminal();
+  const shift = await shiftToken();
+
+  if (terminal === null || shift === null) return FALLBACK_LADDER;
+
+  try {
+    const response = await fetch(`${apiBase()}/finance/denominations`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${shift}`,
+        'X-Tenant': terminal.tenantSlug,
+      },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+
+    if (!response.ok) return FALLBACK_LADDER;
+
+    return ladderFrom((await response.json()) as ApiCashLadder);
+  } catch {
+    return FALLBACK_LADDER;
+  }
+}
 
 /**
  * Read the idle screen for the terminal this tablet is paired as.

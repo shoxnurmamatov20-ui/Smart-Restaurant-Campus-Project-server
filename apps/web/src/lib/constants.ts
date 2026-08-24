@@ -19,14 +19,31 @@ export const SUPPORTED_LOCALES = ['uz', 'ru', 'en'] as const;
  * number in Uzbek, Russian and English.
  */
 export const CONTACT = {
-  phone: '+998 71 200 40 40',
-  telegram: '@smartrestaurant_uz',
-  telegramUrl: 'https://t.me/smartrestaurant_uz',
-  email: 'sales@smartrestaurant.uz',
+  phone: '+998 90 475 09 09',
+  telegram: '@Yoqubjon_099',
+  telegramUrl: 'https://t.me/Yoqubjon_099',
+  email: 'nurmamatovyoqub@gmail.com',
+  /*
+   * The office, in the reader's language — the city name is spelled
+   * differently in each. Kept beside the rest of the contact details rather
+   * than in the message catalogue, because an address is configuration: it
+   * changes when the company moves, not when the copy is rewritten.
+   */
+  office: { uz: 'Termiz shahar', ru: 'город Термез', en: 'Termez' },
 } as const;
 
 /** `tel:` wants the digits without the spaces the display form carries. */
 export const CONTACT_TEL = `tel:${CONTACT.phone.replace(/\s/g, '')}`;
+
+/**
+ * The platform's own version, shown in the site footer and reported by a
+ * terminal when it pairs.
+ *
+ * One constant rather than two literals: the pairing route carried its own
+ * copy of the fallback, so a release could tell a cashier one number and a
+ * visitor another.
+ */
+export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '2.4.0';
 
 /** Where an order came from — mirrors MenuItem::CHANNELS on the API. */
 export const SALES_CHANNELS = ['dine_in', 'takeaway', 'delivery', 'aggregator'] as const;

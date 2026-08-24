@@ -28,6 +28,13 @@ vi.mock('next-intl', () => ({ useMessages: () => uz }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+  /*
+   * The panel reads `?next=` so a person bounced off `/finance/till` by the
+   * session guard lands back on the till rather than on a dashboard. Empty
+   * here: these assertions are about the form, and the redirect has its own
+   * test below.
+   */
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // next/link wants an app-router context that a unit test has no reason to

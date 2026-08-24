@@ -71,6 +71,17 @@ describe('web message catalogues', () => {
     }
   });
 
+  /**
+   * Terms that are the same word in all three, on purpose.
+   *
+   * The list is short and it stays short. "Food cost" is a loanword in the
+   * Uzbek and Russian trade — a chef says it in English in all three languages,
+   * and the design file carries it as `["Food cost", "Food cost", "Food cost"]`
+   * rather than translating it. Inventing a native phrase here would produce a
+   * label the person reading it does not use.
+   */
+  const LOANWORDS = new Set(['console.stockOps.foodCost']);
+
   it('does not let a translation quietly fall back to Uzbek', () => {
     // Nothing here should read the same in Uzbek and Russian: this is prose,
     // and anything identical is either untranslated or is not copy at all.
@@ -79,7 +90,9 @@ describe('web message catalogues', () => {
     // those was a figure, an id or a proper noun sitting in the catalogue —
     // "42", "01", "RK", a branch name, a timestamp. Those moved to site-data.ts
     // and shell-data.ts, where they are written once instead of three times.
-    const identical = Object.keys(flat.uz).filter((path) => flat.uz[path] === flat.ru[path]);
+    const identical = Object.keys(flat.uz)
+      .filter((path) => flat.uz[path] === flat.ru[path])
+      .filter((path) => !LOANWORDS.has(path));
 
     expect(identical, 'these are data, not copy — move them out of the catalogue').toEqual([]);
   });

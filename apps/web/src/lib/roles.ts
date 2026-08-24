@@ -1,11 +1,18 @@
 /**
- * The eight roles, copied across from the design rather than invented here.
+ * The nine roles, copied across from the design rather than invented here.
  *
- * `docs/design/source/Smart Restaurant OS.dc.html` carries a `ROLES` array and a `MATRIX` of
- * twenty actions against those roles. Both are reproduced below at their own
- * values: the same ids, the same nav allowlists, the same permission ceilings.
- * A console that agrees with the prototype about what a waiter can see is a
- * console a reviewer can check against the prototype.
+ * The handoff's `files/Smart Restaurant OS.dc.html` carries a `ROLES` array and
+ * a `MATRIX` of twenty actions against those roles. Both are reproduced below
+ * at their own values: the same ids, the same nav allowlists, the same
+ * permission ceilings. A console that agrees with the prototype about what a
+ * waiter can see is a console a reviewer can check against the prototype.
+ *
+ * **Not `docs/design/source/`.** That directory holds the v1.0 export, which
+ * `GAPS.md` tells you in as many words to discard — its `NAV_ALL` lists
+ * nineteen modules against the current twenty-four, and it has no `operator` at
+ * all. This docstring used to name it, which is how half this console came to
+ * be built from one design and half from another. The current file is 17 547
+ * lines; if the copy you are reading is 6 507, you have the wrong one.
  *
  * Two things live here and two deliberately do not.
  *
@@ -22,7 +29,7 @@
  * be three chances to disagree.
  */
 
-/** The eight, in the order the design lists them. */
+/** The nine, in the order the design's own `ROLES` array lists them. */
 export const ROLE_IDS = [
   'super',
   'owner',
@@ -32,6 +39,15 @@ export const ROLE_IDS = [
   'cashier',
   'kitchen',
   'warehouse',
+  /*
+   * Order intake, 12:00–00:00. The ninth, and the one this file was missing.
+   *
+   * Not a manager with fewer rows: an operator never touches a table, never
+   * takes a payment and never closes a shift, but answers the phone, the
+   * Telegram bot, the website and three aggregators, and is measured on how
+   * fast they answer. Their home screen is the intake queue, not a dashboard.
+   */
+  'operator',
 ] as const;
 
 export type RoleId = (typeof ROLE_IDS)[number];
@@ -50,27 +66,45 @@ export type SurfaceId = (typeof SURFACE_IDS)[number];
 /**
  * Every module row the sidebar can draw, in sidebar order.
  *
- * Nineteen, matching the design's `NAV_ALL`. Two are spelled differently here
- * than in the prototype because the routes were named before this file existed
- * and renaming them would move every page: the prototype's `kds` is `kitchen`,
- * its `ops` is `stockOps`. Same rows, same order.
+ * Twenty-four, read off `files/Smart Restaurant OS.dc.html` — its `NAV_ALL`
+ * and, for the order, the rail's own DOM. This said nineteen and then
+ * twenty-two, and each time claimed to match the design; each time the count
+ * came from `specs/01-os.md §3`, which is a document, and the handoff's rule is
+ * that where a document and a file disagree the file wins. The two the spec
+ * omits are whole modules: `board`, the menu board a branch puts on a screen
+ * above the counter, and `cases`, the complaints queue every channel feeds.
+ *
+ * Two are spelled differently here than in the prototype because the routes
+ * were named before this file existed and renaming them would move every page:
+ * the prototype's `kds` is `kitchen`, its `ops` is `stockOps`. Same rows, same
+ * order.
  */
 export const MODULE_KEYS = [
   'dashboard',
   'orders',
   'tables',
+  /* Order intake — the five inbound channels in one queue. `§5.3`. */
+  'calls',
   'kitchen',
   'menu',
   'inventory',
-  'stockOps',
   'suppliers',
   'staff',
   'shifts',
+  /* The menu board: what the screen above the counter shows. */
+  'board',
   'crm',
+  /* Campaigns, coupons, loyalty, segments. `§5.13`. */
+  'marketing',
+  /* The restaurant's own website, managed from the console. `§5.14`. */
+  'web',
   'finance',
+  'stockOps',
   'till',
   'books',
   'control',
+  /* Complaints and refund decisions, from every channel at once. */
+  'cases',
   'analytics',
   'reports',
   'branches',
@@ -123,7 +157,32 @@ export type Role = {
    * is a row not drawn, never a row that would have been refused.
    */
   nav: readonly ModuleKey[];
-  /** The discount this role may apply unaided, as a percentage. */
+  /**
+   * The row this role lands on, when it is not the first one they hold.
+   *
+   * Absent for eight of the nine, where the first row is the dashboard and the
+   * dashboard is the right answer. The operator is the exception the design
+   * spells out — `view: "calls"`, home surface `intake` — because their job is
+   * a queue that is already ringing, and a summary of yesterday between them
+   * and it costs a call.
+   */
+  home?: ModuleKey;
+  /**
+   * The discount this role may apply unaided, as a percentage.
+   *
+   * A different question from `perms.discount`, and both are needed. This one
+   * is how far they get on their own; that one is what happens above the line —
+   * DENIED means never, NEEDS_APPROVAL means a manager can key it through,
+   * ALLOWED means there is no second gate. A waiter at 0 and an accountant at 0
+   * are not the same role: one may ask and one may not, and only the grant says
+   * which.
+   *
+   * The number is a copy. `Terminal.settings.discount_limits` on the server is
+   * the source, and the till refuses whatever the till refuses; a chip drawn
+   * here that the server declines reads to a cashier as a broken system rather
+   * than as a rule. Change it and change it in four places at once — this file,
+   * CLAUDE.md's table, `TerminalFactory`, `PosDatabaseSeeder`.
+   */
   discountCeiling: number;
   perms: Permissions;
 };
@@ -173,25 +232,42 @@ export const ROLES: Readonly<Record<RoleId, Role>> = {
     initials: 'AR',
     person: 'Aziza Rasulova',
     surface: 'backoffice',
-    // Everything the owner has except the three that are the owner's alone:
-    // finance, the books, and the branch register.
+    /*
+     * Twenty-one, verbatim from the design file's `ROLES` array.
+     *
+     * Everything the owner has except the three that are the owner's alone:
+     * finance, the books, and the branch register. This held sixteen, then
+     * nineteen — each shortfall was a set of modules nobody had built, so the
+     * count looked deliberate rather than behind.
+     *
+     * The order is the design's own, which puts `settings` second-to-last and
+     * `board` after it. That reads as a mistake and is not one worth
+     * correcting: `nav` is an allowlist, `NAV_GROUPS` decides where rows are
+     * drawn, so the only thing this order affects is `landingPath`, and the
+     * manager's landing is `dashboard` either way.
+     */
     nav: [
       'dashboard',
       'orders',
+      'calls',
       'tables',
       'kitchen',
       'menu',
       'inventory',
-      'stockOps',
       'suppliers',
       'staff',
       'shifts',
       'crm',
+      'marketing',
+      'web',
       'till',
+      'stockOps',
       'control',
+      'cases',
       'analytics',
       'reports',
       'settings',
+      'board',
     ],
     discountCeiling: 20,
     perms: {
@@ -210,13 +286,21 @@ export const ROLES: Readonly<Record<RoleId, Role>> = {
     initials: 'MY',
     person: "Malika Yo'ldosheva",
     surface: 'backoffice',
-    // Money and the paperwork behind it. Never an order.
+    /*
+     * Money and the paperwork behind it. Never an order.
+     *
+     * `cases` is on the list because a refund decision is theirs: the
+     * complaints queue is where a refund is argued for, and the design gives
+     * the accountant the refund grant below. A role that may refund but cannot
+     * open the screen refunds are asked on is a role that gets asked by phone.
+     */
     nav: [
       'dashboard',
       'suppliers',
       'finance',
       'books',
       'control',
+      'cases',
       'analytics',
       'reports',
       'branches',
@@ -242,7 +326,22 @@ export const ROLES: Readonly<Record<RoleId, Role>> = {
     // Two rows. The waiter's real screen is the POS, which the shift dashboard
     // sends them to with a full-width button.
     nav: ['dashboard', 'tables'],
-    discountCeiling: 5,
+    /*
+     * Zero, where the prototype says five.
+     *
+     * The one number in this file that deliberately departs from the design
+     * handoff. The prototype's settings screen offers a waiter "5% without
+     * approval" and its matrix marks a 5% discount as allowed outright;
+     * `docs/PLAN-POS-FIRST.md` §P9, which is what the till is actually being
+     * built to, gives the waiter nothing and routes every discount through a
+     * manager. P9 wins because it is the specification the server enforces, and
+     * a console that drew a 5% chip the till then refused would teach a waiter
+     * that the system is broken.
+     *
+     * Written here rather than silently changed so the next reader comparing
+     * this file against the prototype finds the reason instead of a bug.
+     */
+    discountCeiling: 0,
     perms: {
       discount: NEEDS_APPROVAL,
       void: NEEDS_APPROVAL,
@@ -309,6 +408,16 @@ export const ROLES: Readonly<Record<RoleId, Role>> = {
     initials: 'SN',
     person: 'Sardor Nazarov',
     surface: 'backoffice',
+    /*
+     * Six, where the design file gives five.
+     *
+     * `stockOps` is the addition and it is deliberate. Stock operations is
+     * receiving, counting, waste and transfers — the storekeeper's entire day —
+     * and the design leaves it off their rail while giving it to the manager.
+     * That is the design's bug, not a rule: a storekeeper who cannot reach the
+     * count screen books the count through somebody else's login, and then the
+     * variance is signed by the wrong name.
+     */
     nav: ['dashboard', 'inventory', 'stockOps', 'suppliers', 'reports', 'settings'],
     discountCeiling: 0,
     perms: {
@@ -321,9 +430,44 @@ export const ROLES: Readonly<Record<RoleId, Role>> = {
       roles: DENIED,
     },
   },
+
+  operator: {
+    id: 'operator',
+    initials: 'DR',
+    person: 'Dilnoza Rahimova',
+    surface: 'backoffice',
+    /*
+     * Seven rows, and `calls` is the job.
+     *
+     * The order-intake desk: phone, Telegram, the website and three
+     * aggregators arriving in one queue. They price an order (`menu`), they
+     * know who is calling (`crm`), and they take the complaint when the
+     * courier was late (`cases`) — but they never open a table, never take a
+     * payment and never close a shift, which is why `tables`, `till` and
+     * `finance` are absent rather than merely unbuilt.
+     */
+    nav: ['dashboard', 'calls', 'orders', 'menu', 'crm', 'cases', 'settings'],
+    home: 'calls',
+    /*
+     * Five, and it is the only ceiling on this list that is not also a POS
+     * ceiling. An operator settles a late delivery with a small discount while
+     * the customer is still on the line; sending that through a manager is how
+     * a two-minute call becomes a refund.
+     */
+    discountCeiling: 5,
+    perms: {
+      discount: ALLOWED,
+      void: DENIED,
+      refund: DENIED,
+      finance: DENIED,
+      closeShift: DENIED,
+      editMenu: DENIED,
+      roles: DENIED,
+    },
+  },
 };
 
-/** The eight in display order, for a switcher or the permission matrix. */
+/** The nine in display order, for a switcher or the permission matrix. */
 export const ROLE_LIST: readonly Role[] = ROLE_IDS.map((id) => ROLES[id]);
 
 /** Whether a string off a cookie is one of ours. */
@@ -339,7 +483,7 @@ export function roleOrDefault(value: unknown): Role {
 /**
  * What the server calls each of these.
  *
- * Two vocabularies for the same eight people: the design names the job — a
+ * Two vocabularies for the same nine people: the design names the job — a
  * kitchen, a warehouse — and the platform names the post — a chef, a
  * storekeeper. Neither is wrong and neither should be renamed to match the
  * other, so the translation lives here, once.
@@ -357,6 +501,14 @@ export const SERVER_ROLE_NAMES: Readonly<Record<RoleId, string>> = {
   cashier: 'cashier',
   kitchen: 'chef',
   warehouse: 'storekeeper',
+  /*
+   * `order-operator`, not `host`. A host seats people who walked in; an
+   * operator answers people who did not. The two were nearly merged here
+   * because the platform already had a `host` role and the design did not name
+   * a server counterpart — merging them would have handed the intake queue to
+   * whoever stands at the door.
+   */
+  operator: 'order-operator',
 };
 
 /**
@@ -396,6 +548,8 @@ export function canSee(role: Role, module: ModuleKey): boolean {
 export function landingPath(role: Role): string {
   if (role.surface === 'super') return '/platform';
 
+  if (role.home) return MODULE_PATHS[role.home];
+
   const first = role.nav[0];
   return first ? MODULE_PATHS[first] : '/dashboard';
 }
@@ -411,11 +565,45 @@ export function landingPath(role: Role): string {
  * station on a bad night. The accountant holds none of them: their work is the
  * ledger the shift produces, never the shift.
  */
-export const SURFACE_ACCESS: Readonly<Record<'pos' | 'mobile' | 'super', readonly RoleId[]>> = {
+export const SURFACE_ACCESS: Readonly<
+  Record<'pos' | 'mobile' | 'super' | 'crew' | 'setup' | 'documents', readonly RoleId[]>
+> = {
   pos: ['owner', 'manager', 'waiter', 'cashier'],
-  // The morning check: read-only, and only for the roles whose morning it is.
+  // The morning check: read-mostly, plus the approvals a manager grants from
+  // wherever they are. Only the roles whose morning it is.
   mobile: ['owner', 'manager', 'accountant'],
   super: ['super'],
+  /*
+   * The staff app: an employee's own shifts, tables, calls and payslip.
+   *
+   * Not the same audience as `/staff`, which is the console section managers use
+   * ABOUT employees. This is the one people open on their own phones, so the list
+   * is everyone who works a floor — and deliberately not the accountant, who has
+   * no shift to look at.
+   */
+  crew: ['owner', 'manager', 'waiter', 'cashier', 'kitchen', 'warehouse'],
+  /*
+   * The setup wizard, owner only.
+   *
+   * It creates the restaurant, its branches, its menu and its first shift — every
+   * decision the whole tenant then rests on. A manager who could re-run it could
+   * lay a second floor plan over a working one.
+   */
+  setup: ['owner'],
+  /*
+   * The printable documents.
+   *
+   * The union of `DOCUMENT_ACCESS`, which is the finer cut — this list only
+   * decides who reaches the surface, and the page then shows each reader their
+   * own documents. Waiter, chef, operator and the platform operator hold none
+   * of the seven, so they are not here.
+   *
+   * The surface was unguarded when it was built: `middleware.ts` reads this map
+   * and `isAllowed()` returns null for a path in neither map, which is a pass.
+   * A restaurant's turnover, a supplier's prices and a named employee's pay sat
+   * on a route anyone could open.
+   */
+  documents: ['owner', 'manager', 'accountant', 'cashier', 'warehouse'],
 };
 
 /**
@@ -430,21 +618,29 @@ export const SURFACE_ACCESS: Readonly<Record<'pos' | 'mobile' | 'super', readonl
  * only the paths, to keep a crawler out of screens that answer 200 to anyone.
  * Written once so a surface added later cannot appear in one and not the other.
  */
-export const SURFACE_PATHS: Readonly<Record<'pos' | 'mobile' | 'super', string>> = {
+export const SURFACE_PATHS: Readonly<
+  Record<'pos' | 'mobile' | 'super' | 'crew' | 'setup' | 'documents', string>
+> = {
   pos: '/pos',
   mobile: '/mobile',
   super: '/platform',
+  // `/crew`, not `/staff`: that path is already the console's HR section, and the
+  // two are different products for different people.
+  crew: '/crew',
+  setup: '/setup',
+  documents: '/documents',
 };
 
 /**
  * Sidebar row to route.
  *
- * Seven of the nineteen are views of a module rather than modules of their own,
- * which is why this map is not simply `/${key}`.
+ * Eight of the twenty-four are views of a module rather than modules of their
+ * own, which is why this map is not simply `/${key}`.
  */
 export const MODULE_PATHS: Readonly<Record<ModuleKey, string>> = {
   dashboard: '/dashboard',
   orders: '/orders',
+  calls: '/calls',
   tables: '/tables',
   kitchen: '/kitchen',
   menu: '/menu',
@@ -453,11 +649,15 @@ export const MODULE_PATHS: Readonly<Record<ModuleKey, string>> = {
   suppliers: '/suppliers',
   staff: '/staff',
   shifts: '/staff/shifts',
+  board: '/board',
   crm: '/crm',
+  marketing: '/marketing',
+  web: '/web',
   finance: '/finance',
   till: '/finance/till',
   books: '/finance/books',
   control: '/analytics/control',
+  cases: '/crm/cases',
   analytics: '/analytics',
   reports: '/analytics/reports',
   branches: '/settings/branches',

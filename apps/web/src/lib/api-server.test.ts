@@ -1,45 +1,123 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { translate } from './api-server';
+/*
+ * `vi.hoisted` because `vi.mock` is lifted above the imports: a plain `const`
+ * would still be in its temporal dead zone when the factory runs.
+ */
+const { jar } = vi.hoisted(() => ({ jar: new Map<string, string>() }));
+
+vi.mock('next/headers', () => ({
+  cookies: async () => ({
+    get: (name: string) => {
+      const value = jar.get(name);
+
+      return value === undefined ? undefined : { name, value };
+    },
+  }),
+  headers: async () => new Headers(),
+}));
+
+import { apiGet } from './api-server';
+import { BRANCH_COOKIE } from './branch-cookie';
+import { SESSION_COOKIE } from './server-session';
 
 /**
- * Reading a `{uz, ru, en}` column.
+ * Every read in the console goes through this, which is why the venue header
+ * is worth its own file.
  *
- * Every user-facing name in the database is stored this way, and the reason
- * this has its own test is the fallback: a restaurant enters a dish in Uzbek
- * and nothing else, then someone opens the console in English. Returning the
- * empty string there would draw a menu of blank rows — technically correct
- * about what was translated, useless as a menu.
+ * The switcher was a label for a release because getting this wrong shows one
+ * venue's takings under another venue's name on every screen at once — and the
+ * failure has no symptom, because the numbers still look like numbers.
  */
-describe('translate', () => {
-  it('returns the reader’s language when it is there', () => {
-    const name = { uz: "Ko'k choy", ru: 'Зелёный чай', en: 'Green tea' };
+type Leg = { url: string; branch: string | null };
 
-    expect(translate(name, 'uz')).toBe("Ko'k choy");
-    expect(translate(name, 'ru')).toBe('Зелёный чай');
-    expect(translate(name, 'en')).toBe('Green tea');
+function upstream(answers: { status: number; body: unknown }[]): Leg[] {
+  const legs: Leg[] = [];
+  let index = 0;
+
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init: RequestInit) => {
+      const headers = new Headers(init.headers);
+
+      legs.push({ url, branch: headers.get('X-Branch') });
+
+      const answer = answers[Math.min(index++, answers.length - 1)]!;
+
+      return new Response(JSON.stringify(answer.body), {
+        status: answer.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }),
+  );
+
+  return legs;
+}
+
+const ok = [{ status: 200, body: { data: [1] } }];
+
+afterEach(() => {
+  jar.clear();
+  vi.unstubAllGlobals();
+});
+
+describe('apiGet — which venue a read is about', () => {
+  it('asks for no venue in particular when none has been chosen', async () => {
+    jar.set(SESSION_COOKIE, 'tok_1');
+    const legs = upstream(ok);
+
+    await apiGet('/dashboard');
+
+    // An absent header is the roll-up across every venue, which is what an
+    // owner with nothing chosen is reading.
+    expect(legs[0]?.branch).toBeNull();
   });
 
-  it('falls through rather than rendering a blank cell', () => {
-    // Uzbek first because it is the authoring language: a dish entered once is
-    // entered in Uzbek, and that is the name on the wall in the kitchen.
-    expect(translate({ uz: 'Somsa' }, 'en')).toBe('Somsa');
-    expect(translate({ ru: 'Самса' }, 'en')).toBe('Самса');
-    expect(translate({ en: 'Samsa' }, 'ru')).toBe('Samsa');
+  it('sends the chosen venue on every read', async () => {
+    jar.set(SESSION_COOKIE, 'tok_1');
+    jar.set(BRANCH_COOKIE, 'yunusobod');
+    const legs = upstream(ok);
+
+    expect(await apiGet('/dashboard')).toEqual({ data: [1] });
+    expect(legs[0]?.branch).toBe('yunusobod');
   });
 
-  it('survives what the API can actually send', () => {
-    // Older resources return a plain string for the same column, and a column
-    // never filled in returns null. Neither may throw inside a table row.
-    expect(translate('Osh', 'uz')).toBe('Osh');
-    expect(translate(null, 'uz')).toBe('');
-    expect(translate(undefined, 'uz')).toBe('');
-    expect(translate({}, 'uz')).toBe('');
+  it('falls back to the roll-up when the venue is no longer readable', async () => {
+    jar.set(SESSION_COOKIE, 'tok_1');
+    jar.set(BRANCH_COOKIE, 'closed-branch');
+
+    /*
+     * A cookie outlives the venue it names — a branch closed, a reader newly
+     * pinned — and `ResolveBranch` then refuses EVERY request in the console.
+     * Asking again unscoped is the honest fallback and is what saves a reader
+     * from a console that is entirely 403 with no way back.
+     */
+    const legs = upstream([
+      { status: 404, body: { error: { code: 'branch.not_found' } } },
+      { status: 200, body: { data: [2] } },
+    ]);
+
+    expect(await apiGet('/dashboard')).toEqual({ data: [2] });
+    expect(legs.map((leg) => leg.branch)).toEqual(['closed-branch', null]);
   });
 
-  it('does not treat an unknown locale as a reason to give up', () => {
-    // A locale the catalogue does not carry — a `kk` cookie, a stray header —
-    // still gets a legible name.
-    expect(translate({ uz: 'Osh', en: 'Pilaf' }, 'kk')).toBe('Osh');
+  it('never retries a permission refusal unscoped', async () => {
+    jar.set(SESSION_COOKIE, 'tok_1');
+    jar.set(BRANCH_COOKIE, 'yunusobod');
+
+    // The reason has nothing to do with the venue, and a second attempt would
+    // only be a second refusal one screen later.
+    const legs = upstream([{ status: 403, body: { error: { code: 'auth.forbidden' } } }]);
+
+    expect(await apiGet('/finance/shifts')).toBeNull();
+    expect(legs).toHaveLength(1);
+  });
+
+  it('asks nothing at all without a session, whatever venue is remembered', async () => {
+    jar.set(BRANCH_COOKIE, 'yunusobod');
+    const legs = upstream(ok);
+
+    expect(await apiGet('/dashboard')).toBeNull();
+    expect(legs).toEqual([]);
   });
 });

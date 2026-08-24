@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { NAV_ITEMS, navGroupsFor } from '@/app/(dashboard)/nav';
+import { NAV_ITEMS, navFooterFor, navGroupsFor } from '@/app/(dashboard)/nav';
 import { en } from '@/i18n/en';
 import { ru } from '@/i18n/ru';
 import { uz } from '@/i18n/uz';
@@ -8,6 +8,7 @@ import { uz } from '@/i18n/uz';
 import {
   ALLOWED,
   canSee,
+  DENIED,
   isRoleId,
   landingPath,
   MODULE_KEYS,
@@ -95,11 +96,21 @@ describe('the eight roles', () => {
 
   it('shows a role every row it holds and no other', () => {
     for (const role of ROLE_LIST) {
-      const drawn = navGroupsFor(role).flatMap((group) => group.items.map((item) => item.key));
+      /*
+       * Footer included: settings is pinned to the bottom of the sidebar
+       * rather than sitting in a group, and it is still a row the role holds.
+       * Counting only the groups would let settings quietly disappear from
+       * every sidebar while this stayed green.
+       */
+      const drawn = [
+        ...navGroupsFor(role).flatMap((group) => group.items.map((item) => item.key)),
+        ...(navFooterFor(role) ? [navFooterFor(role)!.key] : []),
+      ];
 
       expect(new Set(drawn), `${role.id}'s sidebar does not match its allowlist`).toEqual(
         new Set(role.nav),
       );
+      expect(drawn.length, `${role.id} gets a row twice`).toBe(new Set(drawn).size);
     }
   });
 
@@ -121,15 +132,41 @@ describe('the eight roles', () => {
   });
 
   it('keeps a discount ceiling consistent with the discount grant', () => {
+    // The two fields answer different questions: the ceiling is how far a role
+    // gets unaided, the grant is what happens above it. So a zero ceiling is a
+    // contradiction next to ALLOWED and correct next to NEEDS_APPROVAL — which
+    // is exactly the waiter, who may ask for any discount and apply none.
+    //
+    // This check used to demand a ceiling above zero for both, and the waiter
+    // was given 5% to satisfy it while the grant said every discount needed a
+    // manager. The two disagreed, the till believed the server, and the console
+    // drew a chip that was refused.
     for (const role of ROLE_LIST) {
-      if (role.perms.discount === 0) {
+      if (role.perms.discount === DENIED) {
         expect(role.discountCeiling, `${role.id} may not discount but has a ceiling`).toBe(0);
+      } else if (role.perms.discount === ALLOWED) {
+        expect(
+          role.discountCeiling,
+          `${role.id} discounts unaided but has no ceiling`,
+        ).toBeGreaterThan(0);
       } else {
-        expect(role.discountCeiling, `${role.id} may discount but has no ceiling`).toBeGreaterThan(
+        expect(role.discountCeiling, `${role.id} has a ceiling below zero`).toBeGreaterThanOrEqual(
           0,
         );
       }
     }
+  });
+
+  it('gives the waiter no discount of their own', () => {
+    // docs/PLAN-POS-FIRST.md §P9, which the till is built to: waiter 0,
+    // cashier 5, manager 20, owner 100. Pinned here because the number lives in
+    // four places — this file, CLAUDE.md, TerminalFactory, PosDatabaseSeeder —
+    // and the last time they drifted apart the console offered a discount the
+    // server would not take.
+    expect(ROLES.waiter.discountCeiling).toBe(0);
+    expect(ROLES.cashier.discountCeiling).toBe(5);
+    expect(ROLES.manager.discountCeiling).toBe(20);
+    expect(ROLES.owner.discountCeiling).toBe(100);
   });
 
   it('names every role in all three languages', () => {

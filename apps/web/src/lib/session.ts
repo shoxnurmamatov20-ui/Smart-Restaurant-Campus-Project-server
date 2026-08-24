@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 
+import { BRANCH_COOKIE } from './branch-cookie';
 import { ROLE_COOKIE } from './role-cookie';
 import { roleFromServer, roleOrDefault, type Role, type SurfaceId } from './roles';
-import { fetchContextWithToken, SESSION_COOKIE } from './server-session';
+import { type AuthContext, fetchContextWithToken, SESSION_COOKIE } from './server-session';
 
 /**
  * Who is asking, as far as a server render is concerned.
@@ -47,6 +48,31 @@ export type Session = {
    */
   branchId: string | null;
   /**
+   * The same venue, by the name `X-Branch` takes.
+   *
+   * The slug rather than the id, because that is what the header is keyed on
+   * and what the cookie holds — see lib/branch-cookie.ts. The switcher matches
+   * its rows against this, and it is the value the whole console's reads were
+   * scoped by when this render happened.
+   */
+  branchSlug: string | null;
+  /**
+   * Whether this reader may choose a different venue.
+   *
+   * False is the interesting case: somebody whose user row carries a
+   * `branch_id` is scoped to their venue by the server whatever any header
+   * said, so the switcher is a label for them rather than a control. Drawing
+   * the control anyway would be offering a choice the API refuses.
+   */
+  branchPinned: boolean;
+  /**
+   * What the figures are called on screen: the pinned venue's name, or the
+   * restaurant's own when the reader sees the whole business. The greeting
+   * line on the dashboard says "{place} is 12% ahead of yesterday", and a
+   * place has to have a name.
+   */
+  placeName: string;
+  /**
    * Whether the API answered, or this is the fixture console.
    *
    * Read it before showing anything that claims to be today's money: `false`
@@ -54,6 +80,23 @@ export type Session = {
    */
   live: boolean;
 };
+
+/**
+ * What the figures on screen are about.
+ *
+ * The pinned venue, else the restaurant, else — for a platform operator, who
+ * belongs to no restaurant and whose context carries `tenant: null` — the
+ * product's own name. The third case is the one that was missing: the first
+ * version read `context.tenant.name` unguarded, and the super-admin's every
+ * page answered 500 with a React #441 until it was typed honestly.
+ */
+export function placeNameOf(
+  context: Pick<AuthContext, 'branch' | 'branch_pinned' | 'tenant'>,
+): string {
+  if (context.branch_pinned && context.branch) return context.branch.name;
+
+  return context.tenant?.name ?? 'Smart Restaurant';
+}
 
 /** Two letters for the avatar, from whatever the person is actually called. */
 function initialsOf(name: string): string {
@@ -76,7 +119,21 @@ export async function getSession(): Promise<Session> {
   const token = store.get(SESSION_COOKIE)?.value;
 
   if (token) {
-    const context = await fetchContextWithToken(token);
+    /*
+     * The venue chosen in the top bar, asked for by name.
+     *
+     * The endpoint answers the branch the REQUEST resolved to, so sending the
+     * header is what makes the greeting say the venue whose figures are on the
+     * page. A cookie naming a venue that has since closed answers null and is
+     * asked again without it, which lands on the roll-up — the same one-time
+     * retry `lib/api-server.ts` makes, for the same reason.
+     */
+    const chosen = store.get(BRANCH_COOKIE)?.value;
+
+    const context =
+      (await fetchContextWithToken(token, chosen)) ??
+      (chosen === undefined ? null : await fetchContextWithToken(token));
+
     const role = context ? roleFromServer(context.roles) : null;
 
     if (context && role) {
@@ -84,9 +141,18 @@ export async function getSession(): Promise<Session> {
         user: { name: context.user.name, initials: initialsOf(context.user.name) },
         role,
         surface: role.surface,
-        // A pinned branch is the one this person works at; unpinned reads the
-        // whole business, which is what `null` means to every screen below.
-        branchId: context.branch_pinned && context.branch ? String(context.branch.id) : null,
+        /*
+         * The venue this render is scoped to — pinned OR chosen.
+         *
+         * It used to be the pinned branch alone, which was correct while the
+         * switcher was a label and wrong the moment it became a control: the
+         * shell would have highlighted nothing while every figure on the page
+         * belonged to one venue.
+         */
+        branchId: context.branch ? String(context.branch.id) : null,
+        branchSlug: context.branch?.slug ?? null,
+        branchPinned: context.branch_pinned,
+        placeName: placeNameOf(context),
         live: true,
       };
     }
@@ -99,6 +165,11 @@ export async function getSession(): Promise<Session> {
     role,
     surface: role.surface,
     branchId: 'chilonzor',
+    branchSlug: 'chilonzor',
+    // The demo console is not pinned: the switcher is part of the design and a
+    // reviewer looking through it should be able to open it.
+    branchPinned: false,
+    placeName: 'Chilonzor',
     live: false,
   };
 }

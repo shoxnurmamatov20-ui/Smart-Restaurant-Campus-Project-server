@@ -74,8 +74,18 @@ export const SESSION_MAX_AGE = 60 * 60 * 8;
  */
 export type AuthContext = {
   user: { name: string };
-  tenant: { id: number; name: string; slug: string; locale: string; timezone: string };
-  branch: { id: number; name: string } | null;
+  /**
+   * Null for a platform operator: a super-admin belongs to no restaurant, and
+   * the API says so with `null`. This type said otherwise for a day, and every
+   * console page crashed for the one account that opens all of them.
+   */
+  tenant: { id: number; name: string; slug: string; locale: string; timezone: string } | null;
+  /*
+   * The venue THIS REQUEST resolved to, not a column on the user. It follows
+   * `X-Branch` — see `fetchContextWithToken` — and the slug travels because
+   * that is what the header is keyed on and what the switcher matches.
+   */
+  branch: { id: number; name: string; slug: string } | null;
   branch_pinned: boolean;
   roles: string[];
   permissions: string[];
@@ -88,13 +98,34 @@ export type AuthContext = {
  * is down, a network that is not there. The caller treats that as "no session"
  * and falls back, because a console that throws a 500 because the API is
  * restarting is worse than one that shows the demo it showed a minute ago.
+ *
+ * A stale venue is one of those "not a clean answer" cases: `ResolveBranch`
+ * refuses a slug it does not know, so a cookie naming a closed branch answers
+ * null here and the caller asks again unscoped. That is the same one-time
+ * retry `lib/api-server.ts` makes and it is why this takes the header at all.
  */
-export async function fetchContextWithToken(token: string): Promise<AuthContext | null> {
+export async function fetchContextWithToken(
+  token: string,
+  branch?: string,
+): Promise<AuthContext | null> {
   try {
     const response = await fetch(`${apiBase()}/auth/context`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`,
+        /*
+         * The venue the reader has chosen, so the answer is about it.
+         *
+         * `branch` and `branch_pinned` on this endpoint describe the branch
+         * the REQUEST resolved to, not a column on the user — so sending the
+         * header is what makes `placeName` say "Yunusobod" while the figures
+         * on the page are Yunusobod's. Without it the greeting named the
+         * restaurant while every number under it belonged to one venue.
+         *
+         * Absent is the roll-up across every venue, which is what the API
+         * means by an absent `X-Branch`. See lib/branch-cookie.ts.
+         */
+        ...(branch === undefined || branch === '' ? {} : { 'X-Branch': branch }),
       },
       // A session is per request and per person. Caching it would hand one
       // person's restaurant to the next request that happens to look alike.
