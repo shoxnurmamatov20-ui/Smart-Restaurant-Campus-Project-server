@@ -345,6 +345,24 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                  */
                 Route::patch('tenants/{tenant}/owner', [Platform\TenantController::class, 'updateOwner'])
                     ->name('tenants.owner.update');
+
+                /*
+                 * Read back the password the platform issued.
+                 *
+                 * Not "show the password" — `users.password` is a hash and
+                 * nothing turns it back. This answers a narrower question: what
+                 * did *this platform* hand over, which it is entitled to
+                 * remember about a credential it issued itself. The column is
+                 * encrypted at rest and cleared the moment anybody changes the
+                 * password by another route, so a stale value can never be read
+                 * out as current.
+                 *
+                 * GET because it changes nothing, and every read is logged with
+                 * the operator's identity — "who looked at this restaurant's
+                 * password, and when" has to be answerable.
+                 */
+                Route::get('tenants/{tenant}/owner-password', [Platform\TenantController::class, 'ownerPassword'])
+                    ->name('tenants.owner-password.show');
                 Route::post('tenants/{tenant}/invoices', [Platform\BillingController::class, 'store'])
                     ->name('tenants.invoices.store');
 

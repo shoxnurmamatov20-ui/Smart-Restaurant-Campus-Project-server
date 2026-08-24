@@ -40,6 +40,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property string|null $issued_password The value the platform handed over, encrypted — null once anybody else changes the password
+ * @property Carbon|null $issued_password_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -98,7 +100,7 @@ use Spatie\Permission\Traits\HasRoles;
 #[Fillable(['tenant_id', 'branch_id', 'name', 'email', 'phone', 'password', 'locale', 'is_active'])]
 // `two_factor_secret` is deliberately not fillable: it is written by the
 // enrolment path alone, never by mass assignment from a request body.
-#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_last_window'])]
+#[Hidden(['password', 'issued_password', 'remember_token', 'two_factor_secret', 'two_factor_last_window'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -173,7 +175,56 @@ class User extends Authenticatable
             // entirely.
             'two_factor_secret' => 'encrypted',
             'two_factor_confirmed_at' => 'datetime',
+            /*
+             * The password the platform issued, kept readable on purpose.
+             *
+             * `password` above is a one-way hash and stays one — this is the
+             * separate fact that an operator handed this value over, so it can
+             * be read back to a restaurant that rings up having lost it. The
+             * migration says why that is worth storing and what keeps it safe;
+             * `booted()` below is what keeps it *true*.
+             */
+            'issued_password' => 'encrypted',
+            'issued_password_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A password changed by anybody else clears the copy the operator can read.
+     *
+     * The failure this prevents is the whole reason the column is defensible. An
+     * owner changes their own password; the platform card goes on showing the
+     * one it issued in March; an operator reads it down the phone and it does
+     * not work — and now nobody trusts the screen, including for the restaurant
+     * where it *was* right.
+     *
+     * So the rule is: this column is only ever true immediately after the
+     * platform wrote it. `TenantController` sets both fields in one save, which
+     * is why the guard below lets that pass; every other route to a new password
+     * — the owner's own profile, a reset from anywhere — nulls it.
+     *
+     * Written here rather than in the controller because "everywhere else" is
+     * not a list anybody can keep up to date, and a stale credential shown as
+     * current is worse than no credential shown at all.
+     */
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::updating(function (self $user): void {
+            if (! $user->isDirty('password')) {
+                return;
+            }
+
+            // The platform's own write sets the copy in the same save. Anything
+            // else that touched `password` did not, and its copy is now a lie.
+            if ($user->isDirty('issued_password')) {
+                return;
+            }
+
+            $user->issued_password = null;
+            $user->issued_password_at = null;
+        });
     }
 
     // ============ Scopes ============

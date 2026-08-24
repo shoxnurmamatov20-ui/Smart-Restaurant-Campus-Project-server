@@ -183,12 +183,27 @@ final class TenantController extends Controller
         $chosen = $request->validated('password');
         $password = is_string($chosen) && $chosen !== '' ? $chosen : TenantProvisioner::password();
 
-        $owner->forceFill(['password' => $password])->save();
+        /*
+         * Both columns in one save, and that is load-bearing.
+         *
+         * `password` is cast `hashed`, so what lands there is a bcrypt digest
+         * nothing can read back. `issued_password` is cast `encrypted` and keeps
+         * the value itself, so an operator can answer the call this endpoint
+         * exists for — "what is my password" — instead of only ever replacing it.
+         *
+         * One save because `User::booted()` clears the readable copy whenever
+         * `password` changes *without* it. That guard is what stops the console
+         * showing a stale credential as current after an owner changes their own,
+         * and writing the two separately would trip it against ourselves.
+         */
+        $owner->forceFill([
+            'password' => $password,
+            'issued_password' => $password,
+            'issued_password_at' => now(),
+        ])->save();
 
-        // Cast to `hashed` on the model, so what was just written is a hash and
-        // `$password` is the only copy of the plain text in the world. Said out
-        // loud because the next line throws away every session that was opened
-        // with the old one, and the two together are the whole act.
+        // Said out loud because the next line throws away every session that was
+        // opened with the old password, and the two together are the whole act.
         $owner->tokens()->delete();
 
         activity('platform.tenant')
@@ -212,6 +227,79 @@ final class TenantController extends Controller
                 'phone' => $owner->phone,
                 // Once. Exactly like the create call, and for the same reason.
                 'password' => $password,
+            ],
+        ]);
+    }
+
+    /**
+     * Read back the password the platform issued.
+     *
+     * The call this answers happens every week: a restaurant rings and asks what
+     * their password is. Until now there was no answer — `password` is a bcrypt
+     * hash, so the only move available was to replace it, and an owner who was
+     * still using it elsewhere got a working login and a broken habit.
+     *
+     * What it returns is not "the password". It is the value **this platform
+     * issued**, which is a fact the platform is entitled to remember about a
+     * credential it handed over. If the owner has since changed it, there is
+     * nothing here: `User::booted()` nulls the copy on any password change that
+     * did not come from this controller, precisely so the console can never read
+     * out something that stopped being true.
+     *
+     * Three things stand between this and a leak, and none of them is optional:
+     *
+     *  1. `super-admin` only, the same wall the rest of `/platform` sits behind.
+     *  2. Every read is logged with the operator's identity. "Who looked at this
+     *     restaurant's password, and when" is answerable from the audit trail.
+     *  3. The column is encrypted at rest, so a database dump on its own is
+     *     worth nothing without `APP_KEY`.
+     *
+     * `issued_at` travels with it so the console can say how old it is. Four
+     * months is long enough that an owner has probably changed it, and a screen
+     * that shows the age is one an operator can judge rather than trust.
+     */
+    public function ownerPassword(Request $request, Tenant $tenant): JsonResponse
+    {
+        $owner = $this->owner($tenant);
+
+        if ($owner === null) {
+            throw ApiException::detailed(
+                'request.validation_failed',
+                'Bu restoranda egasining hisobi yo\'q.',
+                'В этом ресторане нет учётной записи владельца.',
+                'This restaurant has no owner account.',
+                field: 'tenant',
+            );
+        }
+
+        $issued = $owner->issued_password;
+
+        activity('platform.tenant')
+            ->performedOn($tenant)
+            ->causedBy($request->user())
+            // Never the password itself — an audit trail that carries the
+            // credential is a second place to steal it from, and this one is
+            // readable from the console. Whether there was one to show is the
+            // useful half anyway.
+            ->withProperties([
+                'user_id' => $owner->id,
+                'email' => $owner->email,
+                'had_password' => is_string($issued) && $issued !== '',
+            ])
+            ->log('platform.owner.password_read');
+
+        return response()->json([
+            'owner' => [
+                'id' => $owner->id,
+                'email' => $owner->email,
+                /*
+                 * `null` is a real answer and the console says so in words: this
+                 * restaurant was onboarded before the column existed, or the
+                 * owner has changed their password since. Either way the honest
+                 * next step is to issue a new one, not to guess.
+                 */
+                'password' => $issued,
+                'issued_at' => $owner->issued_password_at?->toIso8601String(),
             ],
         ]);
     }

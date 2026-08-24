@@ -109,6 +109,26 @@ final readonly class TenantProvisioner
                 'email_verified_at' => now(),
             ]);
 
+            /*
+             * The same value again, encrypted, so an operator can read it back
+             * to the restaurant that rings up having lost it.
+             *
+             * `password` above is a bcrypt hash and cannot be turned back into
+             * what was typed — that is the whole point of it. This is the
+             * separate fact that the platform issued this particular value.
+             *
+             * `forceFill` rather than a key in `create()` above, and for the
+             * same reason `two_factor_secret` is not fillable: a column that
+             * holds a readable credential must never be reachable from a request
+             * body. It is written here, by the code that generated the value,
+             * and nowhere else. `User::booted()` clears it the moment anybody
+             * changes the password by another route.
+             */
+            $user->forceFill([
+                'issued_password' => $input['password'],
+                'issued_password_at' => now(),
+            ])->save();
+
             $user->assignRole('owner');
 
             /*

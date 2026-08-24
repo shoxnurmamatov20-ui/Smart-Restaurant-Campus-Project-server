@@ -377,6 +377,113 @@ final class PlatformConsoleTest extends TestCase
         ])->assertOk();
     }
 
+    public function test_the_operator_can_read_back_the_password_the_platform_issued(): void
+    {
+        /*
+         * The call this whole column exists for: a restaurant rings and asks
+         * what their password is. Before it there was no answer — `password` is
+         * a bcrypt hash — so the only move was to replace it, which works and is
+         * the wrong answer for an owner still using the old one elsewhere.
+         */
+        $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $chosen = 'Osh7Xona7Termiz';
+
+        $this->postJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner-password",
+            ['password' => $chosen],
+        )->assertOk();
+
+        $this->getJson("/api/v1/platform/tenants/{$this->tenant->id}/owner-password")
+            ->assertOk()
+            ->assertJsonPath('owner.password', $chosen)
+            // The age is what an operator judges by before reading it out.
+            ->assertJsonStructure(['owner' => ['password', 'issued_at']]);
+
+        $this->assertTrue(
+            Activity::query()->where('description', 'platform.owner.password_read')->exists(),
+            'reading somebody\'s password without an audit row is not traceable',
+        );
+    }
+
+    public function test_the_stored_copy_never_reaches_anybody_but_that_endpoint(): void
+    {
+        /*
+         * The column is a readable credential, so the danger is not the endpoint
+         * that means to return it — it is every other serialisation quietly
+         * carrying it along. `#[Hidden]` on the model is what stops that, and
+         * this asserts it on the two responses that describe an owner.
+         */
+        $owner = $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $this->postJson("/api/v1/platform/tenants/{$this->tenant->id}/owner-password")->assertOk();
+
+        $this->getJson('/api/v1/platform/tenants')
+            ->assertOk()
+            ->assertDontSee('issued_password');
+
+        $this->patchJson(
+            "/api/v1/platform/tenants/{$this->tenant->id}/owner",
+            ['phone' => '+998901112233'],
+        )
+            ->assertOk()
+            ->assertDontSee('issued_password');
+
+        // And the owner's own `me` — the account cannot read its own stored copy
+        // either, which is the request an attacker with a session would make.
+        $this->actingAs($owner)
+            ->getJson('/api/v1/auth/me')
+            ->assertDontSee('issued_password');
+    }
+
+    public function test_an_owner_changing_their_own_password_clears_the_stored_copy(): void
+    {
+        /*
+         * The guard that makes the column defensible. Without it the console
+         * goes on showing the password it issued in March, an operator reads it
+         * down the phone, it does not work — and now nobody trusts the screen,
+         * including for the restaurant where it *was* right.
+         *
+         * A stale credential presented as current is worse than none.
+         */
+        $owner = $this->restaurantOwner();
+        $this->actingAs($this->operator());
+
+        $this->postJson("/api/v1/platform/tenants/{$this->tenant->id}/owner-password")->assertOk();
+
+        $issued = $owner->fresh();
+        $this->assertNotNull($issued);
+        $this->assertNotNull($issued->issued_password, 'the platform did not store what it issued');
+
+        // The owner changes it themselves — any route that is not this
+        // controller, which is what `User::booted()` watches for.
+        $issued->forceFill(['password' => 'BoshqaParol2026'])->save();
+
+        $after = $owner->fresh();
+        $this->assertNotNull($after);
+        $this->assertNull($after->issued_password, 'a password nobody issued was left readable');
+        $this->assertNull($after->issued_password_at);
+
+        // And the endpoint says so rather than showing the old one.
+        $this->actingAs($this->operator())
+            ->getJson("/api/v1/platform/tenants/{$this->tenant->id}/owner-password")
+            ->assertOk()
+            ->assertJsonPath('owner.password', null);
+    }
+
+    public function test_a_restaurant_owner_cannot_read_their_own_stored_password(): void
+    {
+        // The wall is the same one the rest of /platform sits behind, asserted
+        // here because this endpoint returns a credential in plain text.
+        $owner = $this->restaurantOwner();
+
+        $this->actingAs($owner)
+            ->getJson("/api/v1/platform/tenants/{$this->tenant->id}/owner-password")
+            ->assertStatus(403);
+    }
+
     /**
      * @return list<array{0: string}>
      */

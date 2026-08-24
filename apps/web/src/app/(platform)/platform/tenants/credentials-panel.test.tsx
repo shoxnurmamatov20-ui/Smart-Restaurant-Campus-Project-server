@@ -162,6 +162,50 @@ describe('the credentials panel', () => {
     expect(calls[0]?.body).toEqual({ tenantId: 42, email: 'yangi@oshxona.uz' });
   });
 
+  it('edits the name and the phone on the same call, not just the address', async () => {
+    /*
+     * The API took all three from the day it was written and the panel only ever
+     * sent the email, so "you spelled my name wrong" and "that is my old number"
+     * — which arrive on the same phone call — had nowhere to go.
+     */
+    const calls = upstream({
+      owner: { email: 'egasi@oshxona.uz', name: 'Ravshan Karimov', phone: '+998907776655' },
+    });
+
+    openCredentials();
+
+    fireEvent.change(screen.getByDisplayValue('Ravshan aka'), {
+      target: { value: 'Ravshan Karimov' },
+    });
+    fireEvent.change(screen.getByDisplayValue('+998901112233'), {
+      target: { value: '+998907776655' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: CARD.emailSave }));
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    // The address is absent because it was not touched — `sometimes` upstream
+    // reads an absent key as "leave it alone".
+    expect(calls[0]?.body).toEqual({
+      tenantId: 42,
+      name: 'Ravshan Karimov',
+      phone: '+998907776655',
+    });
+  });
+
+  it('lets a wrong phone number be removed, not only replaced', async () => {
+    // Emptied on purpose is a different instruction from untouched, and the
+    // proxy forwards it as an explicit null.
+    const calls = upstream({ owner: { email: 'egasi@oshxona.uz', phone: null } });
+
+    openCredentials();
+
+    fireEvent.change(screen.getByDisplayValue('+998901112233'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: CARD.emailSave }));
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0]?.body).toEqual({ tenantId: 42, phone: '' });
+  });
+
   it('will not save an address nobody changed', async () => {
     // The button has nothing to do, and a round trip that changes nothing would
     // report success for a form the operator had not filled in.
@@ -250,6 +294,55 @@ describe('the credentials panel', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(calls).toHaveLength(0);
+  });
+
+  it('reads back the password the platform issued', async () => {
+    /*
+     * The call an operator takes all day — "what is my password" — and the one
+     * this panel had no answer to. Not a decryption of the hash; the value the
+     * platform issued, kept beside it.
+     */
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              owner: { password: 'Osh7Xona7Termiz', issued_at: new Date().toISOString() },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+      ),
+    );
+
+    openCredentials();
+
+    fireEvent.click(screen.getByRole('button', { name: CARD.revealPassword }));
+
+    await waitFor(() => expect(screen.getByText('Osh7Xona7Termiz')).toBeTruthy());
+    // The age, because an operator judges by it before reading it out.
+    expect(screen.getByText(CARD.revealedToday)).toBeTruthy();
+  });
+
+  it('says there is nothing stored rather than showing an empty box', async () => {
+    // `null` is a real answer: the owner changed their password, so the copy was
+    // cleared. Silence here would look like a bug and hide the next step.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ owner: { password: null, issued_at: null } }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+      ),
+    );
+
+    openCredentials();
+
+    fireEvent.click(screen.getByRole('button', { name: CARD.revealPassword }));
+
+    await waitFor(() => expect(screen.getByText(CARD.revealedNone)).toBeTruthy());
   });
 
   it('says a restaurant has no owner rather than offering to edit one', () => {

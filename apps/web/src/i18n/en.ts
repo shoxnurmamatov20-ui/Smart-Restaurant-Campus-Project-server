@@ -678,6 +678,15 @@ export const en: WebMessages = {
         fieldPassword: 'Password (optional)',
         fieldPasswordHint: 'Leave empty and one is generated, shown once',
         copyAction: 'Copy',
+        revealPassword: 'Show password',
+        revealedTitle: 'The password the platform issued',
+        revealedAge: 'issued {n} days ago',
+        revealedToday: 'issued today',
+        revealedNone:
+          'No stored password — the owner changed it, or this restaurant predates the feature. Issue a new one.',
+        revealedStale:
+          'If the owner changes their password this record is cleared, so what is here is always current.',
+        phoneClearHint: 'Leave empty to remove the number',
       },
     },
     platformTerminals: {

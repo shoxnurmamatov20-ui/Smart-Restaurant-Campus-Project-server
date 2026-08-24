@@ -701,6 +701,15 @@ export const uz = {
         fieldPassword: 'Parol (ixtiyoriy)',
         fieldPasswordHint: 'Bo‘sh qoldirsangiz — o‘zi yaratiladi va bir marta ko‘rsatiladi',
         copyAction: 'Nusxalash',
+        revealPassword: 'Parolni ko‘rsatish',
+        revealedTitle: 'Platforma bergan parol',
+        revealedAge: '{n} kun oldin berilgan',
+        revealedToday: 'Bugun berilgan',
+        revealedNone:
+          'Saqlangan parol yo‘q — egasi uni o‘zgartirgan yoki restoran bu imkoniyatdan oldin ochilgan. Yangi parol bering.',
+        revealedStale:
+          'Egasi parolini o‘zgartirsa, bu yozuv o‘chadi — ya‘ni bu yerdagi qiymat doim amaldagisi.',
+        phoneClearHint: 'Bo‘sh qoldirsangiz — raqam o‘chiriladi',
       },
     },
     platformTerminals: {

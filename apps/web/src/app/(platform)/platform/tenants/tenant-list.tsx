@@ -710,6 +710,39 @@ function TenantCard({
   const [savingEmail, setSavingEmail] = useState(false);
 
   /*
+   * The other two fields on the same account, for the same call.
+   *
+   * "Correct my email" is the common one, but "you spelled my name wrong" and
+   * "this is my old number" arrive on the same call and used to have no answer
+   * either — the API took all three from the day it was written and the panel
+   * only ever sent one, so two thirds of the endpoint was unreachable.
+   *
+   * The phone deliberately allows empty: clearing a wrong number is a thing an
+   * operator has to be able to do, and the proxy forwards `''` as null rather
+   * than dropping the key, so "make it blank" and "leave it alone" stay
+   * different instructions.
+   */
+  const [nameNow, setNameNow] = useState(row.owner);
+  const [nameDraft, setNameDraft] = useState(row.owner);
+  const [phoneNow, setPhoneNow] = useState(row.phone);
+  const [phoneDraft, setPhoneDraft] = useState(row.phone);
+
+  /*
+   * Whether there is anything to save at all.
+   *
+   * The same three comparisons the handler makes, so the button is disabled
+   * exactly when pressing it would do nothing — rather than the two drifting and
+   * an operator being told "saved" for a form they had not touched.
+   *
+   * The email is the one field that may not be blanked: it is the login, and an
+   * account with no address is an account nobody can sign in to.
+   */
+  const ownerEdited =
+    (emailDraft.trim() !== '' && emailDraft.trim() !== emailNow) ||
+    (nameDraft.trim() !== '' && nameDraft.trim() !== nameNow) ||
+    phoneDraft.trim() !== phoneNow;
+
+  /*
    * A password the operator typed, or nothing.
    *
    * Empty is the default and stays the default: the button below says "issue a
@@ -718,6 +751,23 @@ function TenantCard({
    * before.
    */
   const [passwordDraft, setPasswordDraft] = useState('');
+
+  /*
+   * The password the platform issued, once an operator has asked to see it.
+   *
+   * Kept out of the row and fetched on demand rather than travelling down with
+   * the list: this value is only ever wanted for one restaurant at a time, on a
+   * call, and shipping every restaurant's credential to the browser to render a
+   * table of names would put the whole customer list one screenshot away.
+   *
+   * `null` inside the object is a real answer with its own sentence — the owner
+   * has changed their password since, or the restaurant predates the column —
+   * and it is deliberately not the same state as "not asked yet".
+   */
+  const [revealed, setRevealed] = useState<{ password: string | null; at: string | null } | null>(
+    null,
+  );
+  const [revealing, setRevealing] = useState(false);
 
   /*
    * The owner's new password, once.
@@ -980,6 +1030,61 @@ function TenantCard({
    * session the account has open; this is a correction, and an operator fixing a
    * typo must not sign the owner out of the till they are standing at.
    */
+  /**
+   * Read back the password the platform issued for this restaurant.
+   *
+   * The call an operator takes all day is "what is my password", and until this
+   * existed the only answer was a new one — which works, and is the wrong answer
+   * for an owner who is still using the old one somewhere else.
+   *
+   * It is not a decryption of `users.password`; that is a bcrypt hash and stays
+   * one. It is the value this platform handed over, kept encrypted beside it and
+   * cleared the moment the owner changes their own. So `password: null` in the
+   * answer is not a failure — it is the honest "that is no longer true", and the
+   * panel says so in a sentence rather than showing an empty box.
+   *
+   * Fetched on demand, never with the list: one restaurant at a time, on a call.
+   */
+  async function revealOwnerPassword() {
+    if (tenantId === null) {
+      flash.problem(copy.demo);
+
+      return;
+    }
+
+    setRevealing(true);
+
+    const response = await fetch(`/api/platform/tenant-password/reveal?tenantId=${tenantId}`, {
+      cache: 'no-store',
+    }).catch(() => null);
+
+    setRevealing(false);
+
+    if (response === null || !response.ok) {
+      refused(null);
+
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+      owner?: { password?: unknown; issued_at?: unknown };
+    } | null;
+
+    if (body === null) {
+      refused(null);
+
+      return;
+    }
+
+    const value = body.owner?.password;
+    const at = body.owner?.issued_at;
+
+    setRevealed({
+      password: typeof value === 'string' && value !== '' ? value : null,
+      at: typeof at === 'string' && at !== '' ? at : null,
+    });
+  }
+
   async function saveOwnerEmail() {
     if (tenantId === null) {
       flash.problem(copy.demo);
@@ -987,18 +1092,34 @@ function TenantCard({
       return;
     }
 
-    const next = emailDraft.trim();
+    const email = emailDraft.trim();
+    const name = nameDraft.trim();
+    const phone = phoneDraft.trim();
 
-    // Nothing typed, or nothing changed. Silent rather than a refusal toast: the
-    // operator pressed a button that had nothing to do, which is not an error
-    // they need told about.
-    if (next === '' || next === emailNow) return;
+    /*
+     * Only what the operator actually changed.
+     *
+     * The API is `sometimes`-validated, so an absent key means "leave it alone".
+     * Sending all three every time would rewrite two fields nobody touched — and
+     * on the phone that matters, because `''` is forwarded as a deliberate
+     * clear rather than dropped.
+     */
+    const patch: Record<string, string> = {};
+
+    if (email !== '' && email !== emailNow) patch.email = email;
+    if (name !== '' && name !== nameNow) patch.name = name;
+    if (phone !== phoneNow) patch.phone = phone;
+
+    // Nothing changed. Silent rather than a refusal toast: the operator pressed
+    // a button that had nothing to do, which is not an error they need told
+    // about.
+    if (Object.keys(patch).length === 0) return;
 
     setSavingEmail(true);
 
-    const answer = await post<{ owner?: { email?: unknown } }>(
+    const answer = await post<{ owner?: { email?: unknown; name?: unknown; phone?: unknown } }>(
       '/api/platform/tenant-owner',
-      { tenantId, email: next },
+      { tenantId, ...patch },
       lang,
     );
 
@@ -1014,11 +1135,21 @@ function TenantCard({
        and reading it back is how a normalisation upstream — a trimmed space, a
        lower-cased domain — reaches the screen instead of being invisible until
        the next reload. */
-    const saved = answer.data.owner?.email;
-    const shown = typeof saved === 'string' && saved !== '' ? saved : next;
+    const stored = answer.data.owner ?? {};
+    const readBack = (value: unknown, typed: string): string =>
+      typeof value === 'string' && value !== '' ? value : typed;
 
-    setEmailNow(shown);
-    setEmailDraft(shown);
+    const savedEmail = readBack(stored.email, email);
+    const savedName = readBack(stored.name, name);
+    // A cleared phone comes back null, and null is the correct thing to show.
+    const savedPhone = typeof stored.phone === 'string' ? stored.phone : '';
+
+    setEmailNow(savedEmail);
+    setEmailDraft(savedEmail);
+    setNameNow(savedName);
+    setNameDraft(savedName);
+    setPhoneNow(savedPhone);
+    setPhoneDraft(savedPhone);
     flash(`${row.name} · ${copy.emailSaved}`);
   }
 
@@ -1445,23 +1576,106 @@ function TenantCard({
                   </span>
                 </label>
 
+                {/* The other two things asked for on the same call. The API has
+                    taken all three since it was written; the panel sent one, so
+                    "you spelled my name wrong" and "that is my old number" had
+                    nowhere to go. */}
+                <label className="mt-2.5 block">
+                  <span className="text-fg-muted text-xs font-semibold">{copy.ownerName}</span>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    value={nameDraft}
+                    disabled={savingEmail}
+                    onChange={(event) => setNameDraft(event.target.value)}
+                    className="bg-surface border-border text-fg mt-1.5 h-10 w-full rounded-md border px-3 text-sm"
+                  />
+                </label>
+
+                <label className="mt-2.5 block">
+                  <span className="text-fg-muted text-xs font-semibold">{copy.ownerPhone}</span>
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="off"
+                    value={phoneDraft}
+                    disabled={savingEmail}
+                    placeholder="+998 90 000 00 00"
+                    onChange={(event) => setPhoneDraft(event.target.value)}
+                    className="bg-surface border-border text-fg mt-1.5 h-10 w-full rounded-md border px-3 font-mono text-sm"
+                  />
+                </label>
+                {/* Emptying it is allowed and means it: the proxy forwards a
+                    blank as an explicit null, so a wrong number can be removed
+                    rather than only replaced. */}
+                <p className="text-fg-muted mt-1.5 text-xs leading-normal">{copy.phoneClearHint}</p>
+
                 <button
                   type="button"
-                  disabled={
-                    savingEmail || emailDraft.trim() === '' || emailDraft.trim() === emailNow
-                  }
+                  disabled={savingEmail || !ownerEdited}
                   onClick={() => void saveOwnerEmail()}
-                  className={`mt-2 h-9 w-full rounded-md text-sm font-semibold text-white ${
-                    savingEmail || emailDraft.trim() === '' || emailDraft.trim() === emailNow
-                      ? 'bg-n-300'
-                      : 'bg-brand-600'
+                  className={`mt-2.5 h-9 w-full rounded-md text-sm font-semibold text-white ${
+                    savingEmail || !ownerEdited ? 'bg-n-300' : 'bg-brand-600'
                   }`}
                 >
                   {copy.emailSave}
                 </button>
 
-                {/* Why there is no "show the password" button, in the place
-                    somebody would look for one. */}
+                {/* The answer to the call an operator takes all day.
+                    Not a decryption of the hash — that is one-way and stays so —
+                    but the value this platform issued, kept beside it and
+                    cleared the moment the owner changes their own. */}
+                <button
+                  type="button"
+                  disabled={revealing}
+                  onClick={() => void revealOwnerPassword()}
+                  className={`mt-3 h-9 w-full rounded-md border text-sm font-semibold ${
+                    revealing
+                      ? 'border-border bg-bg-subtle text-fg-muted'
+                      : 'border-border-strong bg-surface text-fg'
+                  }`}
+                >
+                  {copy.revealPassword}
+                </button>
+
+                {revealed === null ? null : (
+                  <div className="border-border bg-surface mt-3 rounded-md border p-3.5">
+                    <p className="text-fg-muted text-xs font-semibold">{copy.revealedTitle}</p>
+
+                    {revealed.password === null ? (
+                      /* A real answer, not a failure: the owner has changed it
+                         since, or this restaurant predates the column. Said in
+                         words, because the next step — issue a new one — is the
+                         button below and the operator should know why. */
+                      <p className="text-fg-muted mt-2 text-sm leading-normal">
+                        {copy.revealedNone}
+                      </p>
+                    ) : (
+                      <>
+                        {/* Large, monospaced and copyable, like the issued one:
+                            this is read out loud across a room, where l, 1 and I
+                            are the same character in a proportional face. */}
+                        <button
+                          type="button"
+                          data-num
+                          onClick={() => void copyText(revealed.password ?? '')}
+                          title={copy.copyHint}
+                          className="mt-2 block max-w-full text-left font-mono text-lg font-semibold break-all"
+                        >
+                          {revealed.password}
+                        </button>
+                        <p className="text-fg-subtle mt-1.5 text-xs">{ageOf(revealed.at, copy)}</p>
+                        <p className="text-fg-muted mt-2 text-xs leading-normal">
+                          {copy.revealedStale}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* What to do when there is nothing to show, or the owner wants
+                    a different one. Both end every session the account has open,
+                    which the sentence below says before the button is pressed. */}
                 <p className="text-fg-muted mt-3 text-xs leading-normal">{copy.credentialsHint}</p>
 
                 {/* And what to do instead: type one, or leave it and take the
@@ -1896,6 +2110,30 @@ type CreatedTenant = {
   data?: { id?: unknown; tenant_id?: unknown; name?: unknown; since?: unknown };
   owner?: { email?: unknown; password?: unknown };
 };
+
+/**
+ * How old the stored password is, in words.
+ *
+ * The age is the part an operator judges by. A password issued this morning is
+ * one the owner has almost certainly not changed; one from four months ago is a
+ * value that only *happens* to still be true, and the operator should hear that
+ * before reading it down a phone line.
+ *
+ * Whole days from the written stamp, and the arithmetic is in UTC on both sides
+ * so it does not shift by a day at the reader's midnight — the same rule the
+ * crew app's `writtenAt` follows and for the same reason.
+ */
+function ageOf(iso: string | null, copy: TenantCopy): string {
+  if (iso === null) return '';
+
+  const at = Date.parse(iso);
+
+  if (Number.isNaN(at)) return '';
+
+  const days = Math.max(0, Math.floor((Date.now() - at) / 86_400_000));
+
+  return days === 0 ? copy.revealedToday : copy.revealedAge.replace('{n}', String(days));
+}
 
 const asText = (value: unknown): string | null =>
   typeof value === 'string' && value !== '' ? value : null;

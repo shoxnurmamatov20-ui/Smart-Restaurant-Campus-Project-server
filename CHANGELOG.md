@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🔓 Added — The operator can read back the password the platform issued (2026-08-24)
+
+Two hundred calls a day, all the same one: "what was my password?" The console
+had no answer, so an operator went to the database — where there is nothing to
+find, because `users.password` is bcrypt and a hash does not go backwards. The
+same password hashes differently every time; that is the point of it.
+
+So a second, narrower fact is stored on purpose: **the value this platform handed
+over**. Not a decryption of the hash, which remains impossible — a record of what
+was issued, which the platform is entitled to keep about a credential it issued
+itself.
+
+- `users.issued_password`, cast `encrypted`, written by `TenantProvisioner` when
+  a restaurant is created and by `resetOwnerPassword` when one is reissued.
+  `issued_password_at` rides alongside so the card can print the age.
+- `GET /platform/tenants/{tenant}/owner-password` reads it back, behind
+  `super-admin`, and **every read is logged with the operator's identity**. Who
+  looked at which restaurant's password, and when, is answerable.
+- The card gets a "Show password" button, the value in the same large monospace
+  the issued one gets, and the age beneath it. Four months old is a password the
+  owner has probably changed, and an operator should hear that before reading it
+  down a phone line.
+
+**What keeps it honest is the clearing rule.** `User::booted()` nulls both
+columns on any password change that did not come from the platform — the owner's
+own, a reset from anywhere else. A stale credential shown as current is worse
+than none: the operator reads it out, it does not work, and the screen loses its
+credibility for every restaurant, including the ones where it was right. Proved
+by mutation: delete the guard and
+`test_an_owner_changing_their_own_password_clears_the_stored_copy` fails.
+
+**What keeps it contained** is three things, none optional: encrypted at rest, so
+a database dump is worth nothing without `APP_KEY`; `super-admin` only; and
+`#[Hidden]` on the model, asserted against the tenant list, the owner PATCH and
+the owner's own `/auth/me` — because the danger is never the endpoint that means
+to return it, it is every other serialisation quietly carrying it along.
+
+**It only knows about passwords issued from here on.** Restaurants onboarded
+before this migration have nothing stored, and the panel says so in a sentence
+rather than drawing an empty box: issue a new one, and from then on it is
+readable.
+
+_This does not reduce the two hundred calls — it makes each one shorter. What
+removes them is letting an owner reset their own password, which needs either the
+Eskiz key (SMS), an SMTP host (email), or the Telegram bot that is already live
+and needs no key at all._
+
 ### 🔑 Added — The operator can set the owner's credentials, not only mint them (2026-08-24)
 
 Restaurant owners ring the platform and ask two things: "send me my email and
