@@ -43,7 +43,7 @@
       "prettier --write"
     ],
     "apps/api/**/*.php": [
-      "php apps/api/vendor/bin/pint --dirty"
+      "php apps/api/vendor/bin/pint --config apps/api/pint.json --dirty"
     ],
     "apps/ai-services/**/*.py": [
       "uv --directory apps/ai-services run ruff check --fix",
