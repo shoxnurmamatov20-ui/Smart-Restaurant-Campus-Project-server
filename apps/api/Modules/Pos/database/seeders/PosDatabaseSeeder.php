@@ -79,8 +79,16 @@ final class PosDatabaseSeeder extends Seeder
             return;
         }
 
-        // The global scope needs a tenant, and a seeder has no request to get
-        // one from.
+        /*
+         * The global scope needs a tenant, and a seeder has no request to get
+         * one from.
+         *
+         * Remembered before it is replaced, and restored at the end rather than
+         * cleared — see below. `DatabaseSeeder` sets a tenant for the whole run
+         * and eleven seeders after this one rely on it.
+         */
+        $before = app(TenantContext::class)->tenant();
+
         app(TenantContext::class)->set($tenant);
 
         // Branch slug → id, read once. A till with no branch has no venue name
@@ -126,14 +134,41 @@ final class PosDatabaseSeeder extends Seeder
                         'currency' => 'UZS',
                         // Nothing below one so'm exists in circulation.
                         'cash_rounding_tiyin' => 100,
-                        // How much of a bill each role may take off unsupervised.
-                        // A waiter: nothing. A manager: a third.
+                        /*
+                         * How much of a bill each role may take off unsupervised,
+                         * in whole percent — P9's ladder.
+                         *
+                         * A waiter: nothing, they ask. A cashier: enough to round
+                         * a bill down for a regular. A manager: a fifth, which is
+                         * the figure apps/web/src/lib/roles.ts draws its chips
+                         * from. This said 30 and the console said 20, so the
+                         * picker offered a percentage the server then refused.
+                         *
+                         * Above a role's number the chip is still offered — it
+                         * raises an approval instead of applying one. `0` does not
+                         * mean "no discounts", it means "every one goes to a
+                         * manager", which is what a waiter's row says.
+                         */
                         'discount_limits' => [
                             'waiter' => 0,
                             'bartender' => 0,
                             'cashier' => 5,
-                            'branch-manager' => 30,
-                            'brand-manager' => 50,
+                            'branch-manager' => 20,
+                            /*
+                             * The same twenty, not fifty.
+                             *
+                             * A brand manager is senior to a branch manager in
+                             * SCOPE — more venues — and a discount ceiling is not
+                             * about scope. It is about one guest's cheque, and one
+                             * cheque is the same size in either job. Fifty percent
+                             * is half a table given away, which has no operational
+                             * reason behind it; it was a fourth number nobody
+                             * enforced. In practice the row is inert for anyone
+                             * holding `pos.approve` — the gate never reaches the
+                             * ladder for them — so its only real job is to be the
+                             * honest answer if that permission is ever taken away.
+                             */
+                            'brand-manager' => 20,
                         ],
                     ],
                 ],
@@ -156,7 +191,24 @@ final class PosDatabaseSeeder extends Seeder
             $enrolled++;
         }
 
-        app(TenantContext::class)->clear();
+        /*
+         * Put back what was there, never clear.
+         *
+         * Clearing looked like tidiness and was a silent bug with a long reach:
+         * `DatabaseSeeder` pins one tenant for the entire run, and everything
+         * scheduled after this seeder — `PurchaseOrderSeeder`, `CrmPromoSeeder`,
+         * `CrmFeedbackSeeder`, `ReservationSeeder`, `MarketplaceDatabaseSeeder` —
+         * inherits it. With it cleared, any of them that did not set its own
+         * context wrote rows with a null `tenant_id`.
+         *
+         * `CrmPromoSeeder` was one, and the consequence was invisible until the
+         * customer app tried to use it: `BelongsToTenant` scopes every read by
+         * tenant, so the three seeded promo codes existed in the table and
+         * `POST /public/promo-codes/check` answered `promo.not_found` for all of
+         * them. The whole promotions feature was dead on every seeded database
+         * and nothing failed.
+         */
+        app(TenantContext::class)->set($before);
 
         // What was actually created, not what was asked for — a missing branch
         // skips its till, and reporting the constant's length would hide that.

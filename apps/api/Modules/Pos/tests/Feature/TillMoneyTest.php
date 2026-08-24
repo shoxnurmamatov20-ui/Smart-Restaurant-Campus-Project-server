@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Pos\Tests\Feature;
 
+use App\Models\StoredDomainEvent;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
@@ -421,13 +422,46 @@ final class TillMoneyTest extends TestCase
             'tenders' => [['method' => 'cash', 'amount' => $total]],
         ])->assertOk();
 
-        // The extra field is simply not read; the server keeps its own answer.
+        /*
+         * The extra field is simply not read; the server keeps its own answer.
+         *
+         * The count agrees with the drawer on purpose. It used to be 1 000 000
+         * against an expected 30 000 000, which was fine when a close was
+         * arithmetic — and stopped being fine when Finance grew a variance
+         * ladder: a 290 000 so'm shortfall now needs a manager to authorise it,
+         * so the test was failing on a rule it was never about. What it is about
+         * — a client cannot name the figure it is measured against — is proven
+         * just as well by a drawer that balances.
+         */
         $this->till()->postJson('/api/v1/pos/shifts/close', [
-            'counted_cash' => 1_000_000,
+            'counted_cash' => 30_000_000,
             'expected_cash' => 1_000_000,
         ])->assertOk()
             ->assertJsonPath('data.expected_cash', 30_000_000)
-            ->assertJsonPath('data.difference', -29_000_000);
+            ->assertJsonPath('data.difference', 0);
+    }
+
+    public function test_a_refusal_from_finance_keeps_its_own_name(): void
+    {
+        [$billId, $total] = $this->billWorth(20_000_000);
+        $this->till()->postJson("/api/v1/pos/bills/{$billId}/tenders", [
+            'tenders' => [['method' => 'cash', 'amount' => $total]],
+        ])->assertOk();
+
+        /*
+         * An empty drawer against thirty million taken.
+         *
+         * Finance refuses this by name — a difference this size needs a manager
+         * — and the name is the whole value of the refusal: it tells the cashier
+         * to fetch somebody rather than to count again. Wrapping every
+         * RuntimeException from the ledger into `pos.shift_refused` threw that
+         * away, along with the figures Finance attaches for the screen, and left
+         * one generic sentence covering "recount" and "call your manager".
+         */
+        $this->till()->postJson('/api/v1/pos/shifts/close', [
+            'counted_cash' => 0,
+            'note' => 'Yashik bo\'sh chiqdi',
+        ])->assertApiError('finance.variance_needs_approval');
     }
 
     public function test_closing_the_shift_ends_the_session(): void
@@ -440,5 +474,103 @@ final class TillMoneyTest extends TestCase
         // Leaving somebody signed in over a counted drawer is how the next sale
         // lands in a closed one.
         $this->till()->getJson('/api/v1/pos/auth/session')->assertStatus(401);
+    }
+
+    // ============ Giving money back ============
+
+    public function test_a_refund_takes_the_bill_with_it(): void
+    {
+        [$billId, $total] = $this->billWorth(4_500_000);
+        $paymentId = (int) $this->till()->postJson("/api/v1/pos/bills/{$billId}/tenders", [
+            'tenders' => [['method' => 'cash', 'amount' => $total]],
+        ])->assertOk()->json('data.payment_ids.0');
+
+        // A manager, because `refund` never falls within anybody's ladder.
+        $manager = $this->staff('branch-manager', '9999');
+        $this->till(token: $this->signIn($manager, '9999'))
+            ->postJson("/api/v1/pos/payments/{$paymentId}/refund", ['reason' => 'Taom qaytarildi'])
+            ->assertOk();
+
+        // One session per terminal: the manager's PIN closed the cashier's, so
+        // the tablet signs its own operator back in before reading the bill.
+        $this->cashierSession = $this->signIn($this->cashier);
+
+        /*
+         * The half that was missing. `TillLedger::refund()` moved the money and
+         * nothing moved the bill, so an order sat at `paid` with its takings
+         * handed back — a sale on every report, with no money behind it, and
+         * nothing in the record to say why.
+         */
+        $this->assertSame('refunded', $this->till()->getJson("/api/v1/pos/bills/{$billId}")
+            ->assertOk()->json('data.status'));
+
+        $payload = StoredDomainEvent::query()->where('name', 'pos.payment_refunded')->sole()->payload;
+
+        $this->assertSame($billId, $payload['bill_id']);
+        $this->assertTrue($payload['bill_fully_refunded']);
+    }
+
+    public function test_giving_one_of_two_tenders_back_leaves_the_bill_a_sale(): void
+    {
+        [$billId, $total] = $this->billWorth(4_500_000);
+        $card = intdiv($total, 2);
+
+        $paymentIds = $this->till()->postJson("/api/v1/pos/bills/{$billId}/tenders", [
+            'tenders' => [
+                ['method' => 'card', 'amount' => $card],
+                ['method' => 'cash', 'amount' => $total - $card],
+            ],
+        ])->assertOk()->json('data.payment_ids');
+
+        $manager = $this->staff('branch-manager', '9999');
+        $this->till(token: $this->signIn($manager, '9999'))
+            ->postJson("/api/v1/pos/payments/{$paymentIds[0]}/refund", ['reason' => 'Karta xato o\'tkazildi'])
+            ->assertOk();
+
+        $this->cashierSession = $this->signIn($this->cashier);
+
+        // A table that paid with two methods and asks for one back has been
+        // partly refunded, and it still bought the meal. Moving the bill to
+        // `refunded` here would erase a sale that half happened.
+        $this->assertSame('paid', $this->till()->getJson("/api/v1/pos/bills/{$billId}")
+            ->assertOk()->json('data.status'));
+
+        $this->assertFalse(
+            StoredDomainEvent::query()->where('name', 'pos.payment_refunded')->sole()->payload['bill_fully_refunded'],
+        );
+    }
+
+    // ============ Money put back INTO the drawer ============
+
+    public function test_change_brought_to_the_till_is_expected_in_the_drawer(): void
+    {
+        $this->till()->postJson('/api/v1/pos/shifts/open', ['opening_cash' => 10_000_000])->assertCreated();
+
+        $this->till()->postJson('/api/v1/pos/drawer/movements', [
+            'kind' => 'cash_in', 'amount' => 5_000_000, 'reason' => 'Maydalash uchun mayda pul',
+        ])->assertCreated();
+
+        /*
+         * The manager brings 50 000 so'm of small notes at six o'clock. Until
+         * this, the till wrote a drawer movement and told Finance nothing — so
+         * the shift closed exactly 50 000 over and the cashier looked like
+         * somebody who could not count, or worse, somebody holding the
+         * difference back.
+         */
+        $this->till()->getJson('/api/v1/pos/shifts/current')
+            ->assertOk()
+            ->assertJsonPath('data.expected_cash', 15_000_000);
+    }
+
+    public function test_the_opening_float_is_not_counted_a_second_time(): void
+    {
+        // `opening_float` is a drawer movement too, and it is the one that must
+        // NOT reach Finance: `opening_cash` already carries it, and sending it
+        // through would show a till starting the day with double its float.
+        $this->till()->postJson('/api/v1/pos/shifts/open', ['opening_cash' => 10_000_000])->assertCreated();
+
+        $this->till()->getJson('/api/v1/pos/shifts/current')
+            ->assertOk()
+            ->assertJsonPath('data.expected_cash', 10_000_000);
     }
 }

@@ -18,7 +18,7 @@ final class PinLoginRequest extends FormRequest
      */
     public function rules(): array
     {
-        $length = (int) config('pos.pin.length', 4);
+        $length = (int) config('auth.pin.length', 4);
 
         return [
             // The person identifies themselves by tapping their name, then
@@ -35,7 +35,7 @@ final class PinLoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'pin.size' => 'PIN '.config('pos.pin.length', 4).' ta raqamdan iborat bo\'lishi kerak.',
+            'pin.size' => 'PIN '.config('auth.pin.length', 4).' ta raqamdan iborat bo\'lishi kerak.',
             'pin.regex' => 'PIN faqat raqamlardan iborat bo\'ladi.',
         ];
     }

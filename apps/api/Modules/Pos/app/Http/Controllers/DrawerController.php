@@ -6,6 +6,7 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Contracts\Finance\TillLedger;
 use App\Http\Controllers\Controller;
+use App\Support\Errors\ApiException;
 use App\Support\Errors\ErrorCatalogue;
 use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
@@ -75,6 +76,21 @@ final class DrawerController extends Controller
                 reason: (string) $validated['reason'],
                 approvalId: isset($validated['approval_id']) ? (int) $validated['approval_id'] : null,
             );
+        } catch (ApiException $named) {
+            /*
+             * A refusal that already has a name keeps it.
+             *
+             * `ApiException` carries a catalogue code, a status, three
+             * translations and its own meta — Finance answers
+             * `finance.variance_needs_approval` with the figures attached, and
+             * that code is the actionable part: it tells a cashier to fetch a
+             * manager rather than to count again. Rewrapping it below into one
+             * generic code threw all of that away and left a single sentence
+             * covering conditions that need opposite responses. Plain
+             * RuntimeExceptions — a closed bill, a shift already shut — have no
+             * name of their own and still get one here.
+             */
+            throw $named;
         } catch (RuntimeException $failure) {
             return ErrorResponse::make(
                 ErrorCatalogue::get('pos.drawer_refused'),

@@ -31,9 +31,9 @@ final class PosController extends Controller
                 'pin_login' => url('/api/v1/pos/auth/pin'),
             ],
             'policy' => [
-                'pin_length' => (int) config('pos.pin.length'),
-                'pin_max_attempts' => (int) config('pos.pin.max_attempts'),
-                'pin_lock_minutes' => (int) config('pos.pin.lock_minutes'),
+                'pin_length' => (int) config('auth.pin.length'),
+                'pin_max_attempts' => (int) config('auth.pin.max_attempts'),
+                'pin_lock_minutes' => (int) config('auth.pin.lock_minutes'),
                 'pairing_ttl_minutes' => (int) config('pos.pairing.ttl_minutes'),
                 'approval_ttl_minutes' => (int) config('pos.approvals.ttl_minutes'),
             ],

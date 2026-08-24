@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Controllers\Concerns;
 
 use App\Models\User;
+use App\Support\Finance\CashRounding;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Pos\Http\Middleware\RequireTerminalSession;
@@ -76,5 +77,42 @@ trait ResolvesTillContext
     protected function localSeq(Request $request): int
     {
         return max(0, (int) $request->header('X-Pos-Seq', '0'));
+    }
+
+    /**
+     * What a cashier should ask for, computed here so the till never has to.
+     *
+     * The payment screen needs the ROUNDED cash figure before it takes any money —
+     * a cashier cannot ask for 45 240 so'm and then discover the system wanted
+     * 45 000. The obvious shortcut is to let the tablet round it: the step is a
+     * terminal setting the client already receives, and the arithmetic is one line.
+     *
+     * It is refused for the reason every derived number in this platform is
+     * refused. A client that can compute a total can disagree with the receipt,
+     * and the disagreement surfaces in front of a guest with money on the counter.
+     * So the figure comes down from the same rule the settlement charges — one
+     * step, read off the terminal — and the screen displays rather than derives.
+     *
+     * `cash_rounding` is signed and shown separately, because "45 240 emas, 45 000"
+     * needs a visible reason on the screen and on the receipt — otherwise it reads
+     * as the till having got the bill wrong.
+     *
+     * @return array<string, int>
+     */
+    protected function payable(Request $request, int $total): array
+    {
+        $step = $this->terminal($request)->cashRoundingStep();
+
+        return [
+            'total' => $total,
+            // What cash settles this bill for. Equal to the total when the total
+            // already lands on a note boundary, which is the common case for a
+            // menu priced in whole thousands.
+            'cash_total' => CashRounding::round($total, $step),
+            'cash_rounding' => CashRounding::difference($total, $step),
+            // Sent so a screen can label the rule it is showing ("1000 gacha")
+            // rather than hard-coding a number that is a per-terminal setting.
+            'cash_rounding_step' => $step,
+        ];
     }
 }

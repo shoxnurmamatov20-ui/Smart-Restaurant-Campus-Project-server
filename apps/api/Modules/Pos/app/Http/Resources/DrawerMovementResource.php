@@ -31,6 +31,7 @@ final class DrawerMovementResource extends JsonResource
             // Proof that an outgoing movement reached Finance — without it the
             // Z-report would read the collection as a shortfall.
             'finance_expense_id' => $this->finance_expense_id,
+            'finance_movement_id' => $this->finance_movement_id,
 
             'user' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->id,

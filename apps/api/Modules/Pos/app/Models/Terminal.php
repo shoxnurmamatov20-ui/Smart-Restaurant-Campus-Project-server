@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
+use App\Support\Finance\CashRounding;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Builder;
@@ -124,6 +125,34 @@ final class Terminal extends Model implements AuthenticatableContract
 
     public const STATUSES = ['active', 'disabled', 'maintenance'];
 
+    /**
+     * What the till shows all day when nobody is signed in.
+     *
+     * Three, and they are not degrees of the same thing: `minimal` is a clock
+     * on a screen a guest can see from the queue, `status` is the room's two
+     * counts for whoever is working, `brand` is the restaurant's own picture.
+     * Which one is right depends on where the screen points, which is why it is
+     * a setting rather than a preference.
+     */
+    public const IDLE_MODES = ['minimal', 'status', 'brand'];
+
+    public const IDLE_BACKGROUNDS = ['night', 'ink', 'warm', 'photo'];
+
+    /**
+     * Blocks a mode forces off, whatever the saved draft says.
+     *
+     * The store keeps what the manager meant and the mode masks it at render,
+     * rather than the mode rewriting the store. Otherwise switching to
+     * `minimal` and back would silently lose three toggles the person had set.
+     *
+     * @var array<string, list<string>>
+     */
+    public const IDLE_FORCED_OFF = [
+        'minimal' => ['stats', 'health', 'msg'],
+        'brand' => ['stats'],
+        'status' => [],
+    ];
+
     /** A terminal that has not checked in for this long is treated as offline. */
     public const OFFLINE_AFTER_SECONDS = 120;
 
@@ -191,6 +220,28 @@ final class Terminal extends Model implements AuthenticatableContract
         $limits = $this->settings['discount_limits'] ?? [];
 
         return (int) ($limits[$role] ?? 0);
+    }
+
+    /**
+     * How far this terminal rounds cash, in tiyin.
+     *
+     * Per terminal rather than per restaurant, because a counter selling bottled
+     * drinks for exact change and a dining room settling 400 000 so'm bills are
+     * different problems inside one venue. `1` disables rounding entirely.
+     *
+     * On the model and nowhere else. Two callers need it — the payment screen, to
+     * show the cashier what to ask for, and the settlement, to charge it — and two
+     * copies of a rounding rule is how a screen ends up promising one figure while
+     * the receipt prints another. The default comes from
+     * App\Support\Finance\CashRounding rather than being written here: a second
+     * literal for that constant is the one mistake in this project that is both
+     * easy to make and silent for a month.
+     */
+    public function cashRoundingStep(): int
+    {
+        $configured = $this->settings['cash_rounding_tiyin'] ?? null;
+
+        return $configured === null ? CashRounding::STEP_TIYIN : max(1, (int) $configured);
     }
 
     // ============ Scopes ============

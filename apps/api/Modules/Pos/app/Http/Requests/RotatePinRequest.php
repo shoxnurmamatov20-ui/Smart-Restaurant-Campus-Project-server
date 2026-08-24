@@ -18,7 +18,7 @@ final class RotatePinRequest extends FormRequest
      */
     public function rules(): array
     {
-        $length = (int) config('pos.pin.length', 4);
+        $length = (int) config('auth.pin.length', 4);
 
         return [
             // Omitted means "mine". Naming somebody else is a manager action and
@@ -36,7 +36,7 @@ final class RotatePinRequest extends FormRequest
     {
         return [
             'pin.not_in' => 'Bu PIN juda oson. Boshqasini tanlang.',
-            'pin.size' => 'PIN '.config('pos.pin.length', 4).' ta raqamdan iborat bo\'lishi kerak.',
+            'pin.size' => 'PIN '.config('auth.pin.length', 4).' ta raqamdan iborat bo\'lishi kerak.',
         ];
     }
 }

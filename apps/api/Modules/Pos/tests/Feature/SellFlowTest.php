@@ -343,8 +343,7 @@ final class SellFlowTest extends TestCase
 
         $this->bearer($this->deviceToken)
             ->postJson('/api/v1/pos/auth/pin', ['user_id' => $chef->id, 'pin' => '3333'])
-            ->assertStatus(422)
-            ->assertApiValidationErrors('pin');
+            ->assertApiError('pos.pin_no_till_permission', 'pin');
     }
 
     public function test_a_waiter_may_sell_but_not_cancel_a_bill(): void

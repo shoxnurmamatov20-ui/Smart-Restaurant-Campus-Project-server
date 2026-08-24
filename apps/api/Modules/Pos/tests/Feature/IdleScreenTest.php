@@ -7,7 +7,9 @@ namespace Modules\Pos\Tests\Feature;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Tenancy\BusinessDay;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -287,7 +289,18 @@ final class IdleScreenTest extends TestCase
 
         Payment::factory()->create([
             'cash_shift_id' => $shift->id, 'amount' => 7_000_000, 'status' => 'captured',
-            'business_date' => now()->subDay()->toDateString(),
+            /*
+             * Yesterday's TRADING day, not yesterday's calendar day.
+             *
+             * The trading day starts at 06:00 in the venue's own timezone, so
+             * between midnight and that boundary `now()->subDay()` names the day
+             * the till is still ON — and this payment would correctly count as
+             * today's takings, failing a test that is about the opposite. One
+             * hour in twenty-four, which is exactly long enough to be dismissed
+             * as flakiness.
+             */
+            'business_date' => CarbonImmutable::parse(app(BusinessDay::class)->dateFor())
+                ->subDay()->toDateString(),
         ]);
 
         $this->idle()->assertOk()->assertJsonPath('stats.takings_tiyin', 0);

@@ -6,6 +6,7 @@ namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserPin;
 use App\Support\Errors\ErrorResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,6 @@ use Modules\Pos\Http\Middleware\RequireTerminalSession;
 use Modules\Pos\Http\Requests\PinLoginRequest;
 use Modules\Pos\Http\Requests\RotatePinRequest;
 use Modules\Pos\Http\Resources\TerminalSessionResource;
-use Modules\Pos\Models\PosPin;
 use Modules\Pos\Models\Terminal;
 use Modules\Pos\Models\TerminalSession;
 use Modules\Pos\Services\PinAuthenticator;
@@ -45,11 +45,11 @@ final class PosAuthController extends Controller
             return $this->terminalTokenRequired();
         }
 
-        $staff = PosPin::query()
+        $staff = UserPin::query()
             ->with('user')
             ->get()
-            ->filter(static fn (PosPin $pin): bool => $pin->user !== null)
-            ->map(static fn (PosPin $pin): array => [
+            ->filter(static fn (UserPin $pin): bool => $pin->user !== null)
+            ->map(static fn (UserPin $pin): array => [
                 'user_id' => $pin->user_id,
                 'name' => $pin->user->name,
                 'roles' => $pin->user->getRoleNames(),
@@ -142,7 +142,7 @@ final class PosAuthController extends Controller
         }
 
         if ($isSelf) {
-            $existing = PosPin::query()->where('user_id', $targetId)->first();
+            $existing = UserPin::query()->where('user_id', $targetId)->first();
 
             if ($existing !== null && ! $this->currentPinMatches($request, $existing)) {
                 return ErrorResponse::code('pos.pin_mismatch');
@@ -154,7 +154,7 @@ final class PosAuthController extends Controller
         return response()->json(['message' => 'PIN yangilandi.']);
     }
 
-    private function currentPinMatches(RotatePinRequest $request, PosPin $existing): bool
+    private function currentPinMatches(RotatePinRequest $request, UserPin $existing): bool
     {
         return $request->filled('current_pin')
             && Hash::check((string) $request->string('current_pin'), $existing->pin_hash);

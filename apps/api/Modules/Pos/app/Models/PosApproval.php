@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Modules\Pos\Models;
 
 use App\Models\Activity;
+use App\Models\Branch;
+use App\Models\Concerns\BelongsToBranch;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
 use App\Models\User;
@@ -30,10 +32,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property int $id
  * @property int|null $tenant_id
- * @property int $terminal_id
- * @property int $session_id
- * @property string $action void_line|void_order|discount|price_override|reopen_bill|refund|drawer_open|comp
- * @property string|null $subject_type bill|line|payment|drawer
+ * @property int|null $branch_id Null only on a request raised from a phone
+ * @property int|null $terminal_id Null when nobody was at a till
+ * @property int|null $session_id
+ * @property string $action void_line|void_order|discount|price_override|reopen_bill|refund|drawer_open|comp|shift_variance
+ * @property string|null $subject_type bill|line|payment|drawer|shift
  * @property int|null $subject_id
  * @property int|null $amount Tiyin — how much is at stake
  * @property string $reason
@@ -53,6 +56,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property-read bool $is_spendable
  * @property-read User $requestedBy
  * @property-read Tenant|null $tenant
+ * @property-read Branch|null $branch
  * @property-read Terminal|null $terminal
  *
  * @method static \Modules\Pos\Database\Factories\PosApprovalFactory factory($count = null, $state = [])
@@ -85,6 +89,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 final class PosApproval extends Model
 {
+    /*
+     * An approval happens at an address.
+     *
+     * It always did — it was read through `terminal.branch_id` instead, which
+     * stopped working the moment a waiter's phone could raise one with no
+     * terminal at all. See the migration that added the column.
+     */
+    use BelongsToBranch;
     use BelongsToTenant;
 
     /** @use HasFactory<PosApprovalFactory> */
@@ -94,15 +106,49 @@ final class PosApproval extends Model
 
     protected $table = 'pos.approvals';
 
+    /**
+     * Everything a manager can be asked to agree to.
+     *
+     * `shift_variance` is the odd one and belongs here rather than in Finance:
+     * closing a drawer that is short by more than a threshold needs somebody
+     * else's name, and the tempting shortcut is for the till to post an
+     * `approved_by_user_id` alongside the count. That is a claim, not a
+     * signature — a cashier knows their manager's id. Routing it through this
+     * table instead gives it what every other authorisation here has: an expiry,
+     * a binding to its subject and its amount, a single use, and an answer that
+     * can come from a phone.
+     */
     public const ACTIONS = [
         'void_line', 'void_order', 'discount', 'price_override',
-        'reopen_bill', 'refund', 'drawer_open', 'comp',
+        'reopen_bill', 'refund', 'drawer_open', 'comp', 'shift_variance',
+        /*
+         * Signing for a meal past the guest's own ceiling.
+         *
+         * The subject stays `bill` — this is a decision about one table's bill, not
+         * about the customer record — so `SUBJECTS` needs nothing. What a manager is
+         * agreeing to is a specific amount of the restaurant's money leaving on
+         * trust, which is why the signature is bound to the amount like every other.
+         */
+        'credit_sale',
     ];
+
+    /**
+     * What an authorisation can be about.
+     *
+     * On the model rather than inline in the controller, because the gate, the
+     * request validator and the fraud ledger all have to agree on this list —
+     * `shift` was added and only the validator knew, so a request the gate would
+     * have accepted was refused at the door.
+     *
+     * @var array<int, string>
+     */
+    public const SUBJECTS = ['bill', 'line', 'payment', 'drawer', 'shift'];
 
     public const STATUSES = ['pending', 'approved', 'rejected', 'expired', 'used'];
 
     protected $fillable = [
         'tenant_id',
+        'branch_id',
         'terminal_id',
         'session_id',
         'action',

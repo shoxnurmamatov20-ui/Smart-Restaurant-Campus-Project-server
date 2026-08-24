@@ -27,10 +27,15 @@ final class TerminalFactory extends Factory
                 // Rounding to the nearest 100 tiyin (1 so'm): coins below that
                 // do not exist in circulation.
                 'cash_rounding_tiyin' => 100,
+                // P9's ladder, and the design file's: a waiter asks, a cashier
+                // is trusted with a rounding error, a manager with a fifth. The
+                // manager's figure was 30 here and 20 in
+                // apps/web/src/lib/roles.ts, which meant the chip the console
+                // drew and the chip the server honoured disagreed by ten points.
                 'discount_limits' => [
                     'waiter' => 0,
                     'cashier' => 5,
-                    'branch-manager' => 30,
+                    'branch-manager' => 20,
                 ],
             ],
         ];

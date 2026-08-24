@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Modules\Pos\Services;
 
 use App\Models\User;
+use App\Support\Events\EventBus;
+use App\Support\Orders\BillTotals;
+use App\Support\Settings\Policies;
 use Illuminate\Support\Facades\DB;
+use Modules\Pos\Events\ApprovalRequested;
 use Modules\Pos\Models\PosApproval;
 use Modules\Pos\Models\Terminal;
 use Modules\Pos\Models\TerminalSession;
@@ -25,6 +29,11 @@ use RuntimeException;
  */
 final class ApprovalGate
 {
+    public function __construct(
+        private readonly EventBus $events,
+        private readonly Policies $policies,
+    ) {}
+
     /**
      * Actions that always need somebody else's signature, whatever the amount.
      *
@@ -35,11 +44,19 @@ final class ApprovalGate
     /**
      * Does this person need an authorisation for this act?
      *
-     * @param int $amount Tiyin at stake — a 2% discount on a coffee is not a
-     *                    2% discount on a wedding.
+     * @param  int  $amount  Tiyin at stake — a 2% discount on a coffee is not a
+     *                       2% discount on a wedding.
+     * @param  bool  $alreadyFired  whether the food this concerns is already with
+     *                              the kitchen. Only `void_line` reads it — see below.
      */
-    public function requires(Terminal $terminal, User $actor, string $action, int $amount = 0, int $subtotal = 0): bool
-    {
+    public function requires(
+        ?Terminal $terminal,
+        User $actor,
+        string $action,
+        int $amount = 0,
+        int $subtotal = 0,
+        bool $alreadyFired = false,
+    ): bool {
         // Holding the approving permission means you are the manager: you do not
         // queue behind yourself.
         if ($actor->can('pos.approve')) {
@@ -47,6 +64,26 @@ final class ApprovalGate
         }
 
         if (in_array($action, self::ALWAYS_APPROVED, true)) {
+            return true;
+        }
+
+        /*
+         * Striking food the kitchen already has —
+         * `policies.void_sent_needs_manager_pin`, on by default.
+         *
+         * Above the role ladder rather than inside it, because the amount is not
+         * the question here. A cashier trusted with 5% off a bill is trusted
+         * with a decision about MONEY; a line that has gone to the pass is a
+         * decision about a plate that exists — somebody cooked it, stock left
+         * the shelf, and the difference between "the guest changed their mind"
+         * and "the guest ate it" is the oldest hole in restaurant cash control.
+         *
+         * So a small void that would have passed on percentage stops here, and
+         * the manager who signs it is the one who decides which of those two it
+         * was. The restaurant may switch the rule off; the ladder still applies
+         * underneath.
+         */
+        if ($action === 'void_line' && $alreadyFired && $this->policies->on('void_sent_needs_manager_pin')) {
             return true;
         }
 
@@ -61,14 +98,79 @@ final class ApprovalGate
             return true;
         }
 
-        $percent = (int) floor($amount * 100 / $subtotal);
-
-        return $percent > $limitPercent;
+        return $this->percentOf($subtotal, $amount) > $limitPercent;
     }
 
-    /** The largest share of a bill this person may take off unsupervised. */
-    public function limitFor(Terminal $terminal, User $actor): int
+    /**
+     * What a percentage off this bill comes to, in tiyin.
+     *
+     * The percent picker's other half. A cashier taps "10%" and something has to
+     * turn that into money; letting the tablet do it would put the arithmetic in
+     * two places, and the two places are a screen and a receipt that a guest
+     * reads side by side. Same reason `payable` is computed server-side.
+     *
+     * It lives beside {@see self::percentOf()} rather than in a helper of its
+     * own because these two are one rule read in opposite directions, and the
+     * only failure mode that matters is them disagreeing. Flooring both ways
+     * keeps the round trip honest: a 5% pick can never come back measuring more
+     * than 5%, so a role's ceiling cannot be crossed by a rounding artefact.
+     *
+     * Measured against the SUBTOTAL, not the total: BillTotals takes the
+     * discount off before the service charge goes on, so a percentage of the
+     * total would quietly be worth more than it says.
+     */
+    public function amountForPercent(int $subtotal, int $percent): int
     {
+        // Delegated since the console grew a discount button of its own: two
+        // modules now turn a percentage into money, and core is the only place
+        // both may read. The rule and its reasoning live in BillTotals.
+        return BillTotals::discountForPercent($subtotal, $percent);
+    }
+
+    /** What share of a bill an amount in tiyin represents, as whole percent. */
+    public function percentOf(int $subtotal, int $amount): int
+    {
+        return BillTotals::percentOf($subtotal, $amount);
+    }
+
+    /**
+     * The largest share of a bill this person may take off unsupervised.
+     *
+     * Answered as a share of the bill, whole percent, and the ceiling is what a
+     * till draws its percent picker from — so it has to mean the same thing the
+     * gate enforces, not merely what the terminal's settings say.
+     *
+     * Which is why `pos.approve` answers 100 rather than reading the ladder. A
+     * branch manager has a row in `discount_limits` like everybody else, and
+     * `requires()` never reaches it: holding the approving permission returns
+     * false before the ladder is consulted, because you do not queue behind
+     * yourself. Reporting that row instead would draw a picker missing the chips
+     * the manager is allowed to press — and every chip it DID draw would work,
+     * which is how a wrong ceiling survives a demonstration and shows up as
+     * "the till will not let me" on a Friday night.
+     */
+    public function limitFor(?Terminal $terminal, User $actor): int
+    {
+        if ($actor->can('pos.approve')) {
+            return 100;
+        }
+
+        /*
+         * No terminal, no ladder — so nothing unsupervised.
+         *
+         * The discount limits live on the till, and a person asking from a
+         * handset or from the back office is standing at none. Answering "zero"
+         * rather than inventing a default is the same direction this class is
+         * already wrong in on purpose: *"a role with no entry is trusted with
+         * nothing, which is the safe direction to be wrong in"*. In practice it
+         * costs nothing, because everybody who can reach those screens either
+         * holds `pos.approve` — and returned 100 a line ago — or genuinely needs
+         * a signature.
+         */
+        if ($terminal === null) {
+            return 0;
+        }
+
         $best = 0;
 
         foreach ($actor->getRoleNames() as $role) {
@@ -89,6 +191,38 @@ final class ApprovalGate
         ?int $subjectId = null,
         int $amount = 0,
     ): PosApproval {
+        return $this->raise(
+            requestedByUserId: (int) $session->user_id,
+            action: $action,
+            reason: $reason,
+            subjectType: $subjectType,
+            subjectId: $subjectId,
+            amount: $amount,
+            session: $session,
+        );
+    }
+
+    /**
+     * The same request, raised by a person who may not be at a till.
+     *
+     * A waiter with a handset apologising for a dessert, or a back-office screen
+     * discounting a bill from the office. P9 moved ANSWERING out of the terminal
+     * session and left asking behind — see the migration that made
+     * `terminal_id` nullable for the whole argument.
+     *
+     * `$session` is still taken when there is one, because a request raised at a
+     * till has to keep saying which till: the fraud ledger's most useful column
+     * is "which drawer was this near".
+     */
+    public function raise(
+        int $requestedByUserId,
+        string $action,
+        string $reason,
+        ?string $subjectType = null,
+        ?int $subjectId = null,
+        int $amount = 0,
+        ?TerminalSession $session = null,
+    ): PosApproval {
         if (! in_array($action, PosApproval::ACTIONS, true)) {
             throw new RuntimeException("Noma'lum tasdiq turi: {$action}");
         }
@@ -102,7 +236,16 @@ final class ApprovalGate
         // blocked. The subject, action and amount together are what is being
         // asked; asking twice is the same question.
         $existing = PosApproval::query()
-            ->where('session_id', $session->getKey())
+            /*
+             * Keyed on the till when there is one and on the person when there
+             * is not. A phone has no session, and two waiters asking about the
+             * same bill are two questions rather than one repeated.
+             */
+            ->when(
+                $session !== null,
+                fn ($query) => $query->where('session_id', $session?->getKey()),
+                fn ($query) => $query->whereNull('session_id')->where('requested_by_user_id', $requestedByUserId),
+            )
             ->where('action', $action)
             ->where('subject_type', $subjectType)
             ->where('subject_id', $subjectId)
@@ -116,19 +259,45 @@ final class ApprovalGate
             return $existing;
         }
 
-        return PosApproval::create([
-            'terminal_id' => $session->terminal_id,
-            'session_id' => $session->getKey(),
+        $approval = PosApproval::create([
+            'terminal_id' => $session?->terminal_id,
+            'session_id' => $session?->getKey(),
+            /*
+             * Named rather than left to `BelongsToBranch`, because the till's
+             * own branch is the truth here and `X-Branch` is a header a client
+             * may simply not send. Null falls back to the branch context, which
+             * is what a request raised from a console or a handset has.
+             */
+            'branch_id' => $session?->terminal?->branch_id,
             'action' => $action,
             'subject_type' => $subjectType,
             'subject_id' => $subjectId,
             'amount' => $amount > 0 ? $amount : null,
             'reason' => $reason,
-            'requested_by_user_id' => $session->user_id,
+            'requested_by_user_id' => $requestedByUserId,
             'status' => 'pending',
             'requested_at' => now(),
-            'expires_at' => now()->addMinutes((int) config('pos.approvals.ttl_minutes', 5)),
+            // `max(1, …)` rather than a bare cast: a config that failed to merge
+            // would otherwise mint approvals that expired the instant they were
+            // created, and a till whose every signature is already stale reads as
+            // a broken approval flow rather than as a missing setting.
+            'expires_at' => now()->addMinutes(max(1, (int) config('pos.approvals.ttl_minutes', 10))),
         ]);
+
+        /*
+         * Announced only for a genuinely new request — the early return above
+         * hands back an existing one, and a cashier tapping Void four times must
+         * not buzz the manager's phone four times for one line.
+         *
+         * This is what makes answering-from-anywhere usable rather than merely
+         * permitted: the queue is now reachable from a phone, but a manager who
+         * is not looking at it has to be told. What does the telling is not this
+         * module's business — a bot, a push, a Reverb channel — so it goes on the
+         * bus and the till's part ends here.
+         */
+        $this->events->publish(new ApprovalRequested($approval));
+
+        return $approval;
     }
 
     /**
@@ -139,9 +308,14 @@ final class ApprovalGate
      *
      * @throws RuntimeException
      */
-    public function consume(int $approvalId, string $action, ?string $subjectType, ?int $subjectId): PosApproval
-    {
-        return DB::transaction(function () use ($approvalId, $action, $subjectType, $subjectId): PosApproval {
+    public function consume(
+        int $approvalId,
+        string $action,
+        ?string $subjectType,
+        ?int $subjectId,
+        int $amount = 0,
+    ): PosApproval {
+        return DB::transaction(function () use ($approvalId, $action, $subjectType, $subjectId, $amount): PosApproval {
             /** @var PosApproval|null $approval */
             $approval = PosApproval::query()->lockForUpdate()->find($approvalId);
 
@@ -173,9 +347,53 @@ final class ApprovalGate
                 throw new RuntimeException('Bu tasdiq boshqa hisob yoki qator uchun berilgan.');
             }
 
+            /*
+             * And bound to its amount. This is the half that was missing.
+             *
+             * A manager approving a discount is agreeing to a figure, not to the
+             * verb: the screen they answered on said "1 000 000 so'm off table 4",
+             * and that sentence is the entire content of their decision. Without
+             * this check the signature meant only "yes, a discount" — the till
+             * could come back with 5 000 000 on the same bill, spend the same
+             * approval, and the record would show the manager authorising an
+             * amount they were never shown. Same action, same subject, ten times
+             * the money, and nothing in the fraud ledger to distinguish it from an
+             * honest one.
+             *
+             * A ceiling rather than an exact match: asking for less than was
+             * granted is not a new question, and requiring equality would send a
+             * cashier back to the manager because a guest changed their mind about
+             * one coffee.
+             *
+             * An approval with NO amount cannot cover an act that has one. That
+             * looks harsh — a `null` amount is what `request()` writes when the
+             * till asks without naming a figure — but the manager saw no number,
+             * so there is no ceiling to be under, and defaulting to "anything" is
+             * exactly the hole above with an extra step.
+             */
+            if ($amount > 0 && $amount > (int) ($approval->amount ?? 0)) {
+                throw new RuntimeException(sprintf(
+                    'Bu tasdiq %s so\'m uchun berilgan, %s so\'m uchun emas.',
+                    self::soum((int) ($approval->amount ?? 0)),
+                    self::soum($amount),
+                ));
+            }
+
             $approval->markUsed();
 
             return $approval->refresh();
         });
+    }
+
+    /**
+     * Tiyin as the so'm figure a cashier reads on the screen.
+     *
+     * Only ever for a message. Nothing computes with this — money stays whole
+     * tiyin everywhere it matters, and the one place a fraction could appear is
+     * a sentence explaining a refusal.
+     */
+    private static function soum(int $tiyin): string
+    {
+        return number_format($tiyin / 100, 0, ',', ' ');
     }
 }

@@ -69,10 +69,15 @@ return [
     | usable at that rate. The trade-off is a short secret, so the lockout has to
     | do the work the length does not.
     */
+    /*
+     * How long a till session may sit idle, and nothing else about PINs.
+     *
+     * `length`, `max_attempts` and `lock_minutes` used to live here too and now
+     * live in `config/auth.php`, because the staff app asks the same person for
+     * the same four digits and the lockout has to be one counter rather than
+     * two. A copy here would be the number that quietly stopped being enforced.
+     */
     'pin' => [
-        'length' => 4,
-        'max_attempts' => 5,
-        'lock_minutes' => 15,
         'session_idle_minutes' => (int) env('POS_SESSION_IDLE_MINUTES', 15),
     ],
 
@@ -80,11 +85,26 @@ return [
     |--------------------------------------------------------------------------
     | Approvals
     |--------------------------------------------------------------------------
-    | How long a manager's authorisation stays usable. Long enough to walk to the
-    | till, short enough that it cannot be banked for later.
+    | How long a request stays answerable, and its signature spendable.
+    |
+    | Five minutes was right when answering meant walking to the till. P9 moved
+    | the queue off the terminal — a manager answers from the office, the other
+    | branch, or a car park — and five minutes is then the window between a
+    | phone buzzing and somebody being free to look at it. Miss it and the shape
+    | is worse than a refusal: the cashier taps again, a second pending request
+    | appears, and the manager opens a notification for the first one and is told
+    | it has expired.
+    |
+    | Ten, and configurable, because the honest answer differs between a
+    | fast-food counter and a hotel restaurant. Not longer: the point of the
+    | limit is that an authorisation cannot be obtained quietly and banked, and
+    | every minute here is a minute it can sit unspent. The other protections
+    | narrowed since — a signature is bound to its action, its subject AND its
+    | amount, and is spent exactly once — so this no longer carries that weight
+    | alone, which is what makes ten defensible where it once would not have been.
     */
     'approvals' => [
-        'ttl_minutes' => 5,
+        'ttl_minutes' => (int) env('POS_APPROVAL_TTL_MINUTES', 10),
     ],
 
     /*
@@ -112,6 +132,24 @@ return [
     'printing' => [
         'default_driver' => env('POS_PRINT_DRIVER', 'browser'),
         'max_attempts' => 3,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offline sync
+    |--------------------------------------------------------------------------
+    | How much of a stranded shift a till may hand back in one request.
+    |
+    | A queue is drained inside one HTTP request, in order, and every entry does
+    | real work — opens a bill, captures money, writes a kitchen ticket. Two
+    | hundred is roughly a busy evening on one terminal, and it is also the size
+    | the load test in PLAN-2026-08 step 11 measures against. Refusing anything
+    | larger is kinder than accepting it: a request that dies on a php-fpm
+    | timeout half way through leaves the cashier with no answer for entries that
+    | DID apply, and their next tap sends the whole queue again.
+    */
+    'sync' => [
+        'max_batch' => (int) env('POS_SYNC_MAX_BATCH', 200),
     ],
 
     // Platform-wide default; per-restaurant overrides live in tenants.settings.

@@ -7,10 +7,10 @@ namespace Modules\Pos\Tests\Feature;
 use App\Models\Branch;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\UserPin;
 use App\Support\Tenancy\TenantContext;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Pos\Models\PosPin;
 use Modules\Pos\Models\Terminal;
 use Modules\Pos\Models\TerminalSession;
 use Modules\Pos\Services\PinAuthenticator;
@@ -207,9 +207,9 @@ final class PinLoginTest extends TestCase
 
         $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
             'user_id' => $user->id, 'pin' => '0000',
-        ])->assertStatus(422)->assertApiValidationErrors('pin');
+        ])->assertApiError('pos.pin_invalid', 'pin');
 
-        $this->assertSame(1, PosPin::query()->where('user_id', $user->id)->value('failed_attempts'));
+        $this->assertSame(1, UserPin::query()->where('user_id', $user->id)->value('failed_attempts'));
     }
 
     public function test_five_wrong_pins_lock_the_account(): void
@@ -219,21 +219,32 @@ final class PinLoginTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
                 'user_id' => $user->id, 'pin' => '0000',
-            ])->assertStatus(422);
+            ])->assertApiError('pos.pin_invalid', 'pin');
         }
 
-        // Even the right PIN is refused now — that is the entire defence.
-        $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
+        /*
+         * Even the right PIN is refused now — that is the entire defence — and
+         * it answers 429 rather than 422, from the catalogue.
+         *
+         * The status is the honest one: this is a rate limit, not a malformed
+         * input, and a client that retries a 422 immediately is right to while
+         * one that retries a 429 immediately is not. `retry_after_minutes` says
+         * how long, so the till can tell somebody rather than making them try
+         * again to find out.
+         */
+        $locked = $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
             'user_id' => $user->id, 'pin' => '4821',
-        ])->assertStatus(422);
+        ])->assertApiError('pos.pin_locked', 'pin');
 
-        $this->assertNotNull(PosPin::query()->where('user_id', $user->id)->value('locked_until'));
+        $this->assertGreaterThan(0, $locked->json('error.retry_after_minutes'));
+        $this->assertTrue($locked->json('error.retryable'));
+        $this->assertNotNull(UserPin::query()->where('user_id', $user->id)->value('locked_until'));
     }
 
     public function test_the_lock_lifts_when_it_expires(): void
     {
         $user = $this->staffMember();
-        PosPin::query()->where('user_id', $user->id)->update([
+        UserPin::query()->where('user_id', $user->id)->update([
             'failed_attempts' => 5,
             'locked_until' => now()->addMinutes(15),
         ]);
@@ -253,7 +264,7 @@ final class PinLoginTest extends TestCase
             ->assertStatus(422);
         $this->signInAtTill($user);
 
-        $this->assertSame(0, PosPin::query()->where('user_id', $user->id)->value('failed_attempts'));
+        $this->assertSame(0, UserPin::query()->where('user_id', $user->id)->value('failed_attempts'));
     }
 
     public function test_the_pin_is_never_returned_anywhere(): void
@@ -289,9 +300,12 @@ final class PinLoginTest extends TestCase
         // A marketer holds no pos.* permission at all.
         $marketer = $this->staffMember('marketer');
 
+        // 403 from the catalogue, not 422: the PIN was right and the input was
+        // well-formed — what is missing is permission, and calling that a
+        // validation failure tells a client to check the field it typed.
         $this->asDevice()->postJson('/api/v1/pos/auth/pin', [
             'user_id' => $marketer->id, 'pin' => '4821',
-        ])->assertStatus(422)->assertApiValidationErrors('pin');
+        ])->assertApiError('pos.pin_no_till_permission', 'pin');
     }
 
     public function test_signing_in_requires_a_device_token(): void

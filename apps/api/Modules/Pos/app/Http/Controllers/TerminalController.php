@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Modules\Pos\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Settings\SettingsSchema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
+use Modules\Pos\Events\IdlePreviewRequested;
 use Modules\Pos\Http\Middleware\RequireTerminalToken;
 use Modules\Pos\Http\Requests\PairTerminalRequest;
+use Modules\Pos\Http\Requests\PreviewIdleRequest;
 use Modules\Pos\Http\Requests\StoreTerminalRequest;
 use Modules\Pos\Http\Requests\UpdateTerminalRequest;
 use Modules\Pos\Http\Resources\TerminalResource;
@@ -90,9 +93,62 @@ final class TerminalController extends Controller
 
     public function update(UpdateTerminalRequest $request, Terminal $terminal): TerminalResource
     {
-        $terminal->update($request->validated());
+        $changes = $request->validated();
+
+        /*
+         * `settings` is patched, not replaced.
+         *
+         * The console saves the idle screen from one panel and the discount
+         * ceilings from another. `update()` writes the whole jsonb column, so
+         * without the merge, saving an idle background would blank every
+         * discount limit on the till — and the first anybody would hear of it
+         * is a cashier being refused a 5% discount they have always been able
+         * to give.
+         */
+        if (array_key_exists('settings', $changes) && is_array($changes['settings'])) {
+            $changes['settings'] = SettingsSchema::merge($terminal->settings, $changes['settings']);
+        }
+
+        $terminal->update($changes);
 
         return new TerminalResource($terminal->fresh()?->load('branch'));
+    }
+
+    /**
+     * Put an unsaved idle-screen draft on the till, for a few seconds.
+     *
+     * The console draws its own preview next to the controls, and that preview
+     * cannot answer the only question worth asking: whether the message is
+     * readable on a 15-inch screen bolted to a counter in a room with a window.
+     * So the draft goes to the screen itself.
+     *
+     * Writes nothing. A preview that saved would mean every experiment ships to
+     * the counter permanently, and the manager finds out from a guest.
+     */
+    public function preview(PreviewIdleRequest $request, Terminal $terminal): JsonResponse
+    {
+        $seconds = (int) ($request->validated('seconds') ?? 20);
+
+        $draft = $request->safe()->except('seconds');
+
+        IdlePreviewRequested::dispatch($terminal, $draft, $seconds);
+
+        return response()->json([
+            'preview' => [
+                'terminal_id' => $terminal->id,
+                'channel' => 'terminal.'.$terminal->id,
+                'seconds' => $seconds,
+                /*
+                 * Whether the till is actually listening.
+                 *
+                 * A preview sent to a terminal that has not checked in for two
+                 * minutes goes nowhere, and the manager stares at a counter
+                 * waiting for a change that is never coming. Saying so is
+                 * cheaper than an event that silently succeeds.
+                 */
+                'terminal_online' => $terminal->is_online,
+            ],
+        ]);
     }
 
     /**

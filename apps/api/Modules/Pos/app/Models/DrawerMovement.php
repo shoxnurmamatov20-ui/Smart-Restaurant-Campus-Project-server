@@ -29,6 +29,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $user_id
  * @property int $cash_shift_id finance.cash_shifts id — no FK
  * @property int|null $finance_expense_id finance.expenses id written for an outgoing movement
+ * @property int|null $finance_movement_id finance.cash_movements id written for an incoming one
  * @property string $kind opening_float|cash_in|cash_out|collection|tip_out|correction
  * @property int $amount Tiyin, always positive
  * @property string $direction in|out
@@ -99,6 +100,7 @@ final class DrawerMovement extends Model
         'user_id',
         'cash_shift_id',
         'finance_expense_id',
+        'finance_movement_id',
         'kind',
         'amount',
         'direction',
@@ -116,6 +118,7 @@ final class DrawerMovement extends Model
             'user_id' => 'integer',
             'cash_shift_id' => 'integer',
             'finance_expense_id' => 'integer',
+            'finance_movement_id' => 'integer',
             'approval_id' => 'integer',
             'occurred_at' => 'datetime',
         ];

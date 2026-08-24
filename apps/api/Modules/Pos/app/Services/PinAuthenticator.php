@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Pos\Services;
 
 use App\Models\User;
+use App\Models\UserPin;
+use App\Support\Auth\PinCredentials;
+use App\Support\Errors\ApiException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
-use Modules\Pos\Models\PosPin;
 use Modules\Pos\Models\Terminal;
 use Modules\Pos\Models\TerminalSession;
 
@@ -27,36 +27,53 @@ use Modules\Pos\Models\TerminalSession;
  */
 final class PinAuthenticator
 {
+    /*
+     * The digits themselves are core's business.
+     *
+     * `PinCredentials` owns the hash, the counter and the fifteen-minute door;
+     * this class owns what a correct PIN entitles somebody to at a till — a
+     * session, on this terminal, taking over whoever was signed in. The split
+     * exists because the staff app asks the same person for the same four
+     * digits on their own phone, and the lockout has to be one counter rather
+     * than two.
+     */
+    public function __construct(private readonly PinCredentials $pins) {}
+
     /**
      * @return array{session: TerminalSession, token: string}
      *
-     * @throws ValidationException
+     * @throws ApiException
      */
     public function attempt(Terminal $terminal, int $userId, string $pin, ?string $ip = null): array
     {
-        /** @var PosPin|null $credential */
-        $credential = PosPin::query()
-            ->where('user_id', $userId)
-            ->lockForUpdate()
-            ->first();
+        $checked = $this->pins->verify($userId, $pin);
 
-        if ($credential === null) {
-            $this->refuse();
-        }
-
-        if ($credential->is_locked) {
-            throw ValidationException::withMessages([
-                'pin' => sprintf(
-                    'Juda ko\'p noto\'g\'ri urinish. %d daqiqadan keyin qayta urinib ko\'ring.',
-                    max(1, (int) ceil(now()->diffInMinutes($credential->locked_until, absolute: true))),
-                ),
+        if ($checked['status'] === PinCredentials::LOCKED) {
+            /*
+             * A catalogue code, not a sentence.
+             *
+             * This threw a ValidationException carrying one hand-written Uzbek
+             * string — so a Russian or English reader got Uzbek, and no client
+             * could tell "wrong PIN" from "locked out" without matching on the
+             * words. Both are what the one envelope exists to prevent.
+             *
+             * The wait rides in the meta rather than being interpolated into
+             * the sentence: the client already has the three languages and can
+             * say "15 daqiqadan keyin" in the reader's own.
+             */
+            throw ApiException::of('pos.pin_locked', field: 'pin', meta: [
+                'retry_after_minutes' => $checked['retry_after_minutes'],
             ]);
         }
 
-        if (! Hash::check($pin, $credential->pin_hash)) {
-            $this->registerFailure($credential);
+        if ($checked['status'] !== PinCredentials::OK) {
+            // A wrong PIN and a person with no PIN at all get the same answer:
+            // the keypad must not become a way to ask who is enrolled.
             $this->refuse();
         }
+
+        /** @var UserPin $credential */
+        $credential = $checked['pin'];
 
         /** @var User|null $user */
         $user = User::query()->whereKey($userId)->first();
@@ -68,9 +85,7 @@ final class PinAuthenticator
         }
 
         if (! $user->can('pos.sell') && ! $user->can('pos.approve')) {
-            throw ValidationException::withMessages([
-                'pin' => 'Sizda kassada ishlash huquqi yo\'q.',
-            ]);
+            throw ApiException::of('pos.pin_no_till_permission', field: 'pin');
         }
 
         return DB::transaction(function () use ($terminal, $user, $credential, $ip): array {
@@ -81,11 +96,10 @@ final class PinAuthenticator
                 ->get()
                 ->each(static fn (TerminalSession $previous) => $previous->close('takeover'));
 
-            $credential->forceFill([
-                'failed_attempts' => 0,
-                'locked_until' => null,
-                'last_used_at' => now(),
-            ])->save();
+            // Cleared only now, after the person has been checked against this
+            // restaurant and against `pos.sell` — a PIN that was right but
+            // unusable must not reset somebody's lockout.
+            $this->pins->accept($credential);
 
             $session = TerminalSession::create([
                 'terminal_id' => $terminal->getKey(),
@@ -109,46 +123,81 @@ final class PinAuthenticator
     }
 
     /**
+     * Four digits checked, and nothing opened.
+     *
+     * The manager standing at somebody else's till. `attempt()` above cannot
+     * serve them: it opens a session, and opening a session on this terminal
+     * closes the cashier's — the waiter would be signed out by the very act of
+     * getting their void approved, mid-service, in front of the guest.
+     *
+     * So this verifies and returns. The caller keeps its own session, the
+     * approval row records the manager's name, and `method` stays `pin` because
+     * somebody genuinely typed one on a till.
+     *
+     * `pos.approve` rather than `pos.sell`: the question here is not "may this
+     * person work a till" — it is "may this person authorise". A cashier's own
+     * PIN must not clear a cashier's own request, and `approval_self` upstream
+     * only catches the case where they are the same row.
+     *
+     * @throws ApiException
+     */
+    public function verifyApprover(Terminal $terminal, int $userId, string $pin): User
+    {
+        $checked = $this->pins->verify($userId, $pin);
+
+        if ($checked['status'] === PinCredentials::LOCKED) {
+            throw ApiException::of('pos.pin_locked', field: 'pin', meta: [
+                'retry_after_minutes' => $checked['retry_after_minutes'],
+            ]);
+        }
+
+        if ($checked['status'] !== PinCredentials::OK) {
+            $this->refuse();
+        }
+
+        /** @var UserPin $credential */
+        $credential = $checked['pin'];
+
+        /** @var User|null $user */
+        $user = User::query()->whereKey($userId)->first();
+
+        if ($user === null || $user->tenant_id !== $terminal->tenant_id) {
+            // Same answer as a wrong PIN. A keypad that distinguishes "not your
+            // restaurant" from "wrong digits" is a keypad that enumerates staff.
+            $this->refuse();
+        }
+
+        if (! $user->can('pos.approve')) {
+            throw ApiException::of('pos.approval_no_permission', field: 'user_id');
+        }
+
+        // Cleared only now, after the person has been checked against this
+        // restaurant and against the permission — a PIN that was right but
+        // powerless must not reset somebody's lockout counter.
+        $this->pins->accept($credential);
+
+        return $user;
+    }
+
+    /**
      * Set or replace someone's PIN.
      *
      * Rotation clears the lockout on purpose: a manager resetting a forgotten
      * PIN should not also have to wait fifteen minutes for the door to reopen.
      */
-    public function setPin(User $user, string $pin): PosPin
+    public function setPin(User $user, string $pin): UserPin
     {
-        /** @var PosPin $credential */
-        $credential = PosPin::query()->firstOrNew(['user_id' => $user->getKey()]);
-
-        $credential->forceFill([
-            'tenant_id' => $credential->tenant_id ?? $user->tenant_id,
-            'user_id' => $user->getKey(),
-            'pin_hash' => Hash::make($pin),
-            'failed_attempts' => 0,
-            'locked_until' => null,
-            'rotated_at' => now(),
-        ])->save();
-
-        return $credential;
-    }
-
-    private function registerFailure(PosPin $credential): void
-    {
-        $attempts = $credential->failed_attempts + 1;
-        $max = (int) config('pos.pin.max_attempts', 5);
-
-        $credential->forceFill([
-            'failed_attempts' => $attempts,
-            'locked_until' => $attempts >= $max
-                ? now()->addMinutes((int) config('pos.pin.lock_minutes', 15))
-                : null,
-        ])->save();
+        return $this->pins->set($user, $pin);
     }
 
     /**
-     * @throws ValidationException
+     * @throws ApiException
      */
     private function refuse(): never
     {
-        throw ValidationException::withMessages(['pin' => 'PIN noto\'g\'ri.']);
+        // One code for a wrong PIN, an unknown person and somebody else's
+        // staff member. The till must not become a way to probe the roster,
+        // and three codes would be three answers to "does this person exist".
+        throw ApiException::of('pos.pin_invalid', field: 'pin');
     }
 }
