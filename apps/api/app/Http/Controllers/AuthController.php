@@ -111,24 +111,65 @@ final class AuthController extends Controller
     }
 
     /**
+     * How many accounts one address is allowed to be weighed against.
+     *
+     * An address is meant to identify exactly one account — `Rule::unique`
+     * guards both doors that create one — so in a healthy database this loop
+     * runs once. The cap is here because bcrypt is deliberately slow: without
+     * it, a table that somehow held fifty rows on one address would turn every
+     * sign-in attempt at that address into fifty verifications, which is a free
+     * amplifier pointed at the login endpoint.
+     */
+    private const LOGIN_CANDIDATES = 4;
+
+    /**
      * Sign in.
      *
      * The failure message never distinguishes "no such account" from "wrong
      * password" — telling an attacker which emails exist is a free gift.
+     *
+     * The password decides WHICH account, not just whether. That reads like
+     * over-engineering until you look at the index: `StorePlatformTenantRequest`
+     * and `InviteOperatorRequest` both refuse an address already on the
+     * platform, but the column's own constraint is `unique(tenant_id, email)` —
+     * so a row created outside those two doors, from a console or a seeder, can
+     * share one, and Postgres treats a null `tenant_id` as distinct from every
+     * other null besides.
+     *
+     * This deployment has exactly that: a restaurant owner and the platform
+     * operator who onboarded them, on one gmail. With a bare `->first()` and no
+     * `ORDER BY`, which row answers is whichever the heap hands back first —
+     * and that changes the moment either row is UPDATED, because the new tuple
+     * version goes to the end of the table. So one password reset, on the other
+     * account, silently moved a working sign-in to a different identity. Nobody
+     * touched the login; it simply started answering with somebody else.
+     *
+     * Ordering alone would only make the wrong answer stable. Weighing the
+     * password against each candidate answers the question actually being
+     * asked — *which of these accounts did this person prove they hold* — and a
+     * password that matches none is the same refusal as before.
      */
     public function login(LoginRequest $request): JsonResponse
     {
         $data = $request->validated();
 
-        $user = User::query()
+        $candidates = User::query()
             ->when(
                 isset($data['email']),
                 fn ($query) => $query->where('email', $data['email']),
                 fn ($query) => $query->byPhone((string) $data['phone']),
             )
-            ->first();
+            // Oldest first, so a duplicate answers the same way twice and the
+            // account that held the address first keeps it.
+            ->orderBy('id')
+            ->limit(self::LOGIN_CANDIDATES)
+            ->get();
 
-        if ($user === null || ! Hash::check($data['password'], $user->password)) {
+        $user = $candidates->first(
+            static fn (User $candidate): bool => Hash::check($data['password'], $candidate->password),
+        );
+
+        if ($user === null) {
             throw ValidationException::withMessages([
                 'email' => ["Login yoki parol noto'g'ri."],
             ]);

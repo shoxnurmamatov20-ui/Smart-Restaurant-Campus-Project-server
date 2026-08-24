@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\Providers\AppServiceProvider;
 use App\Providers\HorizonServiceProvider;
+use App\Providers\NotificationFeedServiceProvider;
 use App\Providers\TelescopeServiceProvider;
 
 return [
     AppServiceProvider::class,
     HorizonServiceProvider::class,
+    NotificationFeedServiceProvider::class,
     TelescopeServiceProvider::class,
 ];

@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Tenant;
-use App\Models\User;
+use App\Support\Tenancy\TenantProvisioner;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 /**
  * Puts a real restaurant on the platform — the production counterpart of
@@ -33,6 +30,11 @@ final class CreateOwner extends Command
                             {--country=UZ}';
 
     protected $description = 'Create a restaurant and its owner account';
+
+    public function __construct(private readonly TenantProvisioner $provisioner)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -60,41 +62,28 @@ final class CreateOwner extends Command
 
         // Generated rather than defaulted: a known default password on a
         // production install is the same as no password at all.
-        $password = (string) ($this->option('password') ?: Str::password(16));
+        $password = (string) ($this->option('password') ?: TenantProvisioner::password());
         $generated = $this->option('password') === null || $this->option('password') === '';
 
-        $result = DB::transaction(function () use ($input, $password): array {
-            $tenant = Tenant::query()->create([
-                'name' => $input['restaurant'],
-                'slug' => $this->uniqueSlug($input['restaurant']),
-                'country_code' => strtoupper((string) $this->option('country')),
-                'locale' => (string) $this->option('locale'),
-                'timezone' => (string) $this->option('timezone'),
-                'status' => 'active',
-                'settings' => [
-                    'currency' => 'UZS',
-                    'service_charge_percent' => 0,
-                    'vat_percent' => 12,
-                    'business_day_starts_at' => '06:00',
-                    'channels' => ['dine_in', 'takeaway', 'delivery'],
-                ],
-            ]);
-
-            $user = User::query()->create([
-                'tenant_id' => $tenant->id,
-                'name' => $input['name'],
-                'email' => $input['email'],
-                'phone' => $input['phone'],
-                'password' => $password,
-                'locale' => (string) $this->option('locale'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
-
-            $user->assignRole('owner');
-
-            return ['tenant' => $tenant, 'user' => $user];
-        });
+        /*
+         * The one definition of "a new restaurant" — shared with
+         * POST /api/v1/platform/tenants.
+         *
+         * This used to be written here, and the endpoint that would have needed
+         * the same steps did not exist yet. Two copies of "create a tenant,
+         * seed its settings, make its owner" is how a venue ends up without a
+         * VAT rate, discovered by an accountant in March.
+         */
+        $result = $this->provisioner->create([
+            'restaurant' => $input['restaurant'],
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'phone' => $input['phone'],
+            'password' => $password,
+            'locale' => (string) $this->option('locale'),
+            'timezone' => (string) $this->option('timezone'),
+            'country' => (string) $this->option('country'),
+        ]);
 
         $this->info("✅ Restoran yaratildi: {$result['tenant']->name} ({$result['tenant']->slug})");
         $this->info("✅ Egasi: {$result['user']->email}");
@@ -109,23 +98,5 @@ final class CreateOwner extends Command
         $this->line("Kirish: X-Tenant: {$result['tenant']->slug}");
 
         return self::SUCCESS;
-    }
-
-    /**
-     * Slugs identify a restaurant in the `X-Tenant` header and on its
-     * subdomain, so a collision would route two businesses to one another.
-     */
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'restoran';
-        $slug = $base;
-        $suffix = 2;
-
-        while (Tenant::query()->where('slug', $slug)->exists()) {
-            $slug = "{$base}-{$suffix}";
-            $suffix++;
-        }
-
-        return $slug;
     }
 }

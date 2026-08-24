@@ -30,6 +30,9 @@ use Illuminate\Support\Carbon;
  * @property string $locale
  * @property string $timezone
  * @property string $status
+ * @property string|null $plan_key
+ * @property Carbon|null $trial_ends_at
+ * @property string|null $operator_note
  * @property array<array-key, mixed>|null $settings
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -52,7 +55,13 @@ use Illuminate\Support\Carbon;
  *
  * @mixin \Eloquent
  */
-#[Fillable(['name', 'slug', 'country_code', 'locale', 'timezone', 'status', 'settings'])]
+#[Fillable([
+    'name', 'slug', 'country_code', 'locale', 'timezone', 'status', 'settings',
+    // What the platform sells this restaurant, and until when. On the row
+    // rather than in `settings` because the platform console filters and sorts
+    // by them, and a jsonb key is not an index.
+    'plan_key', 'trial_ends_at', 'operator_note',
+])]
 final class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */
@@ -62,6 +71,7 @@ final class Tenant extends Model
     {
         return [
             'settings' => 'array',
+            'trial_ends_at' => 'datetime',
         ];
     }
 

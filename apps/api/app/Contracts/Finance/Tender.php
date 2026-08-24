@@ -14,17 +14,21 @@ namespace App\Contracts\Finance;
 final readonly class Tender
 {
     /**
-     * @param string $method One of the methods Finance accepts (cash, card, payme, click, uzum, corporate).
-     * @param int $amount Tiyin, never a float.
+     * @param  string  $method  One of the methods Finance accepts — see Payment::METHODS.
+     * @param  int  $amount  Tiyin, never a float. What is owed on the bill, before rounding.
+     * @param  int  $tip  Tiyin on top, DECISIONS Q6. Never revenue and never taxed as a
+     *                    sale, but in the drawer at counting time — which is why it
+     *                    travels beside the amount rather than inside it.
      */
     public function __construct(
         public string $method,
         public int $amount,
         public ?string $reference = null,
+        public int $tip = 0,
     ) {}
 
     /**
-     * @param array{method: string, amount: int|string, reference?: string|null} $payload
+     * @param  array{method: string, amount: int|string, reference?: string|null, tip?: int|string|null}  $payload
      */
     public static function fromArray(array $payload): self
     {
@@ -32,6 +36,7 @@ final readonly class Tender
             method: (string) $payload['method'],
             amount: (int) $payload['amount'],
             reference: isset($payload['reference']) ? (string) $payload['reference'] : null,
+            tip: (int) ($payload['tip'] ?? 0),
         );
     }
 
@@ -44,6 +49,7 @@ final readonly class Tender
             'method' => $this->method,
             'amount' => $this->amount,
             'reference' => $this->reference,
+            'tip' => $this->tip,
         ];
     }
 }

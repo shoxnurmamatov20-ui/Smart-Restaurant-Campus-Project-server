@@ -163,16 +163,35 @@ return [
             'filename_prefix' => '',
 
             /*
-             * The disk names on which the backups will be stored.
+             * Where copies are written.
+             *
+             * `local` by default, which is `storage/app` — on the same disk as
+             * the database. That is not a backup of the failure it is for: every
+             * copy dies with the box it protects. It is here as the floor rather
+             * than the answer, because a restaurant with one local copy is
+             * better off than the nothing this project had.
+             *
+             * `BACKUP_DISKS=local,s3` and the S3 credentials in the environment
+             * turn on the off-site copy without touching this file. The disk has
+             * to exist in config/filesystems.php; `s3` already does.
              */
-            'disks' => [
-                'local',
-            ],
+            'disks' => array_values(array_filter(array_map(
+                'trim',
+                explode(',', (string) env('BACKUP_DISKS', 'local')),
+            ))),
 
             /*
              * Determines whether to allow backups to continue when some targets fail instead of failing completely.
              */
-            'continue_on_failure' => false,
+            /*
+             * True, deliberately.
+             *
+             * With two destinations, a failure to reach the off-site one must
+             * not throw away the local copy that succeeded. `backup:monitor`
+             * is what notices that a destination has gone quiet — losing both
+             * copies to protect a symmetry nobody asked for is the wrong trade.
+             */
+            'continue_on_failure' => true,
         ],
 
         /*
@@ -222,13 +241,23 @@ return [
      * the `Spatie\Backup\Notifications\Notifications` classes.
      */
     'notifications' => [
+        /*
+         * Only the three that mean something is wrong, and only when there is
+         * an address to send them to.
+         *
+         * The successful-backup notifications were on by default, which is how
+         * an operations channel becomes one nobody reads: a message every
+         * morning saying the thing that was supposed to happen happened. What
+         * is worth an interruption is the backup that failed, the one that is
+         * stale, and the cleanup that did not run.
+         */
         'notifications' => [
-            BackupHasFailedNotification::class => ['mail'],
-            UnhealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupHasFailedNotification::class => ['mail'],
-            BackupWasSuccessfulNotification::class => ['mail'],
-            HealthyBackupWasFoundNotification::class => ['mail'],
-            CleanupWasSuccessfulNotification::class => ['mail'],
+            BackupHasFailedNotification::class => env('BACKUP_NOTIFY_EMAIL') ? ['mail'] : [],
+            UnhealthyBackupWasFoundNotification::class => env('BACKUP_NOTIFY_EMAIL') ? ['mail'] : [],
+            CleanupHasFailedNotification::class => env('BACKUP_NOTIFY_EMAIL') ? ['mail'] : [],
+            BackupWasSuccessfulNotification::class => [],
+            HealthyBackupWasFoundNotification::class => [],
+            CleanupWasSuccessfulNotification::class => [],
         ],
 
         /*
@@ -238,7 +267,25 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => 'your@example.com',
+            /*
+             * `your@example.com` shipped here for months, which means every
+             * backup failure notification was addressed to a domain the IETF
+             * reserves for documentation. Read from the environment now.
+             *
+             * An ARRAY, and empty when unset — not null and not an empty
+             * string. `NotificationMailConfig::fromArray()` runs every entry
+             * through `FILTER_VALIDATE_EMAIL` and throws on anything that is
+             * not an address, and it does so inside the service provider: with
+             * `null` here the whole application fails to boot, which is what
+             * happened when this was first written that way. An empty array
+             * skips the loop entirely, so an unconfigured deployment boots and
+             * simply sends no mail.
+             *
+             * The channel that actually reaches somebody is `srcp-notify` on
+             * the host: `srcp-health` reads the newest dump's age and alerts
+             * through it. This is the second line of defence, not the first.
+             */
+            'to' => array_values(array_filter([env('BACKUP_NOTIFY_EMAIL')])),
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),

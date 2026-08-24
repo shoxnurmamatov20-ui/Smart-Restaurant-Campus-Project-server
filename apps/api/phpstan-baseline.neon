@@ -19,58 +19,16 @@ parameters:
 			path: Modules/Crm/app/Models/Customer.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Crm/database/seeders/CrmDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Crm/database/seeders/CrmFeedbackSeeder.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Support\\Carbon\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Finance/app/Http/Resources/CashShiftResource.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Finance/database/seeders/FinanceDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/Finance/database/seeders/FinancePaymentSeeder.php
-
-		-
 			message: '#^Anonymous function should return Modules\\Inventory\\Models\\StockMovement but returns Illuminate\\Database\\Eloquent\\Model\.$#'
 			identifier: return.type
 			count: 1
 			path: Modules/Inventory/app/Models/Ingredient.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Inventory/database/seeders/InventoryDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Kitchen/database/seeders/KitchenDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Kitchen/database/seeders/KitchenTicketSeeder.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Menu\\Models\\MenuCategory\>\:\:defaultSort\(\)\.$#'
@@ -103,18 +61,6 @@ parameters:
 			path: Modules/Menu/app/Http/Requests/UpdateMenuItemRequest.php
 
 		-
-			message: '#^Call to function property_exists\(\) with \$this\(Modules\\Menu\\Models\\MenuCategory\) and ''translatable'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: Modules/Menu/app/Models/MenuCategory.php
-
-		-
-			message: '#^Call to function property_exists\(\) with \$this\(Modules\\Menu\\Models\\MenuItem\) and ''translatable'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: Modules/Menu/app/Models/MenuItem.php
-
-		-
 			message: '#^Offset ''kcal'' on array\{sku\: ''BRK\-001''\|''BRK\-002''\|''BRK\-003''\|''DES\-001''\|''DES\-002''\|''DES\-003''\|''SAL\-004''\|''SID\-002'', uz\: ''Chak\-chak''\|''Muzqaymoq''\|''Napoleon torti''\|''Omlet''\|''Qaymoq bilan non''\|''Sutli bo\\''tqa''\|''Tandir non''\|''Yunon salati'', ru\: ''Греческий салат''\|''Молочная каша''\|''Мороженое''\|''Наполеон''\|''Омлет''\|''Тандырная лепёшка''\|''Хлеб со сливками''\|''Чак\-чак'', en\: ''Bread with cream''\|''Chak\-chak''\|''Greek salad''\|''Ice cream''\|''Milk porridge''\|''Napoleon cake''\|''Omelette''\|''Tandoor bread'', price\: 600000\|1500000\|1600000\|1800000\|2200000\|2400000\|3200000, cost\: 160000\|400000\|430000\|480000\|520000\|700000\|720000\|1050000, station\: ''cold''\|''hot''\|''pastry'', cook\: 2\|3\|5\|8\|10, \.\.\.\}\|array\{sku\: ''DRK\-001''\|''DRK\-002''\|''DRK\-004''\|''DRK\-005''\|''DRK\-006'', uz\: ''Amerikano''\|''Apelsin fresh''\|''Ko\\''k choy''\|''Mineral suv''\|''Qora choy'', ru\: ''Американо''\|''Апельсиновый фреш''\|''Зелёный чай''\|''Минеральная вода''\|''Чёрный чай'', en\: ''Americano''\|''Black tea''\|''Fresh orange juice''\|''Green tea''\|''Mineral water'', price\: 700000\|800000\|1800000\|2200000, cost\: 150000\|250000\|420000\|780000, station\: ''bar'', cook\: 1\|4\|5, \.\.\.\}\|array\{sku\: ''DRK\-003'', uz\: ''Ayron'', ru\: ''Айран'', en\: ''Ayran'', price\: 1000000, cost\: 280000, station\: ''bar'', cook\: 2, \.\.\.\}\|array\{sku\: ''GRL\-001''\|''GRL\-002''\|''GRL\-003''\|''NAT\-001''\|''NAT\-006''\|''SUP\-001''\|''SUP\-002''\|''SUP\-004'', uz\: ''Mastava''\|''Mol shashlik''\|''Osh \(to\\''y palov\)''\|''Qo\\''y shashlik''\|''Qozon kabob''\|''Sho\\''rva''\|''Tovuq bulyoni''\|''Tovuq shashlik'', ru\: ''Говяжий шашлык''\|''Казан\-кебаб''\|''Куриный бульон''\|''Куриный шашлык''\|''Мастава''\|''Плов''\|''Шашлык из баранины''\|''Шурпа'', en\: ''Beef kebab''\|''Chicken broth''\|''Chicken kebab''\|''Kazan kebab''\|''Lamb kebab''\|''Mastava''\|''Pilaf''\|''Shurpa'', price\: 2000000\|2500000\|2800000\|3000000\|3500000\|3800000\|4500000\|5200000, cost\: 560000\|720000\|900000\|980000\|1300000\|1420000\|1750000, station\: ''grill''\|''hot'', cook\: 10\|12\|14\|16\|20\|22, \.\.\.\}\|array\{sku\: ''GRL\-004'', uz\: ''Lyulya kabob'', ru\: ''Люля\-кебаб'', en\: ''Lyulya kebab'', price\: 3200000, cost\: 1100000, station\: ''grill'', cook\: 18, \.\.\.\}\|array\{sku\: ''GRL\-005''\|''SID\-001''\|''SID\-003'', uz\: ''Fri kartoshka''\|''Guruch garnir''\|''Sabzavot shashlik'', ru\: ''Картофель фри''\|''Овощной шашлык''\|''Рисовый гарнир'', en\: ''French fries''\|''Rice side''\|''Vegetable skewer'', price\: 1400000\|1800000\|2200000, cost\: 380000\|520000\|640000, station\: ''grill''\|''hot'', cook\: 6\|8\|14, \.\.\.\}\|array\{sku\: ''NAT\-002''\|''NAT\-004''\|''NAT\-005''\|''SAL\-002''\|''SAL\-003''\|''SUP\-003'', uz\: ''Chuchvara''\|''Manti''\|''Norin''\|''Olivye''\|''Sezar salati''\|''Somsa \(go\\''shtli\)'', ru\: ''Манты''\|''Норин''\|''Оливье''\|''Самса с мясом''\|''Цезарь''\|''Чучвара'', en\: ''Caesar salad''\|''Chuchvara''\|''Manti''\|''Meat samsa''\|''Norin''\|''Olivier salad'', price\: 1200000\|2600000\|3600000\|3800000\|4000000\|4300000, cost\: 380000\|830000\|1150000\|1200000\|1250000\|1380000, station\: ''cold''\|''hot''\|''pastry'', cook\: 8\|10\|15\|25, \.\.\.\}\|array\{sku\: ''NAT\-003'', uz\: ''Lag\\''mon'', ru\: ''Лагман'', en\: ''Lagman'', price\: 4200000, cost\: 1330000, station\: ''hot'', cook\: 18, \.\.\.\}\|array\{sku\: ''SAL\-001'', uz\: ''Achchiq\-chuchuk'', ru\: ''Ачик\-чучук'', en\: ''Tomato & onion salad'', price\: 1800000, cost\: 480000, station\: ''cold'', cook\: 5, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
@@ -123,12 +69,6 @@ parameters:
 		-
 			message: '#^Offset ''weight'' on array\{sku\: ''BRK\-001''\|''BRK\-002''\|''BRK\-003''\|''DES\-001''\|''DES\-002''\|''DES\-003''\|''SAL\-004''\|''SID\-002'', uz\: ''Chak\-chak''\|''Muzqaymoq''\|''Napoleon torti''\|''Omlet''\|''Qaymoq bilan non''\|''Sutli bo\\''tqa''\|''Tandir non''\|''Yunon salati'', ru\: ''Греческий салат''\|''Молочная каша''\|''Мороженое''\|''Наполеон''\|''Омлет''\|''Тандырная лепёшка''\|''Хлеб со сливками''\|''Чак\-чак'', en\: ''Bread with cream''\|''Chak\-chak''\|''Greek salad''\|''Ice cream''\|''Milk porridge''\|''Napoleon cake''\|''Omelette''\|''Tandoor bread'', price\: 600000\|1500000\|1600000\|1800000\|2200000\|2400000\|3200000, cost\: 160000\|400000\|430000\|480000\|520000\|700000\|720000\|1050000, station\: ''cold''\|''hot''\|''pastry'', cook\: 2\|3\|5\|8\|10, \.\.\.\}\|array\{sku\: ''DRK\-001''\|''DRK\-002''\|''DRK\-004''\|''DRK\-005''\|''DRK\-006'', uz\: ''Amerikano''\|''Apelsin fresh''\|''Ko\\''k choy''\|''Mineral suv''\|''Qora choy'', ru\: ''Американо''\|''Апельсиновый фреш''\|''Зелёный чай''\|''Минеральная вода''\|''Чёрный чай'', en\: ''Americano''\|''Black tea''\|''Fresh orange juice''\|''Green tea''\|''Mineral water'', price\: 700000\|800000\|1800000\|2200000, cost\: 150000\|250000\|420000\|780000, station\: ''bar'', cook\: 1\|4\|5, \.\.\.\}\|array\{sku\: ''DRK\-003'', uz\: ''Ayron'', ru\: ''Айран'', en\: ''Ayran'', price\: 1000000, cost\: 280000, station\: ''bar'', cook\: 2, \.\.\.\}\|array\{sku\: ''GRL\-001''\|''GRL\-002''\|''GRL\-003''\|''NAT\-001''\|''NAT\-006''\|''SUP\-001''\|''SUP\-002''\|''SUP\-004'', uz\: ''Mastava''\|''Mol shashlik''\|''Osh \(to\\''y palov\)''\|''Qo\\''y shashlik''\|''Qozon kabob''\|''Sho\\''rva''\|''Tovuq bulyoni''\|''Tovuq shashlik'', ru\: ''Говяжий шашлык''\|''Казан\-кебаб''\|''Куриный бульон''\|''Куриный шашлык''\|''Мастава''\|''Плов''\|''Шашлык из баранины''\|''Шурпа'', en\: ''Beef kebab''\|''Chicken broth''\|''Chicken kebab''\|''Kazan kebab''\|''Lamb kebab''\|''Mastava''\|''Pilaf''\|''Shurpa'', price\: 2000000\|2500000\|2800000\|3000000\|3500000\|3800000\|4500000\|5200000, cost\: 560000\|720000\|900000\|980000\|1300000\|1420000\|1750000, station\: ''grill''\|''hot'', cook\: 10\|12\|14\|16\|20\|22, \.\.\.\}\|array\{sku\: ''GRL\-004'', uz\: ''Lyulya kabob'', ru\: ''Люля\-кебаб'', en\: ''Lyulya kebab'', price\: 3200000, cost\: 1100000, station\: ''grill'', cook\: 18, \.\.\.\}\|array\{sku\: ''GRL\-005''\|''SID\-001''\|''SID\-003'', uz\: ''Fri kartoshka''\|''Guruch garnir''\|''Sabzavot shashlik'', ru\: ''Картофель фри''\|''Овощной шашлык''\|''Рисовый гарнир'', en\: ''French fries''\|''Rice side''\|''Vegetable skewer'', price\: 1400000\|1800000\|2200000, cost\: 380000\|520000\|640000, station\: ''grill''\|''hot'', cook\: 6\|8\|14, \.\.\.\}\|array\{sku\: ''NAT\-002''\|''NAT\-004''\|''NAT\-005''\|''SAL\-002''\|''SAL\-003''\|''SUP\-003'', uz\: ''Chuchvara''\|''Manti''\|''Norin''\|''Olivye''\|''Sezar salati''\|''Somsa \(go\\''shtli\)'', ru\: ''Манты''\|''Норин''\|''Оливье''\|''Самса с мясом''\|''Цезарь''\|''Чучвара'', en\: ''Caesar salad''\|''Chuchvara''\|''Manti''\|''Meat samsa''\|''Norin''\|''Olivier salad'', price\: 1200000\|2600000\|3600000\|3800000\|4000000\|4300000, cost\: 380000\|830000\|1150000\|1200000\|1250000\|1380000, station\: ''cold''\|''hot''\|''pastry'', cook\: 8\|10\|15\|25, \.\.\.\}\|array\{sku\: ''NAT\-003'', uz\: ''Lag\\''mon'', ru\: ''Лагман'', en\: ''Lagman'', price\: 4200000, cost\: 1330000, station\: ''hot'', cook\: 18, \.\.\.\}\|array\{sku\: ''SAL\-001'', uz\: ''Achchiq\-chuchuk'', ru\: ''Ачик\-чучук'', en\: ''Tomato & onion salad'', price\: 1800000, cost\: 480000, station\: ''cold'', cook\: 5, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
-			count: 1
-			path: Modules/Menu/database/seeders/MenuDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: Modules/Menu/database/seeders/MenuDatabaseSeeder.php
 
@@ -151,28 +91,12 @@ parameters:
 			path: Modules/Orders/app/Http/Controllers/OrderController.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: Modules/Orders/database/seeders/OrdersDatabaseSeeder.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: Modules/Orders/tests/Feature/OrderFlowTest.php
 
-		-
-			message: '#^Using nullsafe property access "\?\-\>lines" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Pos/app/Http/Controllers/BillController.php
 
-		-
-			message: '#^Using nullsafe property access "\?\-\>subtotal" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Pos/app/Http/Controllers/BillController.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>totalPrice" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -229,12 +153,6 @@ parameters:
 			path: Modules/Pos/app/Models/PosApproval.php
 
 		-
-			message: '#^PHPDoc type array\<int, string\> of property Modules\\Pos\\Models\\PosPin\:\:\$hidden is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$hidden\.$#'
-			identifier: property.phpDocType
-			count: 1
-			path: Modules/Pos/app/Models/PosPin.php
-
-		-
 			message: '#^PHPDoc type array\<int, string\> of property Modules\\Pos\\Models\\Terminal\:\:\$hidden is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$hidden\.$#'
 			identifier: property.phpDocType
 			count: 1
@@ -263,12 +181,6 @@ parameters:
 			identifier: argument.templateType
 			count: 1
 			path: Modules/Pos/app/Services/IdempotencyGuard.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 5
-			path: Modules/Pos/database/seeders/PosDatabaseSeeder.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -313,24 +225,6 @@ parameters:
 			path: Modules/Staff/app/Models/Shift.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Staff/database/seeders/StaffDatabaseSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Staff/database/seeders/StaffShiftSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Suppliers/database/seeders/SuppliersDatabaseSeeder.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Modules\\Tables\\Models\\Hall\>\:\:defaultSort\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -347,18 +241,6 @@ parameters:
 			identifier: notIdentical.alwaysTrue
 			count: 1
 			path: Modules/Tables/app/Models/Reservation.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: Modules/Tables/database/seeders/ReservationSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/Tables/database/seeders/TablesDatabaseSeeder.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -479,27 +361,8 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: database/migrations/2026_08_13_000100_add_branch_id_to_users_table.php
-
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
-			path: database/seeders/BranchSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: database/seeders/RolesAndPermissionsSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: database/seeders/TenantSeeder.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 5
-			path: database/seeders/UserSeeder.php
+			path: Modules/Menu/database/seeders/MenuModifierSeeder.php

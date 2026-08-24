@@ -19,8 +19,11 @@ use App\Contracts\Menu\Dish;
 final readonly class BillLine
 {
     /**
-     * @param int $unitPrice Tiyin, never a float. 1 UZS = 100 tiyin.
-     * @param int $totalPrice Tiyin. quantity × unitPrice, computed server-side.
+     * @param  int  $unitPrice  Tiyin, never a float. 1 UZS = 100 tiyin.
+     * @param  int  $totalPrice  Tiyin. quantity × (unitPrice + modifiers), server-side.
+     * @param  int  $seatNo  Which guest ordered it. Never null — see Q4.
+     * @param  int  $billNo  Which of the table's bills it goes on, 1-4.
+     * @param  array<int, LineModifier>  $modifiers  Frozen at the moment they were chosen.
      */
     public function __construct(
         public int $id,
@@ -34,6 +37,20 @@ final readonly class BillLine
         public int $totalPrice,
         public string $status,
         public ?string $note = null,
+        public int $seatNo = 1,
+        public int $billNo = 1,
+        public array $modifiers = [],
+        /**
+         * The fiscal classification code, snapshotted like everything else here.
+         *
+         * A snapshot and not a join, for this class's own stated rule: a receipt
+         * filed last night must keep saying what it said, and a dish
+         * reclassified next month must not rewrite it. The authority holds the
+         * old declaration; ours has to match it.
+         *
+         * @see Dish::$plu for what the code is.
+         */
+        public ?string $plu = null,
     ) {}
 
     /**
@@ -45,6 +62,7 @@ final readonly class BillLine
             'id' => $this->id,
             'order_id' => $this->orderId,
             'menu_item_id' => $this->menuItemId,
+            'plu' => $this->plu,
             'sku' => $this->sku,
             'title' => $this->title,
             'station' => $this->station,
@@ -53,6 +71,12 @@ final readonly class BillLine
             'total_price' => $this->totalPrice,
             'status' => $this->status,
             'note' => $this->note,
+            'seat_no' => $this->seatNo,
+            'bill_no' => $this->billNo,
+            'modifiers' => array_map(
+                static fn (LineModifier $modifier): array => $modifier->toArray(),
+                $this->modifiers,
+            ),
         ];
     }
 }

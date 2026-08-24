@@ -47,6 +47,29 @@ parameters:
         - identifier: missingType.iterableValue
         - identifier: missingType.generics
 
+        # `$this->command?->info(...)` inside a seeder.
+        #
+        # Laravel types `Seeder::$command` as non-nullable, so the nullsafe reads as
+        # unnecessary — and it is not: a seeder invoked from code rather than from
+        # the console (`$this->seed(X::class)` in a test, an installer calling
+        # Artisan::call) has no command attached, and `->info()` on null is fatal.
+        # Dropping the `?` would break every test that seeds. `isset()` reports the
+        # same false positive, so there is no phrasing that satisfies both the
+        # analyser and the runtime.
+        #
+        # One rule rather than a baseline entry per file: it was 22 of them, one for
+        # every seeder in the project, and the next seeder would have made 23. A
+        # baseline that grows by one file per feature is a baseline nobody reads,
+        # and the entries it hides among become invisible.
+        -
+            message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
+            identifier: nullsafe.neverNull
+            path: database/seeders/*.php
+        -
+            message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
+            identifier: nullsafe.neverNull
+            path: Modules/*/database/seeders/*.php
+
         # larastan only recognises the application's own `config/` directory, so
         # every module's config file is reported as an env() call made outside
         # config — which would indeed return null once the config is cached.

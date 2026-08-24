@@ -139,6 +139,23 @@ final class ErrorCatalogue
                 'Запрошенная запись не найдена.',
                 'The requested record was not found.',
             ),
+            /*
+             * The one place an absent branch is an error rather than a sum.
+             *
+             * Everywhere else in this API a missing `X-Branch` means "all of them"
+             * — that is how an owner and an accountant read the business, and
+             * `BranchIsolationTest` holds the line on it. A few acts have no such
+             * reading: 86-ing a dish, opening a till, counting a drawer. They
+             * happen at an address, and there is no honest answer to "which
+             * kitchen" for a request that named none.
+             */
+            new ApiError(
+                'request.branch_required',
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                'Bu amal uchun filial ko\'rsatilishi shart.',
+                'Для этой операции нужно указать филиал.',
+                'This operation needs a branch.',
+            ),
             new ApiError(
                 'request.method_not_allowed',
                 Response::HTTP_METHOD_NOT_ALLOWED,
@@ -251,6 +268,59 @@ final class ErrorCatalogue
                 'Tarif chegarasiga yetdingiz. Tarifni ko\'tarish kerak.',
                 'Достигнут предел тарифа. Нужно повысить тариф.',
                 'You have reached the plan limit. Upgrade to continue.',
+            ),
+
+            /*
+             * ---- Data export ----
+             *
+             * A GDPR-shaped archive is a pipeline, not an endpoint: it is
+             * queued, it takes minutes, it lands as a file, and the link to it
+             * dies after a day. Each of those stages has its own refusal, and
+             * they are deliberately not folded into one — "no" tells an
+             * operator nothing, while "still being prepared" and "that link has
+             * expired" are two different next actions.
+             */
+            new ApiError(
+                'export.already_running',
+                Response::HTTP_CONFLICT,
+                'Arxiv allaqachon tayyorlanmoqda. Tugashini kuting.',
+                'Архив уже готовится. Дождитесь завершения.',
+                'An archive is already being prepared. Wait for it to finish.',
+            ),
+            new ApiError(
+                'export.not_ready',
+                Response::HTTP_CONFLICT,
+                'Arxiv hali tayyor emas.',
+                'Архив ещё не готов.',
+                'The archive is not ready yet.',
+                retryable: true,
+            ),
+            new ApiError(
+                'export.failed',
+                Response::HTTP_CONFLICT,
+                'Arxiv tayyorlanmadi. Qaytadan so\'rang.',
+                'Архив не собрался. Запросите заново.',
+                'The archive could not be built. Ask for a new one.',
+            ),
+            /*
+             * 404 rather than 410, and on purpose. A caller holding a stale
+             * link and a caller holding a link to something that never existed
+             * must not be told apart: the id is a small integer, and a 410
+             * would confirm that export #7 was real.
+             */
+            new ApiError(
+                'export.expired',
+                Response::HTTP_NOT_FOUND,
+                'Havolaning muddati tugagan. Yangi arxiv so\'rang.',
+                'Срок действия ссылки истёк. Запросите новый архив.',
+                'That link has expired. Ask for a new archive.',
+            ),
+            new ApiError(
+                'export.link_invalid',
+                Response::HTTP_FORBIDDEN,
+                'Havola haqiqiy emas.',
+                'Ссылка недействительна.',
+                'That link is not valid.',
             ),
         ];
     }

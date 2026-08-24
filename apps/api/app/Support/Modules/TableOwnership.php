@@ -126,9 +126,34 @@ final class TableOwnership
         foreach (glob($directory.'/*.php') ?: [] as $file) {
             $source = (string) file_get_contents($file);
 
+            // The literal form: Schema::create('kitchen.print_jobs', …)
             if (preg_match_all("/Schema::create\(\s*'([a-z0-9_.]+)'/", $source, $matches) > 0) {
                 foreach ($matches[1] as $table) {
                     $tables[] = $table;
+                }
+            }
+
+            /*
+             * And the constant form: `Schema::create(self::TABLE, …)` against a
+             * `private const TABLE = 'kitchen.print_jobs'` in the same file.
+             *
+             * A migration that names its table once and uses it in both `up()` and
+             * `down()` is better written than one that repeats the string, so this
+             * scanner has to read it rather than the codebase having to avoid it.
+             * It did not, and the result was quiet in the worst way: two new tables
+             * appeared owned by nobody, `TableOwnership` reported them as
+             * unattributed, and the failure surfaced in a test about module
+             * boundaries rather than anywhere near the migration that caused it.
+             *
+             * Resolved within the one file, deliberately. A constant defined
+             * elsewhere would need real name resolution, and a migration reaching
+             * outside itself for its own table name is a different problem.
+             */
+            if (preg_match_all("/Schema::create\(\s*self::([A-Z_][A-Z0-9_]*)/", $source, $uses) > 0) {
+                foreach ($uses[1] as $constant) {
+                    if (preg_match("/const\s+{$constant}\s*=\s*'([a-z0-9_.]+)'/", $source, $value) === 1) {
+                        $tables[] = $value[1];
+                    }
                 }
             }
         }

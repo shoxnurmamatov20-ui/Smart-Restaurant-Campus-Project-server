@@ -41,4 +41,36 @@ abstract class ApiModuleServiceProvider extends ModuleServiceProvider
 
         parent::registerViews();
     }
+
+    /**
+     * A module's own translations, under its own namespace.
+     *
+     * nwidart calls `loadTranslationsFrom($path)` with no second argument, so the
+     * lines land in the global namespace and `__('kitchen::print.receipt.total')`
+     * resolves to nothing. Laravel's answer to a missing key is the key itself —
+     * silently, by design — so nothing raises and nothing logs.
+     *
+     * Harmless while every module answered in JSON, because the API sends codes and
+     * the client owns the wording. Printing was the first thing to need translated
+     * copy on the server, and the symptom was the string
+     * `kitchen::print.receipt.total` printed on a real roll of paper where the total
+     * should be, in front of a guest, with the drawer open.
+     *
+     * Kitchen found it and fixed it in its own provider. It is here now because the
+     * next module to print, mail or send an SMS would have discovered it again the
+     * same way — and one of those goes to a customer.
+     */
+    protected function registerTranslations(): void
+    {
+        $path = module_path($this->name, 'lang');
+
+        if (! is_dir($path)) {
+            return;
+        }
+
+        // Namespaced, so `module::file.key` resolves; and the JSON pass beside it
+        // for the short-form `__('Total')` lines a module may also carry.
+        $this->loadTranslationsFrom($path, $this->nameLower);
+        $this->loadJsonTranslationsFrom($path);
+    }
 }

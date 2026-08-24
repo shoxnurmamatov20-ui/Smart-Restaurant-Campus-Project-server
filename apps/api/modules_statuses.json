@@ -10,5 +10,7 @@
   "Crm": true,
   "Analytics": true,
   "TelegramBots": true,
-  "Pos": true
+  "Pos": true,
+  "Marketplace": true,
+  "Board": true
 }

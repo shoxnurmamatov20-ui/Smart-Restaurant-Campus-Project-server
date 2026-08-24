@@ -50,6 +50,8 @@ return new class extends Migration
         'telegram' => 'TelegramBots — botlar, obunalar, xabarlar',
         'analytics' => 'Analytics — hisobot proyeksiyalari uchun zaxirada',
         'pos' => 'Pos — kassa terminali, sotuv, chek, fiskal',
+        'marketplace' => 'Marketplace — MyPOS bozori — ko\'p restoranli iste\'molchi vitrinasi',
+        'board' => 'Board — peshtaxta ustidagi menyu tablosi: ustunlar, rotatsiya, bannerlar',
     ];
 
     public function up(): void

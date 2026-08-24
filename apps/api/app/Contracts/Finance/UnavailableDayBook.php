@@ -11,4 +11,9 @@ final class UnavailableDayBook implements DayBook
     {
         return 0;
     }
+
+    public function openSince(?int $branchId = null): ?\DateTimeImmutable
+    {
+        return null;
+    }
 }

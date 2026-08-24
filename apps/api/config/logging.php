@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Logging\CreateTelegramAlertLogger;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -73,6 +74,19 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+        ],
+
+        /*
+         * The operations chat, for `critical` and above only. Same bot and chat
+         * as the server's `srcp-notify`; see App\Support\Logging for why it is
+         * narrow and why it never throws.
+         */
+        'telegram' => [
+            'driver' => 'custom',
+            'via' => CreateTelegramAlertLogger::class,
+            'token' => env('TELEGRAM_ALERT_TOKEN'),
+            'chat_id' => env('TELEGRAM_ALERT_CHAT_ID'),
+            'level' => env('TELEGRAM_ALERT_LEVEL', 'critical'),
         ],
 
         'slack' => [

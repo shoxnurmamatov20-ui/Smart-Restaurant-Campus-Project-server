@@ -9,18 +9,30 @@ use App\Models\Tenant;
 use App\Support\Tenancy\BranchContext;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
+use Modules\Analytics\Database\Seeders\DemoFactsSeeder;
+use Modules\Board\Database\Seeders\BoardDatabaseSeeder;
+use Modules\Crm\Database\Seeders\CrmCaseSeeder;
 use Modules\Crm\Database\Seeders\CrmDatabaseSeeder;
 use Modules\Crm\Database\Seeders\CrmFeedbackSeeder;
+use Modules\Crm\Database\Seeders\CrmMarketingSeeder;
+use Modules\Crm\Database\Seeders\CrmPromoSeeder;
+use Modules\Finance\Database\Seeders\DemoTakingsSeeder;
 use Modules\Finance\Database\Seeders\FinanceDatabaseSeeder;
+use Modules\Finance\Database\Seeders\FinanceLedgerSeeder;
 use Modules\Finance\Database\Seeders\FinancePaymentSeeder;
 use Modules\Inventory\Database\Seeders\InventoryDatabaseSeeder;
+use Modules\Inventory\Database\Seeders\StockMovementSeeder;
 use Modules\Kitchen\Database\Seeders\KitchenDatabaseSeeder;
 use Modules\Kitchen\Database\Seeders\KitchenTicketSeeder;
+use Modules\Marketplace\Database\Seeders\MarketplaceDatabaseSeeder;
 use Modules\Menu\Database\Seeders\MenuDatabaseSeeder;
+use Modules\Menu\Database\Seeders\MenuModifierSeeder;
+use Modules\Orders\Database\Seeders\DemoTradingSeeder;
 use Modules\Orders\Database\Seeders\OrdersDatabaseSeeder;
 use Modules\Pos\Database\Seeders\PosDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffDatabaseSeeder;
 use Modules\Staff\Database\Seeders\StaffShiftSeeder;
+use Modules\Suppliers\Database\Seeders\PurchaseOrderSeeder;
 use Modules\Suppliers\Database\Seeders\SuppliersDatabaseSeeder;
 use Modules\Tables\Database\Seeders\ReservationSeeder;
 use Modules\Tables\Database\Seeders\TablesDatabaseSeeder;
@@ -38,6 +50,17 @@ final class DatabaseSeeder extends Seeder
             TenantSeeder::class,
             BranchSeeder::class,
             RolesAndPermissionsSeeder::class,
+            /*
+             * The platform's price list, and this month's invoice for whoever
+             * is on it.
+             *
+             * NOT demo content, which is why it is up here with the tenants:
+             * the tiers are what the product actually sells, and a real venue
+             * installing this has to be on one from the first request — the
+             * platform console's MRR is plan × venues, and a restaurant with no
+             * plan bills nothing forever.
+             */
+            PlatformSeeder::class,
         ]);
 
         // Demo content — a working restaurant the moment the app boots.
@@ -93,6 +116,10 @@ final class DatabaseSeeder extends Seeder
                 // indistinguishable from a broken install.
                 UserSeeder::class,
                 MenuDatabaseSeeder::class,
+
+                // The questions asked about a dish. After the menu, because it
+                // attaches groups to the dishes MenuDatabaseSeeder just made.
+                MenuModifierSeeder::class,
                 KitchenDatabaseSeeder::class,
                 TablesDatabaseSeeder::class,
                 InventoryDatabaseSeeder::class,
@@ -113,6 +140,26 @@ final class DatabaseSeeder extends Seeder
                 // opened above.
                 FinancePaymentSeeder::class,
 
+                /*
+                 * The ledger's furniture — tenders, headings, accounts, assets
+                 * and months — and it has to be after the payments above.
+                 *
+                 * It closes the three oldest months, and a closed month refuses
+                 * new money (`PeriodLock`). Run before `FinancePaymentSeeder`,
+                 * the first seeded payment landing in one of them would be
+                 * rejected and the seed would stop half-built.
+                 */
+                FinanceLedgerSeeder::class,
+
+                // The last seven days of paid trading, and the tills that took
+                // the money — a window `demo:seed` moves forward every morning,
+                // so the dashboard's "this week" is never a week old. After
+                // FinancePaymentSeeder: its payments are keyed per bill and must
+                // not be claimed by the single-shift seeder above.
+                DemoTradingSeeder::class,
+                DemoTakingsSeeder::class,
+                DemoFactsSeeder::class,
+
                 // The tills. After branches (a terminal stands in one) and
                 // after UserSeeder (a PIN belongs to a person), and it was
                 // simply never listed here — so `db:seed` produced a platform
@@ -124,10 +171,64 @@ final class DatabaseSeeder extends Seeder
                 // the dependency order.
                 StaffShiftSeeder::class,
 
+                /*
+                 * Purchases, then the stock movements those purchases wrote.
+                 *
+                 * Both are derived, and the second is derived from the first: the
+                 * ledger is built backwards from what is on the shelf, so its last
+                 * balance lands exactly on `stock_quantity`. That is the same
+                 * principle FinancePaymentSeeder follows — the money in the drawer
+                 * equals the money on the receipts — and it is what makes a stock
+                 * screen worth looking at. A movement list that does not add up to
+                 * the shelf is a list nobody trusts twice.
+                 */
+                PurchaseOrderSeeder::class,
+                StockMovementSeeder::class,
+
+                /*
+                 * Campaigns and the loyalty shelf. Reference data — it hangs off
+                 * nothing — but kept beside the other CRM seeders so a reader
+                 * finds all three in one place rather than two.
+                 */
+                CrmPromoSeeder::class,
+
                 // Reviews hang off paid orders; bookings hang off the tables
                 // laid out above. Both belong after the things they reference.
                 CrmFeedbackSeeder::class,
                 ReservationSeeder::class,
+
+                /*
+                 * The marketing screen's four tabs and the complaints desk.
+                 *
+                 * `CrmMarketingSeeder` is reference data and could sit anywhere;
+                 * `CrmCaseSeeder` cannot — it attaches two of its four
+                 * complaints to real guests, so `CrmDatabaseSeeder` has to have
+                 * run, and it stamps a branch onto each, so `BranchSeeder` does
+                 * too. Kept together and after the reviews, because the desk's
+                 * whole point is that a complaint is not a review.
+                 */
+                CrmMarketingSeeder::class,
+                CrmCaseSeeder::class,
+
+                /*
+                 * The wall above the counter. After Menu, and it has to be: a
+                 * board column points at a menu section, and this reads them
+                 * through `MenuCatalog` rather than inventing ids that would
+                 * draw three empty headings.
+                 */
+                BoardDatabaseSeeder::class,
+
+                /*
+                 * Last, because it reads what everything above it wrote.
+                 *
+                 * The eight storefronts stock themselves from the restaurant's
+                 * own catalogue through `MenuCatalog`, so `MenuDatabaseSeeder`
+                 * has to have run; and a storefront belongs to a venue, so
+                 * `BranchSeeder` does too. Placed here rather than beside Menu
+                 * for the same reason `KitchenTicketSeeder` is last: a seeder
+                 * that reads is a seeder that waits.
+                 */
+                MarketplaceDatabaseSeeder::class,
             ]);
         } finally {
             activity()->enableLogging();

@@ -8,7 +8,11 @@ use App\Http\Requests\StoreBranchRequest;
 use App\Http\Requests\UpdateBranchRequest;
 use App\Http\Resources\BranchResource;
 use App\Models\Branch;
+use App\Models\PlatformPlan;
 use App\Models\User;
+use App\Support\Errors\ApiException;
+use App\Support\Settings\SettingsSchema;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
@@ -52,6 +56,8 @@ final class BranchController extends Controller
 
     public function store(StoreBranchRequest $request): BranchResource
     {
+        $this->refuseBeyondThePlan();
+
         // refresh() so database defaults (status, timezone, timestamps) reach
         // the client; without it the response reports null for every column
         // the request did not send.
@@ -69,7 +75,22 @@ final class BranchController extends Controller
 
     public function update(UpdateBranchRequest $request, Branch $branch): BranchResource
     {
-        $branch->update($request->validated());
+        $changes = $request->validated();
+
+        /*
+         * `settings` is patched, not replaced.
+         *
+         * The console saves one panel at a time — the target stepper on one
+         * screen, the opening hours on another — and `update()` writes the
+         * whole jsonb column. Without the merge, saving a target would blank
+         * the hours the branch was opened with, and nobody would notice until
+         * the website said the venue was shut.
+         */
+        if (array_key_exists('settings', $changes) && is_array($changes['settings'])) {
+            $changes['settings'] = SettingsSchema::merge($branch->settings, $changes['settings']);
+        }
+
+        $branch->update($changes);
 
         return new BranchResource($branch->refresh());
     }
@@ -86,6 +107,52 @@ final class BranchController extends Controller
         $branch->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * A restaurant may not open more venues than it is paying for.
+     *
+     * The ceiling is `platform_plans.branch_limit`, which is nullable and means
+     * exactly what the migration says it means: *"`enterprise` has no branch
+     * limit, and 'no limit' written as 999999 is a limit somebody eventually
+     * hits at three in the morning."* Null here is no ceiling, and so is a
+     * restaurant on no plan at all — an operator who has not put a tenant on a
+     * tier has not decided anything, and refusing them would be this code
+     * deciding for them.
+     *
+     * Counted with `withTrashed()`. A soft-deleted venue still holds its name,
+     * its slug and every order it ever took, and coming back is one restore
+     * away — so a chain that archived two branches has not freed two slots, and
+     * letting them create past the ceiling would put them over it the moment
+     * anybody restored one.
+     *
+     * `plan.limit_exceeded` is 402 rather than 422, and that is the right
+     * status here: nothing about the request is malformed, and what fixes it is
+     * a payment rather than an edit.
+     *
+     * Read outside tenancy — `platform_plans` belongs to nobody, which is what
+     * makes it the platform's (see ModuleBoundaryTest::TENANT_FREE_TABLES).
+     */
+    private function refuseBeyondThePlan(): void
+    {
+        $tenant = app(TenantContext::class)->tenant();
+
+        if ($tenant?->plan_key === null) {
+            return;
+        }
+
+        $limit = PlatformPlan::query()->where('key', $tenant->plan_key)->value('branch_limit');
+
+        if ($limit === null) {
+            return;
+        }
+
+        if (Branch::query()->withTrashed()->count() >= (int) $limit) {
+            throw ApiException::of('plan.limit_exceeded', field: 'name', meta: [
+                'limit' => (int) $limit,
+                'plan' => $tenant->plan_key,
+            ]);
+        }
     }
 
     private function pinnedBranchId(Request $request): ?int

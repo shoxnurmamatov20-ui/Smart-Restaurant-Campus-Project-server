@@ -29,6 +29,13 @@ final class BranchResource extends JsonResource
             'timezone' => $this->timezone,
             'status' => $this->status,
             'opened_at' => $this->opened_at?->toDateString(),
+            /*
+             * The venue's own overrides — its monthly target, its hours, its
+             * service charge. An empty object rather than null so a console can
+             * read `settings.target_monthly_tiyin` without a null guard on
+             * every branch that has never been configured.
+             */
+            'settings' => $this->settings ?? [],
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

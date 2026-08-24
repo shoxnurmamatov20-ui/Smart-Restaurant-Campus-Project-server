@@ -25,22 +25,53 @@ final class UnavailableTillLedger implements TillLedger
         return null;
     }
 
-    public function closeShift(int $shiftId, int $countedCash, ?string $note = null): ShiftTotals
-    {
+    public function closeShift(
+        int $shiftId,
+        CashCount $count,
+        ?string $note = null,
+        ?string $varianceReason = null,
+        ?int $approvedByUserId = null,
+        ?int $closedByUserId = null,
+    ): ShiftTotals {
         $this->refuse();
     }
 
-    public function capture(int $shiftId, int $orderId, string $orderNumber, Tender $tender): int
-    {
+    public function capture(
+        int $shiftId,
+        int $orderId,
+        string $orderNumber,
+        Tender $tender,
+        int $rounding = 0,
+    ): int {
         $this->refuse();
     }
 
-    public function refund(int $paymentId, string $reason): bool
-    {
+    public function amendClosedShift(
+        int $shiftId,
+        int $orderId,
+        string $orderNumber,
+        Tender $tender,
+        string $reason,
+        ?int $amendedByUserId = null,
+        int $rounding = 0,
+    ): int {
+        $this->refuse();
+    }
+
+    public function refundPayment(
+        int $paymentId,
+        string $reason,
+        ?int $refundingShiftId = null,
+    ): RefundResult {
         $this->refuse();
     }
 
     public function recordCashOut(int $shiftId, int $amount, string $description): int
+    {
+        $this->refuse();
+    }
+
+    public function recordCashIn(int $shiftId, int $amount, string $description): int
     {
         $this->refuse();
     }

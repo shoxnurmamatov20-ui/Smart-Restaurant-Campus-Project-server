@@ -77,9 +77,14 @@ enum OrderState: string
     {
         return match ($this) {
             self::Draft, self::ToPay, self::Served => [OrderChannel::DineIn],
-            self::Enroute => [OrderChannel::Delivery],
-            self::Handed => [OrderChannel::Delivery, OrderChannel::Pickup],
-            default => [OrderChannel::DineIn, OrderChannel::Delivery, OrderChannel::Pickup],
+            // A courier is a courier whether it is ours or an aggregator's.
+            self::Enroute => [OrderChannel::Delivery, OrderChannel::Aggregator],
+            self::Handed => [
+                OrderChannel::Takeaway,
+                OrderChannel::Delivery,
+                OrderChannel::Aggregator,
+            ],
+            default => OrderChannel::cases(),
         };
     }
 

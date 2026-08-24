@@ -26,12 +26,25 @@ trait HasTranslations
     /**
      * Columns that hold a `{locale: value}` map.
      *
+     * Every model using this trait declares `protected array $translatable`,
+     * and reading it directly is deliberate. The guard here used to be
+     * `property_exists($this, 'translatable') ? ... : []`, which protected
+     * against a case that cannot usefully exist — a model that used the trait
+     * and declared nothing would silently translate nothing, which is a bug
+     * somebody would spend an afternoon on. Without the guard it is a TypeError
+     * the first time the model is touched, which is the right length of
+     * afternoon.
+     *
+     * It also stopped the static-analysis baseline growing by one entry per
+     * model: the check was always true, so every model that used the trait
+     * reported a dead branch and had to be listed.
+     *
      * @return array<int, string>
      */
     public function translatableAttributes(): array
     {
         /** @var array<int, string> */
-        return property_exists($this, 'translatable') ? $this->translatable : [];
+        return $this->translatable;
     }
 
     /**

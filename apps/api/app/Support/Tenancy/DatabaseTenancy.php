@@ -146,8 +146,7 @@ final class DatabaseTenancy
      *
      * @template TReturn
      *
-     * @param \Closure(): TReturn $work
-     *
+     * @param  \Closure(): TReturn  $work
      * @return TReturn
      */
     public function withoutTenancy(\Closure $work): mixed
@@ -162,6 +161,41 @@ final class DatabaseTenancy
         } finally {
             $this->mode = $mode;
             $this->tenantId = $tenantId;
+            $this->apply();
+        }
+    }
+
+    /**
+     * Run something as one restaurant, then put the connection back.
+     *
+     * The mirror of `withoutTenancy()`, and it exists for the same shape of
+     * caller: a queue worker or a relay, which has no request behind it and
+     * therefore no `app.tenant_id`. Row-level security fails CLOSED in that
+     * state — every query reads zero rows — so a background job that forgot
+     * this does not crash, it quietly does nothing, for every restaurant, until
+     * somebody notices the notifications stopped.
+     *
+     * A closure rather than an open/close pair, so an early return or a thrown
+     * exception cannot leave a worker pinned to the last restaurant it happened
+     * to serve.
+     *
+     * @template TReturn
+     *
+     * @param  \Closure(): TReturn  $work
+     * @return TReturn
+     */
+    public function focusDuring(int $tenantId, \Closure $work): mixed
+    {
+        $mode = $this->mode;
+        $previous = $this->tenantId;
+
+        $this->focus($tenantId);
+
+        try {
+            return $work();
+        } finally {
+            $this->mode = $mode;
+            $this->tenantId = $previous;
             $this->apply();
         }
     }

@@ -16,7 +16,7 @@ namespace App\Contracts\Finance;
 final readonly class ShiftTotals
 {
     /**
-     * @param array<string, int> $byMethod Tiyin taken per payment method.
+     * @param  array<string, int>  $byMethod  Tiyin taken per payment method.
      */
     public function __construct(
         public int $shiftId,
@@ -31,6 +31,33 @@ final readonly class ShiftTotals
         public int $refunded,
         public int $paymentCount,
         public array $byMethod = [],
+        /**
+         * Tips taken, DECISIONS Q6.
+         *
+         * Not part of `totalTakings` and not part of revenue — the restaurant did
+         * not sell anything for it. It IS in the drawer, so `expectedCash` counts
+         * the cash share of it; a shift that left tips out of the expected figure
+         * would report a surplus every night and train a manager to ignore the
+         * one number that matters.
+         */
+        public int $tips = 0,
+        /**
+         * What cash rounding added or removed across the shift, DECISIONS Q7.
+         *
+         * Signed. Part of `expectedCash` by construction, and reported separately
+         * so a difference of a few thousand so'm has a name rather than looking
+         * like a cashier who cannot count.
+         */
+        public int $rounding = 0,
+        /**
+         * What the acquirers keep.
+         *
+         * Never touches the drawer and never reduces takings — the guest paid the
+         * full amount and the bank deducts later. It is here so an owner can read
+         * net card revenue without doing the percentages by hand against a bank
+         * statement.
+         */
+        public int $fees = 0,
     ) {}
 
     /**
@@ -51,6 +78,9 @@ final readonly class ShiftTotals
             'refunded' => $this->refunded,
             'payment_count' => $this->paymentCount,
             'by_method' => $this->byMethod,
+            'tips' => $this->tips,
+            'rounding' => $this->rounding,
+            'fees' => $this->fees,
         ];
     }
 }

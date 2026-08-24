@@ -146,7 +146,7 @@ return [
              */
             'search_path' => env(
                 'DB_SEARCH_PATH',
-                'public,menu,orders,kitchen,tables,inventory,suppliers,staff,finance,crm,telegram,analytics,pos',
+                'public,menu,orders,kitchen,tables,inventory,suppliers,staff,finance,crm,telegram,analytics,pos,marketplace,board',
             ),
 
             'sslmode' => env('DB_SSLMODE', 'prefer'),

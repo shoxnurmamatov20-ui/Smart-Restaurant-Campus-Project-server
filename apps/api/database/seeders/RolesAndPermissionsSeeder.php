@@ -42,6 +42,8 @@ final class RolesAndPermissionsSeeder extends Seeder
         'analytics',   // Analitika
         'telegram',    // Telegram botlar
         'pos',        // Kassa terminali
+        'marketplace',
+        'board',
     ];
 
     /** @var array<int, string> */
@@ -52,8 +54,27 @@ final class RolesAndPermissionsSeeder extends Seeder
      *
      * @var array<string, string>
      */
+    /**
+     * Permissions that belong to no CRUD module.
+     *
+     * `printing.agent` sits here rather than under `kitchen` deliberately: it is
+     * not a degree of kitchen access, it is a different kind of principal. Putting
+     * it in the module's five verbs would make it look like something a person
+     * could be given a little of.
+     */
     private const SYSTEM_PERMISSIONS = [
         'system.settings' => 'tizim sozlamalari',
+        /*
+         * Reading the restaurant's own settings, which is not the same power as
+         * changing them.
+         *
+         * A branch manager has to read the VAT rate and the service charge to
+         * explain a receipt to a guest standing in front of them; changing
+         * either reprices every bill in the building. One permission for both
+         * would have forced the choice between a manager who cannot answer a
+         * question and a manager who can quietly move the tax rate.
+         */
+        'settings.view' => 'restoran sozlamalarini ko\'rish',
         'system.modules' => 'modullarni yoqish/o\'chirish',
         'system.integrations' => 'tashqi integratsiyalar (Payme, Click, fiskal, agregatorlar)',
         'system.backups' => 'zaxira nusxalar',
@@ -68,6 +89,23 @@ final class RolesAndPermissionsSeeder extends Seeder
         'roles.manage' => 'rollarni boshqarish',
         'notifications.broadcast' => 'ommaviy xabarnoma yuborish',
         'reports.export' => 'hisobotlarni eksport qilish',
+        /*
+         * The home screen, and why it is not `analytics.view`.
+         *
+         * `GET /api/v1/dashboard` draws a different shape per role and the
+         * console's sidebar points every role at it — a cashier's drawer, a
+         * waiter's own six tables, a storekeeper's shelf. None of that is
+         * analytics, and guarding it with `analytics.view` had two costs: four
+         * roles got a 403 on their own home screen and silently fell back to
+         * sample figures, and the only way to fix it was to hand a waiter the
+         * venue's sales reports, its food cost and its ABC analysis.
+         *
+         * So the home screen has its own permission and every operational role
+         * holds it. What each of them SEES is still decided by the shape the
+         * service assembles and by the tenant and branch scopes underneath.
+         */
+        'dashboard.view' => 'bosh ekranni ko\'rish',
+        'printing.agent' => 'lokal chop etish agenti: navbatni olish va natijani yozish',
     ];
 
     /**
@@ -98,6 +136,25 @@ final class RolesAndPermissionsSeeder extends Seeder
      * @var array<int, string>
      */
     private const POS_OPERATOR = ['pos.view', 'pos.create', 'pos.update', 'pos.sell'];
+
+    /**
+     * What the local print agent is allowed to do, and nothing else.
+     *
+     * The agent is a small process on a machine in the back office that claims
+     * queued jobs, pushes bytes at a printer and reports what happened. It is the
+     * least trustworthy thing that holds a token in this system: it runs on a PC
+     * nobody patches, in a room with a door, and it needs no human present.
+     *
+     * It came in on `kitchen.update` — the permission a cook uses to move dockets
+     * across the board. A token lifted off that machine could therefore mark a
+     * table's food ready, or start a ticket nobody is cooking, and the pass would
+     * believe it. That is not a printing problem being solved by a printing
+     * permission; it is a printing process holding a kitchen's authority.
+     *
+     * So: claim a job, say it printed, say it failed, report a pulse. Four
+     * verbs, none of which touches an order, a bill or a docket's state.
+     */
+    private const PRINT_AGENT = ['printing.agent'];
 
     public function run(): void
     {
@@ -142,12 +199,16 @@ final class RolesAndPermissionsSeeder extends Seeder
             extra: [
                 'audit.view', 'system.statistics', 'reports.export', 'notifications.broadcast',
                 'users.invite', 'roles.manage', 'branches.manage', 'system.integrations',
+                // The business's own settings — its requisites, its tax rates,
+                // its website. The owner writes them; everybody below reads.
+                'system.settings', 'settings.view',
                 // Which modules this restaurant uses is the owner's call, not the
                 // platform's: PATCH /api/v1/modules only ever writes their own
                 // tenant settings, never the platform-wide flag.
                 'system.modules',
                 // Every till power, including approving someone else's void.
                 ...array_keys(self::POS_PERMISSIONS),
+                'dashboard.view',
             ],
         ));
 
@@ -157,19 +218,43 @@ final class RolesAndPermissionsSeeder extends Seeder
             actions: ['view', 'create', 'update', 'manage'],
             extra: [
                 'reports.export', 'system.statistics', 'branches.manage', 'users.invite',
+                'settings.view', 'dashboard.view',
                 ...array_keys(self::POS_PERMISSIONS),
             ],
         ));
 
         // ---- 4. Filial menejeri — kunlik operatsiyalar ----
         $this->role('branch-manager')->syncPermissions($this->permissions(
-            modules: ['menu', 'orders', 'kitchen', 'tables', 'inventory', 'suppliers', 'staff', 'finance', 'crm', 'pos'],
+            modules: ['menu', 'orders', 'kitchen', 'tables', 'inventory', 'suppliers', 'staff', 'finance', 'crm', 'pos', 'board'],
             actions: ['view', 'create', 'update'],
             extra: [
                 'analytics.view', 'staff.manage', 'finance.manage', 'reports.export', 'telegram.view',
+                'dashboard.view',
+                // Reads the VAT rate and the service charge; changes neither.
+                'settings.view',
+                /*
+                 * Raising a guest's credit ceiling.
+                 *
+                 * The manager grants a void and a discount on this floor; a regular
+                 * asking to sign for more than their limit is the same conversation
+                 * with the same person. Without it the only people who could were
+                 * the owner and the brand manager, and neither is in the room when a
+                 * guest is standing at the till.
+                 */
+                'crm.manage',
                 // The manager is the authority on the floor: they are who a
                 // cashier walks to when a line has to come off a bill.
                 'pos.manage', ...array_keys(self::POS_PERMISSIONS),
+                /*
+                 * Deciding whose evening carries a delivery.
+                 *
+                 * `POST orders/{order}/assign-courier` is guarded by this and
+                 * not by `orders.update`, which every waiter and cashier holds:
+                 * adding a dish to a bill and handing a rider their next drop
+                 * are different powers. The manager on the floor is who does
+                 * the second one when there is no intake desk on shift.
+                 */
+                'orders.manage',
             ],
         ));
 
@@ -179,7 +264,8 @@ final class RolesAndPermissionsSeeder extends Seeder
             actions: ['view', 'create', 'update', 'delete', 'manage'],
             // The chef's till power is the stop-list, and that lives in Menu.
             // Here they only need to see what the floor is selling.
-            extra: ['inventory.view', 'inventory.update', 'staff.view', 'orders.view', 'analytics.view', 'pos.view'],
+            extra: ['inventory.view', 'inventory.update', 'staff.view', 'orders.view', 'analytics.view', 'pos.view',
+                'dashboard.view'],
         ));
 
         // ---- 6. Oshpaz — chiptalarni bajaradi, stop-list qo'yadi ----
@@ -197,7 +283,8 @@ final class RolesAndPermissionsSeeder extends Seeder
             actions: ['view', 'create', 'update'],
             // A waiter takes orders at a terminal but never opens the drawer:
             // the money side of the till belongs to the cashier.
-            extra: ['menu.view', 'tables.view', 'tables.update', 'kitchen.view', 'crm.view', ...self::POS_OPERATOR],
+            extra: ['menu.view', 'tables.view', 'tables.update', 'kitchen.view', 'crm.view', 'dashboard.view',
+                ...self::POS_OPERATOR],
         ));
 
         // ---- 8. Barmen — bar chiptalari va ichimliklar ----
@@ -205,24 +292,62 @@ final class RolesAndPermissionsSeeder extends Seeder
             modules: ['kitchen'],
             actions: ['view', 'update'],
             // A bar tab is a bill: the bartender rings it up at their own screen.
-            extra: ['menu.view', 'menu.update', 'orders.view', 'orders.update', 'inventory.view', ...self::POS_OPERATOR],
+            extra: ['menu.view', 'menu.update', 'orders.view', 'orders.update', 'inventory.view', 'dashboard.view',
+                ...self::POS_OPERATOR],
         ));
 
         // ---- 9. Kassir — to'lovlar va kassa smenasi ----
         $this->role('cashier')->syncPermissions($this->permissions(
             modules: ['finance'],
             actions: ['view', 'create', 'update'],
-            // `pos.drawer` and no `pos.approve`: the cashier moves the cash and
-            // asks for a void; only a manager ever grants one.
-            extra: ['orders.view', 'orders.update', 'menu.view', 'crm.view', 'crm.update', ...self::POS_OPERATOR, 'pos.drawer'],
+            /*
+             * `pos.drawer` and no `pos.approve`: the cashier moves the cash and
+             * asks for a void; only a manager ever grants one.
+             *
+             * `crm.create` is here for one moment at the till: a guest paying
+             * who is not on file. Without it the cashier could read the guest
+             * list and edit a guest but not add one, so a first-time regular
+             * either got no loyalty account at all or got somebody else's — the
+             * cashier typing the number into whichever row was already open.
+             * Creating a guest is the smallest of the three CRM powers they
+             * already hold, and it is the one the queue behind them depends on.
+             */
+            extra: ['orders.view', 'orders.update', 'menu.view', 'crm.view', 'crm.create', 'crm.update', 'dashboard.view',
+                ...self::POS_OPERATOR, 'pos.drawer'],
         ));
 
         // ---- 10. Hostes — stollar, bronlar, mehmonlarni kutib olish ----
         $this->role('host')->syncPermissions($this->permissions(
             modules: ['tables'],
             actions: ['view', 'create', 'update', 'manage'],
-            extra: ['orders.view', 'crm.view', 'crm.create', 'menu.view', 'pos.view'],
+            extra: ['orders.view', 'crm.view', 'crm.create', 'menu.view', 'pos.view', 'dashboard.view'],
         ));
+
+        /*
+         * ---- 10a. Qabul operatori — telefon, Telegram, sayt, agregatorlar ----
+         *
+         * The design's ninth console role. Not a host with fewer permissions:
+         * a host seats people who walked in, an operator answers people who did
+         * not, and the two never share a shift or a screen. Merging them would
+         * hand the intake queue to whoever is standing at the door.
+         *
+         * No `pos.*` at all — an operator books an order, never settles one —
+         * and `crm.update` because the person on the phone is the one who
+         * corrects a wrong address while the caller is still on the line.
+         */
+        $this->role('order-operator')->syncPermissions(
+            Permission::whereIn('name', [
+                'orders.view', 'orders.create', 'orders.update',
+                /*
+                 * Dispatch. The operator's screen has a "Yetkazish" tab whose
+                 * whole content is riders and unassigned orders, and assigning
+                 * one is the single write on it — the person answering the
+                 * phone is who tells a courier where to go next.
+                 */
+                'orders.manage',
+                'menu.view', 'crm.view', 'crm.create', 'crm.update', 'dashboard.view',
+            ])->get()
+        );
 
         // ---- 11. Kuryer — faqat o'z yetkazmalari ----
         $this->role('courier')->syncPermissions(
@@ -235,7 +360,8 @@ final class RolesAndPermissionsSeeder extends Seeder
             modules: ['inventory'],
             actions: ['view', 'create', 'update', 'delete', 'manage'],
             // Sees what the till sold, because that is what drained the shelf.
-            extra: ['suppliers.view', 'suppliers.create', 'suppliers.update', 'menu.view', 'kitchen.view', 'pos.view'],
+            extra: ['suppliers.view', 'suppliers.create', 'suppliers.update', 'menu.view', 'kitchen.view', 'pos.view',
+                'dashboard.view'],
         ));
 
         // ---- 13. Buxgalter — moliya va hisobotlar ----
@@ -244,7 +370,20 @@ final class RolesAndPermissionsSeeder extends Seeder
             actions: ['view', 'create', 'update', 'manage'],
             // Z-reports, fiscal receipts and cash variance — reads and re-sends,
             // never sells.
-            extra: ['suppliers.view', 'staff.view', 'analytics.view', 'reports.export', 'audit.view', 'pos.view', 'pos.manage'],
+            extra: [
+                /*
+                 * The debtors' list, which is the accountant's screen.
+                 *
+                 * They held no `crm.*` at all, so `GET v1/crm/accounts` — the one
+                 * report that explains the gap between what a day sold and what it
+                 * banked — answered 403 for the only person whose job it is to read
+                 * it. The rest of CRM stays shut: an accountant reconciles balances,
+                 * they do not edit customers.
+                 */
+                'crm.view', 'suppliers.view', 'staff.view', 'analytics.view', 'reports.export', 'audit.view', 'pos.view', 'pos.manage',
+                'dashboard.view',
+                // The requisites go on every invoice they issue.
+                'settings.view'],
         ));
 
         // ---- 14. Marketolog — aksiyalar, sodiqlik, kampaniyalar ----
@@ -260,6 +399,22 @@ final class RolesAndPermissionsSeeder extends Seeder
         // ---- 15. Mehmon — hech qanday ichki ruxsat yo'q ----
         // A guest only ever reaches the public QR menu, which needs no permission.
         $this->role('guest')->syncPermissions([]);
+
+        /*
+         * ---- 16. Chop etish agenti — odam emas, jarayon ----
+         *
+         * A role for a machine, and the only one in this list. It holds exactly one
+         * permission because the process behind it does exactly one thing: take the
+         * next queued job, push bytes at a printer, report the outcome.
+         *
+         * Deliberately not `cook` and deliberately not a narrowed `kitchen.*`. The
+         * agent runs unattended on a back-office PC, which makes its token the
+         * easiest one in the building to walk away with — and on `kitchen.update`
+         * that token could mark a table's food ready or start a docket nobody is
+         * cooking, with the pass believing it. A printer that has been unplugged is
+         * an inconvenience; a kitchen board that lies is a room full of wrong food.
+         */
+        $this->role('print-agent')->syncPermissions(self::PRINT_AGENT);
     }
 
     private function role(string $name): Role
@@ -270,10 +425,9 @@ final class RolesAndPermissionsSeeder extends Seeder
     /**
      * Build a permission collection from module × action pairs plus extras.
      *
-     * @param array<int, string> $modules
-     * @param array<int, string> $actions
-     * @param array<int, string> $extra
-     *
+     * @param  array<int, string>  $modules
+     * @param  array<int, string>  $actions
+     * @param  array<int, string>  $extra
      * @return Collection<int, Permission>
      */
     private function permissions(array $modules, array $actions, array $extra = [])

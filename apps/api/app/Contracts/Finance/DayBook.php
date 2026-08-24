@@ -22,4 +22,16 @@ interface DayBook
      * Null branch = the whole restaurant.
      */
     public function takingsToday(?int $branchId = null): int;
+
+    /**
+     * When the till that is open now was opened — or null when none is.
+     *
+     * The console's strip says "Shift open · 11:24" over every screen, and
+     * for a week it said it from the catalogue, to a restaurant that had not
+     * opened a till in its life. A time, not a shift: a caller that needs the
+     * drawer is doing cash work and belongs behind `/api/v1/finance` with
+     * its permission checks. With several venues and no branch given, the
+     * earliest open one — the restaurant has been trading since then.
+     */
+    public function openSince(?int $branchId = null): ?\DateTimeImmutable;
 }

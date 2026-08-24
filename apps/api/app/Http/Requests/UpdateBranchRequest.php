@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\Branch;
+use App\Support\Settings\SettingsSchema;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -50,8 +52,53 @@ final class UpdateBranchRequest extends FormRequest
             'timezone' => ['sometimes', 'string', 'max:64', 'timezone'],
             'status' => ['sometimes', 'string', Rule::in(['active', 'suspended', 'archived'])],
             'opened_at' => ['sometimes', 'nullable', 'date'],
+
+            /*
+             * The venue's own overrides — a monthly target, its hours, its
+             * service charge. Declared rather than "any array": `settings` used
+             * to accept whatever was sent, which meant the console's ± stepper
+             * could store a target as a string, as so'm, or under a misspelled
+             * key, and every reader downstream would quietly fall back to the
+             * business default. See config/settings.php, group `branch`.
+             */
             'settings' => ['sometimes', 'nullable', 'array'],
+            ...self::nested(SettingsSchema::rules('branch')),
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $settings = $this->input('settings');
+
+            if (! is_array($settings)) {
+                return;
+            }
+
+            foreach (SettingsSchema::undeclared('branch', $settings) as $path) {
+                $validator->errors()->add("settings.{$path}", __(
+                    "':path' — bunday filial sozlamasi yo'q.",
+                    ['path' => $path],
+                ));
+            }
+        });
+    }
+
+    /**
+     * The branch group's paths, rooted at the `settings` key the request sends.
+     *
+     * @param  array<string, list<string>>  $rules
+     * @return array<string, list<string>>
+     */
+    private static function nested(array $rules): array
+    {
+        $nested = [];
+
+        foreach ($rules as $path => $rule) {
+            $nested["settings.{$path}"] = $rule;
+        }
+
+        return $nested;
     }
 
     /**

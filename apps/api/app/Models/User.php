@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\Auth\TenantRoleOverlay;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -100,7 +102,24 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
+    use HasApiTokens, HasFactory, LogsActivity, Notifiable;
+
+    /*
+     * `HasRoles` with its permission check aliased, so the override below can
+     * still reach it.
+     *
+     * `parent::checkPermissionTo()` cannot: the method comes from a TRAIT
+     * (`HasPermissions`, which `HasRoles` composes), and a trait is flattened
+     * into this class rather than sitting above it. `parent` therefore resolves
+     * to Authenticatable, which has no such method, and every permission check
+     * on the platform died in `Model::__call` with
+     * "Call to undefined method App\Models\User::checkPermissionTo()" — a
+     * failure that reaches every guarded route at once and looks like the
+     * permission system being broken rather than like one missing alias.
+     */
+    use HasRoles {
+        checkPermissionTo as protected spatieCheckPermissionTo;
+    }
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -183,5 +202,50 @@ class User extends Authenticatable
     public function isPlatformLevel(): bool
     {
         return $this->tenant_id === null;
+    }
+
+    /** Every phone this person can be reached on. */
+    public function pushTokens(): HasMany
+    {
+        return $this->hasMany(PushToken::class);
+    }
+
+    /**
+     * The one place a permission question is answered, with this restaurant's
+     * own edits to the shared roles laid over Spatie's answer.
+     *
+     * Spatie routes `can()`, `canAny()` and `PermissionMiddleware` through this
+     * method — see PermissionRegistrar::registerPermissions — which makes it the
+     * only hook that catches every caller. A `Gate::before` would not: Spatie
+     * registers its own when the Gate is first resolved, before-callbacks stop
+     * at the first non-null answer, and a callback registered afterwards can
+     * therefore add a permission but never take one away. Half an enforcement
+     * point is worse than none, because the console would draw a denial the
+     * server does not honour.
+     *
+     * `TenantRoleOverlay` returns null for a restaurant that has never edited
+     * its matrix, which is almost every request, and the baseline answers as it
+     * always did.
+     *
+     * The two parameters stay untyped to match the trait method this stands in
+     * front of: Spatie passes a name, an id, a Permission model or a backed
+     * enum depending on the caller, and narrowing the signature here would
+     * refuse three of the four at the one place every permission question goes
+     * through.
+     *
+     * @param  \Spatie\Permission\Contracts\Permission|\BackedEnum|string|int  $permission
+     * @param  string|null  $guardName
+     */
+    public function checkPermissionTo($permission, $guardName = null): bool
+    {
+        if (is_string($permission)) {
+            $verdict = TenantRoleOverlay::verdict($this, $permission);
+
+            if ($verdict !== null) {
+                return $verdict;
+            }
+        }
+
+        return $this->spatieCheckPermissionTo($permission, $guardName);
     }
 }

@@ -182,12 +182,12 @@ final class MakeModule extends Command
             |--------------------------------------------------------------------------
             */
             'labels' => [
-                'uz' => '{$this->label('uz')}',
-                'ru' => '{$this->label('ru')}',
-                'en' => '{$this->label('en')}',
+                'uz' => '{$this->php($this->label('uz'))}',
+                'ru' => '{$this->php($this->label('ru'))}',
+                'en' => '{$this->php($this->label('en'))}',
             ],
 
-            'description' => '{$this->description()}',
+            'description' => '{$this->php($this->description())}',
 
             /*
             |--------------------------------------------------------------------------
@@ -211,9 +211,9 @@ final class MakeModule extends Command
 
         namespace Modules\\{$this->moduleName}\\Providers;
 
-        use Nwidart\\Modules\\Support\\ModuleServiceProvider;
+        use App\\Support\\Modules\\ApiModuleServiceProvider;
 
-        class {$this->moduleName}ServiceProvider extends ModuleServiceProvider
+        class {$this->moduleName}ServiceProvider extends ApiModuleServiceProvider
         {
             protected string \$name = '{$this->moduleName}';
 
@@ -443,7 +443,17 @@ final class MakeModule extends Command
             public function up(): void
             {
                 DB::statement('CREATE SCHEMA IF NOT EXISTS "{$this->moduleSchema}"');
-                DB::statement('COMMENT ON SCHEMA "{$this->moduleSchema}" IS \\'{$this->moduleName} — {$this->description()}\\'');
+
+                /*
+                 * The apostrophes are doubled, because COMMENT ON takes no
+                 * placeholders and an Uzbek sentence is full of them: "ko'p",
+                 * "iste'molchi", "ro'yxat". Without this the string ends early
+                 * and the module's very first migration is a syntax error that
+                 * stops every other migration behind it.
+                 */
+                \$comment = str_replace("'", "''", '{$this->php($this->moduleName.' — '.$this->description())}');
+
+                DB::statement('COMMENT ON SCHEMA "{$this->moduleSchema}" IS \\''.\$comment.'\\'');
 
                 \$role = DB::connection()->getConfig('username');
 
@@ -584,7 +594,8 @@ final class MakeModule extends Command
     {
         $file = database_path('migrations/0000_01_01_000000_create_module_schemas.php');
         $source = (string) file_get_contents($file);
-        $entry = "        '{$this->moduleSchema}' => '{$this->moduleName} — {$this->description()}',";
+        // PHP source, so PHP escaping — the migration's own literal() handles SQL.
+        $entry = "        '{$this->moduleSchema}' => '".$this->php($this->moduleName.' — '.$this->description())."',";
 
         if (str_contains($source, "'{$this->moduleSchema}' =>")) {
             $this->line("  <fg=gray>✓</> schema '{$this->moduleSchema}' allaqachon ro'yxatda");
@@ -731,29 +742,44 @@ final class MakeModule extends Command
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     private function json(array $data): string
     {
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)."\n";
     }
 
+    /**
+     * The label as a person typed it — no escaping of any kind.
+     *
+     * Escaping belongs to the destination, not to the source. This method used
+     * to return the PHP-escaped form, which was right for the three heredocs
+     * that drop it between single quotes and wrong everywhere else: `module.json`
+     * got a literal backslash through `json_encode`, and the schema migration
+     * emitted `COMMENT ON SCHEMA … IS 'Bozor — ko\'p restoran'`, where PHP turns
+     * `\'` back into a bare apostrophe and PostgreSQL reads the string as having
+     * ended. Every Uzbek label with an apostrophe in it — which is most of them —
+     * produced a module whose very first migration was a syntax error, and it
+     * took the whole test database down with it.
+     */
     private function label(string $locale): string
     {
         $given = $this->option($locale);
 
-        return is_string($given) && $given !== ''
-            ? str_replace("'", "\\'", $given)
-            : $this->moduleName;
+        return is_string($given) && $given !== '' ? $given : $this->moduleName;
     }
 
     private function description(): string
     {
         $given = $this->option('description');
 
-        return is_string($given) && $given !== ''
-            ? str_replace("'", "\\'", $given)
-            : "{$this->moduleName} moduli.";
+        return is_string($given) && $given !== '' ? $given : "{$this->moduleName} moduli.";
+    }
+
+    /** Safe to drop between single quotes in generated PHP source. */
+    private function php(string $text): string
+    {
+        return str_replace(['\\', "'"], ['\\\\', "\\'"], $text);
     }
 
     private function constantAlias(): string

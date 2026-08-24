@@ -52,6 +52,19 @@ final class UserSeeder extends Seeder
         'storekeeper@demo.uz' => ['name' => 'Bekzod Umarov', 'role' => 'storekeeper', 'phone' => '+998901110008'],
         'accountant@demo.uz' => ['name' => 'Gulnora Ismoilova', 'role' => 'accountant', 'phone' => '+998901110009'],
         'marketer@demo.uz' => ['name' => 'Jasur Karimov', 'role' => 'marketer', 'phone' => '+998901110010'],
+        // Qabul markazi — telefon, Telegram, sayt va agregator buyurtmalari.
+        'operator@demo.uz' => ['name' => 'Dilnoza Rahimova', 'role' => 'order-operator', 'phone' => '+998901110011'],
+        /*
+         * Kuryer — and the reason this one is here is a screen rather than a
+         * login.
+         *
+         * `GET /api/v1/orders/deliveries` finds riders by the `courier` role,
+         * so with nobody holding it the console's delivery tab renders an empty
+         * board on a freshly seeded install — correctly, and unhelpfully. The
+         * role has existed in RolesAndPermissionsSeeder since it was written;
+         * this is the account that makes it visible.
+         */
+        'courier@demo.uz' => ['name' => 'Bekzod Alimov', 'role' => 'courier', 'phone' => '+998901110012'],
     ];
 
     public function run(): void

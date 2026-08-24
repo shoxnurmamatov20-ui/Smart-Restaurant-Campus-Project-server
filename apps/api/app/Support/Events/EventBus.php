@@ -6,10 +6,10 @@ namespace App\Support\Events;
 
 use App\Models\StoredDomainEvent;
 use App\Models\Tenant;
+use App\Support\Auth\ActingPerson;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -143,7 +143,16 @@ final class EventBus
             'name' => $event->name(),
             'module' => $event->module(),
             'schema_version' => $event->schemaVersion(),
-            'actor_id' => Auth::id(),
+            /*
+             * The person, and only if the principal IS a person.
+             *
+             * Every event a till fires used to record the TERMINAL's id here — the
+             * device token's tokenable is a Terminal, not a User — into a column
+             * with no foreign key to refuse it. So `GET /api/v1/audit` attributed
+             * every POS action to whichever user happened to share an id with the
+             * terminal, and nothing anywhere said so. See ActingPerson.
+             */
+            'actor_id' => ActingPerson::id(),
             'aggregate_type' => $aggregate === null ? null : $aggregate::class,
             'aggregate_id' => $aggregate?->getKey(),
             'payload' => $event->payload(),
@@ -164,11 +173,19 @@ final class EventBus
             'last_error' => mb_substr($e::class.': '.$e->getMessage(), 0, 1000),
         ])->save();
 
-        Log::error('Domain event delivery failed', [
+        $abandoned = $attempts >= StoredDomainEvent::MAX_ATTEMPTS;
+
+        /*
+         * A retry is routine and goes to the file. The last retry is not: an
+         * abandoned event is a paid order the kitchen never saw, a push that
+         * never went, a loyalty point never credited — and nothing else will
+         * ever mention it. `critical` is what reaches the operations chat.
+         */
+        Log::log($abandoned ? 'critical' : 'error', 'Domain event delivery failed', [
             'event_id' => $record->event_id,
             'name' => $record->name,
             'attempts' => $attempts,
-            'abandoned' => $attempts >= StoredDomainEvent::MAX_ATTEMPTS,
+            'abandoned' => $abandoned,
             'exception' => $e->getMessage(),
         ]);
     }
