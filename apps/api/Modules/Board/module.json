@@ -1,0 +1,9 @@
+{
+  "name": "Board",
+  "alias": "board",
+  "description": "Peshtaxta ustidagi ekran: ustunlar, rotatsiya va bannerlar — narx va stop-list menyudan o'qiladi.",
+  "keywords": ["restaurant", "smart-restaurant-campus", "board"],
+  "priority": 14,
+  "providers": ["Modules\\Board\\Providers\\BoardServiceProvider"],
+  "files": []
+}

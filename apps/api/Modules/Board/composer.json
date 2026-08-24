@@ -1,0 +1,24 @@
+{
+  "name": "smart-restaurant-campus/board",
+  "description": "Peshtaxta ustidagi menyu tablosi: ustunlar, rotatsiya, bannerlar.",
+  "type": "laravel-module",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Board\\": "app/",
+      "Modules\\Board\\Database\\Factories\\": "database/factories/",
+      "Modules\\Board\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Board\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  }
+}

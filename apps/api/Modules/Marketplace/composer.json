@@ -1,0 +1,11 @@
+{
+  "name": "restaurant-campus/marketplace",
+  "description": "MyPOS bozori — ko'p restoranli iste'molchi vitrinasi",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Marketplace\\": "app/",
+      "Modules\\Marketplace\\Database\\Factories\\": "database/factories/",
+      "Modules\\Marketplace\\Database\\Seeders\\": "database/seeders/"
+    }
+  }
+}

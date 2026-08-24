@@ -1,0 +1,9 @@
+{
+  "name": "Marketplace",
+  "alias": "marketplace",
+  "description": "MyPOS bozori — ko'p restoranli iste'molchi vitrinasi",
+  "keywords": ["restaurant", "smart-restaurant-campus", "marketplace"],
+  "priority": 13,
+  "providers": ["Modules\\Marketplace\\Providers\\MarketplaceServiceProvider"],
+  "files": []
+}
