@@ -20,6 +20,9 @@ final class PurchaseOrderItemFactory extends Factory
         return [
             'purchase_order_id' => PurchaseOrder::factory(),
             'name' => $this->faker->randomElement(['Guruch', 'Sabzi', "Qo'y go'shti", 'Un']),
+            // Grams: the base unit stock is held in, and the one a delivery
+            // note for dry goods and meat is written in.
+            'unit' => 'g',
             'quantity' => $this->faker->numberBetween(1000, 20000),
             'unit_price' => $this->faker->numberBetween(1, 20),
             'total_price' => 0,

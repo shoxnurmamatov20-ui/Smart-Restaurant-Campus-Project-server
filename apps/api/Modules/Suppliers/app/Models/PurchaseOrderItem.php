@@ -26,7 +26,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $purchase_order_id
  * @property int|null $ingredient_id Inventory module id, no FK on purpose
  * @property string $name
+ * @property string|null $unit The unit the quantity is counted in: g | ml | pcs
  * @property int $quantity
+ * @property int|null $received_quantity Base units counted off the van; null means nobody counted
  * @property int $unit_price Amount in tiyin (1 UZS = 100 tiyin)
  * @property int $total_price Amount in tiyin (1 UZS = 100 tiyin)
  * @property Carbon|null $created_at
@@ -52,6 +54,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|PurchaseOrderItem whereQuantity($value)
  * @method static Builder<static>|PurchaseOrderItem whereTenantId($value)
  * @method static Builder<static>|PurchaseOrderItem whereTotalPrice($value)
+ * @method static Builder<static>|PurchaseOrderItem whereUnit($value)
  * @method static Builder<static>|PurchaseOrderItem whereUnitPrice($value)
  * @method static Builder<static>|PurchaseOrderItem whereUpdatedAt($value)
  * @method static Builder<static>|PurchaseOrderItem withTrashed(bool $withTrashed = true)
@@ -76,7 +79,9 @@ final class PurchaseOrderItem extends Model
         'purchase_order_id',
         'ingredient_id',
         'name',
+        'unit',
         'quantity',
+        'received_quantity',
         'unit_price',
         'total_price',
     ];
@@ -85,6 +90,7 @@ final class PurchaseOrderItem extends Model
     {
         return [
             'quantity' => 'integer',
+            'received_quantity' => 'integer',
             'unit_price' => 'integer',
             'total_price' => 'integer',
         ];

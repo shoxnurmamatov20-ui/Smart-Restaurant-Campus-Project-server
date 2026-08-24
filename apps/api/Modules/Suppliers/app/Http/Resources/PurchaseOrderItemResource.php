@@ -23,7 +23,19 @@ final class PurchaseOrderItemResource extends JsonResource
             'purchase_order_id' => $this->purchase_order_id,
             'ingredient_id' => $this->ingredient_id,
             'name' => $this->name,
+            'unit' => $this->unit,
             'quantity' => $this->quantity,
+            /*
+             * What was counted off the van, or null when nobody counted.
+             *
+             * Null is not zero and not "all of it": every delivery signed for
+             * before the receiving screen learned to count carries it, as does
+             * every one a storekeeper confirms whole from a phone. The console
+             * draws an em dash for null and a real variance for a number —
+             * printing the ordered figure here would manufacture a perfect
+             * delivery on every line.
+             */
+            'received_quantity' => $this->received_quantity,
             'unit_price' => $this->unit_price,
             'total_price' => $this->total_price,
             'created_at' => $this->created_at?->toIso8601String(),

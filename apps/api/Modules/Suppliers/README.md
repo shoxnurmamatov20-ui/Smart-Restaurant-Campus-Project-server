@@ -35,6 +35,40 @@ ishlatadi — bitta restoran boshqasining ma'lumotini hech qachon ko'rmaydi.
 
 ---
 
+## Qurilgan qismi — buyurtma zinapoyasi va yetkazib beruvchi ustunlari (2026-08-22)
+
+Konsolning ikkala jadvali ham endi jonli. Ilgari faqat buyurtmalar kitobi
+o'qilardi: `suppliers-server.ts` yetti ustundan to'rttasining ortida ustun
+yo'qligini yozib qo'ygan edi.
+
+| Ustun                               | Qayerdan                                                       |
+| ----------------------------------- | -------------------------------------------------------------- |
+| kategoriya, yetkazish muddati       | `suppliers.category`, `suppliers.lead_time_days` — yangi ustun |
+| oxirgi yetkazish                    | `suppliers.last_delivery_at` — `receive()` yozadi              |
+| o'z vaqtida %, ochiq buyurtma, sarf | **hisoblanadi**, `Supplier::scopeWithPurchaseFigures()` bilan  |
+
+Nega uchtasi ustun emas: saqlangan `on_time` yozilgan kuni to'g'ri, ertasiga
+xato, va ekranda buni ayta oladigan hech narsa yo'q. Ular buyurtmalarning
+o'zidan bitta so'rovda subquery bo'lib keladi.
+
+**Holat zinapoyasi bitta yo'nalishda** (`PurchaseOrder::TRANSITIONS`):
+`draft → sent → confirmed`, va uchtasidan ham `cancelled`. `received` bu
+ro'yxatda ataylab yo'q — unga faqat `receive()` orqali boriladi, chunki u
+zaxirani ko'taradi va qarzni o'stiradi. Holatni e'lon qila oladigan endpoint
+javonga hech narsa tushmagan yetkazishni "keldi" deb yopish yo'li bo'lardi.
+
+```
+GET    /api/v1/suppliers/suppliers                       — reytinglar bilan (suppliers.view)
+POST   /api/v1/suppliers/purchase-orders                 — sarlavha + qatorlar, bitta tranzaksiya (suppliers.create)
+POST   /api/v1/suppliers/purchase-orders/{po}/status     — sent | confirmed | cancelled (suppliers.update)
+POST   /api/v1/suppliers/purchase-orders/{po}/receive    — zaxira va qarz (suppliers.update)
+```
+
+Buyurtma raqamini mijoz yubormaydi: `BranchCounters` beradi (`PO-0009`) — ikki
+xaridor ikki ekranda bir xil raqamni o'ylab topmasligi uchun.
+
+---
+
 ## API endpointlar (rejalashtirilgan)
 
 ```

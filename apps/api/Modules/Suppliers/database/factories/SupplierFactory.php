@@ -19,9 +19,11 @@ final class SupplierFactory extends Factory
         return [
             'code' => strtoupper($this->faker->unique()->bothify('SUP-###')),
             'name' => $this->faker->company(),
+            'category' => $this->faker->randomElement(Supplier::CATEGORIES),
             'contact_name' => $this->faker->name(),
             'phone' => '+998'.$this->faker->numerify('9########'),
             'payment_terms_days' => $this->faker->randomElement([0, 7, 14, 30]),
+            'lead_time_days' => $this->faker->randomElement([0, 1, 2, 3]),
             'rating' => 5,
             'debt' => 0,
             'is_active' => true,

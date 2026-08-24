@@ -30,6 +30,13 @@ final class PurchaseOrderResource extends JsonResource
             'expected_at' => $this->expected_at?->toIso8601String(),
             'received_at' => $this->received_at?->toIso8601String(),
             'total' => $this->total,
+            'paid_amount' => $this->paid_amount,
+            'paid_at' => $this->paid_at?->toIso8601String(),
+            // Derived rather than left to the reader: "total minus paid" is the
+            // figure the payables table sorts and sums by, and three clients
+            // computing it is three chances for one of them to forget that a
+            // cancelled order owes nothing.
+            'outstanding' => $this->outstandingAmount(),
             'note' => $this->note,
             'items' => PurchaseOrderItemResource::collection($this->whenLoaded('items')),
             'created_at' => $this->created_at?->toIso8601String(),

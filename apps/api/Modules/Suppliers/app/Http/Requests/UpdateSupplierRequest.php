@@ -8,6 +8,7 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Suppliers\Models\Supplier;
 
 final class UpdateSupplierRequest extends FormRequest
 {
@@ -29,10 +30,14 @@ final class UpdateSupplierRequest extends FormRequest
         return [
             'code' => ['sometimes', 'string', 'max:32', Rule::unique('suppliers', 'code')->ignore($this->route('supplier'))->where(fn (Builder $query) => $query->where('tenant_id', $tenantId))],
             'name' => ['sometimes', 'string', 'max:160'],
+            'category' => ['nullable', Rule::in(Supplier::CATEGORIES)],
             'contact_name' => ['nullable', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:160'],
             'payment_terms_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            // Nobody promises a delivery a month out and nobody sends one
+            // yesterday; the bounds exist to catch a form that posted a date.
+            'lead_time_days' => ['nullable', 'integer', 'min:0', 'max:30'],
             'rating' => ['nullable', 'integer', 'min:1', 'max:5'],
             'is_active' => ['nullable', 'boolean'],
         ];

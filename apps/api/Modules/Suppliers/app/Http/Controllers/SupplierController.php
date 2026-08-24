@@ -29,9 +29,13 @@ final class SupplierController extends Controller
     {
         $perPage = min($request->integer('per_page', 25), self::MAX_PER_PAGE);
 
-        $records = QueryBuilder::for(Supplier::class)
+        // The figures the list draws come as subqueries on the same
+        // statement — see Supplier::scopeWithPurchaseFigures for why they are
+        // not columns.
+        $records = QueryBuilder::for(Supplier::query()->withPurchaseFigures())
             ->allowedFilters([
                 AllowedFilter::exact('code'),
+                AllowedFilter::exact('category'),
                 AllowedFilter::exact('is_active'),
                 AllowedFilter::partial('name'),
                 AllowedFilter::callback('in_debt', function ($query, $value): void {
@@ -40,7 +44,7 @@ final class SupplierController extends Controller
                     }
                 }),
             ])
-            ->allowedSorts(['code', 'name', 'rating', 'debt', 'created_at'])
+            ->allowedSorts(['code', 'name', 'category', 'rating', 'debt', 'last_delivery_at', 'created_at'])
             ->allowedIncludes(['purchaseOrders'])
             ->defaultSort('name')
             ->paginate($perPage)
@@ -61,7 +65,12 @@ final class SupplierController extends Controller
 
     public function show(Supplier $supplier): SupplierResource
     {
-        return new SupplierResource($supplier->load('purchaseOrders'));
+        // Re-read through the scope rather than computing on the model in
+        // hand: the figures are subqueries, and a model resolved by route
+        // binding carries none of them.
+        $withFigures = Supplier::query()->withPurchaseFigures()->whereKey($supplier->getKey())->firstOrFail();
+
+        return new SupplierResource($withFigures->load('purchaseOrders'));
     }
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier): SupplierResource
