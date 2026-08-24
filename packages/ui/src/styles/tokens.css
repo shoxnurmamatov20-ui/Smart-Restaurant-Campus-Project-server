@@ -103,9 +103,37 @@
   --fg-link: var(--brand-600);
   --focus-ring: color-mix(in oklch, var(--brand-500) 55%, transparent);
 
+  /*
+   * The till's idle wallpaper — a token in the design, and one of the few that
+   * carries a gradient rather than a colour.
+   *
+   * It was missing here, so `(pos)/pos/idle-screen.tsx` held the light-mode
+   * value as a literal. That is the wrong copy: a till stands in a dark room and
+   * the design gives the dark theme its own, deeper gradient. Declared in both
+   * themes so the screen follows the room instead of the stylesheet.
+   */
+  --pos-idle: linear-gradient(165deg, #141a28 0%, #0b0e16 58%, #0f1320 100%);
+
   /* ---- Type ---- */
-  --font-display: var(--font-inter-tight), 'Inter Tight', system-ui, sans-serif;
-  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  /*
+   * The design's stacks, with the self-hosted face in front.
+   *
+   * `var(--font-*)` is what `next/font` injects for the copy this build ships;
+   * everything after it is the design file's own fallback chain, verbatim. The
+   * middle two were dropped once on the grounds that `system-ui` supersedes
+   * them — true on a current browser, and beside the point: the design states a
+   * chain and the handoff's rule is that the file wins. `design-tokens.test.ts`
+   * now asserts every family the design names is still present.
+   *
+   * `--font-mono` is the one place a family is *added*: `FOUNDATIONS §2` asks
+   * for JetBrains Mono and the design file never loads it, so the variable goes
+   * in front of the file's chain rather than replacing it. Ids, invoice numbers
+   * and timers get the face the document asks for, and any machine without it
+   * falls back exactly where the prototype does.
+   */
+  --font-display:
+    var(--font-inter-tight), 'Inter Tight', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SF Mono', Menlo, monospace;
 
   --text-3xs: 10px;
@@ -132,6 +160,13 @@
   --tracking-normal: 0;
   --tracking-wide: 0.02em;
   --tracking-caps: 0.08em;
+
+  /* The design names its weights as tokens and uses them by name throughout the
+     prototypes. Carried across so a component can say what the design says. */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
   /* ---- Space: 4px base ---- */
   --sp-1: 4px;
@@ -254,6 +289,9 @@
   --fg-inverse: #0f1320;
   --fg-brand: #8dbbf9;
   --fg-link: #8dbbf9;
+
+  /* Deeper than light's, per the design file's own dark block. */
+  --pos-idle: linear-gradient(165deg, #12161f 0%, #080a11 60%, #0b0e16 100%);
 
   --brand-50: #141f35;
   --brand-100: #1a2a45;
@@ -390,6 +428,7 @@
   --color-bg: var(--bg);
   --color-bg-subtle: var(--bg-subtle);
   --color-bg-muted: var(--bg-muted);
+  --color-bg-inverse: var(--bg-inverse);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
   --color-fg: var(--fg);
@@ -400,6 +439,27 @@
   --color-fg-brand: var(--fg-brand);
   --color-border-strong: var(--border-strong);
   --color-divider: var(--divider);
+
+  /* ----------------------------------------------------------------
+     The guest-facing pair, and the reason this block exists at all.
+
+     Declaring `--acc` and `--page` above is only half of it: Tailwind v4 is
+     CSS-first, so a variable becomes a utility ONLY by being mapped here. Without
+     these four lines `bg-page`, `bg-acc`, `text-acc` and `border-acc-line` are
+     dropped at build time — silently. No warning, no error, no missing-class
+     message; the element simply renders on whatever it inherited.
+
+     That is exactly what happened: three phone surfaces were written against
+     `bg-page` and all three rendered on the root background, looking almost right
+     and quietly losing the one thing that makes a 390px column read as a card on
+     a field rather than a panel welded to the page.
+     ---------------------------------------------------------------- */
+  --color-page: var(--page);
+  --color-acc: var(--acc);
+  --color-acc-dark: var(--acc-dark);
+  --color-acc-soft: var(--acc-soft);
+  --color-acc-line: var(--acc-line);
+  --color-rating-star: var(--rating-star);
 
   /* ---- Type scale ----
      Tailwind's `--text-*` namespace, so `text-md` is the design's 15px body
@@ -437,6 +497,10 @@
   --text-5xl--line-height: normal;
   --text-6xl: 60px;
   --text-6xl--line-height: normal;
+  /* Declared in `:root` since the scale was written but never mapped here, so
+     `text-7xl` fell through to Tailwind's own 72px instead of the design's 76. */
+  --text-7xl: 76px;
+  --text-7xl--line-height: normal;
 
   /* `leading-normal` is the design's 1.45, not Tailwind's 1.5. */
   --leading-tight: var(--lh-tight);
@@ -528,6 +592,129 @@
   --ease-spring: var(--ease-spring);
 }
 
+/* ===========================================================================
+ * The accent axis — a restaurant's own colour, on the guest-facing surfaces
+ * ===========================================================================
+ *
+ * Its own axis, and that phrase is `FOUNDATIONS §1.4` verbatim: "the accent is
+ * driven by the picked value, not by tenant id. Tenant selection only *seeds*
+ * the default." So `data-acc` is a setting a restaurant chooses, not something
+ * computed from which restaurant it is — two venues of one chain may pick
+ * differently, and a brand that rebrands changes one value rather than a row.
+ *
+ * Here rather than in each surface because three products use it: the restaurant
+ * site (07), the Telegram mini app (08) and the customer app (09). Three local
+ * copies would let one tenant render three different colours, which is the exact
+ * failure a design token exists to prevent.
+ *
+ * The alphas stay as `rgba()` rather than becoming `color-mix(in oklch, …)`.
+ * That conversion produces a visibly different colour and the design files are
+ * the source of truth down to the pixel — see the package README.
+ *
+ * `a3` is in FOUNDATIONS and absent from the design file. Carried anyway: the
+ * spec names it, and a value that exists in one place and not the other is how
+ * a fourth copy gets invented later.
+ */
+/*
+ * The seed, so the axis always resolves.
+ *
+ * Every value above lives under a `[data-acc]` selector, which means a surface
+ * that forgets the attribute gets no accent at all — and an unresolved custom
+ * property in `background: var(--acc)` paints nothing rather than failing, so a
+ * primary button renders invisible against its own card.
+ *
+ * `a0` is the seed rather than a fourth colour: `FOUNDATIONS §1.4` calls the
+ * accent its own axis that a restaurant PICKS, and a default is what an
+ * unconfigured tenant is shown until they do.
+ */
+:root {
+  --acc: #2e74ea;
+  --acc-dark: #1c5ad1;
+  --acc-soft: rgba(46, 116, 234, 0.11);
+  --acc-line: rgba(46, 116, 234, 0.26);
+}
+
+[data-acc='a0'] {
+  /* Clinical blue */
+  --acc: #2e74ea;
+  --acc-dark: #1c5ad1;
+  --acc-soft: rgba(46, 116, 234, 0.11);
+  --acc-line: rgba(46, 116, 234, 0.26);
+}
+
+[data-acc='a1'] {
+  /* Tandoor terracotta */
+  --acc: #c2410c;
+  --acc-dark: #9a3412;
+  --acc-soft: rgba(194, 65, 12, 0.11);
+  --acc-line: rgba(194, 65, 12, 0.26);
+}
+
+[data-acc='a2'] {
+  /* Tea green */
+  --acc: #0f766e;
+  --acc-dark: #115e59;
+  --acc-soft: rgba(15, 118, 110, 0.11);
+  --acc-line: rgba(15, 118, 110, 0.26);
+}
+
+[data-acc='a3'] {
+  /* Night charcoal */
+  --acc: #1f2533;
+  --acc-dark: #0f1320;
+  --acc-soft: rgba(31, 37, 51, 0.11);
+  --acc-line: rgba(31, 37, 51, 0.26);
+}
+
+/* Charcoal on charcoal is invisible: the one accent that needs a dark variant. */
+[data-theme='dark'] [data-acc='a3'] {
+  --acc: #5b6478;
+}
+
+/* ===========================================================================
+ * The page behind a phone-width surface
+ * ===========================================================================
+ *
+ * A ROLE, not a new colour: in light it is the same hex as `--n-100`, which
+ * `--bg-muted` also points at. Declared separately rather than aliased because
+ * the two part company in dark — `--page` goes to #080a11, deliberately darker
+ * than `--bg-subtle`, so a 390px column reads as a card floating on a field
+ * rather than as a panel welded to the background.
+ *
+ * Aliasing them would look right in light and wrong in dark, which is the worst
+ * order to discover it in.
+ */
+:root {
+  --page: #f1f3f7;
+}
+
+[data-theme='dark'] {
+  --page: #080a11;
+}
+
+/* ===========================================================================
+ * Telegram's chat surface
+ * ===========================================================================
+ *
+ * Only the Telegram mini app draws a conversation, so these could have stayed
+ * local to it. They are here because the mini app and the customer app are one
+ * product to a guest — the same order, the same colours — and a bubble that is
+ * white in one and off-white in the other reads as two apps badly stitched.
+ */
+:root {
+  --chat-bg: #dce6f2;
+  --chat-in: #ffffff;
+  --chat-out: #dff0dc;
+  --chat-hdr: #ffffff;
+}
+
+[data-theme='dark'] {
+  --chat-bg: #0e131c;
+  --chat-in: #1a1f2b;
+  --chat-out: #1e3348;
+  --chat-hdr: #12161f;
+}
+
 @layer base {
   * {
     border-color: var(--border);
@@ -549,5 +736,42 @@
   :focus-visible {
     outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * Sixteen pixels in a field, on anything with a finger.
+ *
+ * Mobile Safari zooms the page in when a focused field's text is under 16px and
+ * does not zoom back out: the reader is left on a page half again too wide,
+ * scrolling sideways to find the next field. The product's fields are
+ * `text-sm`, which is 14, so this happened on every form it has — the login,
+ * the four-digit PIN, the menu editor, checkout.
+ *
+ * `!important`, and outside `@layer base`. Both are needed and both were
+ * arrived at by measurement: inside the layer a bare input took 16px and a
+ * field carrying `text-sm` stayed at 13, and moving the rule out of the layer
+ * did not change that. `!important` is what finally beats a type utility on the
+ * element itself.
+ *
+ * It is safe to force one size because no field in this product is drawn larger
+ * than 16px — every one of them is 12 to 14, which is to say every one of them
+ * triggers the zoom. A field that ever wants to be bigger will need this rule
+ * rewritten rather than worked around.
+ *
+ * `pointer: coarse` rather than a width, because the zoom is a property of the
+ * input device and not of the window: an iPad in landscape is 1024px wide and
+ * does it too. Checkboxes and radios are excluded — they have no text to size,
+ * and the property changes their box.
+ *
+ * The other way to stop the zoom is `maximum-scale=1` in the viewport tag,
+ * which works by taking pinch-zoom away from everybody. That is not a trade
+ * this product makes.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

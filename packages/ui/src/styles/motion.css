@@ -1,0 +1,539 @@
+/* ============================================================
+   Motion — the design's own layer, copied across
+
+   `packages/ui/src/styles/tokens.css` declares `--dur-*` and `--ease-*` and
+   nothing consumed them for entrances: the build had zero `@keyframes` and zero
+   `animation:` rules while the prototypes declare eleven keyframes and apply
+   them thirty-eight times. Every sheet, drawer, toast, KPI card, bar, donut and
+   line in the design arrives; in the build they all appeared instantly, which is
+   most of why a faithfully-tokenised screen still did not read as the design.
+
+   The values are the design file's, not FOUNDATIONS' — the handoff's rule is
+   that where a document and a file disagree the file wins. Source:
+   `Smart Restaurant OS.dc.html` lines 62-125, the shared preamble every one of
+   the fourteen prototypes carries.
+
+   Shared rather than per-app because the same rules bind in both consoles and on
+   every phone surface: a KPI card is a KPI card whether the accountant or the
+   platform operator is reading it.
+
+   Nothing here sets a colour. Motion is the only thing this file owns, so it can
+   be read in one sitting and it cannot fight the token layer.
+   ============================================================ */
+
+/* ---------- The eleven ---------- */
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * A whole page arriving, which is a longer, larger motion than a panel:
+ * six pixels over 260ms rather than seven over 200. The marketing site is where
+ * the design uses it — `Sayt v2.dc.html:56-57` — because that is the surface
+ * whose pages are read one after another rather than operated.
+ */
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The one pulse the design allows, and it loops only on a live indicator. A KDS
+   ticket crossing the late threshold pulses once — see `[data-late]` below. */
+@keyframes softPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -320px 0;
+  }
+  100% {
+    background-position: 320px 0;
+  }
+}
+
+@keyframes kpiIn {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes railIn {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes barIn {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes donutIn {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes lineIn {
+  from {
+    stroke-dashoffset: 800;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ============================================================
+   Where they bind
+
+   Data attributes rather than class names, because that is what the prototypes
+   use and it keeps the binding out of the component's own styling: a card can
+   be restyled freely and still arrive the way the design says it arrives.
+   ============================================================ */
+
+/* ---------- KPI cards ---------- */
+
+[data-kpi] {
+  animation: kpiIn 0.42s var(--ease-standard) both;
+  transition:
+    border-color 0.16s var(--ease-standard),
+    box-shadow 0.16s var(--ease-standard),
+    transform 0.16s var(--ease-standard);
+}
+
+[data-kpi]:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* A row of five arrives left to right rather than all at once. The design stops
+   at the sixth because no screen shows more. */
+[data-kpi]:nth-child(2) {
+  animation-delay: 0.05s;
+}
+[data-kpi]:nth-child(3) {
+  animation-delay: 0.1s;
+}
+[data-kpi]:nth-child(4) {
+  animation-delay: 0.15s;
+}
+[data-kpi]:nth-child(5) {
+  animation-delay: 0.2s;
+}
+[data-kpi]:nth-child(6) {
+  animation-delay: 0.25s;
+}
+
+/* The tinted glyph badge in a KPI's top-right. The box is here; the two colours
+   are the caller's, because which tint a figure wears is a content decision. */
+[data-kpiic] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex: none;
+  transition: transform 0.18s var(--ease-standard);
+}
+
+[data-kpi]:hover [data-kpiic] {
+  transform: scale(1.07);
+}
+
+/* ---------- Charts and rails ---------- */
+
+/*
+ * `> *`, not `> div`.
+ *
+ * The console's shared `Rail` primitive draws its fill as a block-level `span`,
+ * because a rail sits inside table cells and paragraphs where a `div` is not
+ * valid — so a rule written for `div` reached the rails written by hand and
+ * silently skipped every rail the primitive drew. That is most of them.
+ */
+[data-rail] > * {
+  animation: railIn 0.74s 0.16s var(--ease-standard) both;
+  transform-origin: left center;
+}
+
+[data-bar='1'] {
+  animation: barIn 0.58s var(--ease-standard) both;
+  transform-origin: bottom center;
+}
+
+[data-barx='1'] {
+  animation: railIn 0.58s var(--ease-standard) both;
+  transform-origin: left center;
+}
+
+[data-donut] {
+  animation: donutIn 0.6s 0.08s var(--ease-standard) both;
+}
+
+[data-line] {
+  stroke-dasharray: 800;
+  animation: lineIn 0.95s 0.1s var(--ease-standard) both;
+}
+
+/* ---------- Overlays ---------- */
+
+/* A sheet, a drawer, a modal and a bottom sheet are one motion in the design:
+   up fourteen pixels and a hair of scale. */
+[data-sheet] {
+  animation: sheetIn var(--dur-med) var(--ease-out) both;
+}
+
+/* A toast is *not* a sheet: ten pixels and no scale. The difference is small on
+   paper and obvious on screen — a sheet is a surface arriving, a toast is a
+   sentence. `Smart Restaurant OS.dc.html:8318` uses `toastIn` here explicitly. */
+[data-toast] {
+  animation: toastIn var(--dur-med) var(--ease-out) both;
+}
+
+[data-scrim],
+[data-fade] {
+  animation: fadeIn var(--dur-med) var(--ease-out) both;
+}
+
+/* A panel that replaces content in place — a tab body, a filtered list. */
+[data-panel-in] {
+  animation: panelIn var(--dur-med) var(--ease-standard) both;
+}
+
+/*
+ * A page. In the prototype the surface swaps with `sc-if` and this fires on the
+ * swap; here it fires because `template.tsx` re-mounts on every navigation,
+ * which is the App Router's own answer to exactly this.
+ */
+[data-page] {
+  animation: pageIn 260ms var(--ease-standard) both;
+}
+
+/* ---------- Skeletons ---------- */
+
+/* The design's loading block: a band travelling across the muted fill. Paired
+   with a real layout — `FOUNDATIONS §5` asks skeletons to match the shape of
+   what is coming, and a spinner only under a second. */
+[data-sk] {
+  background: linear-gradient(90deg, var(--bg-muted) 0%, var(--bg-subtle) 42%, var(--bg-muted) 84%);
+  background-size: 320px 100%;
+  animation: shimmer 1.15s linear infinite;
+}
+
+/* ---------- The one late pulse ---------- */
+
+/*
+ * `FOUNDATIONS §4`: "A KDS ticket crossing the late threshold pulses **once**."
+ * Once is the whole rule — a ticket that keeps blinking becomes wallpaper by the
+ * third order of the evening, and the kitchen stops seeing it exactly when it
+ * matters. Two iterations of the 1.1s cycle read as one pulse in and out.
+ */
+[data-late='true'] {
+  animation: softPulse 1.1s var(--ease-standard) 2;
+}
+
+/* A genuinely live indicator — a courier moving, a sync in flight — is the one
+   place a loop is allowed, because it stops when the thing stops. */
+[data-live='true'] {
+  animation: softPulse 1.6s var(--ease-standard) infinite;
+}
+
+/* ============================================================
+   Interaction states the design states once, for every surface
+
+   These lived in `(dashboard)/app-shell.css`, which only the console imports —
+   so a segmented control on the till or the kitchen display had **no selected
+   state at all**. `Segmented` is in `packages/ui` and is used on the POS, the
+   KDS and the customer app; its own docstring said it was "painted by
+   app-shell.css", and on three of the four surfaces nothing painted it.
+
+   Values are the design's preamble, `Smart Restaurant OS.dc.html:83-88`.
+   ============================================================ */
+
+[data-seg][data-active='true'] {
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  color: var(--fg);
+}
+
+[data-row]:hover {
+  background: var(--bg-subtle);
+}
+
+[data-tile]:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+/* A tile for something switched off — a closed branch, a hidden dish. Dashed
+   rather than merely faded, because opacity alone is not a state a reader can
+   name, and the hover turns danger-tinted so the way back on is obvious. */
+[data-tile][data-off='1'] {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+[data-tile][data-off='1']:hover {
+  background: var(--danger-50);
+  box-shadow: none;
+}
+
+/* ============================================================
+   Reduced motion
+
+   The design drops the entrances and the press-scale and keeps everything
+   legible. `stroke-dasharray` has to be unset as well or the line renders as a
+   dashed stub rather than a line.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-kpi],
+  [data-rail] > *,
+  [data-bar='1'],
+  [data-barx='1'],
+  [data-donut],
+  [data-line],
+  [data-sheet],
+  [data-toast],
+  [data-scrim],
+  [data-fade],
+  [data-panel-in],
+  [data-page],
+  [data-late='true'],
+  [data-live='true'] {
+    animation: none !important;
+  }
+
+  [data-line] {
+    stroke-dasharray: none;
+  }
+
+  [data-kpi]:hover,
+  [data-kpi]:hover [data-kpiic] {
+    transform: none;
+  }
+
+  [data-sk] {
+    animation: none;
+    background: var(--bg-muted);
+  }
+
+  /* The navigation drawer is a transition rather than a keyframe, so `animation:
+     none` above never touched it — and a 252px panel sweeping across the screen
+     is precisely the motion this setting exists to stop. It still opens; it
+     simply arrives. */
+  [data-nav] {
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   The global interaction rules the design states once
+
+   These were scoped to the console shell and so never reached the phone
+   surfaces, the till or the platform console — which is why a press felt
+   different depending on which screen you were on.
+   ============================================================ */
+
+@layer base {
+  button {
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard),
+      opacity var(--dur-fast) var(--ease-standard),
+      filter var(--dur-fast) var(--ease-standard);
+  }
+
+  /* The design's press, everywhere. `:active` rather than a class so it applies
+     to a link styled as a button too. */
+  button:active,
+  [data-press]:active {
+    transform: scale(0.985);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button:active,
+    [data-press]:active {
+      transform: none;
+    }
+  }
+
+  /*
+   * Forty-four pixels of anything you press with a finger.
+   *
+   * Both platform guidelines say it — Apple 44, Material 48 — and the reason is
+   * physical: a fingertip covers about that much, so a smaller control is one
+   * the reader aims at and misses. The design draws 38px buttons because it was
+   * drawn for a cursor, and on a desktop 38 is right; this only changes the
+   * geometry where the input device is a finger.
+   *
+   * `pointer: coarse` and not a width, for the same reason the field rule uses
+   * it: a 1024px tablet is a touch device and a 900px browser window on a
+   * laptop is not. `data-press` is the product's own marker for "this is
+   * pressable" and is already on 186 controls, which is what makes one rule
+   * enough.
+   *
+   * Inside `@layer base` on purpose, unlike the two rules at the foot of this
+   * file and of `tokens.css`. A utility beats a layered rule, which here is the
+   * behaviour worth having: a control that genuinely must be shorter says so
+   * with `min-h-*` on itself and wins.
+   */
+  @media (pointer: coarse) {
+    [data-press] {
+      min-height: 44px;
+    }
+  }
+
+  /* Money and counts line up column-wise only with tabular figures. 609 call
+     sites already write `data-num`; this is what makes it mean something
+     outside the console. */
+  [data-num] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The scroll chrome the design draws — thin, on the strong border, no track. */
+  [data-scroll] {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  [data-scroll]::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  [data-scroll]::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  [data-scroll]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/*
+ * A segmented control's segments, at a fingertip's size.
+ *
+ * 38 rather than 44 because a segment lives inside a `p-[3px]` track: 38 and
+ * six of padding is the 44 a finger actually lands on. The design draws them
+ * between 28 and 34, which is right for a cursor and half a fingertip short of
+ * a thumb — and these are the controls a person taps most on a dashboard,
+ * because they are how the period, the station and the theme are chosen.
+ *
+ * Outside `@layer base`: the drawn heights come from utilities.
+ */
+@media (pointer: coarse) {
+  [data-seg] {
+    min-height: 38px;
+  }
+}
+
+/*
+ * The header's language-and-theme box, at a fingertip's size.
+ *
+ * It is one bordered control with a 34px button and two 28px squares inside it.
+ * The squares cannot carry `data-press`: 44px of segment inside a 36px track
+ * bursts the track. The whole control grows instead, and its parts grow with
+ * it.
+ *
+ * Outside `@layer base` for the reason the field rule in `tokens.css` is —
+ * `h-9` and `size-7` are utilities, and a layered rule loses to a utility that
+ * sets the same property.
+ */
+@media (pointer: coarse) {
+  [data-langtheme] {
+    height: 44px;
+  }
+
+  /*
+   * `min-height` as well as `height`, because the console top bar puts a 44px
+   * floor under everything inside it and a floor beats a height whatever the
+   * specificity. Without this the segments were exactly as tall as the box that
+   * holds them, and the selected one's fill sat on top of the box's own border.
+   */
+  [data-langtheme] > div > button,
+  [data-langtheme] [data-seg] {
+    height: 38px;
+    min-height: 38px;
+  }
+
+  [data-langtheme] [data-seg] {
+    width: 38px;
+    min-width: 38px;
+  }
+}

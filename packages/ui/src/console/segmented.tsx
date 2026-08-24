@@ -16,8 +16,11 @@ import { cn } from '@restaurant/utils';
  * and `value` promotes the whole thing to controlled for the few screens whose
  * segment is owned by something above them.
  *
- * Painted by app-shell.css off `data-seg` / `data-active`, which is also what
- * gives it the design's press: a hair of scale and nothing else.
+ * Painted off `data-seg` / `data-active` by `packages/ui/src/styles/motion.css`,
+ * which is also what gives it the design's press: a hair of scale and nothing
+ * else. That rule used to live in the console's own stylesheet, so this control
+ * — which the POS, the KDS and the customer app all use — drew no selected state
+ * anywhere except the back office.
  */
 export type Segment<T extends string = string> = {
   value: T;

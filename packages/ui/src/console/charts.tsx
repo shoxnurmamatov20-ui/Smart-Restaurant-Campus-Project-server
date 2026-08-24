@@ -85,7 +85,11 @@ export function Donut({
   return (
     <div data-slot="donut" className={cn('flex flex-col items-center', className)} {...props}>
       <div className="relative flex-none" style={{ width: size, height: size }}>
+        {/* `data-donut` is the design's own hook — `motion.css` fades and scales
+            the ring in over 0.6s. Without the attribute the mark simply appears,
+            which is what every chart in this console used to do. */}
         <svg
+          data-donut
           viewBox="0 0 132 132"
           width={size}
           height={size}
@@ -185,9 +189,13 @@ export function BarChart({
   return (
     <div data-slot="bar-chart" className={cn('w-full', className)} {...props}>
       <div className="flex items-end gap-1.5" style={{ height }} role="img" aria-hidden>
+        {/* `data-bar="1"` grows each column from its own baseline — the design's
+            `barIn`, transform-origin bottom. It is per-bar rather than on the
+            row so the columns rise together rather than the row scaling. */}
         {bars.map((bar) => (
           <div
             key={bar.key}
+            data-bar="1"
             className="flex-1 rounded-t-[3px]"
             style={{
               height: `${Math.max(2, Math.round((bar.value / peak) * height))}px`,
@@ -257,7 +265,12 @@ export function LineChart({
           fill="var(--brand-50)"
           opacity="0.4"
         />
+        {/* `data-line` draws the stroke on, left to right, by animating
+            `stroke-dashoffset` from 800 to 0 — the design's `lineIn`. The
+            dasharray it needs is set in `motion.css`, and unset again under
+            `prefers-reduced-motion` so the line does not render as a stub. */}
         <polyline
+          data-line
           points={plot.join(' ')}
           fill="none"
           stroke="var(--brand-500)"

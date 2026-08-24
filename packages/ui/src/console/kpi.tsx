@@ -7,15 +7,31 @@ import { CARD } from './panel';
 /**
  * The figure a screen opens with, and the rail underneath it.
  *
- * The design is specific about the rail: it carries attainment against a stated
- * target and the caption names which target. That is the whole reason it is
- * allowed to exist — a bar at an invented width is decoration, and decoration
+ * Built to `Smart Restaurant OS.dc.html:566-580` at its own measurements:
+ * `18px 20px 16px` padding on a 14px radius, a header row holding a 10px
+ * uppercase label against a tinted glyph badge, the figure at `--text-3xl`
+ * display 600 on a flat leading, one 12px line carrying unit and delta, then a
+ * 3px rail and the caption naming what the rail measures.
+ *
+ * Two things were missing and together they are why a correctly-tokenised card
+ * still did not read as the design: the label was 12px sentence case where the
+ * design sets 10px uppercase at `.07em`, and there was no badge at all. The
+ * badge is not decoration — it is what lets an owner find *revenue* among five
+ * cards without reading five labels.
+ *
+ * The design is specific about the rail too: it carries attainment against a
+ * stated target and the caption names which target. That is the whole reason it
+ * is allowed to exist — a bar at an invented width is decoration, and decoration
  * beside a number is how a reader learns to distrust the number. A KPI with no
  * target renders no rail rather than a rail at nothing.
+ *
+ * `data-kpi`, `data-kpiic` and `data-rail` are the design's own hooks and
+ * `packages/ui/src/styles/motion.css` binds the entrance, the hover lift and the
+ * rail's wipe to them. Renaming them silently removes the motion.
  */
 
 /**
- * How a rail or a delta reads. `neutral` is a figure that is neither.
+ * How a rail, a delta or a badge reads. `neutral` is a figure that is neither.
  *
  * `accent` is in the list because the design alternates brand and accent along
  * a KPI row: five rails in one colour read as a single repeated bar rather than
@@ -30,6 +46,20 @@ const RAIL_FILL: Record<Tone, string> = {
   warning: 'var(--warning-500)',
   danger: 'var(--danger-500)',
   neutral: 'var(--n-400)',
+};
+
+/**
+ * The badge's fill and glyph, as the design pairs them: the 50 step behind the
+ * 600 step. Both are remapped for dark in the token layer, so the pairing holds
+ * in either theme without a second table here.
+ */
+const BADGE: Record<Tone, { background: string; color: string }> = {
+  brand: { background: 'var(--brand-50)', color: 'var(--brand-600)' },
+  accent: { background: 'var(--accent-50)', color: 'var(--accent-600)' },
+  success: { background: 'var(--success-50)', color: 'var(--success-600)' },
+  warning: { background: 'var(--warning-50)', color: 'var(--warning-600)' },
+  danger: { background: 'var(--danger-50)', color: 'var(--danger-600)' },
+  neutral: { background: 'var(--bg-muted)', color: 'var(--fg-muted)' },
 };
 
 /**
@@ -72,6 +102,7 @@ export function ProgressRail({
   return (
     <div
       role="img"
+      data-rail
       aria-label={`${label}: ${Math.round(percent)}%`}
       className={cn('bg-bg-muted mt-3.5 h-[3px] overflow-hidden rounded-[2px]', className)}
       {...props}
@@ -84,12 +115,34 @@ export function ProgressRail({
   );
 }
 
+/**
+ * The glyph badge in a card's top-right.
+ *
+ * Takes the icon rather than drawing one: which picture means "revenue" is the
+ * screen's decision and the design uses a different glyph on every card. The box,
+ * the radius and the hover scale are here because those are the same on all of
+ * them — `[data-kpiic]` in `motion.css`.
+ */
+export function KpiBadge({
+  tone = 'brand',
+  children,
+  ...props
+}: React.ComponentProps<'span'> & { tone?: Tone }) {
+  return (
+    <span data-kpiic aria-hidden style={BADGE[tone]} {...props}>
+      {children}
+    </span>
+  );
+}
+
 export function KpiCard({
   label,
   value,
   unit,
   delta,
   deltaTone = 'success',
+  icon,
+  iconTone = 'brand',
   attainment,
   railTone = 'brand',
   target,
@@ -102,6 +155,13 @@ export function KpiCard({
   unit?: React.ReactNode;
   delta?: React.ReactNode;
   deltaTone?: Tone;
+  /**
+   * The glyph for this figure. A 15px stroked icon, as the design draws them.
+   * Optional so a card in a dense grid can go without, but the design gives
+   * every card in the main rows one.
+   */
+  icon?: React.ReactNode;
+  iconTone?: Tone;
   /** 0–100, or `null` when this figure has no target and gets no rail. */
   attainment?: number | null;
   railTone?: Tone;
@@ -109,8 +169,13 @@ export function KpiCard({
   target?: React.ReactNode;
 }) {
   return (
-    <div data-slot="kpi" className={cn(CARD, 'px-5 pt-[18px] pb-4', className)} {...props}>
-      <div className="text-fg-subtle mb-2.5 text-xs">{label}</div>
+    <div data-kpi data-slot="kpi" className={cn(CARD, 'px-5 pt-[18px] pb-4', className)} {...props}>
+      <div className="mb-3 flex items-start justify-between gap-2.5">
+        <span className="text-fg-subtle text-3xs tracking-caps pt-[3px] leading-[1.4] font-semibold uppercase">
+          {label}
+        </span>
+        {icon ? <KpiBadge tone={iconTone}>{icon}</KpiBadge> : null}
+      </div>
 
       <div data-num className="font-display text-3xl leading-none font-semibold tracking-tight">
         {value}

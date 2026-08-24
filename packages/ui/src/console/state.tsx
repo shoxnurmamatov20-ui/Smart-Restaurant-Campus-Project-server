@@ -63,13 +63,19 @@ export function ErrorState({
  * Matched to the final layout rather than a generic grey bar: the design asks
  * for skeletons that hold the shape of what is coming, so the page does not
  * jump when it does. Spinners are for actions under a second, not for loads.
+ *
+ * `data-sk` rather than `animate-pulse`. The design travels a band across the
+ * muted fill (`shimmer`, 1.15s linear, defined in `motion.css`); a pulse is the
+ * signal a *disabled* control gives, and using it here tells a waiting reader
+ * the page has stopped rather than that it is loading.
  */
 export function SkeletonBlock({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="skeleton-block"
+      data-sk
       aria-hidden
-      className={cn('bg-bg-muted animate-pulse rounded-md', className)}
+      className={cn('rounded-md', className)}
       {...props}
     />
   );

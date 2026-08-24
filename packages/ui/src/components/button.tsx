@@ -51,6 +51,10 @@ function Button({
   return (
     <Comp
       data-slot="button"
+      /* The product's marker for a pressable thing: it carries the design's
+         press feedback and, on a touch device, the 44px floor a fingertip
+         needs. Written before the spread so a caller can still take it off. */
+      data-press
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
