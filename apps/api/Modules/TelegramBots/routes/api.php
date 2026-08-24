@@ -7,6 +7,8 @@ use App\Http\Middleware\ResolveBranch;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 use Modules\TelegramBots\Http\Controllers\BotApiController;
+use Modules\TelegramBots\Http\Controllers\NotificationRuleController;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,4 +90,45 @@ Route::middleware([
             Route::get('calls', [BotApiController::class, 'myGuestCalls'])->name('calls');
             Route::get('shift', [BotApiController::class, 'myShift'])->name('shift');
         });
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Console: which chat hears about what
+|--------------------------------------------------------------------------
+| The settings screen's notification panel. A different kind of caller from
+| everything above: a signed-in manager rather than the Python dispatcher, so
+| the ordinary `auth:sanctum` + `tenant` group and a Spatie permission.
+|
+| `telegram.manage` on every write and `telegram.view` on the read, which is
+| what the marketer and the owner already hold. Deliberately NOT `system.*`:
+| deciding that the managers' group hears about voids is running a restaurant,
+| not administering a platform.
+*/
+Route::middleware(['auth:sanctum', 'tenant'])
+    ->prefix('v1/telegram')
+    ->name('api.v1.telegram.')
+    ->group(function (): void {
+        Route::get('notification-rules', [NotificationRuleController::class, 'index'])
+            ->middleware(PermissionMiddleware::using('telegram.view'))->name('rules.index');
+        Route::post('notification-rules', [NotificationRuleController::class, 'store'])
+            ->middleware(PermissionMiddleware::using('telegram.manage'))->name('rules.store');
+        Route::patch('notification-rules/{rule}', [NotificationRuleController::class, 'update'])
+            ->middleware(PermissionMiddleware::using('telegram.manage'))->name('rules.update');
+        Route::delete('notification-rules/{rule}', [NotificationRuleController::class, 'destroy'])
+            ->middleware(PermissionMiddleware::using('telegram.manage'))->name('rules.destroy');
+
+        /*
+         * Send one now.
+         *
+         * `telegram.manage` rather than `telegram.view`: it puts a message in
+         * somebody's chat, and a permission that only reads should not be able
+         * to make a phone buzz.
+         */
+        Route::post('notification-rules/{rule}/test', [NotificationRuleController::class, 'test'])
+            ->middleware(PermissionMiddleware::using('telegram.manage'))->name('rules.test');
+
+        // Is the token real, and whose bot is it? Telegram's own `getMe`.
+        Route::post('bots/{bot}/test', [NotificationRuleController::class, 'testBot'])
+            ->middleware(PermissionMiddleware::using('telegram.manage'))->name('bots.test');
     });

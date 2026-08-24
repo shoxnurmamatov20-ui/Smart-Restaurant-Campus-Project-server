@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\TelegramBots\Providers;
 
+use App\Contracts\Messaging\BotDirectory;
+use App\Contracts\Messaging\ChatNotifier;
 use App\Support\Errors\ApiError;
 use App\Support\Errors\ErrorCatalogue;
 use App\Support\Modules\ApiModuleServiceProvider;
@@ -13,6 +15,8 @@ use Modules\TelegramBots\Console\RotateInternalTokenCommand;
 use Modules\TelegramBots\Console\SyncBotRegistryCommand;
 use Modules\TelegramBots\Http\Middleware\InternalBotsAuth;
 use Modules\TelegramBots\Http\Middleware\ResolveBotTenant;
+use Modules\TelegramBots\Services\EloquentBotDirectory;
+use Modules\TelegramBots\Services\TelegramChatNotifier;
 use Symfony\Component\HttpFoundation\Response;
 
 class TelegramBotsServiceProvider extends ApiModuleServiceProvider
@@ -72,6 +76,16 @@ class TelegramBotsServiceProvider extends ApiModuleServiceProvider
     public function register(): void
     {
         parent::register();
+
+        /*
+         * The one write another module may make into this one: putting a
+         * message and a file into a restaurant's own chat. Bound here so a
+         * scheduled report can reach a manager's Telegram without Analytics
+         * importing this module — `ModuleBoundaryTest` records three edges out
+         * of Analytics and all three are reads.
+         */
+        $this->app->bind(BotDirectory::class, EloquentBotDirectory::class);
+        $this->app->bind(ChatNotifier::class, TelegramChatNotifier::class);
 
         ErrorCatalogue::register(
             new ApiError(
