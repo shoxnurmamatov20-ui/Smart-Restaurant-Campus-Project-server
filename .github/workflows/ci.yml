@@ -82,11 +82,23 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
+        # Bootstrap as `postgres` and create the application role in a step
+        # below, because `POSTGRES_USER` is initdb's user and initdb's user is a
+        # **superuser** — and a superuser bypasses row-level security outright,
+        # FORCE included.
+        #
+        # This deployment guards 49 tables with RLS and it is the mechanism that
+        # keeps one restaurant out of another's data. Running the suite as a
+        # superuser meant every one of those policies was inert here: three
+        # RowLevelSecurityTest cases, a cross-tenant prep component, another
+        # restaurant's shift and — the one that matters — a public booking with
+        # no `X-Tenant` answering 201 instead of refusing. Six failures, one
+        # cause, and the cause was that CI had never actually tested tenancy.
         image: postgres:16
         env:
-          POSTGRES_USER: restaurant_campus
-          POSTGRES_PASSWORD: restaurant_campus
-          POSTGRES_DB: restaurant_campus_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -100,6 +112,20 @@ jobs:
           - 6379:6379
     steps:
       - uses: actions/checkout@v4
+
+      # The role the application connects as, with no superuser and no
+      # BYPASSRLS — the same shape as the local lane and as production. It owns
+      # the database so `migrate` can create the twelve module schemas and take
+      # ownership of the tables its policies attach to; nothing here needs more
+      # than that, because no migration creates an extension.
+      - name: Create the application role, without superuser
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          create role restaurant_campus login password 'restaurant_campus';
+          create database restaurant_campus_test owner restaurant_campus;
+          SQL
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
