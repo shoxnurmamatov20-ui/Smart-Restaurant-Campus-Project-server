@@ -44,6 +44,11 @@ describe('formatCurrency', () => {
 });
 
 describe('formatTiyinAmount', () => {
+  it("shows whole so'm — a derived average never prints tiyin", () => {
+    expect(digits(formatTiyinAmount(9_093_333))).toBe('90933');
+    expect(digits(formatTiyinAmount(9_093_350))).toBe('90934');
+  });
+
   it('groups the figure and leaves the currency off', () => {
     const rendered = formatTiyinAmount(1_842_000_000);
 

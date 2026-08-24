@@ -48,10 +48,28 @@ export type OrderState = (typeof ORDER_STATES)[number];
 /** Who is reading the state. The same row reads differently to each. */
 export type StateAudience = 'staff' | 'kitchen' | 'guest';
 
-/** Which channels a state can occur on. A dine-in bill is never `enroute`. */
-export type OrderChannel = 'dine' | 'delivery' | 'pickup';
+/**
+ * Which channels a state can occur on. A dine-in bill is never `enroute`.
+ *
+ * These are the API's own values, which are the database's. They were `dine`,
+ * `delivery`, `pickup` — the design file's vocabulary — while `orders.channel`
+ * stored `dine_in`, `takeaway`, `delivery`, `aggregator`, so no real order's
+ * channel could be checked against this list. One vocabulary now, and it is the
+ * one on the wire.
+ */
+export type OrderChannel = 'dine_in' | 'takeaway' | 'delivery' | 'aggregator';
 
 export type Locale = 'uz' | 'ru' | 'en';
+
+/**
+ * The six tones a status can wear, matching `StatusChip` in `packages/ui`.
+ *
+ * `neutral` covers every state the design draws in `--bg-muted`: a draft, an
+ * order that has been served, one that has been handed over, one that is paid.
+ * Those are not *good* or *bad*, they are *done* — and colouring a completed
+ * order green tells a manager scanning a list that something needs attention.
+ */
+export type StateTone = 'neutral' | 'brand' | 'warning' | 'success' | 'danger';
 
 /** `null` means: this audience never sees this state, and must not be shown it. */
 type Label = Readonly<Record<Locale, string>> | null;
@@ -64,6 +82,21 @@ export interface OrderStateSpec {
   readonly guest: Label;
   /** Terminal states close a bill; nothing transitions out of them. */
   readonly terminal: boolean;
+  /**
+   * How the state is tinted, wherever it is drawn.
+   *
+   * The design gives every row in its `STATES` table a `bg`/`fg`/`dot` triple —
+   * `Smart Restaurant OS.dc.html:10503-10529` — and the whole point of listing
+   * them there rather than at each call site is that `cooking` is amber on the
+   * KDS, on the order list, on the guest's tracker and on the merchant's card.
+   * The labels moved here and the colours did not, so each surface picked its
+   * own and the same state came out in three different tones.
+   *
+   * A tone, not a colour: `packages/ui`'s `StatusChip` already knows the
+   * 50/700/500 pairing for each, and both steps are remapped for dark. Naming a
+   * hex here would work in light and break in the room the till stands in.
+   */
+  readonly tone: StateTone;
 }
 
 const t = (uz: string, ru: string, en: string): Label => ({ uz, ru, en });
@@ -71,107 +104,120 @@ const t = (uz: string, ru: string, en: string): Label => ({ uz, ru, en });
 export const ORDER_STATE_SPECS: Readonly<Record<OrderState, OrderStateSpec>> = {
   draft: {
     key: 'draft',
-    channels: ['dine'],
+    channels: ['dine_in'],
     staff: t('Qoralama', 'Черновик', 'Draft'),
     kitchen: null,
     guest: null,
     terminal: false,
+    tone: 'neutral',
   },
   placed: {
     key: 'placed',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Yangi', 'Новый', 'New'),
     kitchen: t('Yangi', 'Новый', 'New'),
     guest: t('Qabul qilindi', 'Принят', 'Received'),
     terminal: false,
+    tone: 'neutral',
   },
   accepted: {
     key: 'accepted',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Qabul qilindi', 'Принят', 'Accepted'),
     kitchen: t('Qabul qilindi', 'Принят', 'Accepted'),
     guest: t('Tasdiqlandi', 'Подтверждён', 'Confirmed'),
     terminal: false,
+    tone: 'brand',
   },
   cooking: {
     key: 'cooking',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Tayyorlanmoqda', 'Готовится', 'Cooking'),
     kitchen: t('Tayyorlanmoqda', 'Готовится', 'Cooking'),
     guest: t('Oshxonada', 'На кухне', 'In the kitchen'),
     terminal: false,
+    tone: 'warning',
   },
   ready: {
     key: 'ready',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Tayyor', 'Готов', 'Ready'),
     kitchen: t('Tayyor', 'Готов', 'Ready'),
     guest: t('Tayyor', 'Готов', 'Ready'),
     terminal: false,
+    tone: 'success',
   },
   served: {
     key: 'served',
-    channels: ['dine'],
+    channels: ['dine_in'],
     staff: t('Berildi', 'Подано', 'Served'),
     kitchen: t('Berildi', 'Подано', 'Served'),
     guest: t('Stolda', 'На столе', 'At your table'),
     terminal: false,
+    tone: 'neutral',
   },
   enroute: {
     key: 'enroute',
-    channels: ['delivery'],
+    channels: ['delivery', 'aggregator'],
     staff: t('Kuryerda', 'У курьера', 'With courier'),
     kitchen: null,
     guest: t("Kuryer yo'lda", 'Курьер в пути', 'Courier on the way'),
     terminal: false,
+    tone: 'brand',
   },
   handed: {
     key: 'handed',
-    channels: ['delivery', 'pickup'],
+    channels: ['takeaway', 'delivery', 'aggregator'],
     staff: t('Yetkazildi', 'Доставлен', 'Delivered'),
     kitchen: null,
     guest: t('Yetkazildi', 'Доставлен', 'Delivered'),
     terminal: false,
+    tone: 'neutral',
   },
   topay: {
     key: 'topay',
-    channels: ['dine'],
+    channels: ['dine_in'],
     staff: t("To'lov kutilmoqda", 'К оплате', 'To pay'),
     kitchen: null,
     guest: t('Hisob tayyor', 'Счёт готов', 'Bill is ready'),
     terminal: false,
+    tone: 'warning',
   },
   paid: {
     key: 'paid',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t("To'landi", 'Оплачен', 'Paid'),
     kitchen: null,
     guest: t('Yopildi', 'Закрыт', 'Closed'),
     terminal: true,
+    tone: 'neutral',
   },
   voided: {
     key: 'voided',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Bekor qilindi', 'Отменён', 'Voided'),
     kitchen: t('Bekor qilindi', 'Отменён', 'Voided'),
     guest: t('Bekor qilindi', 'Отменён', 'Cancelled'),
     terminal: true,
+    tone: 'danger',
   },
   refunded: {
     key: 'refunded',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t('Qaytarildi', 'Возвращён', 'Refunded'),
     kitchen: null,
     guest: t('Pul qaytarildi', 'Деньги возвращены', 'Money refunded'),
     terminal: true,
+    tone: 'danger',
   },
   comped: {
     key: 'comped',
-    channels: ['dine', 'delivery', 'pickup'],
+    channels: ['dine_in', 'takeaway', 'delivery', 'aggregator'],
     staff: t("Sovg'a", 'Подарок', 'Comped'),
     kitchen: null,
     guest: null,
     terminal: true,
+    tone: 'warning',
   },
 };
 

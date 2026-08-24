@@ -61,7 +61,21 @@ export function formatTiyin(
   currency: 'UZS' | 'USD' | 'EUR' | 'RUB' = 'UZS',
   locale: 'uz' | 'ru' | 'en' = 'uz',
 ): string {
-  return formatCurrency(tiyin / 100, currency, locale);
+  return formatCurrency(wholeSom(tiyin), currency, locale);
+}
+
+/**
+ * Tiyin to so'm, whole.
+ *
+ * No tiyin coin has circulated for years, no receipt prints one, and no
+ * price on any menu here carries one. The only way a fraction reaches a
+ * screen is a derived figure — an average cheque of 9 093 333 tiyin — and
+ * "90 933,33 so'm" on a dashboard reads as a bug, not as precision. The API
+ * keeps integer tiyin end to end so nothing is lost in transit; this is where
+ * the number is read, and a reader wants so'm.
+ */
+function wholeSom(tiyin: number): number {
+  return Math.round(tiyin / 100);
 }
 
 /**
@@ -77,7 +91,7 @@ export function formatTiyin(
  * hand is how a hundredfold price gets onto a screen.
  */
 export function formatTiyinAmount(tiyin: number, locale: 'uz' | 'ru' | 'en' = 'uz'): string {
-  return formatNumber(tiyin / 100, locale);
+  return formatNumber(wholeSom(tiyin), locale);
 }
 
 /**

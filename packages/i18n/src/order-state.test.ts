@@ -84,26 +84,43 @@ describe('one row, three audiences', () => {
 });
 
 describe('channel applicability', () => {
+  /*
+   * The channel names are the API's, which are the database's. They were the
+   * design file's — dine, delivery, pickup — while `orders.channel` stored
+   * dine_in, takeaway, delivery, aggregator, so nothing could check a real
+   * order's channel against this ladder. One vocabulary now, and an
+   * OrderStateLadderTest on the PHP side asserts the two files still agree.
+   */
   it('keeps a dine-in bill off the road', () => {
-    expect(stateAppliesTo('enroute', 'dine')).toBe(false);
+    expect(stateAppliesTo('enroute', 'dine_in')).toBe(false);
     expect(stateAppliesTo('enroute', 'delivery')).toBe(true);
+    // Somebody else's courier is still a courier.
+    expect(stateAppliesTo('enroute', 'aggregator')).toBe(true);
   });
 
   it('keeps served and topay to the room', () => {
     expect(statesForChannel('delivery')).not.toContain('served');
     expect(statesForChannel('delivery')).not.toContain('topay');
-    expect(statesForChannel('dine')).toContain('served');
+    expect(statesForChannel('dine_in')).toContain('served');
+  });
+
+  it('hands food over on every channel that leaves the building', () => {
+    expect(statesForChannel('takeaway')).toContain('handed');
+    expect(statesForChannel('delivery')).toContain('handed');
+    expect(statesForChannel('aggregator')).toContain('handed');
+    // A dine-in guest is served at the table, never handed anything at a door.
+    expect(statesForChannel('dine_in')).not.toContain('handed');
   });
 
   it('lets every channel reach paid and voided', () => {
-    for (const c of ['dine', 'delivery', 'pickup'] as const) {
+    for (const c of ['dine_in', 'takeaway', 'delivery', 'aggregator'] as const) {
       expect(statesForChannel(c)).toContain('paid');
       expect(statesForChannel(c)).toContain('voided');
     }
   });
 
   it('returns channel states in ladder order', () => {
-    const dine = statesForChannel('dine');
+    const dine = statesForChannel('dine_in');
     const order = dine.map((s) => ORDER_STATES.indexOf(s));
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
