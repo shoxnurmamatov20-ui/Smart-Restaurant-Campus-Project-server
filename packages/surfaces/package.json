@@ -1,0 +1,45 @@
+{
+  "name": "@restaurant/surfaces",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./money": "./src/money/pricing.ts",
+    "./customer/data": "./src/customer/data.ts",
+    "./customer/copy": "./src/customer/copy.ts",
+    "./customer/live": "./src/customer/live.ts",
+    "./mp/data": "./src/mp/data.ts",
+    "./mp/copy": "./src/mp/copy.ts",
+    "./crew/data": "./src/crew/data.ts",
+    "./crew/copy": "./src/crew/copy.ts",
+    "./crew/guard": "./src/crew/guard.ts",
+    "./crew/more-data": "./src/crew/more-data.ts",
+    "./crew/more-copy": "./src/crew/more-copy.ts",
+    "./guest/copy": "./src/guest/copy.ts",
+    "./guest/menu-data": "./src/guest/menu-data.ts",
+    "./guest/table-data": "./src/guest/table-data.ts",
+    "./tg/data": "./src/tg/data.ts",
+    "./tg/copy": "./src/tg/copy.ts",
+    "./crew/live": "./src/crew/live.ts",
+    "./guest/live": "./src/guest/live.ts",
+    "./customer/order": "./src/customer/order.ts",
+    "./mp/geo": "./src/mp/geo.ts",
+    "./tg/live": "./src/tg/live.ts",
+    "./media/image": "./src/media/image.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@restaurant/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@restaurant/config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^4.1.10"
+  }
+}
