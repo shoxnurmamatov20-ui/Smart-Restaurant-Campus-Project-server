@@ -918,6 +918,44 @@ nomi va har bir holat so'zi uchun birdan.
   `'{"console.blok.kalit": {"uz","ru","en"}}'` — qulf bilan uchala katalogga
   yozadi va prettier yuritadi. Parallel agentlar kataloglarni to'g'ridan-to'g'ri
   tahrirlasa bir-birining yozuvini yo'qotadi.
+- **Restoran hisob ma'lumotlari super-admin qo'lida (2026-08-24).** Egalar ikki
+  narsani so'raydi — «pochta va parolimni tashlab yuboring», «o'zgartirib
+  bering» — va ikkalasi ham `/platform/tenants` kartasida bor:
+  - `PATCH /platform/tenants/{tenant}/owner` — **kirish pochtasini tuzatish**.
+    Ilgari u faqat nusxalash tugmasi edi, ya'ni qo'ng'iroqda noto'g'ri yozib
+    olingan bitta harf — kirolmaydigan biznes: login — o'sha pochta,
+    `/forgot-password` esa `MAIL_MAILER=log` da xat yubormaydi. Yagona chora
+    restoranni qaytadan ochish edi.
+  - **Parolniki alohida eshik va bu ataylab.** Parol berish o'sha hisobning
+    **barcha sessiyalarini yopadi**; pochtani tuzatish yopmaydi. Bittasiga
+    birlashtirilsa, telefon raqamini tuzatayotgan operator egani turgan
+    kassasidan chiqarib yuborardi. Test yopilmagan tokenni tekshiradi.
+  - **Parolni tanlash mumkin** (`POST .../owner-password` ixtiyoriy `password`,
+    yangi restoran formasida ham). Bu **qaror qaytarilishi**: ilgari faqat
+    generatsiya qilinardi, «tanlay oladigan operator hammaga bitta zaif parol
+    qo'yadi» degan asos bilan. Asos xavfni to'g'ri nomlaydi, chorani noto'g'ri:
+    u to'sgan holat — eng oddiysi, va muqobili operatorning telefon orqali
+    o'n olti tasodifiy belgi o'qishi edi. Endi kuch qoidasi to'sadi:
+    `Password::min(12)->letters()->numbers()`. **`uncompromised()` ataylab yo'q**
+    — u haveibeenpwned'ga tarmoq orqali boradi, ya'ni tashqi xizmat o'chsa
+    hisob ma'lumotlari ekrani osilib qoladi.
+  - **Bo'sh maydon baribir generatsiya qiladi**, va konsol avval shuni taklif
+    qiladi. Farq proxy'da hal bo'ladi: tegilmagan maydon API'ga **yo'q kalit**
+    bo'lib borishi shart, `""` bo'lib emas — aks holda `nullable` uni
+    «tanlangan bo'sh» deb o'qib, 12 belgidan qisqa deb rad etadi va generator
+    hech qachon ishlamaydi. Ikkala handler'da ham shu uchun test bor.
+  - **«Parolni ko'rsatish» yo'q va bo'lmaydi.** `users.password` — bcrypt xesh,
+    ya'ni server qiymatni **ushlab turmaydi**; halol javob ikkitagina — yangisi
+    yoki hech narsa. Ochiq matnda saqlash har restoranning parolini bitta
+    `select` ortiga qo'yardi. Panel buni tugma qidiriladigan joyda aytadi.
+  - Ikkala parol maydoni ham `type="text"`: operator uni yozayotib telefonda
+    aytib turadi, nuqtalar bilan to'ldirilgan maydonni tekshirib bo'lmaydi.
+- **`property_exists()` Eloquent atributini ko'rmaydi.** U e'lon qilingan
+  xususiyatlarni qidiradi, atribut esa `$attributes` da yashab `__get` orqali
+  keladi — ya'ni modelda `id` bor turib ham `false`. `UpdateOwnerRequest` shu
+  sababli `unique(...)->ignore()` uchun qatorni topolmadi: `unique` hech kimni
+  chetlab o'tmadi va pochtasini o'zgartirmayotgan operator **o'z qatori bilan
+  to'qnashgani uchun** rad etildi. To'g'risi — `$x instanceof Model`.
 - **Yollash hisobni o'zi ochadi — `CrewLogin` (2026-08-23).** `staff.members`
   (HR yozuvi) va `users` (kirish) ikki alohida jadval edi va ularni hech kim
   bog'lamasdi: 8 demo xodimning birortasida `user_id` yo'q edi, ya'ni
@@ -1006,6 +1044,27 @@ DB_USERNAME=restaurant_campus DB_PASSWORD=… php artisan …` (phpunit.xml
   so'rov **nol qator** qaytaradi — jadval bo'sh emas, siz ko'rmaysiz. Boshida:
   `set app.bypass_tenancy='on';` (hammasi) yoki `set app.tenant_id='1';` (bitta
   restoran). «Jadval bo'sh» degan xulosaga bormang — avval shuni tekshiring.
+- **CI 12 kun umuman ishlamagan, va yiqilish testlarda emas edi (2026-08-24).**
+  `pnpm/action-setup` ga `version: 11` berilgan, `package.json` da esa
+  `packageManager: pnpm@11.0.8` — action ikkalasini birga rad etadi. Job
+  **ikkinchi qadamda, 8 soniyada** o'lardi, ya'ni type-check, lint, build,
+  1474 test va Playwright to'plami **umuman ishga tushmagan**. Qizil belgi
+  «testlaring yiqildi» emas, «ikkinchi qadam buzuq» degani edi va bir qarashda
+  ikkisi bir xil ko'rinadi. Versiya endi faqat `package.json` da.
+- **CI to'plami superuser sifatida yurgan, ya'ni tenant izolyatsiyasini hech
+  qachon sinamagan.** `POSTGRES_USER` — initdb foydalanuvchisi, u esa
+  **superuser**, superuser esa RLS'ni butunlay chetlab o'tadi — `FORCE` ham
+  to'xtatmaydi. 49 jadvaldagi siyosat CI'da o'lik edi va oltita test shuni
+  aytardi, jumladan **`X-Tenant` siz bron 201 bilan qabul qilinishi**. Endi
+  konteyner `postgres` bilan ko'tariladi va `restaurant_campus` alohida
+  qadamda yaratiladi — `rolsuper=f`, `rolbypassrls=f`, lokal lane va
+  production bilan bir xil shakl. **Tashxis test nomlaridan emas,
+  `select rolsuper, rolbypassrls from pg_roles` dan chiqdi.**
+- **E2E endi CI'da haqiqatan yuradi** — va birinchi yurishda ikkita eskirgan
+  spec topdi (`/login` → `/uz/login`, va 2026-08-23 da o'zgartirilgan tarif
+  narxi). Ikkinchisi endi `PAGE_PLANS` dan o'qiydi: 100 barobarlik birlik
+  xatosi baribir ushlanadi, narx o'zgarishi esa testni yiqitmaydi. Eskirgani
+  uchun yiqiladigan test — odamlar e'tibor bermaydigan testga aylanadi.
 - **Parallel test lane'lari:** `restaurant_campus_test_a…g` — har agent/seans
   o'zinikida: `DB_DATABASE=restaurant_campus_test_b php vendor/bin/phpunit …`
   (faqat `DB_DATABASE`; foydalanuvchi/parolni `phpunit.xml` beradi). **Lane'ga
