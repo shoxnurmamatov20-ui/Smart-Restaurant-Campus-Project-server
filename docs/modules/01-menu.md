@@ -70,30 +70,32 @@ va mehmon 20 daqiqadan keyin "bu taom yo'q ekan" deb eshitadi.
 
 ### `menu_items`
 
-| Ustun                       | Tur                       | Tushuntirish                                |
-| --------------------------- | ------------------------- | ------------------------------------------- |
-| `id`                        | bigint PK                 |                                             |
-| `tenant_id`                 | bigint FK→tenants         |                                             |
-| `menu_category_id`          | bigint FK→menu_categories |                                             |
-| `sku`                       | varchar(48)               | Tenant ichida unique, masalan `OSH-001`     |
-| `name`, `description`       | jsonb                     | Ko'p tilli                                  |
-| `kind`                      | varchar(16)               | `food` / `drink` / `combo` / `other`        |
-| `price`                     | bigint                    | **Tiyinda.** 45 000 so'm = `4500000`        |
-| `cost_price`                | bigint nullable           | Tex-kartadan hisoblangan tannarx            |
-| `currency`                  | char(3)                   | `UZS`                                       |
-| `cook_time_minutes`         | smallint                  | KDS taymeri uchun                           |
-| `station`                   | varchar(32)               | `hot` / `cold` / `grill` / `bar` / `pastry` |
-| `weight_grams`, `calories`  | integer nullable          |                                             |
-| `allergens`                 | jsonb nullable            | `["gluten","nuts","dairy"]`                 |
-| `is_halal`, `is_vegetarian` | boolean                   |                                             |
-| `spice_level`               | tinyint                   | 0..3                                        |
-| `is_available`              | boolean                   | **Stop-list bayrog'i**                      |
-| `stopped_until`             | timestamp nullable        | Muddat o'tgach taom o'zi qaytadi            |
-| `status`                    | varchar(16)               | `draft` / `active` / `archived`             |
-| `image_url`, `sort_order`   |                           |                                             |
-| `channels`                  | jsonb nullable            | Qaysi kanalda sotiladi                      |
-| `metadata`                  | jsonb nullable            |                                             |
-| `timestamps`, `softDeletes` |                           |                                             |
+| Ustun                       | Tur                       | Tushuntirish                                                                                                   |
+| --------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`                        | bigint PK                 |                                                                                                                |
+| `tenant_id`                 | bigint FK→tenants         |                                                                                                                |
+| `menu_category_id`          | bigint FK→menu_categories |                                                                                                                |
+| `sku`                       | varchar(48)               | Tenant ichida unique, masalan `OSH-001`                                                                        |
+| `name`, `description`       | jsonb                     | Ko'p tilli                                                                                                     |
+| `kind`                      | varchar(16)               | `food` / `drink` / `combo` / `other`                                                                           |
+| `price`                     | bigint                    | **Tiyinda.** 45 000 so'm = `4500000`                                                                           |
+| `cost_price`                | bigint nullable           | Tex-kartadan hisoblangan tannarx                                                                               |
+| `currency`                  | char(3)                   | `UZS`                                                                                                          |
+| `cook_time_minutes`         | smallint                  | KDS taymeri uchun                                                                                              |
+| `station`                   | varchar(32)               | `hot` / `cold` / `grill` / `bar` / `pastry`                                                                    |
+| `weight_grams`, `calories`  | integer nullable          |                                                                                                                |
+| `allergens`                 | jsonb nullable            | `["gluten","nuts","dairy"]`                                                                                    |
+| `is_halal`, `is_vegetarian` | boolean                   |                                                                                                                |
+| `spice_level`               | tinyint                   | 0..3                                                                                                           |
+| `is_available`              | boolean                   | **Stop-list bayrog'i**                                                                                         |
+| `stopped_until`             | timestamp nullable        | Muddat o'tgach taom o'zi qaytadi                                                                               |
+| `status`                    | varchar(16)               | `draft` / `active` / `archived`                                                                                |
+| `image_url`                 | varchar(500) nullable     | Bitta manzil — platformaniki yoki qo'lda kiritilgan                                                            |
+| `image`                     | jsonb nullable            | Platformadagi rasm: hash, o'lcham, uch rendition, placeholder — manzil saqlanmaydi, `ImageSet` o'qishda quradi |
+| `sort_order`                |                           |                                                                                                                |
+| `channels`                  | jsonb nullable            | Qaysi kanalda sotiladi                                                                                         |
+| `metadata`                  | jsonb nullable            |                                                                                                                |
+| `timestamps`, `softDeletes` |                           |                                                                                                                |
 
 **Indekslar:** `(tenant_id, sku)` unique, `(tenant_id, status, is_available)`,
 `(tenant_id, menu_category_id, sort_order)`, `(tenant_id, station)`.
