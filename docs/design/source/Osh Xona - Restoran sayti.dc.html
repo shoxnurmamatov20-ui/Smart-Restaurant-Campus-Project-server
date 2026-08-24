@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none}
+a:hover{color:var(--acc-dark)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+:root{
+--n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;--n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+--success-50:#ECFDF3;--success-500:#12B76A;--success-600:#039855;--success-700:#027A48;
+--warning-50:#FFFAEB;--warning-500:#F79009;--warning-600:#DC6803;--warning-700:#B54708;
+--danger-50:#FEF3F2;--danger-500:#F04438;--danger-600:#D92D20;--danger-700:#B42318;
+--rating-star:#FFB020;
+--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-2xl:28px;--radius-pill:999px;
+--shadow-xs:0 1px 2px rgba(16,24,40,.04);
+--shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+--shadow-md:0 4px 8px -2px rgba(16,24,40,.06),0 2px 4px -2px rgba(16,24,40,.04);
+--shadow-lg:0 12px 16px -4px rgba(16,24,40,.06),0 4px 6px -2px rgba(16,24,40,.03);
+--shadow-xl:0 20px 24px -4px rgba(16,24,40,.08),0 8px 8px -4px rgba(16,24,40,.03);
+--acc:#C2410C;--acc-dark:#9A3412;--acc-soft:rgba(194,65,12,.10);--acc-line:rgba(194,65,12,.24);
+}
+[data-theme="light"]{--page:#F8F9FB;--surface:#FFFFFF;--sunken:#F1F3F7;--fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--fg-disabled:#98A1B0;--border:#E7EAF0;--border-strong:#D9DEE6;--divider:#F1F3F7;--focus:rgba(194,65,12,.45)}
+[data-theme="dark"]{--page:#0B0E16;--surface:#12161F;--sunken:#1A1F2B;--fg:#EDF0F5;--fg-muted:#9AA3B4;--fg-subtle:#79839A;--fg-disabled:#566073;--border:#232A38;--border-strong:#2E3648;--divider:#1C2230;--focus:rgba(194,65,12,.55);--acc:#E2683A;--acc-dark:#C2410C;--acc-soft:rgba(226,104,58,.14);--acc-line:rgba(226,104,58,.30)}
+[data-fd]{font-family:'Inter Tight',system-ui,sans-serif}
+[data-mono]{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+[data-num]{font-variant-numeric:tabular-nums}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+[data-press]{transition:transform 100ms cubic-bezier(.4,0,.2,1),background 120ms cubic-bezier(.4,0,.2,1),border-color 120ms cubic-bezier(.4,0,.2,1),box-shadow 160ms cubic-bezier(.4,0,.2,1),color 120ms cubic-bezier(.4,0,.2,1)}
+[data-press]:active{transform:scale(.98)}
+[data-nav]:hover{color:var(--fg)}
+[data-nav][data-on="true"]{color:var(--fg)}
+[data-nav][data-on="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-19px;height:2px;background:var(--acc);border-radius:2px}
+[data-chip]:hover{background:var(--sunken)}
+[data-chip][data-on="true"]{background:var(--fg);color:var(--surface);border-color:var(--fg)}
+[data-card]:hover{box-shadow:var(--shadow-md);border-color:var(--border-strong)}
+[data-card]:hover [data-zoom]{transform:scale(1.04)}
+[data-zoom]{transition:transform 320ms cubic-bezier(.4,0,.2,1)}
+[data-catl]:hover{background:var(--sunken)}
+[data-catl][data-on="true"]{background:var(--acc-soft);color:var(--acc-dark);font-weight:600}
+[data-row]:hover{background:var(--sunken)}
+[data-plus]:hover{background:var(--acc-dark)}
+[data-ghost]:hover{background:var(--sunken)}
+[data-solid]:hover{background:var(--acc-dark)}
+[data-dark]:hover{background:var(--n-700)}
+[data-seg]:hover{color:var(--fg)}
+[data-seg][data-on="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow-xs)}
+[data-opt]:hover{border-color:var(--border-strong)}
+[data-opt][data-on="true"]{border-color:var(--acc);background:var(--acc-soft)}
+image-slot{--is-radius:0;width:100%;height:100%;display:block}
+[data-scroll]::-webkit-scrollbar{width:6px;height:6px}
+[data-scroll]::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+[data-scroll]::-webkit-scrollbar-track{background:transparent}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media (max-width:1180px){
+[data-headphone]{display:none !important}
+[data-navlinks]{gap:16px !important}
+}
+@media (max-width:1080px){
+[data-hero]{grid-template-columns:1fr !important}
+[data-heroimg]{height:280px !important}
+[data-menugrid]{grid-template-columns:1fr !important}
+[data-catnav]{position:static !important;display:flex !important;overflow-x:auto;gap:8px !important;padding-bottom:10px}
+[data-catnav] [data-catl]{flex:none;white-space:nowrap}
+[data-checkout]{grid-template-columns:1fr !important}
+[data-4up]{grid-template-columns:repeat(2,1fr) !important}
+[data-sheet]{grid-template-columns:1fr !important}
+[data-sheetimg]{height:240px !important;min-height:0 !important}
+}
+@media (max-width:760px){
+[data-navlinks]{display:none !important}
+[data-headphone]{display:none !important}
+[data-4up]{grid-template-columns:1fr !important}
+[data-3up]{grid-template-columns:1fr !important}
+[data-pad]{padding-left:16px !important;padding-right:16px !important}
+[data-h1]{font-size:38px !important}
+[data-foot]{grid-template-columns:1fr !important}
+}
+</style>
+</helmet>
+
+<div data-theme="{{theme}}" style="min-height:100vh;background:var(--page);color:var(--fg)">
+
+  <header style="position:sticky;top:0;z-index:60;height:68px;background:var(--surface);border-bottom:1px solid var(--border)">
+    <div data-pad="1" style="max-width:1320px;height:100%;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:26px">
+      <button onClick="{{go.home}}" data-press="1" style="display:flex;align-items:center;gap:11px;border:0;background:transparent;padding:0">
+        <span data-fd="1" style="width:36px;height:36px;flex:none;border-radius:11px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;letter-spacing:-.02em">OX</span>
+        <span style="text-align:left">
+          <span data-fd="1" style="display:block;font-size:16px;font-weight:700;letter-spacing:-.018em;color:var(--fg);white-space:nowrap">Osh Xona</span>
+          <span style="display:block;font-size:11px;color:var(--fg-subtle);margin-top:1px;white-space:nowrap">{{t.tagline}}</span>
+        </span>
+      </button>
+
+      <nav data-navlinks="1" style="display:flex;align-items:center;gap:22px;margin-left:8px">
+        <sc-for list="{{navLinks}}" as="n" hint-placeholder-count="5">
+          <button onClick="{{n.go}}" data-nav="1" data-on="{{n.on}}" data-press="1" style="position:relative;border:0;background:transparent;padding:0;font-size:14px;font-weight:500;color:var(--fg-muted);white-space:nowrap">{{n.l}}</button>
+        </sc-for>
+      </nav>
+
+      <div style="flex:1"></div>
+
+      <a data-headphone="1" href="tel:+998712000700" data-mono="1" style="font-size:13px;font-weight:600;color:var(--fg-muted);white-space:nowrap">+998 71 200 07 00</a>
+
+      <div style="display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;flex:none">
+        <button onClick="{{setUz}}" data-seg="1" data-on="{{isUz}}" data-press="1" style="height:34px;padding:0 10px;border:0;background:transparent;color:var(--fg-subtle);font-size:12px;font-weight:600">UZ</button>
+        <button onClick="{{setRu}}" data-seg="1" data-on="{{isRu}}" data-press="1" style="height:34px;padding:0 10px;border:0;background:transparent;color:var(--fg-subtle);font-size:12px;font-weight:600">RU</button>
+        <button onClick="{{setEn}}" data-seg="1" data-on="{{isEn}}" data-press="1" style="height:34px;padding:0 10px;border:0;background:transparent;color:var(--fg-subtle);font-size:12px;font-weight:600">EN</button>
+        <span style="width:1px;height:20px;background:var(--divider)"></span>
+        <button onClick="{{toggleTheme}}" data-ghost="1" data-press="1" title="{{t.themeT}}" style="width:36px;height:34px;border:0;background:transparent;color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="{{themeIcon}}"></path></svg>
+        </button>
+      </div>
+
+      <button onClick="{{go.cart}}" data-press="1" data-ghost="1" style="position:relative;height:38px;padding:0 14px 0 12px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;flex:none">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4z"></path><path d="M4 6h16"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <span data-num="1" style="white-space:nowrap">{{cartTotalShort}}</span>
+        <sc-if value="{{cartHas}}" hint-placeholder-val="{{true}}">
+          <span data-num="1" style="position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--acc);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">{{cartCount}}</span>
+        </sc-if>
+      </button>
+    </div>
+  </header>
+
+  <sc-if value="{{at.home}}" hint-placeholder-val="{{true}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:32px 28px 80px">
+
+      <div data-hero="1" style="display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:var(--radius-pill);background:var(--success-50);color:var(--success-700);font-size:12px;font-weight:600">
+            <span style="width:7px;height:7px;border-radius:999px;background:var(--success-500)"></span>{{t.openNow}}
+          </div>
+          <h1 data-fd="1" data-h1="1" style="margin:16px 0 0;font-size:58px;font-weight:800;letter-spacing:-.026em;line-height:1.03">{{t.heroH}}</h1>
+          <p style="margin:16px 0 0;font-size:17px;line-height:1.55;color:var(--fg-muted);max-width:520px;text-wrap:pretty">{{t.heroP}}</p>
+
+          <div style="display:flex;align-items:center;gap:20px;margin-top:22px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:7px">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--rating-star)"><path d="M12 2.4l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.2-5.9 3.2 1.2-6.5L2.5 9.3l6.6-.9z"></path></svg>
+              <span data-fd="1" data-num="1" style="font-size:17px;font-weight:700">4.9</span>
+              <span data-num="1" style="font-size:14px;color:var(--fg-subtle)">{{t.ratingCount}}</span>
+            </div>
+            <span style="width:1px;height:18px;background:var(--border)"></span>
+            <span data-num="1" style="font-size:14px;color:var(--fg-muted)">{{t.eta}}</span>
+            <span style="width:1px;height:18px;background:var(--border)"></span>
+            <span data-num="1" style="font-size:14px;color:var(--fg-muted)">{{t.freeFrom}}</span>
+          </div>
+
+          <div style="display:flex;gap:11px;margin-top:28px;flex-wrap:wrap">
+            <button onClick="{{go.menu}}" data-solid="1" data-press="1" style="height:52px;padding:0 26px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:15px;font-weight:600">{{t.ctaOrder}}</button>
+            <button onClick="{{go.book}}" data-ghost="1" data-press="1" style="height:52px;padding:0 24px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:15px;font-weight:600">{{t.ctaBook}}</button>
+          </div>
+        </div>
+
+        <div data-heroimg="1" style="height:420px;border-radius:var(--radius-2xl);overflow:hidden;border:1px solid var(--border);background:var(--sunken)">
+          <image-slot id="ox-hero" shape="rect" placeholder="Asosiy fotosurat — qazili osh yoki zal"></image-slot>
+        </div>
+      </div>
+
+      <div data-4up="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:40px">
+        <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+          <button onClick="{{q.go}}" data-card="1" data-press="1" style="text-align:left;padding:20px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);color:var(--fg)">
+            <span style="width:38px;height:38px;border-radius:11px;background:var(--acc-soft);color:var(--acc-dark);display:flex;align-items:center;justify-content:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{q.icon}}"></path></svg>
+            </span>
+            <span data-fd="1" style="display:block;font-size:16px;font-weight:700;letter-spacing:-.012em;margin-top:14px">{{q.l}}</span>
+            <span style="display:block;font-size:13px;color:var(--fg-subtle);line-height:1.5;margin-top:4px">{{q.d}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:56px">
+        <div>
+          <h2 data-fd="1" style="margin:0;font-size:30px;font-weight:700;letter-spacing:-.022em">{{t.popularH}}</h2>
+          <p style="margin:6px 0 0;font-size:15px;color:var(--fg-muted)">{{t.popularP}}</p>
+        </div>
+        <button onClick="{{go.menu}}" data-press="1" style="flex:none;border:0;background:transparent;font-size:14px;font-weight:600;color:var(--acc);padding:0">{{t.seeAll}} →</button>
+      </div>
+
+      <div data-4up="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px">
+        <sc-for list="{{popular}}" as="p" hint-placeholder-count="4">
+          <button onClick="{{p.open}}" data-card="1" data-press="1" style="text-align:left;padding:0;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);color:var(--fg);overflow:hidden">
+            <span style="display:block;position:relative;height:168px;background:var(--sunken);overflow:hidden">
+              <span data-zoom="1" style="display:block;width:100%;height:100%">
+                <image-slot id="ox-pop-{{p.id}}" shape="rect" placeholder="{{p.ph}}"></image-slot>
+              </span>
+              <sc-if value="{{p.badge}}" hint-placeholder-val="{{false}}">
+                <span style="position:absolute;top:12px;left:12px;height:24px;padding:0 10px;border-radius:var(--radius-pill);background:{{p.badgeBg}};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center">{{p.badgeL}}</span>
+              </sc-if>
+            </span>
+            <span style="display:block;padding:15px 16px 17px">
+              <span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                <span data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.012em">{{p.n}}</span>
+                <span data-fd="1" data-num="1" style="flex:none;font-size:16px;font-weight:700">{{p.price}}</span>
+              </span>
+              <span style="display:block;font-size:13px;color:var(--fg-subtle);line-height:1.5;margin-top:5px">{{p.d}}</span>
+              <span style="display:flex;align-items:center;gap:6px;margin-top:10px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rating-star)"><path d="M12 2.4l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.2-5.9 3.2 1.2-6.5L2.5 9.3l6.6-.9z"></path></svg>
+                <span data-num="1" style="font-size:12px;font-weight:600">{{p.rate}}</span>
+                <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{p.sold}}</span>
+              </span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div data-3up="1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--divider);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:56px">
+        <sc-for list="{{promises}}" as="p" hint-placeholder-count="3">
+          <div style="background:var(--surface);padding:26px 24px">
+            <div data-fd="1" data-num="1" style="font-size:32px;font-weight:800;letter-spacing:-.024em;color:var(--acc)">{{p.v}}</div>
+            <div data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.012em;margin-top:8px">{{p.h}}</div>
+            <div style="font-size:14px;color:var(--fg-muted);line-height:1.55;margin-top:5px">{{p.d}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h2 data-fd="1" style="margin:56px 0 4px;font-size:30px;font-weight:700;letter-spacing:-.022em">{{t.branchH}}</h2>
+      <p style="margin:0 0 20px;font-size:15px;color:var(--fg-muted)">{{t.branchP}}</p>
+      <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface)">
+        <sc-for list="{{branches}}" as="b" hint-placeholder-count="5">
+          <div data-row="1" style="display:flex;align-items:center;gap:18px;padding:17px 22px;border-bottom:1px solid var(--divider)">
+            <div style="flex:1;min-width:0">
+              <div data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.012em">{{b.n}}</div>
+              <div style="font-size:13px;color:var(--fg-subtle);margin-top:3px">{{b.addr}}</div>
+            </div>
+            <div data-num="1" style="flex:none;font-size:13px;color:var(--fg-muted);width:112px">{{b.hours}}</div>
+            <div style="flex:none;display:flex;align-items:center;gap:7px;width:112px">
+              <span style="width:7px;height:7px;border-radius:999px;background:{{b.dot}};flex:none"></span>
+              <span style="font-size:13px;font-weight:600;color:{{b.stFg}}">{{b.st}}</span>
+            </div>
+            <a href="tel:{{b.tel}}" data-mono="1" style="flex:none;font-size:13px;font-weight:600;width:132px;text-align:right">{{b.phone}}</a>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{at.menu}}" hint-placeholder-val="{{false}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:30px 28px 80px">
+      <h1 data-fd="1" style="margin:0;font-size:38px;font-weight:800;letter-spacing:-.024em">{{t.menuH}}</h1>
+      <p style="margin:7px 0 0;font-size:15px;color:var(--fg-muted)">{{menuSub}}</p>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap">
+        <div style="position:relative;flex:1;min-width:220px;max-width:420px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2" stroke-linecap="round" style="position:absolute;left:13px;top:14px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+          <input value="{{query}}" onInput="{{onQuery}}" placeholder="{{t.searchPh}}" style="width:100%;height:44px;padding:0 14px 0 38px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+        </div>
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+          <button onClick="{{f.go}}" data-chip="1" data-on="{{f.on}}" data-press="1" style="height:36px;padding:0 15px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--surface);color:var(--fg-muted);font-size:13px;font-weight:600;flex:none">{{f.l}}</button>
+        </sc-for>
+      </div>
+
+      <div data-menugrid="1" style="display:grid;grid-template-columns:206px 1fr;gap:32px;margin-top:26px;align-items:start">
+        <div data-catnav="1" style="position:sticky;top:96px;display:grid;gap:2px">
+          <sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+            <button onClick="{{c.go}}" data-catl="1" data-on="{{c.on}}" data-press="1" style="display:flex;align-items:center;justify-content:space-between;gap:10px;height:40px;padding:0 13px;border:0;border-radius:var(--radius-md);background:transparent;color:var(--fg-muted);font-size:14px;font-weight:500;text-align:left">
+              <span>{{c.l}}</span><span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{c.n}}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <div>
+          <sc-if value="{{menuEmpty}}" hint-placeholder-val="{{false}}">
+            <div style="padding:56px 0;text-align:center">
+              <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.012em">{{t.emptyH}}</div>
+              <div style="font-size:14px;color:var(--fg-muted);margin-top:6px">{{t.emptyP}}</div>
+              <button onClick="{{clearQuery}}" data-ghost="1" data-press="1" style="height:40px;padding:0 18px;margin-top:16px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px;font-weight:600">{{t.emptyCta}}</button>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{dishes}}" as="d" hint-placeholder-count="6">
+            <div data-row="1" style="display:flex;align-items:center;gap:18px;padding:16px 14px;border-bottom:1px solid var(--divider);border-radius:var(--radius-md);opacity:{{d.op}}">
+              <button onClick="{{d.open}}" aria-label="{{d.name}}" data-press="1" style="flex:none;width:96px;height:96px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--sunken);padding:0">
+                <image-slot id="ox-d-{{d.id}}" shape="rect" placeholder="{{d.ph}}"></image-slot>
+              </button>
+              <button onClick="{{d.open}}" data-press="1" style="flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:0;color:var(--fg)">
+                <span style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                  <span data-fd="1" style="font-size:17px;font-weight:700;letter-spacing:-.014em">{{d.n}}</span>
+                  <sc-if value="{{d.off}}" hint-placeholder-val="{{false}}">
+                    <span style="height:22px;padding:0 9px;border-radius:var(--radius-pill);background:var(--danger-50);color:var(--danger-700);font-size:11px;font-weight:700;display:flex;align-items:center">{{t.soldOut}}</span>
+                  </sc-if>
+                  <sc-if value="{{d.hit}}" hint-placeholder-val="{{false}}">
+                    <span style="height:22px;padding:0 9px;border-radius:var(--radius-pill);background:var(--acc-soft);color:var(--acc-dark);font-size:11px;font-weight:700;display:flex;align-items:center">{{t.hit}}</span>
+                  </sc-if>
+                </span>
+                <span style="display:block;font-size:14px;color:var(--fg-muted);line-height:1.5;margin-top:5px;max-width:540px">{{d.d}}</span>
+                <span style="display:flex;align-items:center;gap:14px;margin-top:9px">
+                  <span style="display:flex;align-items:center;gap:5px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rating-star)"><path d="M12 2.4l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.2-5.9 3.2 1.2-6.5L2.5 9.3l6.6-.9z"></path></svg>
+                    <span data-num="1" style="font-size:12px;font-weight:600">{{d.rate}}</span>
+                  </span>
+                  <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{d.weight}}</span>
+                  <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{d.kcal}}</span>
+                </span>
+              </button>
+              <div style="flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+                <span data-fd="1" data-num="1" style="font-size:18px;font-weight:700">{{d.price}}</span>
+                <sc-if value="{{d.on}}" hint-placeholder-val="{{true}}">
+                  <button onClick="{{d.open}}" data-plus="1" data-press="1" style="height:38px;padding:0 18px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:13px;font-weight:600">{{t.add}}</button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{at.cart}}" hint-placeholder-val="{{false}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:30px 28px 80px">
+      <h1 data-fd="1" style="margin:0;font-size:38px;font-weight:800;letter-spacing:-.024em">{{t.cartH}}</h1>
+      <p style="margin:7px 0 0;font-size:15px;color:var(--fg-muted)">{{cartSub}}</p>
+
+      <sc-if value="{{cartEmpty}}" hint-placeholder-val="{{false}}">
+        <div style="padding:60px 0;text-align:center">
+          <div data-fd="1" style="font-size:19px;font-weight:700;letter-spacing:-.014em">{{t.cartEmptyH}}</div>
+          <div style="font-size:14px;color:var(--fg-muted);margin-top:6px">{{t.cartEmptyP}}</div>
+          <button onClick="{{go.menu}}" data-solid="1" data-press="1" style="height:46px;padding:0 22px;margin-top:18px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:14px;font-weight:600">{{t.ctaOrder}}</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{cartHas}}" hint-placeholder-val="{{true}}">
+      <div data-checkout="1" style="display:grid;grid-template-columns:1fr 400px;gap:28px;margin-top:26px;align-items:start">
+        <div style="display:grid;gap:16px">
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:8px 20px">
+            <sc-for list="{{cartLines}}" as="c" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:16px;padding:15px 0;border-bottom:1px solid var(--divider)">
+                <span style="flex:none;width:64px;height:64px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--sunken)">
+                  <image-slot id="ox-c-{{c.id}}" shape="rect" placeholder="{{c.ph}}"></image-slot>
+                </span>
+                <div style="flex:1;min-width:0">
+                  <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">{{c.n}}</div>
+                  <div style="font-size:13px;color:var(--fg-subtle);margin-top:3px">{{c.meta}}</div>
+                </div>
+                <div style="flex:none;display:flex;align-items:center;gap:9px">
+                  <button onClick="{{c.dec}}" data-ghost="1" data-press="1" style="width:34px;height:34px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">−</button>
+                  <span data-fd="1" data-num="1" style="width:24px;text-align:center;font-size:15px;font-weight:700">{{c.q}}</span>
+                  <button onClick="{{c.inc}}" data-ghost="1" data-press="1" style="width:34px;height:34px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">+</button>
+                </div>
+                <span data-fd="1" data-num="1" style="flex:none;width:104px;text-align:right;font-size:16px;font-weight:700">{{c.sum}}</span>
+              </div>
+            </sc-for>
+            <button onClick="{{go.menu}}" data-press="1" style="border:0;background:transparent;padding:15px 0;font-size:14px;font-weight:600;color:var(--acc)">+ {{t.addMore}}</button>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:22px 24px">
+            <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.014em">{{t.howH}}</div>
+            <div style="display:flex;gap:3px;padding:3px;background:var(--sunken);border-radius:var(--radius-md);margin-top:14px;width:fit-content">
+              <button onClick="{{setDelivery}}" data-seg="1" data-on="{{isDelivery}}" data-press="1" style="height:38px;padding:0 20px;border:0;border-radius:8px;background:transparent;color:var(--fg-subtle);font-size:14px;font-weight:600">{{t.delivery}}</button>
+              <button onClick="{{setPickup}}" data-seg="1" data-on="{{isPickup}}" data-press="1" style="height:38px;padding:0 20px;border:0;border-radius:8px;background:transparent;color:var(--fg-subtle);font-size:14px;font-weight:600">{{t.pickup}}</button>
+            </div>
+
+            <sc-if value="{{isDelivery}}" hint-placeholder-val="{{true}}">
+              <div style="display:grid;grid-template-columns:1fr 150px;gap:12px;margin-top:18px">
+                <label style="display:block">
+                  <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.addrLbl}}</span>
+                  <input value="{{f.addr}}" onChange="{{fc.addr}}" style="width:100%;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+                </label>
+                <label style="display:block">
+                  <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.flatLbl}}</span>
+                  <input value="{{f.flat}}" onChange="{{fc.flat}}" style="width:100%;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+                </label>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:13px 15px;border-radius:var(--radius-md);background:{{feeBg}}">
+                <span style="width:7px;height:7px;border-radius:999px;background:{{feeDot}};flex:none;margin-top:6px"></span>
+                <span data-num="1" style="font-size:13px;line-height:1.5;color:{{feeFg}};font-weight:500">{{deliveryNote}}</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{isPickup}}" hint-placeholder-val="{{false}}">
+              <div style="display:grid;gap:9px;margin-top:18px">
+                <sc-for list="{{pickBranches}}" as="b" hint-placeholder-count="3">
+                  <button onClick="{{b.go}}" data-opt="1" data-on="{{b.on}}" data-press="1" style="display:flex;align-items:center;gap:13px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                    <span style="width:19px;height:19px;flex:none;border-radius:50%;border:1.5px solid {{b.ring}};background:{{b.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{b.mark}}</span>
+                    <span style="flex:1;min-width:0">
+                      <span data-fd="1" style="display:block;font-size:15px;font-weight:700;letter-spacing:-.012em">{{b.n}}</span>
+                      <span style="display:block;font-size:13px;color:var(--fg-subtle);margin-top:2px">{{b.addr}}</span>
+                    </span>
+                    <span data-num="1" style="flex:none;font-size:13px;font-weight:600;color:var(--fg-muted)">{{b.ready}}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+              <label style="display:block">
+                <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.whenLbl}}</span>
+                <select onChange="{{onWhen}}" style="width:100%;height:44px;padding:0 11px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+                  <sc-for list="{{whenOpts}}" as="w" hint-placeholder-count="4">
+                    <option value="{{w.v}}">{{w.l}}</option>
+                  </sc-for>
+                </select>
+              </label>
+              <label style="display:block">
+                <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.phoneLbl}}</span>
+                <input value="{{f.phone}}" onChange="{{fc.phone}}" data-mono="1" style="width:100%;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+              </label>
+            </div>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:22px 24px">
+            <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.014em">{{t.payH}}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px">
+              <sc-for list="{{pays}}" as="p" hint-placeholder-count="4">
+                <button onClick="{{p.go}}" data-opt="1" data-on="{{p.on}}" data-press="1" style="display:flex;align-items:center;gap:12px;padding:14px 15px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                  <span style="width:19px;height:19px;flex:none;border-radius:50%;border:1.5px solid {{p.ring}};background:{{p.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{p.mark}}</span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:block;font-size:14px;font-weight:600">{{p.l}}</span>
+                    <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:2px">{{p.d}}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:sticky;top:96px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:24px">
+          <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.014em">{{t.sumH}}</div>
+
+          <div style="display:flex;gap:9px;margin-top:16px">
+            <input value="{{promo}}" onInput="{{onPromo}}" placeholder="{{t.promoPh}}" style="flex:1;min-width:0;height:42px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px;text-transform:uppercase" data-mono="1">
+            <button onClick="{{applyPromo}}" data-ghost="1" data-press="1" style="flex:none;height:42px;padding:0 16px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:13px;font-weight:600">{{t.promoApply}}</button>
+          </div>
+          <sc-if value="{{promoMsg}}" hint-placeholder-val="{{false}}">
+            <div style="font-size:12px;font-weight:600;color:{{promoFg}};margin-top:8px">{{promoMsg}}</div>
+          </sc-if>
+
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--divider);display:grid;gap:10px">
+            <sc-for list="{{totals}}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                <span style="font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}}">{{r.l}}</span>
+                <span data-fd="1" data-num="1" style="flex:none;font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}}">{{r.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div data-num="1" style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:12px">{{vatNote}}</div>
+
+          <button onClick="{{placeOrder}}" data-solid="1" data-press="1" style="width:100%;height:52px;margin-top:18px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:15px;font-weight:600">{{placeLabel}}</button>
+          <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:11px">{{t.placeNote}}</div>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{at.track}}" hint-placeholder-val="{{false}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:30px 28px 80px">
+      <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+        <h1 data-fd="1" style="margin:0;font-size:38px;font-weight:800;letter-spacing:-.024em">{{t.trackH}}</h1>
+        <span data-mono="1" style="font-size:15px;color:var(--fg-subtle)">#{{orderNo}}</span>
+      </div>
+      <p data-num="1" style="margin:7px 0 0;font-size:15px;color:var(--fg-muted)">{{trackSub}}</p>
+
+      <div data-checkout="1" style="display:grid;grid-template-columns:1fr 400px;gap:28px;margin-top:26px;align-items:start">
+        <div style="display:grid;gap:16px">
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:26px 28px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap">
+              <div data-fd="1" style="font-size:24px;font-weight:700;letter-spacing:-.02em">{{stepNow}}</div>
+              <div data-num="1" style="font-size:14px;font-weight:600;color:var(--acc)">{{stepEta}}</div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:20px">
+              <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+                <div style="flex:1;height:4px;border-radius:2px;background:{{s.bg}}"></div>
+              </sc-for>
+            </div>
+            <div style="display:grid;gap:0;margin-top:22px">
+              <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+                <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--divider)">
+                  <span style="width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid {{s.ring}};background:{{s.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px">{{s.mark}}</span>
+                  <div style="min-width:0">
+                    <div style="font-size:15px;font-weight:600;color:{{s.fg}}">{{s.l}}</div>
+                    <div data-num="1" style="font-size:13px;color:var(--fg-subtle);margin-top:2px">{{s.at}}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{advance}}" data-ghost="1" data-press="1" style="height:42px;padding:0 18px;margin-top:18px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:13px;font-weight:600">{{t.advance}}</button>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden">
+            <div style="height:220px;background:var(--sunken)">
+              <image-slot id="ox-map" shape="rect" placeholder="Yetkazish yo'li — xarita tasviri"></image-slot>
+            </div>
+            <div style="display:flex;align-items:center;gap:15px;padding:18px 22px">
+              <span data-fd="1" style="width:44px;height:44px;flex:none;border-radius:50%;background:var(--sunken);color:var(--fg-muted);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">OS</span>
+              <div style="flex:1;min-width:0">
+                <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">Oybek Sattorov</div>
+                <div data-num="1" style="font-size:13px;color:var(--fg-subtle);margin-top:2px">{{t.courierMeta}}</div>
+              </div>
+              <a href="tel:+998901234567" data-press="1" data-solid="1" style="flex:none;height:40px;padding:0 18px;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center">{{t.callCourier}}</a>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:sticky;top:96px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:24px">
+          <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.014em">{{t.orderH}}</div>
+          <div style="display:grid;gap:0;margin-top:14px">
+            <sc-for list="{{trackLines}}" as="l" hint-placeholder-count="3">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider)">
+                <span data-fd="1" data-num="1" style="width:24px;flex:none;font-size:15px;font-weight:700;color:var(--acc)">{{l.q}}</span>
+                <span style="flex:1;min-width:0;font-size:14px;font-weight:500">{{l.n}}</span>
+                <span data-num="1" style="flex:none;font-size:14px;font-weight:600">{{l.sum}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+            <span style="font-size:14px;color:var(--fg-muted)">{{t.total}}</span>
+            <span data-fd="1" data-num="1" style="font-size:22px;font-weight:700">{{trackTotal}}</span>
+          </div>
+          <div data-num="1" style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:10px">{{trackPay}}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{at.book}}" hint-placeholder-val="{{false}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:30px 28px 80px">
+      <h1 data-fd="1" style="margin:0;font-size:38px;font-weight:800;letter-spacing:-.024em">{{t.bookH}}</h1>
+      <p style="margin:7px 0 0;font-size:15px;color:var(--fg-muted);max-width:620px;line-height:1.55">{{t.bookP}}</p>
+
+      <div data-checkout="1" style="display:grid;grid-template-columns:1fr 400px;gap:28px;margin-top:26px;align-items:start">
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:24px 26px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:9px">{{t.bookBranch}}</div>
+          <div style="display:grid;gap:9px">
+            <sc-for list="{{pickBranches}}" as="b" hint-placeholder-count="3">
+              <button onClick="{{b.go}}" data-opt="1" data-on="{{b.on}}" data-press="1" style="display:flex;align-items:center;gap:13px;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                <span style="width:19px;height:19px;flex:none;border-radius:50%;border:1.5px solid {{b.ring}};background:{{b.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{b.mark}}</span>
+                <span style="flex:1;min-width:0">
+                  <span data-fd="1" style="display:block;font-size:15px;font-weight:700;letter-spacing:-.012em">{{b.n}}</span>
+                  <span style="display:block;font-size:13px;color:var(--fg-subtle);margin-top:2px">{{b.addr}}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="font-size:13px;font-weight:600;margin:22px 0 9px">{{t.bookDay}}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{bookDays}}" as="d" hint-placeholder-count="5">
+              <button onClick="{{d.go}}" data-chip="1" data-on="{{d.on}}" data-press="1" style="height:60px;padding:0 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg-muted);text-align:center">
+                <span style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">{{d.dow}}</span>
+                <span data-fd="1" data-num="1" style="display:block;font-size:18px;font-weight:700;margin-top:3px">{{d.day}}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="font-size:13px;font-weight:600;margin:22px 0 9px">{{t.bookTime}}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{bookTimes}}" as="s" hint-placeholder-count="8">
+              <button onClick="{{s.go}}" data-chip="1" data-on="{{s.on}}" data-press="1" data-num="1" style="height:40px;padding:0 15px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg-muted);font-size:14px;font-weight:600;opacity:{{s.op}}">{{s.l}}</button>
+            </sc-for>
+          </div>
+
+          <div style="font-size:13px;font-weight:600;margin:22px 0 9px">{{t.bookGuests}}</div>
+          <div style="display:flex;align-items:center;gap:11px">
+            <button onClick="{{guestsDec}}" data-ghost="1" data-press="1" style="width:40px;height:40px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">−</button>
+            <span data-fd="1" data-num="1" style="width:46px;text-align:center;font-size:20px;font-weight:700">{{guests}}</span>
+            <button onClick="{{guestsInc}}" data-ghost="1" data-press="1" style="width:40px;height:40px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">+</button>
+            <span style="font-size:13px;color:var(--fg-subtle);margin-left:6px">{{guestsNote}}</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px">
+            <label style="display:block">
+              <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.bookName}}</span>
+              <input value="{{f.bname}}" onChange="{{fc.bname}}" style="width:100%;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+            </label>
+            <label style="display:block">
+              <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.phoneLbl}}</span>
+              <input value="{{f.bphone}}" onChange="{{fc.bphone}}" data-mono="1" style="width:100%;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px">
+            </label>
+          </div>
+          <label style="display:block;margin-top:14px">
+            <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.bookNote}}</span>
+            <textarea rows="2" placeholder="{{t.bookNotePh}}" value="{{f.bnote}}" onChange="{{fc.bnote}}" style="width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px;resize:vertical"></textarea>
+          </label>
+        </div>
+
+        <div style="position:sticky;top:96px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:24px">
+          <div data-fd="1" style="font-size:18px;font-weight:700;letter-spacing:-.014em">{{t.bookSumH}}</div>
+          <div style="display:grid;gap:11px;margin-top:16px">
+            <sc-for list="{{bookSummary}}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                <span style="font-size:14px;color:var(--fg-muted)">{{r.l}}</span>
+                <span data-num="1" style="flex:none;font-size:14px;font-weight:600;text-align:right">{{r.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{confirmBook}}" data-solid="1" data-press="1" style="width:100%;height:50px;margin-top:20px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:15px;font-weight:600">{{t.bookCta}}</button>
+          <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:11px">{{t.bookCtaNote}}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{at.about}}" hint-placeholder-val="{{false}}">
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:30px 28px 80px">
+      <h1 data-fd="1" style="margin:0;font-size:38px;font-weight:800;letter-spacing:-.024em">{{t.aboutH}}</h1>
+      <p style="margin:10px 0 0;font-size:17px;color:var(--fg-muted);max-width:660px;line-height:1.6;text-wrap:pretty">{{t.aboutP}}</p>
+
+      <div data-3up="1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px">
+        <sc-for list="{{aboutCards}}" as="a" hint-placeholder-count="3">
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden">
+            <div style="height:190px;background:var(--sunken)">
+              <image-slot id="ox-ab-{{a.id}}" shape="rect" placeholder="{{a.ph}}"></image-slot>
+            </div>
+            <div style="padding:19px 21px 22px">
+              <div data-fd="1" style="font-size:17px;font-weight:700;letter-spacing:-.014em">{{a.h}}</div>
+              <div style="font-size:14px;color:var(--fg-muted);line-height:1.55;margin-top:6px">{{a.d}}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);padding:26px 28px;margin-top:24px">
+        <div data-fd="1" style="font-size:20px;font-weight:700;letter-spacing:-.016em">{{t.faqH}}</div>
+        <div style="margin-top:12px">
+          <sc-for list="{{faq}}" as="f" hint-placeholder-count="5">
+            <div style="border-bottom:1px solid var(--divider)">
+              <button onClick="{{f.go}}" data-press="1" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0;border:0;background:transparent;color:var(--fg);text-align:left;font-size:15px;font-weight:600">
+                <span>{{f.q}}</span>
+                <span style="flex:none;font-size:18px;color:var(--fg-subtle);font-weight:400">{{f.sign}}</span>
+              </button>
+              <sc-if value="{{f.open}}" hint-placeholder-val="{{false}}">
+                <div style="font-size:14px;color:var(--fg-muted);line-height:1.6;padding:0 0 16px;max-width:720px">{{f.a}}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <footer style="border-top:1px solid var(--border);background:var(--surface)">
+    <div data-pad="1" data-foot="1" style="max-width:1320px;margin:0 auto;padding:44px 28px;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px">
+      <div>
+        <div style="display:flex;align-items:center;gap:11px">
+          <span data-fd="1" style="width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">OX</span>
+          <span data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.018em">Osh Xona</span>
+        </div>
+        <p style="margin:14px 0 0;font-size:14px;color:var(--fg-muted);line-height:1.6;max-width:320px">{{t.footAbout}}</p>
+        <div style="display:flex;gap:9px;margin-top:16px">
+          <sc-for list="{{socials}}" as="s" hint-placeholder-count="3">
+            <a href="{{s.href}}" data-ghost="1" data-press="1" title="{{s.l}}" style="width:38px;height:38px;border:1px solid var(--border);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--fg-muted)">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{s.icon}}"></path></svg>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+      <sc-for list="{{footCols}}" as="c" hint-placeholder-count="3">
+        <div>
+          <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{c.h}}</div>
+          <div style="display:grid;gap:9px;margin-top:14px">
+            <sc-for list="{{c.rows}}" as="r" hint-placeholder-count="4">
+              <div data-num="1" style="font-size:14px;color:var(--fg-muted);line-height:1.45">{{r}}</div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:0 28px 32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:22px;border-top:1px solid var(--divider);flex-wrap:wrap">
+        <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{t.footRights}}</span>
+        <span style="font-size:13px;color:var(--fg-subtle)">{{t.footPowered}}</span>
+      </div>
+    </div>
+  </footer>
+
+  <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closeSheet}}" style="position:fixed;inset:0;z-index:90;background:rgba(15,19,32,.45);display:flex;align-items:center;justify-content:center;padding:32px;animation:fadeIn 200ms cubic-bezier(.4,0,.2,1)">
+      <div onClick="{{stop}}" data-scroll="1" style="width:100%;max-width:900px;max-height:88vh;overflow-y:auto;background:var(--surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);animation:fadeUp 240ms cubic-bezier(.4,0,.2,1)">
+        <div data-sheet="1" style="display:grid;grid-template-columns:380px 1fr">
+          <div data-sheetimg="1" style="height:100%;min-height:360px;background:var(--sunken)">
+            <image-slot id="ox-s-{{sheet.id}}" shape="rect" placeholder="{{sheet.ph}}"></image-slot>
+          </div>
+          <div style="padding:26px 28px 30px;position:relative">
+            <button aria-label="Yopish" title="Yopish" onClick="{{closeSheet}}" data-ghost="1" data-press="1" style="position:absolute;top:20px;right:20px;width:34px;height:34px;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2 data-fd="1" style="margin:0;padding-right:44px;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15">{{sheet.n}}</h2>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:10px">
+              <span style="display:flex;align-items:center;gap:5px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--rating-star)"><path d="M12 2.4l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.2-5.9 3.2 1.2-6.5L2.5 9.3l6.6-.9z"></path></svg>
+                <span data-num="1" style="font-size:13px;font-weight:600">{{sheet.rate}}</span>
+              </span>
+              <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{sheet.weight}}</span>
+              <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{sheet.kcal}}</span>
+            </div>
+            <p style="margin:14px 0 0;font-size:15px;color:var(--fg-muted);line-height:1.6">{{sheet.d}}</p>
+
+            <div style="font-size:13px;font-weight:600;margin:22px 0 4px">{{t.portion}}</div>
+            <div style="display:grid;gap:8px">
+              <sc-for list="{{sheetPortions}}" as="p" hint-placeholder-count="3">
+                <button onClick="{{p.go}}" data-opt="1" data-on="{{p.on}}" data-press="1" style="display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                  <span style="width:19px;height:19px;flex:none;border-radius:50%;border:1.5px solid {{p.ring}};background:{{p.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{p.mark}}</span>
+                  <span style="flex:1;min-width:0;font-size:14px;font-weight:500">{{p.l}}</span>
+                  <span data-num="1" style="flex:none;font-size:14px;font-weight:600;color:var(--fg-muted)">{{p.delta}}</span>
+                </button>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:22px 0 4px">
+              <span style="font-size:13px;font-weight:600">{{t.addons}}</span>
+              <span style="font-size:12px;color:var(--fg-subtle)">{{t.addonsMax}}</span>
+            </div>
+            <div style="display:grid;gap:8px">
+              <sc-for list="{{sheetAddons}}" as="a" hint-placeholder-count="4">
+                <button onClick="{{a.go}}" data-opt="1" data-on="{{a.on}}" data-press="1" style="display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                  <span style="width:19px;height:19px;flex:none;border-radius:6px;border:1.5px solid {{a.ring}};background:{{a.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{a.mark}}</span>
+                  <span style="flex:1;min-width:0;font-size:14px;font-weight:500">{{a.l}}</span>
+                  <span data-num="1" style="flex:none;font-size:14px;font-weight:600;color:var(--fg-muted)">{{a.delta}}</span>
+                </button>
+              </sc-for>
+            </div>
+
+            <label style="display:block;margin-top:20px">
+              <span style="display:block;font-size:13px;font-weight:600;margin-bottom:7px">{{t.sheetNote}}</span>
+              <textarea rows="2" placeholder="{{t.sheetNotePh}}" value="{{f.snote}}" onChange="{{fc.snote}}" style="width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:14px;resize:vertical"></textarea>
+            </label>
+
+            <div style="display:flex;align-items:center;gap:14px;margin-top:24px;padding-top:20px;border-top:1px solid var(--divider)">
+              <div style="display:flex;align-items:center;gap:10px;flex:none">
+                <button onClick="{{sheetDec}}" data-ghost="1" data-press="1" style="width:42px;height:42px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center">−</button>
+                <span data-fd="1" data-num="1" style="width:30px;text-align:center;font-size:19px;font-weight:700">{{sheetQty}}</span>
+                <button onClick="{{sheetInc}}" data-ghost="1" data-press="1" style="width:42px;height:42px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center">+</button>
+              </div>
+              <button onClick="{{sheetAdd}}" data-solid="1" data-press="1" style="flex:1;height:52px;border:0;border-radius:var(--radius-md);background:var(--acc);color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px">
+                <span>{{t.addToCart}}</span><span data-num="1" style="opacity:.85">· {{sheetTotal}}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--divider);padding:22px 28px 28px">
+          <div data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.012em">{{t.oftenH}}</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px">
+            <sc-for list="{{oftenWith}}" as="o" hint-placeholder-count="3">
+              <button onClick="{{o.open}}" data-card="1" data-press="1" style="display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--fg);text-align:left">
+                <span style="width:44px;height:44px;flex:none;border-radius:8px;overflow:hidden;background:var(--sunken)">
+                  <image-slot id="ox-o-{{o.id}}" shape="rect" placeholder="{{o.ph}}"></image-slot>
+                </span>
+                <span style="flex:1;min-width:0">
+                  <span style="display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{o.n}}</span>
+                  <span data-num="1" style="display:block;font-size:13px;color:var(--fg-subtle);margin-top:2px">{{o.price}}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:120;display:flex;align-items:center;gap:11px;padding:14px 22px;border-radius:var(--radius-md);background:var(--n-900);color:#fff;box-shadow:var(--shadow-xl);font-size:14px;font-weight:500;max-width:calc(100vw - 40px)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    lang: "uz", theme: "light", view: "home",
+    cat: 0, query: "", filter: 0,
+    sheet: null, sheetQty: 1, portion: 0, addons: {},
+    cart: { d1: { q: 2, portion: 0, addons: {} }, d6: { q: 1, portion: 0, addons: {} }, d11: { q: 4, portion: 0, addons: {} } },
+    mode: "delivery", branch: 0, when: 0, pay: 0,
+    promo: "", promoOk: null,
+    step: 2, guests: 4, bookDay: 0, bookTime: 3, faq: 0,
+    toast: "",
+  };
+
+  flash(m) { clearTimeout(this._t); this.setState({ toast: m }); this._t = setTimeout(() => this.setState({ toast: "" }), 2600); }
+
+  L(v) { return v && typeof v === "object" && v.en !== undefined ? (v[this.state.lang] || v.en) : v; }
+  f(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009"); }
+
+  MENU = [
+    { id: "d1", c: 0, n: { uz: "Toshkent oshi", ru: "Ташкентский плов", en: "Tashkent plov" }, d: { uz: "Qazi, tuxum, no'xat \u00b7 bir kishilik tovoq", ru: "Казы, яйцо, горох \u00b7 порция на одного", en: "Qazi, egg, chickpeas \u00b7 one-person serving" }, p: 45000, rate: "4.9", w: "420 g", k: "690 kcal", hit: true },
+    { id: "d2", c: 0, n: { uz: "Sarimsoqli osh", ru: "Плов с чесноком", en: "Garlic plov" }, d: { uz: "Butun sarimsoq bosh, qo'y go'shti", ru: "Целая головка чеснока, баранина", en: "A whole garlic head, lamb" }, p: 52000, rate: "4.8", w: "460 g", k: "740 kcal" },
+    { id: "d3", c: 0, n: { uz: "Tovoq osh, ikki kishilik", ru: "Плов на двоих", en: "Plov for two" }, d: { uz: "Katta tovoq \u00b7 qazi va kazi bilan", ru: "Большое блюдо \u00b7 с казы", en: "Large dish \u00b7 with qazi" }, p: 96000, rate: "4.9", w: "820 g", k: "1 340 kcal" },
+    { id: "d4", c: 1, n: { uz: "Achchiq lag'mon", ru: "Острый лагман", en: "Spicy lagman" }, d: { uz: "Qo'lda cho'zilgan xamir, o'tkir sous", ru: "Тесто ручной вытяжки, острый соус", en: "Hand-pulled noodles, hot sauce" }, p: 42000, rate: "4.7", w: "480 g", k: "610 kcal" },
+    { id: "d5", c: 1, n: { uz: "Qovurma lag'mon", ru: "Жареный лагман", en: "Fried lagman" }, d: { uz: "Sabzavot va mol go'shti bilan qovurilgan", ru: "Обжарен с овощами и говядиной", en: "Stir-fried with vegetables and beef" }, p: 46000, rate: "4.8", w: "440 g", k: "680 kcal" },
+    { id: "d6", c: 1, n: { uz: "Manti, 5 dona", ru: "Манты, 5 шт", en: "Manti, 5 pcs" }, d: { uz: "Qo'y go'shti va dumba \u00b7 qatiq bilan", ru: "Баранина и курдюк \u00b7 с катыком", en: "Lamb and tail fat \u00b7 served with katyk" }, p: 38000, rate: "4.9", w: "390 g", k: "560 kcal", hit: true },
+    { id: "d7", c: 2, n: { uz: "Qo'y kabobi", ru: "Шашлык из баранины", en: "Lamb kebab" }, d: { uz: "Cho'g'da pishirilgan \u00b7 piyoz va sumaq bilan", ru: "На углях \u00b7 с луком и сумахом", en: "Charcoal-grilled \u00b7 with onion and sumac" }, p: 54000, rate: "4.9", w: "260 g", k: "520 kcal" },
+    { id: "d8", c: 2, n: { uz: "Tovuq kabobi", ru: "Шашлык из курицы", en: "Chicken kebab" }, d: { uz: "Marinadlangan son go'shti", ru: "Маринованное бедро", en: "Marinated thigh" }, p: 38000, rate: "4.6", w: "240 g", k: "410 kcal" },
+    { id: "d9", c: 2, n: { uz: "Qovurdoq", ru: "Кавурдак", en: "Qovurdoq" }, d: { uz: "Kartoshka, go'sht, piyoz \u00b7 qozonda", ru: "Картофель, мясо, лук \u00b7 в казане", en: "Potato, meat, onion \u00b7 in a kazan" }, p: 49000, rate: "4.7", w: "520 g", k: "780 kcal", off: true },
+    { id: "d10", c: 3, n: { uz: "Achichuk salat", ru: "Салат ачичук", en: "Achichuk salad" }, d: { uz: "Pomidor, piyoz, achchiq qalampir", ru: "Помидор, лук, острый перец", en: "Tomato, onion, hot pepper" }, p: 18000, rate: "4.8", w: "220 g", k: "90 kcal" },
+    { id: "d11", c: 3, n: { uz: "Qatiqli bodring", ru: "Огурцы с катыком", en: "Cucumber in katyk" }, d: { uz: "Yangi bodring, ko'kat, sarimsoq", ru: "Свежий огурец, зелень, чеснок", en: "Fresh cucumber, herbs, garlic" }, p: 16000, rate: "4.6", w: "200 g", k: "110 kcal" },
+    { id: "d12", c: 4, n: { uz: "Tandir non", ru: "Тандырная лепёшка", en: "Tandoor bread" }, d: { uz: "Kuniga uch marta yopiladi", ru: "Печём трижды в день", en: "Baked three times a day" }, p: 6000, rate: "5.0", w: "320 g", k: "740 kcal" },
+    { id: "d13", c: 4, n: { uz: "Patir", ru: "Патыр", en: "Patir" }, d: { uz: "Qatlamli \u00b7 dumba yog'ida", ru: "Слоёная \u00b7 на курдючном жире", en: "Layered \u00b7 with tail fat" }, p: 9000, rate: "4.9", w: "380 g", k: "920 kcal" },
+    { id: "d14", c: 5, n: { uz: "Ko'k choy, choynak", ru: "Зелёный чай, чайник", en: "Green tea, pot" }, d: { uz: "Bir litrlik choynak", ru: "Литровый чайник", en: "One-litre pot" }, p: 8000, rate: "4.8", w: "1 l", k: "0 kcal" },
+    { id: "d15", c: 5, n: { uz: "Ayron", ru: "Айран", en: "Ayran" }, d: { uz: "Uy qatig'idan \u00b7 sovuq", ru: "Из домашнего катыка \u00b7 холодный", en: "From house katyk \u00b7 served cold" }, p: 10000, rate: "4.7", w: "300 ml", k: "80 kcal" },
+    { id: "d16", c: 5, n: { uz: "Kola, 0.5", ru: "Кола 0.5", en: "Cola 0.5" }, d: { uz: "Shishada", ru: "В бутылке", en: "Bottled" }, p: 12000, rate: "4.4", w: "500 ml", k: "210 kcal" },
+  ];
+
+  CATS = [
+    { uz: "Osh", ru: "Плов", en: "Plov" },
+    { uz: "Xamir taomlar", ru: "Из теста", en: "Dough dishes" },
+    { uz: "Grill", ru: "Гриль", en: "Grill" },
+    { uz: "Salatlar", ru: "Салаты", en: "Salads" },
+    { uz: "Non", ru: "Лепёшки", en: "Bread" },
+    { uz: "Ichimlik", ru: "Напитки", en: "Drinks" },
+  ];
+
+  BRANCHES = [
+    { n: "Chilonzor", addr: { uz: "Chilonzor 24, Bunyodkor ko'chasi 12", ru: "Чиланзар 24, ул. Бунёдкор 12", en: "Chilonzor 24, Bunyodkor street 12" }, hours: "10:00 – 23:00", open: true, phone: "+998 71 200 07 01", ready: "20 " },
+    { n: "Yunusobod", addr: { uz: "Yunusobod 4, Amir Temur 108", ru: "Юнусабад 4, Амира Темура 108", en: "Yunusobod 4, Amir Temur 108" }, hours: "10:00 – 23:00", open: true, phone: "+998 71 200 07 02", ready: "25 " },
+    { n: "Sergeli", addr: { uz: "Sergeli 7, Yangi Sergeli 22", ru: "Сергели 7, Янги Сергели 22", en: "Sergeli 7, Yangi Sergeli 22" }, hours: "11:00 – 22:00", open: true, phone: "+998 71 200 07 03", ready: "30 " },
+    { n: "Mirzo Ulug'bek", addr: { uz: "Mirzo Ulug'bek, Buyuk Ipak Yo'li 64", ru: "Мирзо Улугбек, Буюк Ипак Йули 64", en: "Mirzo Ulug'bek, Buyuk Ipak Yo'li 64" }, hours: "10:00 – 23:00", open: true, phone: "+998 71 200 07 04", ready: "25 " },
+    { n: "Termiz", addr: { uz: "Termiz, Al-Termiziy 9", ru: "Термез, Ал-Термизий 9", en: "Termiz, Al-Termiziy 9" }, hours: "11:00 – 22:00", open: false, phone: "+998 76 220 07 05", ready: "35 " },
+  ];
+
+  dish(id) { return this.MENU.find(m => m.id === id); }
+
+  linePrice(id, portion, addons) {
+    const m = this.dish(id);
+    if (!m) return 0;
+    const pd = [0, Math.round(m.p * 0.35), Math.round(m.p * 0.75)][portion || 0] || 0;
+    const ad = Object.keys(addons || {}).filter(k => addons[k]).reduce((a, k) => a + this.ADDON_PRICE[k], 0);
+    return m.p + pd + ad;
+  }
+
+  ADDON_PRICE = { qazi: 14000, egg: 5000, salad: 12000, bread: 6000 };
+
+  fv(k, d) { const f = this.state.form || {}; return f[k] === undefined ? d : f[k]; }
+  fset(k) { return (e) => { const v = e.target.value; this.setState(s => ({ form: { ...(s.form || {}), [k]: v } })); }; }
+
+  renderVals() {
+    const S = this.state;
+    const T = v => this.L(v);
+    const P = (uz, ru, en) => T({ uz, ru, en });
+    const som = P("so'm", "сум", "so'm");
+
+    const cartIds = Object.keys(S.cart);
+    const cartCount = cartIds.reduce((a, k) => a + S.cart[k].q, 0);
+    const sub = cartIds.reduce((a, k) => a + this.linePrice(k, S.cart[k].portion, S.cart[k].addons) * S.cart[k].q, 0);
+    const fee = S.mode === "pickup" ? 0 : sub >= 150000 ? 0 : 15000;
+    const disc = S.promoOk ? Math.round(sub * 0.1) : 0;
+    const total = sub + fee - disc;
+
+    const q = S.query.trim().toLowerCase();
+    const FILTERS = [P("Hammasi", "Все", "All"), P("Xit", "Хит", "Popular"), P("Mavjud", "В наличии", "Available"), P("50 mingdan arzon", "До 50 тысяч", "Under 50 000")];
+    let list = this.MENU.filter(m => (q ? ["uz", "ru", "en"].some(l => (m.n[l] || "").toLowerCase().includes(q)) : m.c === S.cat));
+    if (S.filter === 1) list = list.filter(m => m.hit);
+    if (S.filter === 2) list = list.filter(m => !m.off);
+    if (S.filter === 3) list = list.filter(m => m.p < 50000);
+
+    const sheetM = S.sheet ? this.dish(S.sheet) : null;
+    const sheetPrice = sheetM ? this.linePrice(S.sheet, S.portion, S.addons) : 0;
+
+    const PORTIONS = [
+      { l: P("Bir kishilik", "На одного", "One person"), delta: "" },
+      { l: P("Kattalashtirilgan", "Увеличенная", "Larger"), delta: "+35%" },
+      { l: P("Ikki kishilik tovoq", "Блюдо на двоих", "Dish for two"), delta: "+75%" },
+    ];
+    const ADDONS = [
+      { k: "qazi", l: P("Qo'shimcha qazi", "Дополнительно казы", "Extra qazi") },
+      { k: "egg", l: P("Bedana tuxumi", "Яйцо перепелиное", "Quail egg") },
+      { k: "salad", l: P("Achichuk salat", "Салат ачичук", "Achichuk salad") },
+      { k: "bread", l: P("Tandir non", "Тандырная лепёшка", "Tandoor bread") },
+    ];
+
+    const STEPS = [
+      { l: P("Qabul qilindi", "Заказ принят", "Order received"), at: "11:24" },
+      { l: P("Oshxona tasdiqladi", "Кухня подтвердила", "Kitchen confirmed"), at: "11:26" },
+      { l: P("Tayyorlanmoqda", "Готовится", "Cooking"), at: "11:31" },
+      { l: P("Kuryer yo'lda", "Курьер в пути", "Courier on the way"), at: "11:48" },
+      { l: P("Yetkazildi", "Доставлено", "Delivered"), at: "12:05" },
+    ];
+
+    const FAQ = [
+      { q: P("Yetkazish qancha vaqt oladi?", "Сколько занимает доставка?", "How long does delivery take?"), a: P("Toshkent bo'ylab 25–40 daqiqa. Band soatlarda (19:00–21:00) 15 daqiqagacha uzayadi — buyurtma berganda aniq vaqt ko'rsatiladi.", "По Ташкенту 25–40 минут. В часы пик (19:00–21:00) дольше на 15 минут — точное время видно при заказе.", "25–40 minutes across Tashkent. In peak hours (19:00–21:00) add up to 15 minutes; the exact time shows at checkout.") },
+      { q: P("Yetkazish bepulmi?", "Доставка бесплатная?", "Is delivery free?"), a: P("150 000 so'mdan yuqori buyurtmalar bepul yetkaziladi. Undan pastda 15 000 so'm.", "Заказы свыше 150 000 сум доставляем бесплатно. Ниже — 15 000 сум.", "Orders above 150 000 so'm ship free. Below that it is 15 000 so'm.") },
+      { q: P("Narxda QQS bormi?", "НДС включён в цену?", "Is VAT included?"), a: P("Ha. Menyudagi narx — siz to'laydigan yakuniy narx, QQS 12% uning ichida. Chekda alohida qator bilan ko'rsatiladi.", "Да. Цена в меню — итоговая, НДС 12% уже включён. В чеке он показан отдельной строкой.", "Yes. The menu price is final and includes 12% VAT, which the receipt shows on its own line.") },
+      { q: P("Stolni qanday bandlayman?", "Как забронировать стол?", "How do I book a table?"), a: P("Saytdagi bandlash bo'limidan yoki filial telefoniga qo'ng'iroq qilib. Bandlov 15 daqiqa saqlanadi.", "Через раздел бронирования или по телефону филиала. Бронь держим 15 минут.", "Through the booking section, or by calling the branch. We hold a table for 15 minutes.") },
+      { q: P("Buyurtmani bekor qila olamanmi?", "Можно ли отменить заказ?", "Can I cancel an order?"), a: P("Oshxona tasdiqlaganidan keyin bekor qilinmaydi — taom tayyorlanishga kirgan bo'ladi. Undan oldin telefon orqali bekor qilish mumkin.", "После подтверждения кухней — нет, блюдо уже в работе. До этого можно отменить по телефону.", "Not once the kitchen confirms it — the dish is already being made. Before that, call to cancel.") },
+    ];
+
+    const NAVS = [
+      ["home", P("Bosh sahifa", "Главная", "Home")],
+      ["menu", P("Menyu", "Меню", "Menu")],
+      ["book", P("Stol bandlash", "Бронь стола", "Book a table")],
+      ["track", P("Buyurtmani kuzatish", "Отслеживание", "Track order")],
+      ["about", P("Biz haqimizda", "О нас", "About")],
+    ];
+
+    const at = {};
+    ["home", "menu", "cart", "track", "book", "about"].forEach(k => { at[k] = S.view === k; });
+
+    const go = {};
+    ["home", "menu", "cart", "track", "book", "about"].forEach(k => { go[k] = () => this.setState({ view: k }); });
+
+    const mark = on => on ? "\u2713" : "";
+    const ring = on => on ? "var(--acc)" : "var(--border-strong)";
+    const fill = on => on ? "var(--acc)" : "transparent";
+
+    const FK = { addr: "Chilonzor 24, 3-podyezd", flat: "47", phone: "+998 90 123 45 67", bphone: "+998 90 123 45 67", bname: "Alisher Karimov", bnote: "", snote: "" };
+    const f = {}, fc = {};
+    Object.keys(FK).forEach(k => { f[k] = this.fv(k, FK[k]); fc[k] = this.fset(k); });
+
+    return {
+      f, fc,
+      theme: S.theme,
+      themeIcon: S.theme === "light" ? "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" : "M12 4v2m0 12v2M4 12H2m20 0h-2M6.3 6.3 4.9 4.9m14.2 1.4 1.4-1.4M6.3 17.7l-1.4 1.4m14.2-1.4 1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z",
+      toggleTheme: () => this.setState({ theme: S.theme === "light" ? "dark" : "light" }),
+      isUz: S.lang === "uz", isRu: S.lang === "ru", isEn: S.lang === "en",
+      setUz: () => this.setState({ lang: "uz" }), setRu: () => this.setState({ lang: "ru" }), setEn: () => this.setState({ lang: "en" }),
+
+      at, go,
+      navLinks: NAVS.map(([k, l]) => ({ l, on: S.view === k, go: () => this.setState({ view: k }) })),
+
+      cartCount: String(cartCount), cartHas: cartCount > 0, cartEmpty: cartCount === 0,
+      cartTotalShort: cartCount ? this.f(total) : P("Savat", "Корзина", "Cart"),
+
+      quick: [
+        { l: P("Yetkazish", "Доставка", "Delivery"), d: P("25–40 daqiqa, 150 mingdan bepul", "25–40 минут, от 150 тысяч бесплатно", "25–40 min, free from 150 000"), icon: "M3 7h11v8H3zM14 10h4l3 3v2h-7zM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", go: go.menu },
+        { l: P("Olib ketish", "Самовывоз", "Pickup"), d: P("20 daqiqada tayyor, xizmat haqi yo'q", "Готово за 20 минут, без сервисного сбора", "Ready in 20 min, no service charge"), icon: "M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4zM4 6h16M16 10a4 4 0 0 1-8 0", go: go.menu },
+        { l: P("Stol bandlash", "Бронь стола", "Book a table"), d: P("Zal, ayvon yoki xona — bepul", "Зал, терраса или кабинет — бесплатно", "Hall, terrace or private room — free"), icon: "M8 2v4M16 2v4M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z", go: go.book },
+        { l: P("Katta buyurtma", "Большой заказ", "Large order"), d: P("To'y va yig'in uchun \u00b7 40 kishidan", "Для свадеб и банкетов \u00b7 от 40 человек", "For weddings and events \u00b7 40 people up"), icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75", go: () => this.flash(P("Katta buyurtma uchun +998 71 200 07 00 ga qo'ng'iroq qiling", "Для большого заказа звоните +998 71 200 07 00", "For large orders call +998 71 200 07 00")) },
+      ],
+
+      popular: ["d1", "d6", "d7", "d13"].map(id => {
+        const m = this.dish(id);
+        return {
+          id, n: T(m.n), d: T(m.d), price: this.f(m.p) + " " + som, rate: m.rate,
+          sold: "\u00b7 " + [412, 286, 331, 508][["d1", "d6", "d7", "d13"].indexOf(id)] + " " + P("marta buyurtma", "заказов", "orders"),
+          ph: T(m.n) + " fotosurati",
+          badge: id === "d1" || id === "d13",
+          badgeL: id === "d1" ? P("Eng ko'p buyurtma", "Заказывают чаще всего", "Most ordered") : P("Kuniga uch marta", "Печём трижды в день", "Baked 3× a day"),
+          badgeBg: id === "d1" ? "var(--acc)" : "var(--n-800)",
+          open: () => this.setState({ sheet: id, sheetQty: 1, portion: 0, addons: {} }),
+        };
+      }),
+
+      promises: [
+        { v: "12", h: P("yil bir joyda", "лет на одном месте", "years in one place"), d: P("2014 yildan Chilonzorda. O'sha oshpaz, o'sha qozon.", "С 2014 года в Чиланзаре. Тот же повар, тот же казан.", "In Chilonzor since 2014. Same cook, same kazan.") },
+        { v: "06:00", h: P("da bozorga chiqamiz", "выезжаем на базар", "we leave for the market"), d: P("Go'sht va sabzavot har kuni yangi olinadi, muzlatilgan mahsulot ishlatilmaydi.", "Мясо и овощи покупаем каждый день, замороженное не используем.", "Meat and vegetables bought fresh daily; nothing frozen.") },
+        { v: "4.9", h: P("o'rtacha baho", "средняя оценка", "average rating"), d: P("1 240 mijoz bahosidan. Har bir izoh o'qiladi va javob beriladi.", "На основе 1 240 оценок. Каждый отзыв читаем и отвечаем.", "From 1 240 guest ratings. Every review is read and answered.") },
+      ],
+
+      branches: this.BRANCHES.map(b => ({
+        n: b.n, addr: T(b.addr), hours: b.hours, phone: b.phone, tel: b.phone.replace(/[^+\d]/g, ""),
+        st: b.open ? P("Ochiq", "Открыт", "Open") : P("Yopiq", "Закрыт", "Closed"),
+        stFg: b.open ? "var(--success-700)" : "var(--fg-subtle)",
+        dot: b.open ? "var(--success-500)" : "var(--n-300)",
+      })),
+
+      menuSub: this.MENU.length + " " + P("pozitsiya \u00b7 narxlar QQS bilan \u00b7 kuniga yangilanadi", "позиций \u00b7 цены с НДС \u00b7 обновляются ежедневно", "items \u00b7 prices include VAT \u00b7 updated daily"),
+      query: S.query,
+      onQuery: e => this.setState({ query: e.target.value }),
+      clearQuery: () => this.setState({ query: "", filter: 0 }),
+      filters: FILTERS.map((l, i) => ({ l, on: S.filter === i, go: () => this.setState({ filter: i }) })),
+      cats: this.CATS.map((c, i) => ({
+        l: T(c), n: String(this.MENU.filter(m => m.c === i).length),
+        on: !q && S.cat === i, go: () => this.setState({ cat: i, query: "" }),
+      })),
+      menuEmpty: list.length === 0,
+      dishes: list.map(m => ({
+        id: m.id, n: T(m.n), d: T(m.d), price: this.f(m.p) + " " + som, rate: m.rate,
+        weight: m.w, kcal: m.k, ph: T(m.n) + " fotosurati",
+        off: !!m.off, on: !m.off, hit: !!m.hit && !m.off, op: m.off ? "0.55" : "1",
+        open: () => m.off
+          ? this.flash(P("Bu taom bugun tugagan", "Это блюдо на сегодня закончилось", "This dish has sold out for today"))
+          : this.setState({ sheet: m.id, sheetQty: 1, portion: 0, addons: {} }),
+      })),
+
+      sheetOpen: !!sheetM,
+      stop: e => e.stopPropagation(),
+      closeSheet: () => this.setState({ sheet: null }),
+      sheet: sheetM ? { id: sheetM.id, n: T(sheetM.n), d: T(sheetM.d), rate: sheetM.rate, weight: sheetM.w, kcal: sheetM.k, ph: T(sheetM.n) + " fotosurati" } : { id: "", n: "", d: "", rate: "", weight: "", kcal: "", ph: "" },
+      sheetPortions: PORTIONS.map((p, i) => ({ l: p.l, delta: p.delta, on: S.portion === i, mark: mark(S.portion === i), ring: ring(S.portion === i), fill: fill(S.portion === i), go: () => this.setState({ portion: i }) })),
+      sheetAddons: ADDONS.map(a => {
+        const on = !!S.addons[a.k];
+        return { l: a.l, delta: "+" + this.f(this.ADDON_PRICE[a.k]), on, mark: mark(on), ring: ring(on), fill: fill(on), go: () => this.setState({ addons: { ...S.addons, [a.k]: !on } }) };
+      }),
+      sheetQty: String(S.sheetQty),
+      sheetInc: () => this.setState({ sheetQty: Math.min(20, S.sheetQty + 1) }),
+      sheetDec: () => this.setState({ sheetQty: Math.max(1, S.sheetQty - 1) }),
+      sheetTotal: this.f(sheetPrice * S.sheetQty) + " " + som,
+      sheetAdd: () => {
+        const c = { ...S.cart };
+        const cur = c[S.sheet];
+        c[S.sheet] = { q: (cur ? cur.q : 0) + S.sheetQty, portion: S.portion, addons: { ...S.addons } };
+        this.setState({ cart: c, sheet: null });
+        this.flash(T(sheetM.n) + " \u00b7 " + P("savatga qo'shildi", "добавлено в корзину", "added to the cart"));
+      },
+      oftenWith: (S.sheet === "d1" ? ["d10", "d12", "d14"] : ["d1", "d10", "d15"]).filter(x => x !== S.sheet).map(id => {
+        const m = this.dish(id);
+        return { id, n: T(m.n), price: this.f(m.p) + " " + som, ph: T(m.n) + " fotosurati", open: () => this.setState({ sheet: id, sheetQty: 1, portion: 0, addons: {} }) };
+      }),
+
+      cartSub: cartCount + " " + P("pozitsiya \u00b7 ", "позиций \u00b7 ", "items \u00b7 ") + (S.mode === "pickup" ? P("olib ketish", "самовывоз", "pickup") : P("yetkazish", "доставка", "delivery")),
+      cartLines: cartIds.map(id => {
+        const m = this.dish(id);
+        const line = S.cart[id];
+        const addNames = Object.keys(line.addons || {}).filter(k => line.addons[k]).map(k => T(ADDONS.find(a => a.k === k).l));
+        return {
+          id, n: T(m.n), q: String(line.q), ph: T(m.n) + " fotosurati",
+          meta: [T(PORTIONS[line.portion || 0].l)].concat(addNames).join(" \u00b7 "),
+          sum: this.f(this.linePrice(id, line.portion, line.addons) * line.q),
+          inc: () => this.setState({ cart: { ...S.cart, [id]: { ...line, q: Math.min(20, line.q + 1) } } }),
+          dec: () => {
+            const c = { ...S.cart };
+            if (line.q > 1) c[id] = { ...line, q: line.q - 1 }; else delete c[id];
+            this.setState({ cart: c });
+          },
+        };
+      }),
+
+      isDelivery: S.mode === "delivery", isPickup: S.mode === "pickup",
+      setDelivery: () => this.setState({ mode: "delivery" }),
+      setPickup: () => this.setState({ mode: "pickup" }),
+      feeBg: fee === 0 ? "var(--success-50)" : "var(--acc-soft)",
+      feeDot: fee === 0 ? "var(--success-500)" : "var(--acc)",
+      feeFg: fee === 0 ? "var(--success-700)" : "var(--acc-dark)",
+      deliveryNote: fee === 0
+        ? P("Yetkazish bepul \u00b7 buyurtma 150 000 so'mdan yuqori", "Доставка бесплатно \u00b7 заказ свыше 150 000 сум", "Delivery is free \u00b7 order above 150 000 so'm")
+        : P("Yetkazish 15 000 so'm \u00b7 ", "Доставка 15 000 сум \u00b7 ", "Delivery 15 000 so'm \u00b7 ") + this.f(150000 - sub) + " " + P("so'm qo'shsangiz bepul bo'ladi", "сум до бесплатной", "so'm more and it is free"),
+      pickBranches: this.BRANCHES.filter(b => b.open).map((b, i) => ({
+        n: b.n, addr: T(b.addr), ready: b.ready + P("daq", "мин", "min"),
+        on: S.branch === i, mark: mark(S.branch === i), ring: ring(S.branch === i), fill: fill(S.branch === i),
+        go: () => this.setState({ branch: i }),
+      })),
+      whenOpts: [
+        { v: "0", l: P("Imkon qadar tez \u00b7 25–40 daqiqa", "Как можно скорее \u00b7 25–40 минут", "As soon as possible \u00b7 25–40 min") },
+        { v: "1", l: "13:00" }, { v: "2", l: "14:00" }, { v: "3", l: "19:00" }, { v: "4", l: "20:30" },
+      ],
+      onWhen: e => this.setState({ when: Number(e.target.value) }),
+      pays: [
+        { l: P("Karta", "Карта", "Card"), d: P("Uzcard, Humo, Visa", "Uzcard, Humo, Visa", "Uzcard, Humo, Visa") },
+        { l: "Click", d: P("Ilova orqali", "Через приложение", "Through the app") },
+        { l: "Payme", d: P("QR yoki ilova", "QR или приложение", "QR or app") },
+        { l: P("Naqd", "Наличные", "Cash"), d: P("Kuryerga \u00b7 1000 ga yaxlitlanadi", "Курьеру \u00b7 округляем до 1000", "To the courier \u00b7 rounded to 1000") },
+      ].map((p, i) => ({ l: p.l, d: p.d, on: S.pay === i, mark: mark(S.pay === i), ring: ring(S.pay === i), fill: fill(S.pay === i), go: () => this.setState({ pay: i }) })),
+
+      promo: S.promo,
+      onPromo: e => this.setState({ promo: e.target.value, promoOk: null }),
+      applyPromo: () => {
+        const ok = S.promo.trim().toUpperCase() === "OSH10";
+        this.setState({ promoOk: ok });
+        this.flash(ok ? P("Promokod qo'llanildi \u00b7 10% chegirma", "Промокод применён \u00b7 скидка 10%", "Promo applied \u00b7 10% off") : P("Bunday promokod yo'q", "Такого промокода нет", "No such promo code"));
+      },
+      promoMsg: S.promoOk === null ? "" : S.promoOk
+        ? P("OSH10 \u00b7 10% chegirma qo'llanildi", "OSH10 \u00b7 скидка 10% применена", "OSH10 \u00b7 10% discount applied")
+        : P("Kod topilmadi. OSH10 ni sinab ko'ring.", "Код не найден. Попробуйте OSH10.", "Code not found. Try OSH10."),
+      promoFg: S.promoOk ? "var(--success-700)" : "var(--danger-600)",
+      totals: [
+        { l: P("Taomlar", "Блюда", "Items"), v: this.f(sub), size: "14px", w: "500", fg: "var(--fg-muted)" },
+        { l: S.mode === "pickup" ? P("Olib ketish", "Самовывоз", "Pickup") : P("Yetkazish", "Доставка", "Delivery"), v: fee === 0 ? P("bepul", "бесплатно", "free") : this.f(fee), size: "14px", w: "500", fg: fee === 0 ? "var(--success-700)" : "var(--fg-muted)" },
+      ].concat(disc ? [{ l: P("Chegirma OSH10", "Скидка OSH10", "Discount OSH10"), v: "−" + this.f(disc), size: "14px", w: "600", fg: "var(--success-700)" }] : [])
+        .concat([{ l: P("Jami", "Итого", "Total"), v: this.f(total) + " " + som, size: "22px", w: "700", fg: "var(--fg)" }]),
+      vatNote: P("Shundan QQS 12% \u00b7 ", "В том числе НДС 12% \u00b7 ", "Of which VAT 12% \u00b7 ") + this.f(total - total / 1.12) + " " + som + (S.pay === 3 ? P(" \u00b7 naqd to'lovda ", " \u00b7 при оплате наличными ", " \u00b7 paying cash rounds to ") + this.f(Math.round(total / 1000) * 1000) : ""),
+      placeLabel: P("Buyurtmani tasdiqlash", "Оформить заказ", "Place the order") + " \u00b7 " + this.f(total),
+      placeOrder: () => { this.setState({ view: "track", step: 0 }); this.flash(P("Buyurtma yuborildi \u00b7 oshxona tasdig'i kutilmoqda", "Заказ отправлен \u00b7 ожидаем подтверждения кухни", "Order sent \u00b7 waiting for the kitchen to confirm")); },
+
+      orderName: "#OX-2841", orderNo: "OX-2841",
+      trackSub: P("Chilonzor 24, 3-podyezd, 47-xonadon \u00b7 ", "Чиланзар 24, подъезд 3, кв 47 \u00b7 ", "Chilonzor 24, entrance 3, flat 47 \u00b7 ") + P("kuryer Oybek", "курьер Ойбек", "courier Oybek"),
+      steps: STEPS.map((s, i) => ({
+        l: s.l, at: i <= S.step ? s.at : P("kutilmoqda", "ожидается", "pending"),
+        bg: i <= S.step ? "var(--acc)" : "var(--border)",
+        mark: i < S.step ? "\u2713" : i === S.step ? "\u25CF" : "",
+        ring: i <= S.step ? "var(--acc)" : "var(--border-strong)",
+        fill: i < S.step ? "var(--acc)" : "transparent",
+        fg: i <= S.step ? "var(--fg)" : "var(--fg-subtle)",
+      })),
+      stepNow: T(STEPS[S.step].l),
+      stepEta: S.step >= 4 ? P("Yetkazildi", "Доставлено", "Delivered") : P("Taxminan ", "Примерно ", "About ") + [38, 34, 26, 12, 0][S.step] + " " + P("daqiqa", "минут", "minutes"),
+      advance: () => S.step >= 4
+        ? this.flash(P("Buyurtma yetkazildi. Baho qoldirasizmi?", "Заказ доставлен. Оставите оценку?", "The order was delivered. Leave a rating?"))
+        : this.setState({ step: S.step + 1 }),
+      trackLines: [["d1", 2], ["d10", 1], ["d12", 2], ["d14", 1]].map(([id, n]) => {
+        const m = this.dish(id);
+        return { q: String(n), n: T(m.n), sum: this.f(m.p * n) };
+      }),
+      trackTotal: this.f(45000 * 2 + 18000 + 6000 * 2 + 8000) + " " + som,
+      trackPay: P("Karta bilan to'landi \u00b7 shundan QQS 12% ", "Оплачено картой \u00b7 в том числе НДС 12% ", "Paid by card \u00b7 of which VAT 12% ") + this.f((45000 * 2 + 18000 + 12000 + 8000) - (45000 * 2 + 18000 + 12000 + 8000) / 1.12),
+      courierMeta: P("Moped \u00b7 2.4 km qoldi \u00b7 4.9 baho", "Мопед \u00b7 осталось 2.4 км \u00b7 оценка 4.9", "Moped \u00b7 2.4 km to go \u00b7 4.9 rating"),
+
+      guests: String(S.guests),
+      guestsInc: () => this.setState({ guests: Math.min(20, S.guests + 1) }),
+      guestsDec: () => this.setState({ guests: Math.max(1, S.guests - 1) }),
+      guestsNote: S.guests > 8
+        ? P("8 kishidan yuqori \u00b7 menejer qo'ng'iroq qiladi", "Свыше 8 человек \u00b7 менеджер перезвонит", "Above 8 people \u00b7 the manager will call")
+        : P("Zalda yoki ayvonda", "В зале или на террасе", "In the hall or on the terrace"),
+      bookDays: [
+        { dow: P("Sesh", "Вт", "Tue"), day: "11" }, { dow: P("Chor", "Ср", "Wed"), day: "12" },
+        { dow: P("Pay", "Чт", "Thu"), day: "13" }, { dow: P("Jum", "Пт", "Fri"), day: "14" },
+        { dow: P("Shan", "Сб", "Sat"), day: "15" },
+      ].map((d, i) => ({ dow: d.dow, day: d.day, on: S.bookDay === i, go: () => this.setState({ bookDay: i }) })),
+      bookTimes: ["12:00", "13:00", "14:00", "18:00", "19:00", "19:30", "20:00", "21:00"].map((l, i) => ({
+        l, on: S.bookTime === i, op: i === 4 ? "0.4" : "1",
+        go: () => i === 4
+          ? this.flash(P("19:00 band \u00b7 19:30 ni tanlang", "19:00 занято \u00b7 выберите 19:30", "19:00 is taken \u00b7 try 19:30"))
+          : this.setState({ bookTime: i }),
+      })),
+      bookSummary: [
+        { l: P("Filial", "Филиал", "Branch"), v: this.BRANCHES[S.branch].n },
+        { l: P("Sana", "Дата", "Date"), v: [11, 12, 13, 14, 15][S.bookDay] + " " + P("avgust", "августа", "August") },
+        { l: P("Vaqt", "Время", "Time"), v: ["12:00", "13:00", "14:00", "18:00", "19:00", "19:30", "20:00", "21:00"][S.bookTime] },
+        { l: P("Mehmon", "Гостей", "Guests"), v: String(S.guests) },
+      ],
+      confirmBook: () => this.flash(P("Bandlov yuborildi \u00b7 SMS bilan tasdiqlanadi", "Бронь отправлена \u00b7 подтвердим по SMS", "Booking sent \u00b7 we will confirm by SMS")),
+
+      aboutCards: [
+        { id: "kitchen", h: P("Bitta qozon, bitta oshpaz", "Один казан, один повар", "One kazan, one cook"), d: P("Oshni 2014 yildan buyon Rustam aka damlaydi. Retsept o'zgarmagan.", "Плов с 2014 года готовит Рустам-ака. Рецепт не менялся.", "Rustam aka has cooked the plov since 2014. The recipe has not changed."), ph: "Oshpaz qozon oldida" },
+        { id: "hall", h: P("Zal, ayvon va xona", "Зал, терраса и кабинет", "Hall, terrace and private room"), d: P("120 o'rin. Ayvon bahordan kuzgacha ochiq, xona 12 kishiga.", "120 мест. Терраса открыта с весны до осени, кабинет на 12 человек.", "120 seats. The terrace is open spring to autumn; the room seats 12."), ph: "Zal ichi" },
+        { id: "market", h: P("Har kuni bozorga", "Каждый день на базар", "To the market every day"), d: P("06:00 da Chorsuga chiqamiz. Go'sht muzlatilmaydi, sabzavot o'sha kuni keladi.", "В 06:00 выезжаем на Чорсу. Мясо не морозим, овощи привозим в тот же день.", "We leave for Chorsu at 06:00. Meat is never frozen; vegetables arrive the same day."), ph: "Bozordan olingan mahsulot" },
+      ],
+      faq: FAQ.map((f, i) => ({
+        q: f.q, a: f.a, open: S.faq === i, sign: S.faq === i ? "\u2212" : "+",
+        go: () => this.setState({ faq: S.faq === i ? -1 : i }),
+      })),
+
+      socials: [
+        { l: "Telegram", href: "https://t.me", icon: "m21.5 4.5-3 15.5-6-4.5-3 3v-4.5l9-8-11 6.5-4.5-1.5z" },
+        { l: "Instagram", href: "https://instagram.com", icon: "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM17.5 6.5h.01" },
+        { l: "YouTube", href: "https://youtube.com", icon: "M2.5 8.5a3 3 0 0 1 3-3h13a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-13a3 3 0 0 1-3-3zM10 9.5l5 2.5-5 2.5z" },
+      ],
+      footCols: [
+        { h: P("Filiallar", "Филиалы", "Branches"), rows: this.BRANCHES.map(b => b.n + " \u00b7 " + b.hours) },
+        { h: P("Menyu", "Меню", "Menu"), rows: this.CATS.map(c => T(c)) },
+        { h: P("Aloqa", "Контакты", "Contact"), rows: ["+998 71 200 07 00", "salom@oshxona.uz", "t.me/oshxona", P("Har kuni 10:00 – 23:00", "Ежедневно 10:00 – 23:00", "Daily 10:00 – 23:00")] },
+      ],
+
+      hasToast: !!S.toast, toast: S.toast,
+
+      t: {
+        tagline: P("Toshkent \u00b7 5 filial", "Ташкент \u00b7 5 филиалов", "Tashkent \u00b7 5 branches"),
+        themeT: P("Kunduzgi va tungi rejim", "Светлая и тёмная тема", "Light and dark theme"),
+        openNow: P("Hozir ochiq \u00b7 23:00 gacha", "Сейчас открыто \u00b7 до 23:00", "Open now \u00b7 until 23:00"),
+        heroH: P("Osh ustida gaplashadigan joy", "Место, где говорят за пловом", "The place where talk happens over plov"),
+        heroP: P("Qazili Toshkent oshi, cho'g'da pishirilgan kabob va kuniga uch marta yopiladigan tandir non. Yetkazamiz yoki kutib olamiz.", "Ташкентский плов с казы, шашлык на углях и тандырная лепёшка, которую печём трижды в день. Доставим или встретим.", "Tashkent plov with qazi, charcoal kebab, and tandoor bread baked three times a day. We deliver, or we will meet you at the door."),
+        ratingCount: P("\u00b7 1 240 baho", "\u00b7 1 240 оценок", "\u00b7 1 240 ratings"),
+        eta: P("Yetkazish 25–40 daqiqa", "Доставка 25–40 минут", "Delivery 25–40 min"),
+        freeFrom: P("150 000 so'mdan bepul", "Бесплатно от 150 000 сум", "Free from 150 000 so'm"),
+        ctaOrder: P("Menyuni ochish", "Открыть меню", "Open the menu"),
+        ctaBook: P("Stol bandlash", "Забронировать стол", "Book a table"),
+        popularH: P("Ko'p buyurtma qilinadi", "Заказывают чаще всего", "Ordered most often"),
+        popularP: P("Oxirgi 30 kun ichida", "За последние 30 дней", "Over the last 30 days"),
+        seeAll: P("Butun menyu", "Всё меню", "Full menu"),
+        branchH: P("Filiallar", "Филиалы", "Branches"),
+        branchP: P("Olib ketish va bandlash uchun eng yaqinini tanlang", "Выберите ближайший для самовывоза и брони", "Pick the nearest one for pickup or a booking"),
+        menuH: P("Menyu", "Меню", "Menu"),
+        searchPh: P("Taom nomi bo'yicha qidirish", "Поиск по названию блюда", "Search by dish name"),
+        add: P("Qo'shish", "Добавить", "Add"),
+        soldOut: P("Bugun tugadi", "Закончилось", "Sold out"),
+        hit: P("Xit", "Хит", "Popular"),
+        emptyH: P("Bunday taom topilmadi", "Такое блюдо не найдено", "No dish matches that"),
+        emptyP: P("Nomni boshqacha yozib ko'ring yoki filtrni olib tashlang", "Попробуйте написать иначе или снять фильтр", "Try another spelling, or clear the filter"),
+        emptyCta: P("Filtrni tozalash", "Сбросить фильтр", "Clear the filter"),
+        portion: P("Ulush", "Порция", "Portion"),
+        addons: P("Qo'shimchalar", "Добавки", "Add-ons"),
+        addonsMax: P("Xohlagancha tanlang", "Выбирайте сколько нужно", "Pick as many as you like"),
+        sheetNote: P("Oshpazga izoh", "Комментарий повару", "Note for the kitchen"),
+        sheetNotePh: P("Masalan: kam tuzli, achchiq qalampirsiz", "Например: меньше соли, без острого перца", "For example: less salt, no hot pepper"),
+        addToCart: P("Savatga qo'shish", "В корзину", "Add to cart"),
+        oftenH: P("Odatda shu bilan buyurtma qiladilar", "Обычно заказывают вместе", "Usually ordered together"),
+        cartH: P("Savat", "Корзина", "Cart"),
+        cartEmptyH: P("Savat bo'sh", "Корзина пуста", "The cart is empty"),
+        cartEmptyP: P("Menyudan taom tanlang — narxlar QQS bilan ko'rsatilgan", "Выберите блюда из меню — цены указаны с НДС", "Pick something from the menu — prices include VAT"),
+        addMore: P("Yana taom qo'shish", "Добавить ещё блюдо", "Add another dish"),
+        howH: P("Qanday olasiz", "Как получите", "How you will get it"),
+        delivery: P("Yetkazish", "Доставка", "Delivery"),
+        pickup: P("Olib ketish", "Самовывоз", "Pickup"),
+        addrLbl: P("Manzil", "Адрес", "Address"),
+        flatLbl: P("Xonadon", "Квартира", "Flat"),
+        whenLbl: P("Qachon", "Когда", "When"),
+        phoneLbl: P("Telefon", "Телефон", "Phone"),
+        payH: P("To'lov", "Оплата", "Payment"),
+        sumH: P("Buyurtma", "Заказ", "Your order"),
+        promoPh: P("Promokod", "Промокод", "Promo code"),
+        promoApply: P("Qo'llash", "Применить", "Apply"),
+        placeNote: P("Tasdiqlagandan keyin oshxona 2 daqiqada javob beradi. Shundan keyin bekor qilinmaydi.", "После оформления кухня ответит за 2 минуты. После этого отменить нельзя.", "The kitchen answers within 2 minutes. After that the order cannot be cancelled."),
+        trackH: P("Buyurtma", "Заказ", "Order"),
+        advance: P("Namoyish: keyingi holat", "Демо: следующий статус", "Demo: next status"),
+        orderH: P("Tarkibi", "Состав", "What is in it"),
+        total: P("Jami", "Итого", "Total"),
+        callCourier: P("Qo'ng'iroq", "Позвонить", "Call"),
+        bookH: P("Stol bandlash", "Бронь стола", "Book a table"),
+        bookP: P("Bandlov bepul. Belgilangan vaqtdan 15 daqiqa saqlanadi — kechiksangiz qo'ng'iroq qiling, saqlab turamiz.", "Бронь бесплатна. Держим 15 минут после назначенного времени — если опаздываете, позвоните, сохраним.", "Booking is free. We hold the table for 15 minutes past your time — call if you are late and we will keep it."),
+        bookBranch: P("Filial", "Филиал", "Branch"),
+        bookDay: P("Kun", "День", "Day"),
+        bookTime: P("Vaqt", "Время", "Time"),
+        bookGuests: P("Mehmon soni", "Число гостей", "Guests"),
+        bookName: P("Ism", "Имя", "Name"),
+        bookNote: P("Izoh", "Комментарий", "Note"),
+        bookNotePh: P("Masalan: ayvonda, tug'ilgan kun", "Например: на террасе, день рождения", "For example: on the terrace, a birthday"),
+        bookSumH: P("Bandlov", "Бронь", "Booking"),
+        bookCta: P("Bandlashni tasdiqlash", "Подтвердить бронь", "Confirm the booking"),
+        bookCtaNote: P("SMS keladi. Bekor qilish uchun shu SMS ga javob yozing.", "Придёт SMS. Для отмены ответьте на это SMS.", "You will get an SMS. Reply to it to cancel."),
+        aboutH: P("Biz haqimizda", "О нас", "About us"),
+        aboutP: P("Osh Xona 2014 yilda Chilonzorda bitta qozon bilan ochildi. Bugun besh filial, lekin osh baribir bitta oshpaz qo'lida damlanadi va go'sht har kuni bozordan olinadi.", "Osh Xona открылась в 2014 году в Чиланзаре с одним казаном. Сегодня пять филиалов, но плов по-прежнему готовит один повар, а мясо покупаем на базаре каждый день.", "Osh Xona opened in Chilonzor in 2014 with a single kazan. There are five branches now, but one cook still makes the plov and the meat is bought at the market every day."),
+        faqH: P("Ko'p beriladigan savollar", "Частые вопросы", "Common questions"),
+        footAbout: P("Toshkentda beshta filial. Osh, kabob va tandir non — 2014 yildan buyon o'sha retsept bo'yicha.", "Пять филиалов в Ташкенте. Плов, шашлык и тандырная лепёшка — по тому же рецепту с 2014 года.", "Five branches in Tashkent. Plov, kebab and tandoor bread — the same recipe since 2014."),
+        footRights: P("\u00a9 2026 Osh Xona \u00b7 Barcha huquqlar himoyalangan", "\u00a9 2026 Osh Xona \u00b7 Все права защищены", "\u00a9 2026 Osh Xona \u00b7 All rights reserved"),
+        footPowered: P("Smart Restaurant Cloud da ishlaydi", "Работает на Smart Restaurant Cloud", "Runs on Smart Restaurant Cloud"),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

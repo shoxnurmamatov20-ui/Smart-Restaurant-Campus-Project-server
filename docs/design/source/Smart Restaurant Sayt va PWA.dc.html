@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#F1F3F7}
+a{color:var(--fg-link);text-decoration:none}
+a:hover{color:var(--brand-700)}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+[data-num]{font-variant-numeric:tabular-nums}
+
+[data-theme="light"]{
+--tracking-tight:-.022em;
+--text-2xs:11px;--text-xs:12px;--text-sm:13px;--text-md:15px;--text-lg:17px;--text-xl:20px;--text-2xl:24px;
+--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-pill:999px;
+--n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;--n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+--brand-50:#EEF5FF;--brand-100:#DBE9FE;--brand-200:#BDD7FC;--brand-300:#8DBBF9;--brand-400:#5897F3;--brand-500:#2E74EA;--brand-600:#1C5AD1;--brand-700:#1947A8;
+--success-50:#ECFDF3;--success-500:#12B76A;--success-600:#039855;--success-700:#027A48;
+--warning-50:#FFFAEB;--warning-500:#F79009;--warning-600:#DC6803;--warning-700:#B54708;
+--danger-50:#FEF3F2;--danger-500:#F04438;--danger-600:#D92D20;--danger-700:#B42318;
+--rating-star:#FFB020;
+--bg:#FFFFFF;--bg-subtle:#F8F9FB;--bg-muted:#F1F3F7;--surface:#FFFFFF;--surface-raised:#FFFFFF;
+--fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--fg-disabled:#98A1B0;--fg-link:#1C5AD1;
+--border:#E7EAF0;--border-strong:#D9DEE6;--divider:#F1F3F7;
+--focus-ring:rgba(46,116,234,.55);
+--shadow-xs:0 1px 2px rgba(16,24,40,.04);
+--shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+--shadow-md:0 4px 8px -2px rgba(16,24,40,.06),0 2px 4px -2px rgba(16,24,40,.04);
+--shadow-lg:0 12px 16px -4px rgba(16,24,40,.06),0 4px 6px -2px rgba(16,24,40,.03);
+--shadow-xl:0 20px 24px -4px rgba(16,24,40,.08),0 8px 8px -4px rgba(16,24,40,.03);
+--page:#F1F3F7;
+}
+[data-theme="dark"]{
+--tracking-tight:-.022em;
+--text-2xs:11px;--text-xs:12px;--text-sm:13px;--text-md:15px;--text-lg:17px;--text-xl:20px;--text-2xl:24px;
+--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;--radius-pill:999px;
+--n-0:#0B0E16;--n-25:#0E1119;--n-50:#12161F;--n-100:#1A1F2B;--n-150:#232A38;--n-200:#2E3648;--n-300:#3C465C;--n-400:#566073;--n-500:#79839A;--n-600:#9AA3B4;--n-700:#C3CAD6;--n-800:#DDE2EA;--n-900:#EDF0F5;
+--brand-50:rgba(46,116,234,.13);--brand-100:rgba(46,116,234,.20);--brand-200:rgba(46,116,234,.30);--brand-300:#4D82E0;--brand-400:#5D93EC;--brand-500:#2E74EA;--brand-600:#7FB0FF;--brand-700:#A6C8FF;
+--success-50:rgba(18,183,106,.13);--success-500:#12B76A;--success-600:#3DD68C;--success-700:#5FE3A3;
+--warning-50:rgba(247,144,9,.13);--warning-500:#F79009;--warning-600:#FDB022;--warning-700:#FEC84B;
+--danger-50:rgba(240,68,56,.13);--danger-500:#F04438;--danger-600:#FD8A82;--danger-700:#FDA29B;
+--rating-star:#FFB020;
+--bg:#0B0E16;--bg-subtle:#12161F;--bg-muted:#1A1F2B;--surface:#12161F;--surface-raised:#1A1F2B;
+--fg:#EDF0F5;--fg-muted:#9AA3B4;--fg-subtle:#79839A;--fg-disabled:#566073;--fg-link:#7FB0FF;
+--border:#232A38;--border-strong:#2E3648;--divider:#1C2230;
+--focus-ring:rgba(127,176,255,.55);
+--shadow-xs:none;--shadow-sm:none;--shadow-md:none;--shadow-lg:none;
+--shadow-xl:0 20px 30px -8px rgba(0,0,0,.6);
+--page:#080A11;
+}
+
+[data-acc="a0"]{--acc:#2E74EA;--acc-dark:#1C5AD1;--acc-soft:rgba(46,116,234,.11);--acc-line:rgba(46,116,234,.26)}
+[data-acc="a1"]{--acc:#C2410C;--acc-dark:#9A3412;--acc-soft:rgba(194,65,12,.11);--acc-line:rgba(194,65,12,.26)}
+[data-acc="a2"]{--acc:#0F766E;--acc-dark:#115E59;--acc-soft:rgba(15,118,110,.11);--acc-line:rgba(15,118,110,.26)}
+[data-acc="a3"]{--acc:#1F2533;--acc-dark:#0F1320;--acc-soft:rgba(31,37,51,.10);--acc-line:rgba(31,37,51,.24)}
+[data-theme="dark"][data-acc="a3"]{--acc:#5B6478;--acc-dark:#4C5568;--acc-soft:rgba(91,100,120,.18);--acc-line:rgba(91,100,120,.34)}
+
+[data-fdisp]{font-family:'Inter Tight',system-ui,sans-serif}
+[data-fmono]{font-family:'JetBrains Mono',monospace}
+
+[data-scroll]{scrollbar-width:thin}
+[data-scroll]::-webkit-scrollbar{width:6px;height:6px}
+[data-scroll]::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+[data-scroll]::-webkit-scrollbar-track{background:transparent}
+
+[data-press]{transition:transform 100ms cubic-bezier(.4,0,.2,1),filter 100ms cubic-bezier(.4,0,.2,1),background 120ms cubic-bezier(.4,0,.2,1),border-color 120ms cubic-bezier(.4,0,.2,1)}
+[data-press]:active{transform:scale(.975);filter:brightness(.96)}
+[data-press]:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+[data-seg][data-active="true"]{background:var(--surface) !important;color:var(--fg) !important;box-shadow:var(--shadow-xs)}
+[data-tab][data-active="true"]{color:var(--acc) !important;border-bottom-color:var(--acc) !important}
+[data-row]:hover{background:var(--bg-subtle)}
+[data-chip][data-active="true"]{background:var(--acc) !important;color:#fff !important;border-color:var(--acc) !important}
+[data-tenant][data-active="true"]{border-color:var(--acc) !important;background:var(--acc-soft) !important}
+
+@keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+[data-anim="up"]{animation:slideUp 320ms cubic-bezier(.4,0,.2,1) both}
+[data-anim="fade"]{animation:fade 200ms cubic-bezier(.4,0,.2,1) both}
+
+image-slot{--is-bg:var(--bg-muted);--is-fg:var(--fg-subtle);--is-border:transparent}
+
+@media (max-width:1180px){[data-split]{grid-template-columns:1fr !important}[data-split]>[data-sticky]{position:static !important}}
+@media (max-width:640px){[data-pad]{padding-left:16px !important;padding-right:16px !important}[data-frame]{width:100% !important;max-width:390px;border-radius:0 !important;border-left:0 !important;border-right:0 !important}}
+</style>
+</helmet>
+
+<div data-theme="{{theme}}" data-acc="{{accKey}}" style="min-height:100vh;background:var(--page);color:var(--fg);padding:24px 20px 56px">
+
+  <div data-pad="1" style="max-width:1320px;margin:0 auto">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div style="min-width:0">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span data-fdisp="1" style="width:28px;height:28px;border-radius:8px;background:var(--brand-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:-.02em">SR</span>
+          <span style="font-size:var(--text-xs);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.eyebrow}}</span>
+        </div>
+        <h1 data-fdisp="1" style="margin:12px 0 0;font-size:30px;font-weight:700;letter-spacing:-.022em;line-height:1.14">{{t.h1}}</h1>
+        <p style="margin:8px 0 0;font-size:15px;line-height:1.55;color:var(--fg-muted);max-width:660px;text-wrap:pretty">{{t.lede}}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex:none">
+        <div style="display:flex;gap:2px;padding:3px;background:var(--bg-muted);border-radius:9px">
+          <button onClick="{{setUz}}" data-seg="1" data-active="{{isUz}}" data-press="1" style="height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">UZ</button>
+          <button onClick="{{setRu}}" data-seg="1" data-active="{{isRu}}" data-press="1" style="height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">RU</button>
+          <button onClick="{{setEn}}" data-seg="1" data-active="{{isEn}}" data-press="1" style="height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">EN</button>
+        </div>
+        <button aria-label="Yorug‘ va tungi rejim" title="Yorug‘ va tungi rejim" onClick="{{toggleTheme}}" data-press="1" style="width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2"></path><path d="M12 19v2"></path><path d="M5 12H3"></path><path d="M21 12h-2"></path><path d="m6.3 6.3-1.4-1.4"></path><path d="m19.1 19.1-1.4-1.4"></path><path d="m6.3 17.7-1.4 1.4"></path><path d="m19.1 4.9-1.4 1.4"></path><circle cx="12" cy="12" r="3.6"></circle></svg>
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:11px;margin-top:22px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.tenantLbl}}</span>
+      <sc-for list="{{tenants}}" as="x" hint-placeholder-count="3">
+        <button onClick="{{x.pick}}" data-tenant="1" data-active="{{x.on}}" data-press="1" style="display:flex;align-items:center;gap:9px;height:40px;padding:0 14px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--surface);color:var(--fg)">
+          <span data-fdisp="1" style="width:24px;height:24px;flex:none;border-radius:7px;background:{{x.dot}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800">{{x.init}}</span>
+          <span style="font-size:13px;font-weight:600">{{x.name}}</span>
+          <span data-fmono="1" style="font-size:11px;color:var(--fg-subtle)">{{x.sub}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div data-split="1" style="display:grid;grid-template-columns:1fr 430px;gap:26px;margin-top:26px;align-items:start">
+
+      <div style="display:grid;gap:18px;min-width:0">
+
+        <section style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid var(--divider);flex-wrap:wrap">
+            <div style="min-width:0">
+              <h2 data-fdisp="1" style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.012em">{{t.addrH}}</h2>
+              <p style="margin:4px 0 0;font-size:13px;color:var(--fg-subtle)">{{t.addrP}}</p>
+            </div>
+            <span style="display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:var(--radius-pill);background:{{pubBg}};font-size:11px;font-weight:600;color:{{pubFg}};flex:none">
+              <span style="width:6px;height:6px;border-radius:999px;background:{{pubDot}}"></span>{{pubLabel}}
+            </span>
+          </div>
+
+          <div style="padding:20px 22px">
+            <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">{{t.subLbl}}</label>
+            <div style="display:flex;align-items:stretch;border:1px solid {{subBorder}};border-radius:10px;overflow:hidden;background:var(--bg-subtle)">
+              <input value="{{subVal}}" onInput="{{onSub}}" placeholder="oshxona" data-fmono="1" style="flex:1;min-width:0;height:46px;padding:0 14px;border:0;background:transparent;font-size:15px;font-weight:500;color:var(--fg);outline:none">
+              <span data-fmono="1" style="display:flex;align-items:center;padding:0 14px;background:var(--bg-muted);border-left:1px solid var(--border);font-size:14px;color:var(--fg-subtle);white-space:nowrap">.smartrestaurant.uz</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:9px;min-height:20px">
+              <sc-if value="{{subOk}}" hint-placeholder-val="{{true}}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+                <span style="font-size:12px;font-weight:600;color:var(--success-700)">{{subMsg}}</span>
+              </sc-if>
+              <sc-if value="{{subBad}}" hint-placeholder-val="{{false}}">
+                <span style="width:14px;height:14px;flex:none;border-radius:999px;background:var(--danger-500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800">!</span>
+                <span style="font-size:12px;font-weight:600;color:var(--danger-700)">{{subMsg}}</span>
+              </sc-if>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+              <sc-for list="{{subIdeas}}" as="s" hint-placeholder-count="3">
+                <button onClick="{{s.pick}}" data-press="1" data-fmono="1" style="height:30px;padding:0 11px;border:1px dashed var(--border-strong);border-radius:var(--radius-pill);background:transparent;color:var(--fg-muted);font-size:12px">{{s.l}}</button>
+              </sc-for>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px">
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">{{t.accLbl}}</label>
+                <div style="display:flex;gap:8px">
+                  <sc-for list="{{accents}}" as="a" hint-placeholder-count="4">
+                    <button onClick="{{a.pick}}" data-press="1" title="{{a.name}}" style="width:38px;height:38px;border:2px solid {{a.ring}};border-radius:10px;background:{{a.hex}};display:flex;align-items:center;justify-content:center;color:#fff">
+                      <span style="font-size:11px;font-weight:800">{{a.mark}}</span>
+                    </button>
+                  </sc-for>
+                </div>
+                <div style="font-size:11px;color:var(--fg-subtle);margin-top:7px">{{accNote}}</div>
+              </div>
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600;margin-bottom:8px">{{t.langLbl}}</label>
+                <div style="display:flex;gap:7px">
+                  <sc-for list="{{siteLangs}}" as="l" hint-placeholder-count="3">
+                    <button onClick="{{l.toggle}}" data-press="1" style="height:38px;padding:0 14px;border:1px solid {{l.border}};border-radius:10px;background:{{l.bg}};color:{{l.fg}};font-size:13px;font-weight:600">{{l.l}}</button>
+                  </sc-for>
+                </div>
+                <div style="font-size:11px;color:var(--fg-subtle);margin-top:7px">{{t.langNote}}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <div style="padding:18px 22px;border-bottom:1px solid var(--divider)">
+            <h2 data-fdisp="1" style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.012em">{{t.secH}}</h2>
+            <p style="margin:4px 0 0;font-size:13px;color:var(--fg-subtle)">{{t.secP}}</p>
+          </div>
+          <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+            <button onClick="{{s.toggle}}" data-row="1" data-press="1" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 22px;border:0;border-bottom:1px solid var(--divider);background:transparent;color:var(--fg)">
+              <span style="width:38px;height:22px;flex:none;border-radius:999px;background:{{s.trackBg}};padding:2px;display:flex;justify-content:{{s.justify}};transition:background 120ms cubic-bezier(.4,0,.2,1)">
+                <span style="width:18px;height:18px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.2)"></span>
+              </span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:14px;font-weight:600">{{s.name}}</span>
+                <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:2px;line-height:1.45">{{s.note}}</span>
+              </span>
+              <sc-if value="{{s.locked}}" hint-placeholder-val="{{false}}">
+                <span style="flex:none;font-size:10px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--bg-muted);color:var(--fg-subtle)">{{always}}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+          <div style="padding:16px 22px;font-size:12px;color:var(--fg-subtle);line-height:1.55">{{t.secNote}}</div>
+        </section>
+
+        <section style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          <div style="padding:18px 22px;border-bottom:1px solid var(--divider)">
+            <h2 data-fdisp="1" style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.012em">{{t.pwaH}}</h2>
+            <p style="margin:4px 0 0;font-size:13px;color:var(--fg-subtle)">{{t.pwaP}}</p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--divider)">
+            <sc-for list="{{pwaFacts}}" as="f" hint-placeholder-count="4">
+              <div style="background:var(--surface);padding:16px 20px">
+                <div data-fdisp="1" data-num="1" style="font-size:22px;font-weight:700;letter-spacing:-.02em;color:{{f.color}}">{{f.v}}</div>
+                <div style="font-size:12px;font-weight:600;margin-top:4px">{{f.l}}</div>
+                <div style="font-size:11px;color:var(--fg-subtle);margin-top:3px;line-height:1.45">{{f.note}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:18px 22px;border-top:1px solid var(--divider)">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin-bottom:10px">{{manifestLbl}}</div>
+            <div data-fmono="1" data-scroll="1" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:11.5px;line-height:1.7;color:var(--fg-muted);overflow-x:auto;white-space:pre">{{manifest}}</div>
+            <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:11px">{{manifestNote}}</div>
+          </div>
+        </section>
+
+        <section style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+          <h2 data-fdisp="1" style="margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.012em">{{t.cmpH}}</h2>
+          <p style="margin:0 0 16px;font-size:13px;color:var(--fg-subtle)">{{t.cmpP}}</p>
+          <div style="display:grid;gap:1px;background:var(--divider);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;background:var(--bg-subtle)">
+              <span style="padding:11px 14px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">{{cmpCol0}}</span>
+              <span style="padding:11px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)">{{cmpCol1}}</span>
+              <span style="padding:11px 14px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">{{cmpCol2}}</span>
+            </div>
+            <sc-for list="{{compare}}" as="cmp" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;background:var(--surface)">
+                <span style="padding:12px 14px;font-size:13px;font-weight:500">{{cmp.k}}</span>
+                <span style="padding:12px 14px;font-size:13px;font-weight:600;color:var(--success-700)">{{cmp.a}}</span>
+                <span style="padding:12px 14px;font-size:13px;color:var(--fg-muted)">{{cmp.b}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+          <h2 data-fdisp="1" style="margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.012em">{{t.limH}}</h2>
+          <p style="margin:0 0 15px;font-size:13px;color:var(--fg-subtle);line-height:1.55">{{t.limP}}</p>
+          <div style="display:grid;gap:11px">
+            <sc-for list="{{limits}}" as="l" hint-placeholder-count="4">
+              <div style="display:flex;gap:11px;align-items:flex-start">
+                <span style="width:7px;height:7px;flex:none;border-radius:999px;background:{{l.dot}};margin-top:6px"></span>
+                <div style="min-width:0">
+                  <div style="font-size:13px;font-weight:600">{{l.k}}</div>
+                  <div style="font-size:12px;color:var(--fg-muted);line-height:1.5;margin-top:2px">{{l.v}}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+      </div>
+
+      <div data-sticky="1" style="position:sticky;top:24px;min-width:0">
+
+        <div style="display:flex;gap:2px;padding:3px;background:var(--bg-muted);border-radius:10px;margin-bottom:14px">
+          <button onClick="{{goSite}}" data-seg="1" data-active="{{atSite}}" data-press="1" style="flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{t.stgSite}}</button>
+          <button onClick="{{goInstall}}" data-seg="1" data-active="{{atInstall}}" data-press="1" style="flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{t.stgInstall}}</button>
+          <button onClick="{{goHome}}" data-seg="1" data-active="{{atHome}}" data-press="1" style="flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{t.stgHome}}</button>
+          <button onClick="{{goApp}}" data-seg="1" data-active="{{atApp}}" data-press="1" style="flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{t.stgApp}}</button>
+        </div>
+
+        <div data-frame="1" style="width:390px;height:816px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border-strong);border-radius:26px;overflow:hidden;box-shadow:var(--shadow-xl)">
+
+          <sc-if value="{{chromeOn}}" hint-placeholder-val="{{true}}">
+            <div style="flex:none;background:var(--bg-muted);border-bottom:1px solid var(--border)">
+              <div style="height:40px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 4px;font-size:11px;font-weight:600;color:var(--fg-muted)"><span data-num="1">11:24</span><span>····· ▮</span></div>
+              <div style="display:flex;align-items:center;gap:9px;padding:6px 12px 9px">
+                <span style="width:26px;height:26px;flex:none;border-radius:7px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--fg-subtle)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"></path></svg>
+                </span>
+                <div style="flex:1;min-width:0;height:30px;display:flex;align-items:center;gap:7px;padding:0 11px;background:var(--surface);border:1px solid var(--border);border-radius:999px">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2" stroke-linecap="round" style="flex:none"><rect x="4" y="10.5" width="16" height="10.5" rx="2"></rect><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"></path></svg>
+                  <span data-fmono="1" style="flex:1;min-width:0;font-size:11.5px;color:var(--fg-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{fullUrl}}</span>
+                </div>
+                <span style="width:26px;height:26px;flex:none;display:flex;align-items:center;justify-content:center;color:var(--fg-subtle)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5.5" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="12" cy="18.5" r="1.4"></circle></svg>
+                </span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{standalone}}" hint-placeholder-val="{{false}}">
+            <div style="flex:none;height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 6px;background:var(--acc);color:#fff;font-size:11px;font-weight:600"><span data-num="1">11:24</span><span>····· ▮</span></div>
+          </sc-if>
+
+          <sc-if value="{{atHome}}" hint-placeholder-val="{{false}}">
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(170deg,#1E2A3D 0%,#0C1119 100%);padding:0 22px 26px">
+              <div style="flex:none;height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 0 6px;color:rgba(255,255,255,.9);font-size:11px;font-weight:600"><span data-num="1">11:24</span><span>····· ▮</span></div>
+              <div style="text-align:center;padding:26px 0 22px">
+                <div data-fdisp="1" data-num="1" style="font-size:52px;font-weight:700;letter-spacing:-.03em;color:#fff;line-height:1">11:24</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.62);margin-top:2px">{{homeDate}}</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px 14px">
+                <sc-for list="{{homeIcons}}" as="i" hint-placeholder-count="8">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                    <span data-fdisp="1" data-anim="{{i.anim}}" style="width:58px;height:58px;border-radius:15px;background:{{i.bg}};color:{{i.fg}};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;letter-spacing:-.02em;box-shadow:0 4px 10px rgba(0,0,0,.28);border:{{i.border}}">{{i.mark}}</span>
+                    <span style="font-size:10.5px;color:rgba(255,255,255,.86);text-align:center;line-height:1.25;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{i.l}}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:auto;padding-top:22px">
+                <div style="border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.09);border-radius:15px;padding:14px 15px;backdrop-filter:blur(12px)">
+                  <div style="font-size:13px;font-weight:600;color:#fff;line-height:1.35">{{homeH}}</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.66);margin-top:4px;line-height:1.5">{{homeP}}</div>
+                  <button onClick="{{goApp}}" data-press="1" style="width:100%;height:42px;margin-top:12px;border:0;border-radius:11px;background:var(--acc);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{homeCta}}</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{contentOn}}" hint-placeholder-val="{{true}}">
+            <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;position:relative">
+
+              <div style="position:relative;height:196px">
+                <image-slot id="pwa-hero-{{brandKey}}" shape="rect" placeholder="Restoran fotosurati — zal yoki asosiy taom"></image-slot>
+              </div>
+
+              <div style="padding:16px 18px 0">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <div style="min-width:0">
+                    <h2 data-fdisp="1" style="margin:0;font-size:23px;font-weight:700;letter-spacing:-.022em;line-height:1.18">{{biz.name}}</h2>
+                    <div style="font-size:13px;color:var(--fg-muted);margin-top:4px">{{biz.kind}}</div>
+                  </div>
+                  <span style="flex:none;display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:{{biz.openBg}};font-size:11px;font-weight:600;color:{{biz.openFg}}">
+                    <span style="width:6px;height:6px;border-radius:999px;background:{{biz.openDot}}"></span>{{biz.open}}
+                  </span>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:5px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--rating-star)" style="flex:none"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4 6.2 20.5l1.1-6.5L2.6 9.4l6.5-.9z"></path></svg>
+                    <span data-num="1" style="font-size:13px;font-weight:700">{{biz.rating}}</span>
+                    <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{biz.reviews}}</span>
+                  </span>
+                  <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{biz.dist}}</span>
+                  <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{biz.eta}}</span>
+                </div>
+              </div>
+
+              <sc-if value="{{bannerOn}}" hint-placeholder-val="{{true}}">
+                <div data-anim="up" style="margin:16px 18px 0;display:flex;align-items:center;gap:12px;padding:13px 14px;border:1px solid var(--acc-line);background:var(--acc-soft);border-radius:14px">
+                  <span data-fdisp="1" style="width:38px;height:38px;flex:none;border-radius:11px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.02em">{{biz.init}}</span>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;line-height:1.3">{{instH}}</div>
+                    <div style="font-size:11.5px;color:var(--fg-muted);margin-top:2px;line-height:1.4">{{instP}}</div>
+                  </div>
+                  <button onClick="{{goInstall}}" data-press="1" style="flex:none;height:34px;padding:0 14px;border:0;border-radius:9px;background:var(--acc);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center">{{instCta}}</button>
+                </div>
+              </sc-if>
+
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:18px 18px 0">
+                <sc-for list="{{quick}}" as="q" hint-placeholder-count="4">
+                  <button onClick="{{q.go}}" data-press="1" style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 6px;border:1px solid var(--border);border-radius:13px;background:var(--surface);color:var(--fg)">
+                    <span style="color:var(--acc)">{{q.icon}}</span>
+                    <span style="font-size:11px;font-weight:600;text-align:center;line-height:1.2">{{q.l}}</span>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div style="padding:26px 18px 0">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                  <h3 data-fdisp="1" style="margin:0;font-size:17px;font-weight:700;letter-spacing:-.012em">{{menuH}}</h3>
+                  <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{menuCount}}</span>
+                </div>
+                <div data-scroll="1" style="display:flex;gap:7px;overflow-x:auto;padding:12px 0 4px">
+                  <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+                    <button onClick="{{c.pick}}" data-chip="1" data-active="{{c.on}}" data-press="1" style="flex:none;height:32px;padding:0 13px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--fg-muted);font-size:12px;font-weight:600">{{c.l}}</button>
+                  </sc-for>
+                </div>
+                <sc-for list="{{dishes}}" as="d" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--divider);opacity:{{d.op}}">
+                    <span style="width:56px;height:56px;flex:none;border-radius:11px;overflow:hidden;background:var(--bg-muted)">
+                      <image-slot id="pwa-dish-{{d.slot}}" shape="rect" placeholder="Taom"></image-slot>
+                    </span>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{d.n}}</div>
+                      <div style="font-size:11.5px;color:var(--fg-subtle);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{d.desc}}</div>
+                    </div>
+                    <div style="flex:none;text-align:right">
+                      <div data-num="1" style="font-size:13.5px;font-weight:700">{{d.price}}</div>
+                      <sc-if value="{{d.off}}" hint-placeholder-val="{{false}}">
+                        <div style="font-size:10px;font-weight:700;color:var(--danger-700);margin-top:4px">{{soldOut}}</div>
+                      </sc-if>
+                      <sc-if value="{{d.on}}" hint-placeholder-val="{{true}}">
+                        <button onClick="{{d.add}}" data-press="1" style="width:30px;height:30px;margin-top:5px;border:0;border-radius:9px;background:var(--acc);color:#fff;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-left:auto">+</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="padding:26px 18px 0">
+                <h3 data-fdisp="1" style="margin:0 0 12px;font-size:17px;font-weight:700;letter-spacing:-.012em">{{brH}}</h3>
+                <sc-for list="{{branches}}" as="b" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--divider)">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:14px;font-weight:600">{{b.n}}</div>
+                      <div style="font-size:11.5px;color:var(--fg-subtle);margin-top:2px">{{b.addr}}</div>
+                    </div>
+                    <span data-num="1" style="flex:none;font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;background:{{b.bg}};color:{{b.fg}}">{{b.st}}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="padding:26px 18px 0">
+                <h3 data-fdisp="1" style="margin:0 0 12px;font-size:17px;font-weight:700;letter-spacing:-.012em">{{revH}}</h3>
+                <sc-for list="{{reviews}}" as="rev" hint-placeholder-count="2">
+                  <div style="border:1px solid var(--border);border-radius:13px;padding:14px 15px;margin-bottom:10px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <span style="width:30px;height:30px;flex:none;border-radius:50%;background:var(--bg-muted);color:var(--fg-muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{rev.init}}</span>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:13px;font-weight:600">{{rev.n}}</div>
+                        <div data-num="1" style="font-size:11px;color:var(--fg-subtle);margin-top:1px">{{rev.when}}</div>
+                      </div>
+                      <span data-num="1" style="flex:none;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--rating-star)"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4 6.2 20.5l1.1-6.5L2.6 9.4l6.5-.9z"></path></svg>{{rev.rate}}
+                      </span>
+                    </div>
+                    <div style="font-size:12.5px;color:var(--fg-muted);line-height:1.5;margin-top:9px">{{rev.txt}}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="margin:26px 18px 22px;padding:18px;border-radius:14px;background:var(--bg-subtle);border:1px solid var(--border)">
+                <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">{{ftLbl}}</div>
+                <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:8px">{{biz.hours}}</div>
+                <div data-fmono="1" style="font-size:12.5px;font-weight:600;margin-top:8px">{{biz.phone}}</div>
+                <div style="font-size:11px;color:var(--fg-subtle);line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">{{poweredBy}}</div>
+              </div>
+
+            </div>
+          </sc-if>
+
+          <sc-if value="{{atInstall}}" hint-placeholder-val="{{false}}">
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(15,19,32,.42);justify-content:flex-end">
+              <div data-anim="up" style="background:var(--surface);border-radius:22px 22px 0 0;padding:8px 0 22px">
+                <div style="width:38px;height:4px;border-radius:999px;background:var(--border-strong);margin:0 auto 16px"></div>
+                <div style="padding:0 20px">
+                  <div style="display:flex;align-items:center;gap:13px">
+                    <span data-fdisp="1" style="width:52px;height:52px;flex:none;border-radius:14px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;letter-spacing:-.02em">{{biz.init}}</span>
+                    <div style="min-width:0">
+                      <div data-fdisp="1" style="font-size:17px;font-weight:700;letter-spacing:-.012em">{{biz.name}}</div>
+                      <div data-fmono="1" style="font-size:11.5px;color:var(--fg-subtle);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{shortUrl}}</div>
+                    </div>
+                  </div>
+
+                  <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:16px">{{sheetP}}</div>
+
+                  <div style="display:grid;gap:11px;margin-top:18px">
+                    <sc-for list="{{sheetRows}}" as="sh" hint-placeholder-count="3">
+                      <div style="display:flex;gap:11px;align-items:flex-start">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M20 6 9 17l-5-5"></path></svg>
+                        <span style="font-size:13px;color:var(--fg);line-height:1.45;min-width:0">{{sh.l}}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+
+                  <div style="display:flex;gap:10px;margin-top:22px">
+                    <button onClick="{{goSite}}" data-press="1" style="flex:1;height:48px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface);color:var(--fg);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">{{sheetNo}}</button>
+                    <button onClick="{{doInstall}}" data-press="1" style="flex:1.4;height:48px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center">{{sheetYes}}</button>
+                  </div>
+                  <div style="font-size:11px;color:var(--fg-subtle);line-height:1.5;margin-top:12px">{{sheetNote}}</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{standalone}}" hint-placeholder-val="{{false}}">
+            <div style="flex:none;display:flex;align-items:center;gap:10px;padding:11px 18px;background:var(--acc);color:#fff">
+              <span data-fdisp="1" style="width:26px;height:26px;flex:none;border-radius:7px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">{{biz.init}}</span>
+              <span style="flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{biz.name}}</span>
+              <span style="flex:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.2)">{{standaloneLabel}}</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{dockOn}}" hint-placeholder-val="{{true}}">
+            <div style="flex:none;height:58px;display:flex;border-top:1px solid var(--border);background:var(--surface)">
+              <sc-for list="{{dock}}" as="d" hint-placeholder-count="4">
+                <button onClick="{{d.go}}" data-press="1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:{{d.fg}};padding:0">
+                  {{d.icon}}
+                  <span style="font-size:9.5px;font-weight:600;text-align:center">{{d.l}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+        </div>
+
+        <div style="max-width:390px;margin:12px auto 0;font-size:11.5px;color:var(--fg-subtle);line-height:1.55;text-align:center">{{stageNote}}</div>
+      </div>
+
+    </div>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:300;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:var(--n-0);box-shadow:var(--shadow-xl);font-size:13.5px;font-weight:500;max-width:min(560px,calc(100vw - 40px))">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success-500)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:1180},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;uz&quot;,&quot;ru&quot;,&quot;en&quot;],&quot;default&quot;:&quot;uz&quot;,&quot;tsType&quot;:&quot;'uz' | 'ru' | 'en'&quot;,&quot;section&quot;:&quot;Til va tema&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Til va tema&quot;}}">
+class Component extends DCLogic {
+  state = {
+    lang: null, theme: null, brand: "smart", stage: "site",
+    sub: null, acc: null, langs: null, off: null, cat: 0, installed: false, toast: "",
+  };
+
+  L(v) { return v && typeof v === "object" && v.en !== undefined ? (v[this.lang()] || v.en) : v; }
+  lang() { return this.state.lang || this.props.lang || "uz"; }
+  theme() { return this.state.theme || this.props.theme || "light"; }
+
+  flash(msg) {
+    clearTimeout(this._t);
+    this.setState({ toast: msg });
+    this._t = setTimeout(() => this.setState({ toast: "" }), 2800);
+  }
+
+  f(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009"); }
+
+  ico(p, c) {
+    return React.createElement("svg", {
+      width: 19, height: 19, viewBox: "0 0 24 24", fill: "none",
+      stroke: c || "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round",
+      dangerouslySetInnerHTML: { __html: p },
+    });
+  }
+
+  TENANTS = [
+    {
+      key: "smart", init: "SR", dot: "#2E74EA", sub: "smart", acc: 0,
+      name: "Smart Restaurant",
+      kind: { uz: "Milliy oshxona · burger · pitsa", ru: "Национальная кухня · бургеры · пицца", en: "Uzbek kitchen · burgers · pizza" },
+      rating: "4.7", ratedBy: { uz: "812 baho", ru: "812 оценок", en: "812 ratings" },
+      hours: { uz: "Har kuni 10:00 – 23:00 · yakshanba 11:00 – 22:00", ru: "Ежедневно 10:00 – 23:00 · воскресенье 11:00 – 22:00", en: "Daily 10:00 – 23:00 · Sunday 11:00 – 22:00" },
+      phone: "+998 71 200 40 40",
+      branches: [
+        { n: "Chilonzor", addr: { uz: "Chilonzor 19, Bunyodkor 42", ru: "Чиланзар 19, Бунёдкор 42", en: "Chilonzor 19, Bunyodkor 42" }, open: true },
+        { n: "Yunusobod", addr: { uz: "Amir Temur 108", ru: "Амира Темура 108", en: "Amir Temur 108" }, open: true },
+        { n: "Termiz", addr: { uz: "Al-Termiziy 14", ru: "Ат-Термези 14", en: "Al-Termiziy 14" }, open: false },
+      ],
+      dishes: [
+        { n: { uz: "Osh, to'y oshi", ru: "Плов свадебный", en: "Plov, wedding style" }, desc: { uz: "Devzira guruch, mol go'shti, sarimsoq, zira", ru: "Рис девзира, говядина, чеснок, зира", en: "Devzira rice, beef, garlic, cumin" }, p: 48000, off: false, c: 0 },
+        { n: { uz: "Achchiq lag'mon", ru: "Острый лагман", en: "Spicy lagman" }, desc: { uz: "Qo'lda cho'zilgan xamir, mol go'shti, sabzavot", ru: "Тянутое тесто, говядина, овощи", en: "Hand-pulled noodles, beef, vegetables" }, p: 42000, off: false, c: 0 },
+        { n: { uz: "Manti, 5 dona", ru: "Манты, 5 шт", en: "Manti, 5 pcs" }, desc: { uz: "Mol go'shti va piyoz, bug'da pishirilgan", ru: "Говядина и лук, на пару", en: "Beef and onion, steamed" }, p: 38000, off: false, c: 0 },
+        { n: { uz: "Chizburger", ru: "Чизбургер", en: "Cheeseburger" }, desc: { uz: "Mol go'shti kotleti, chedder, achchiq sous", ru: "Котлета из говядины, чеддер, острый соус", en: "Beef patty, cheddar, hot sauce" }, p: 39000, off: true, c: 1 },
+        { n: { uz: "Double beef", ru: "Double beef", en: "Double beef" }, desc: { uz: "Ikki kotlet, ikki qavat chedder", ru: "Две котлеты, двойной чеддер", en: "Two patties, double cheddar" }, p: 58000, off: false, c: 1 },
+        { n: { uz: "Margherita, 30 sm", ru: "Маргарита 30 см", en: "Margherita 30 cm" }, desc: { uz: "Mozzarella, pomidor sousi, rayhon", ru: "Моцарелла, томатный соус, базилик", en: "Mozzarella, tomato sauce, basil" }, p: 56000, off: false, c: 2 },
+        { n: { uz: "Tovuqli lavash", ru: "Лаваш с курицей", en: "Chicken lavash" }, desc: { uz: "Tovuq filesi, sarimsoqli sous, kartoshka", ru: "Куриное филе, чесночный соус, картофель", en: "Chicken fillet, garlic sauce, fries" }, p: 32000, off: false, c: 3 },
+        { n: { uz: "Ko'k choy", ru: "Зелёный чай", en: "Green tea" }, desc: { uz: "Choynak · 4 piyola", ru: "Чайник · 4 пиалы", en: "Pot · 4 cups" }, p: 8000, off: false, c: 4 },
+      ],
+      reviews: [
+        { init: "AK", n: "Alisher K.", when: { uz: "3 kun oldin", ru: "3 дня назад", en: "3 days ago" }, rate: "5.0", txt: { uz: "Osh haqiqiy to'y oshi ta'mida. Kutish 12 daqiqa, ofitsiant taomni o'zi tushuntirib berdi.", ru: "Плов с настоящим свадебным вкусом. Ожидание 12 минут, официант сам всё объяснил.", en: "The plov tastes like a real wedding plov. Twelve minutes' wait, and the waiter explained the dish himself." } },
+        { init: "MN", n: "Malika N.", when: { uz: "1 hafta oldin", ru: "неделю назад", en: "a week ago" }, rate: "4.0", txt: { uz: "Ovqat yaxshi, lekin shanba kuni stol topish qiyin. Oldindan bandlash kerak.", ru: "Еда хорошая, но в субботу сложно найти стол. Лучше бронировать заранее.", en: "Good food, but hard to find a table on Saturday. Book ahead." } },
+      ],
+    },
+    {
+      key: "osh", init: "OX", dot: "#C2410C", sub: "oshxona", acc: 1,
+      name: "Osh Xona",
+      kind: { uz: "Osh markazi · milliy taomlar", ru: "Центр плова · национальная кухня", en: "Plov house · Uzbek kitchen" },
+      rating: "4.9", ratedBy: { uz: "1 240 baho", ru: "1 240 оценок", en: "1,240 ratings" },
+      hours: { uz: "Har kuni 08:00 – 16:00 · osh tugagach yopiladi", ru: "Ежедневно 08:00 – 16:00 · закрываемся, когда плов заканчивается", en: "Daily 08:00 – 16:00 · we close when the plov runs out" },
+      phone: "+998 71 244 18 18",
+      branches: [
+        { n: { uz: "Beshqayrag'och", ru: "Бешкайрагач", en: "Beshqayrag'och" }, addr: { uz: "Farhod 22", ru: "Фарход 22", en: "Farhod 22" }, open: true },
+        { n: { uz: "Qo'yliq", ru: "Куйлюк", en: "Qo'yliq" }, addr: { uz: "Qo'yliq bozor yonida", ru: "Рядом с рынком Куйлюк", en: "Beside Qo'yliq market" }, open: true },
+      ],
+      dishes: [
+        { n: { uz: "Toshkent oshi", ru: "Ташкентский плов", en: "Tashkent plov" }, desc: { uz: "Qazi, tuxum, no'xat · bir kishilik tovoq", ru: "Казы, яйцо, горох · порция на одного", en: "Qazi, egg, chickpeas · one portion" }, p: 45000, off: false, c: 0 },
+        { n: { uz: "Sarimsoqli osh", ru: "Плов с чесноком", en: "Garlic plov" }, desc: { uz: "Butun sarimsoq bosh, qo'y go'shti", ru: "Целая головка чеснока, баранина", en: "Whole garlic head, lamb" }, p: 52000, off: false, c: 0 },
+        { n: { uz: "Shashlik, mol", ru: "Шашлык из говядины", en: "Beef shashlik" }, desc: { uz: "Ko'mirda · non va piyoz bilan", ru: "На угле · с лепёшкой и луком", en: "Charcoal-grilled · with bread and onion" }, p: 34000, off: false, c: 1 },
+        { n: { uz: "Qo'y qovurma", ru: "Жареная баранина", en: "Fried lamb" }, desc: { uz: "Kartoshka va pomidor bilan", ru: "С картофелем и помидорами", en: "With potato and tomato" }, p: 58000, off: true, c: 1 },
+        { n: { uz: "Achichuk salat", ru: "Салат ачичук", en: "Achichuk salad" }, desc: { uz: "Pomidor, piyoz, achchiq qalampir", ru: "Помидоры, лук, острый перец", en: "Tomato, onion, chilli" }, p: 16000, off: false, c: 2 },
+        { n: { uz: "Ko'k choy", ru: "Зелёный чай", en: "Green tea" }, desc: { uz: "Choynak · cheksiz qaynoq suv", ru: "Чайник · кипяток без ограничений", en: "Pot · unlimited hot water" }, p: 6000, off: false, c: 3 },
+      ],
+      reviews: [
+        { init: "BT", n: "Bahodir T.", when: { uz: "2 kun oldin", ru: "2 дня назад", en: "2 days ago" }, rate: "5.0", txt: { uz: "Toshkentda eng yaxshi osh. Soat 12 dan keyin kelsangiz, tugab qolishi mumkin.", ru: "Лучший плов в Ташкенте. После 12 может закончиться.", en: "The best plov in Tashkent. Come after noon and it may be gone." } },
+        { init: "SR", n: "Sevara R.", when: { uz: "5 kun oldin", ru: "5 дней назад", en: "5 days ago" }, rate: "5.0", txt: { uz: "Saytdan buyurtma berdim, 20 daqiqada olib ketishga tayyor bo'ldi.", ru: "Заказала через сайт, через 20 минут было готово к выносу.", en: "Ordered from the site and it was ready for pickup in twenty minutes." } },
+      ],
+    },
+    {
+      key: "choy", init: "CN", dot: "#0F766E", sub: "navruz", acc: 2,
+      name: { uz: "Choyxona Navruz", ru: "Чайхана Навруз", en: "Choyxona Navruz" },
+      kind: { uz: "Choyxona · shashlik · nonushta", ru: "Чайхана · шашлык · завтраки", en: "Teahouse · shashlik · breakfast" },
+      rating: "4.5", ratedBy: { uz: "398 baho", ru: "398 оценок", en: "398 ratings" },
+      hours: { uz: "Har kuni 07:00 – 22:00", ru: "Ежедневно 07:00 – 22:00", en: "Daily 07:00 – 22:00" },
+      phone: "+998 71 233 55 90",
+      branches: [
+        { n: { uz: "Mirzo Ulug'bek", ru: "Мирзо Улугбек", en: "Mirzo Ulug'bek" }, addr: { uz: "Mustaqillik 71", ru: "Мустакиллик 71", en: "Mustaqillik 71" }, open: true },
+      ],
+      dishes: [
+        { n: { uz: "Norin", ru: "Нарын", en: "Norin" }, desc: { uz: "Qo'l kesim xamir, qazi, piyoz", ru: "Тесто ручной нарезки, казы, лук", en: "Hand-cut noodles, qazi, onion" }, p: 36000, off: false, c: 0 },
+        { n: { uz: "Shurpa", ru: "Шурпа", en: "Shurpa" }, desc: { uz: "Qo'y go'shti, sabzavot, ko'kat", ru: "Баранина, овощи, зелень", en: "Lamb, vegetables, herbs" }, p: 32000, off: false, c: 0 },
+        { n: { uz: "Tovuq shashlik", ru: "Куриный шашлык", en: "Chicken shashlik" }, desc: { uz: "Ko'mirda · sirkali piyoz bilan", ru: "На угле · с маринованным луком", en: "Charcoal-grilled · with pickled onion" }, p: 26000, off: false, c: 1 },
+        { n: { uz: "Somsa, go'shtli", ru: "Самса с мясом", en: "Meat somsa" }, desc: { uz: "Tandirda · issiq berilishi shart", ru: "В тандыре · подаётся горячей", en: "Tandoor-baked · served hot" }, p: 14000, off: false, c: 2 },
+        { n: { uz: "Qora choy", ru: "Чёрный чай", en: "Black tea" }, desc: { uz: "Choynak · limon bilan", ru: "Чайник · с лимоном", en: "Pot · with lemon" }, p: 6000, off: false, c: 3 },
+      ],
+      reviews: [
+        { init: "NX", n: "Nodir X.", when: { uz: "1 kun oldin", ru: "день назад", en: "a day ago" }, rate: "5.0", txt: { uz: "Ertalabki norin uchun keldim. Somsa tandirdan uzilgan holda beriladi.", ru: "Пришёл за утренним нарыном. Самсу подают прямо из тандыра.", en: "Came for the morning norin. The somsa arrives straight from the tandoor." } },
+        { init: "GA", n: "Gulnora A.", when: { uz: "4 kun oldin", ru: "4 дня назад", en: "4 days ago" }, rate: "4.0", txt: { uz: "Joyi tinch, xizmat tez. Kechqurun musiqa balandroq bo'lib ketadi.", ru: "Место спокойное, обслуживают быстро. Вечером музыка громче.", en: "A calm place, quick service. The music gets louder in the evening." } },
+      ],
+    },
+  ];
+
+  ACCENTS = [
+    { name: { uz: "Klinik ko'k", ru: "Клинический синий", en: "Clinical blue" }, hex: "#2E74EA" },
+    { name: { uz: "Tandir kirmizi", ru: "Терракота", en: "Tandoor terracotta" }, hex: "#C2410C" },
+    { name: { uz: "Choy yashili", ru: "Чайный зелёный", en: "Tea green" }, hex: "#0F766E" },
+    { name: { uz: "Tungi ko'mir", ru: "Ночной графит", en: "Night charcoal" }, hex: "#1F2533" },
+  ];
+
+  SECTIONS = [
+    { id: "menu", locked: true },
+    { id: "order", on: true },
+    { id: "book", on: true },
+    { id: "branches", locked: true },
+    { id: "reviews", on: true },
+    { id: "loyalty", on: false },
+    { id: "jobs", on: false },
+  ];
+
+  componentDidMount() {
+    try {
+      const s = localStorage.getItem("sr-pwa-state");
+      if (s) this.setState(JSON.parse(s));
+    } catch (e) {}
+  }
+
+  componentDidUpdate() {
+    try {
+      const { lang, theme, brand, stage, sub, acc, langs, off, installed } = this.state;
+      localStorage.setItem("sr-pwa-state", JSON.stringify({ lang, theme, brand, stage, sub, acc, langs, off, installed }));
+    } catch (e) {}
+  }
+
+  renderVals() {
+    const S = this.state;
+    const li = this.lang();
+    const P = (uz, ru, en) => ({ uz, ru, en })[li];
+    const T = (o) => this.L(o);
+
+    const biz = this.TENANTS.find(x => x.key === S.brand) || this.TENANTS[0];
+    const stage = S.stage || "site";
+    const sub = S.sub === null || S.sub === undefined ? biz.sub : S.sub;
+    const accIdx = S.acc === null || S.acc === undefined ? biz.acc : S.acc;
+    const langs = S.langs || { uz: true, ru: true, en: false };
+    const off = S.off || {};
+    const cat = S.cat || 0;
+
+    const taken = ["osh", "plov", "test", "admin", "www", "smart"];
+    const clean = /^[a-z0-9-]{3,24}$/.test(sub);
+    const free = clean && taken.indexOf(sub) < 0;
+
+    const CATS = {
+      smart: [P("Milliy", "Национальная", "Uzbek"), P("Burger", "Бургеры", "Burgers"), P("Pitsa", "Пицца", "Pizza"), P("Lavash", "Лаваш", "Lavash"), P("Ichimlik", "Напитки", "Drinks")],
+      osh: [P("Osh", "Плов", "Plov"), P("Grill", "Гриль", "Grill"), P("Salatlar", "Салаты", "Salads"), P("Choy", "Чай", "Tea")],
+      choy: [P("Issiq", "Горячее", "Hot"), P("Grill", "Гриль", "Grill"), P("Nonushta", "Завтраки", "Breakfast"), P("Choy", "Чай", "Tea")],
+    }[biz.key];
+
+    const shown = biz.dishes.filter(d => d.c === Math.min(cat, CATS.length - 1));
+
+    const QI = {
+      menu: '<path d="M4 5.5h16"></path><path d="M4 12h16"></path><path d="M4 18.5h10"></path>',
+      bag: '<path d="M6 8h12l-1 12H7z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path>',
+      cal: '<rect x="3.5" y="5" width="17" height="16" rx="2.5"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M3.5 10h17"></path>',
+      pin: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"></path><circle cx="12" cy="10" r="2.6"></circle>',
+      home: '<path d="M3 10.5 12 3l9 7.5"></path><path d="M5.5 9.5V20h13V9.5"></path>',
+      user: '<circle cx="12" cy="8" r="3.6"></circle><path d="M5 20.5a7 7 0 0 1 14 0"></path>',
+    };
+
+    const stageOf = {
+      site: P("Mijoz brauzerda ko'radigan sayt. Pastda o'rnatish taklifi chiqadi — bu brauzerning o'z bannerlari emas, bizning boshqaradigan bannerimiz.", "Сайт, который гость видит в браузере. Внизу появляется предложение установки — это не баннер браузера, а наш собственный.", "The site as a guest sees it in the browser. The install prompt at the top is ours, not the browser's."),
+      install: P("O'rnatish varaqasi. Bu yerda nima uchun o'rnatish kerakligi aytiladi — aks holda odam bosmaydi.", "Лист установки. Здесь объясняется, зачем устанавливать — иначе гость не нажмёт.", "The install sheet. It states why installing is worth it — otherwise nobody taps."),
+      home: P("Telefon bosh ekrani. Belgi boshqa ilovalar qatorida turadi, App Store orqali o'tmagan holda.", "Домашний экран телефона. Иконка стоит в ряду других приложений, минуя App Store.", "The phone home screen. The icon sits among the other apps, with no App Store in between."),
+      app: P("Ilova sifatida ochilgan holat: manzil qatori yo'q, o'z rangida, pastda o'z paneli. Mijoz buni ilova deb biladi.", "Открыто как приложение: адресной строки нет, свой цвет, своя нижняя панель. Гость считает это приложением.", "Launched as an app: no address bar, its own colour, its own dock. The guest reads it as an app."),
+    }[stage];
+
+    return {
+      theme: this.theme(), brandKey: biz.key, accKey: "a" + accIdx,
+      isUz: li === "uz", isRu: li === "ru", isEn: li === "en",
+      setUz: () => this.setState({ lang: "uz" }),
+      setRu: () => this.setState({ lang: "ru" }),
+      setEn: () => this.setState({ lang: "en" }),
+      toggleTheme: () => this.setState({ theme: this.theme() === "light" ? "dark" : "light" }),
+      hasToast: !!S.toast, toast: S.toast,
+
+      tenants: this.TENANTS.map(x => ({
+        init: x.init, dot: x.dot, name: T(x.name), sub: x.sub + ".uz", on: x.key === biz.key,
+        pick: () => this.setState({ brand: x.key, sub: null, acc: null, cat: 0, stage: "site", installed: false }),
+      })),
+
+      subVal: sub,
+      onSub: (e) => this.setState({ sub: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }),
+      subOk: free, subBad: !free,
+      subBorder: free ? "var(--border-strong)" : "var(--danger-500)",
+      subMsg: !clean
+        ? P("3–24 belgi, faqat lotin harflari, raqam va chiziqcha", "3–24 символа, только латиница, цифры и дефис", "3–24 characters, Latin letters, digits and hyphens only")
+        : !free
+          ? P("Bu manzil band — boshqasini tanlang", "Этот адрес занят — выберите другой", "That address is taken — pick another")
+          : P("Manzil bo'sh · nashr etilgandan keyin 30 soniyada ishlaydi", "Адрес свободен · заработает через 30 секунд после публикации", "Address is free · live within 30 seconds of publishing"),
+      subIdeas: [biz.sub, biz.sub + "-tashkent", biz.sub + "24"].map(l => ({ l: l + ".smartrestaurant.uz", pick: () => this.setState({ sub: l }) })),
+
+      pubLabel: free ? P("Nashr etilgan", "Опубликован", "Published") : P("Nashr etilmagan", "Не опубликован", "Not published"),
+      pubBg: free ? "var(--success-50)" : "var(--warning-50)",
+      pubFg: free ? "var(--success-700)" : "var(--warning-700)",
+      pubDot: free ? "var(--success-500)" : "var(--warning-500)",
+
+      accents: this.ACCENTS.map((a, i) => ({
+        name: T(a.name), hex: a.hex, mark: i === accIdx ? "\u2713" : "",
+        ring: i === accIdx ? "var(--fg)" : "transparent",
+        pick: () => this.setState({ acc: i }),
+      })),
+      accNote: T(this.ACCENTS[accIdx].name) + " \u00b7 " + P("logotipdan olinadi", "берётся из логотипа", "taken from the logo"),
+
+      siteLangs: [["uz", "O'zbekcha"], ["ru", "Русский"], ["en", "English"]].map(([k, l]) => ({
+        l, border: langs[k] ? "var(--acc)" : "var(--border)",
+        bg: langs[k] ? "var(--acc-soft)" : "var(--surface)",
+        fg: langs[k] ? "var(--acc)" : "var(--fg-muted)",
+        toggle: () => {
+          const n = { ...langs, [k]: !langs[k] };
+          if (!n.uz && !n.ru && !n.en) return this.flash(P("Kamida bitta til qolishi kerak", "Должен остаться хотя бы один язык", "At least one language must stay on"));
+          this.setState({ langs: n });
+        },
+      })),
+
+      sections: this.SECTIONS.map(s => {
+        const meta = {
+          menu: [P("Menyu", "Меню", "Menu"), P("POS menyusidan o'zi keladi · narx va stop-list real vaqtda", "Приходит из меню POS · цена и стоп-лист в реальном времени", "Comes from the POS menu · price and stop list in real time")],
+          order: [P("Buyurtma berish", "Онлайн-заказ", "Online ordering"), P("Olib ketish va yetkazish · to'lov Click, Payme, naqd", "Самовывоз и доставка · оплата Click, Payme, наличными", "Pickup and delivery · Click, Payme and cash")],
+          book: [P("Stol bandlash", "Бронь столов", "Table booking"), P("Bandlov to'g'ridan-to'g'ri zal ekraniga tushadi", "Бронь попадает прямо на экран зала", "Bookings land straight on the floor screen")],
+          branches: [P("Filiallar", "Филиалы", "Branches"), P("Manzil, ish vaqti, xarita · filial ochilishi bilan qo'shiladi", "Адрес, часы, карта · добавляется при открытии филиала", "Address, hours, map · added when a branch opens")],
+          reviews: [P("Baholar", "Отзывы", "Reviews"), P("Chekdagi QR orqali yig'iladi · javob berish mumkin", "Собираются по QR на чеке · можно отвечать", "Collected from the receipt QR · you can reply")],
+          loyalty: [P("Sodiqlik dasturi", "Программа лояльности", "Loyalty"), P("Ball yig'ish · CRM bilan bog'lanadi", "Накопление баллов · связано с CRM", "Points · tied to CRM")],
+          jobs: [P("Ish o'rinlari", "Вакансии", "Jobs"), P("Bo'sh o'rinlar · so'rovlar xodimlar moduliga tushadi", "Открытые вакансии · заявки идут в модуль персонала", "Openings · applications land in the staff module")],
+        }[s.id];
+        const on = s.locked ? true : (off[s.id] === undefined ? s.on : !off[s.id]);
+        return {
+          name: meta[0], note: meta[1], locked: !!s.locked,
+          trackBg: on ? "var(--acc)" : "var(--border-strong)",
+          justify: on ? "flex-end" : "flex-start",
+          toggle: () => s.locked
+            ? this.flash(P("Menyu va filiallar har doim ko'rinadi — ularsiz sayt ma'nosini yo'qotadi", "Меню и филиалы показываются всегда — без них сайт теряет смысл", "Menu and branches always show — without them the site has no point"))
+            : this.setState({ off: { ...off, [s.id]: on } }),
+        };
+      }),
+      always: P("Doim", "Всегда", "Always"),
+
+      pwaFacts: [
+        { v: "0", l: P("Do'kon tekshiruvi", "Проверок в сторах", "Store reviews"), note: P("App Store va Google Play chetlab o'tiladi", "App Store и Google Play обходим", "App Store and Google Play are bypassed"), color: "var(--success-600)" },
+        { v: "~30 " + P("son", "сек", "s"), l: P("Nashr etish", "Публикация", "Publish time"), note: P("Yangilanish darhol yetadi, yuklab olish kerak emas", "Обновление доходит сразу, скачивать не нужно", "Updates arrive at once, with nothing to download"), color: "var(--acc)" },
+        { v: "1", l: P("Kodbaza", "Кодовая база", "Codebase"), note: P("42 restoran bitta shablonda ishlaydi", "42 ресторана работают на одном шаблоне", "42 restaurants run on one template"), color: "var(--fg)" },
+        { v: "~1.4 MB", l: P("O'rnatish hajmi", "Размер установки", "Install size"), note: P("Native ilova o'rniga · oflayn menyu ichida", "Вместо нативного приложения · меню работает офлайн", "Instead of a native app · the menu works offline"), color: "var(--fg)" },
+      ],
+      manifestLbl: P("manifest.json — restoran uchun avtomatik yaratiladi", "manifest.json — генерируется для ресторана", "manifest.json — generated per restaurant"),
+      manifest: '{\n  "name": "' + T(biz.name) + '",\n  "short_name": "' + T(biz.name).split(" ")[0] + '",\n  "start_url": "/?src=pwa",\n  "display": "standalone",\n  "theme_color": "' + this.ACCENTS[accIdx].hex + '",\n  "background_color": "#FFFFFF",\n  "lang": "' + (langs.uz ? "uz" : langs.ru ? "ru" : "en") + '",\n  "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }],\n  "shortcuts": [\n    { "name": "' + P("Menyu", "Меню", "Menu") + '", "url": "/menu" },\n    { "name": "' + P("Buyurtma", "Заказ", "Order") + '", "url": "/order" }\n  ]\n}',
+      manifestNote: P("Belgi, rang va til sozlamalardan olinadi — restoran hech narsa yozmaydi. Nomni o'zgartirsa, belgi ham o'zgaradi.", "Иконка, цвет и язык берутся из настроек — ресторан ничего не пишет. Меняется название — меняется и иконка.", "Icon, colour and language come from the settings — the restaurant writes nothing. Change the name and the icon follows."),
+
+      compare: [
+        { k: P("Chiqarish vaqti", "Время выпуска", "Time to ship"), a: P("30 soniya", "30 секунд", "30 seconds"), b: P("2–6 hafta tekshiruv", "2–6 недель проверки", "2–6 weeks of review") },
+        { k: P("Yangilanish", "Обновление", "Updates"), a: P("Darhol, hammaga", "Сразу, всем", "Instant, for everyone"), b: P("Foydalanuvchi yuklab olishi kerak", "Пользователь должен скачать", "The user must download it") },
+        { k: P("42 restoran", "42 ресторана", "42 restaurants"), a: P("Bitta shablon", "Один шаблон", "One template"), b: P("42 listing, 42 tekshiruv", "42 листинга, 42 проверки", "42 listings, 42 reviews") },
+        { k: P("Mijozga to'siq", "Барьер для гостя", "Barrier for the guest"), a: P("Havola bosish", "Нажать ссылку", "Tap a link"), b: P("Do'kondan yuklab olish", "Скачать из стора", "Download from a store") },
+        { k: P("Komissiya", "Комиссия", "Commission"), a: P("Yo'q", "Нет", "None"), b: P("Do'kon 15–30%", "Стор 15–30%", "Store 15–30%") },
+        { k: P("Push bildirishnoma", "Push-уведомления", "Push notifications"), a: P("Bor, iOS 16.4+ dan", "Есть, с iOS 16.4", "Yes, from iOS 16.4"), b: P("Bor", "Есть", "Yes") },
+      ],
+      cmpCol0: P("Nima", "Что", "What"), cmpCol1: P("Sayt + PWA", "Сайт + PWA", "Site + PWA"), cmpCol2: P("Native ilova", "Нативное приложение", "Native app"),
+
+      limits: [
+        { k: P("iOS da o'rnatish qo'lda", "Установка на iOS вручную", "iOS install is manual"), v: P("Safari o'z bannerini ko'rsatmaydi — mijozga «Ulashish → Bosh ekranga qo'shish» ni o'zimiz aytishimiz kerak. Shuning uchun taklif ekranda tushuntirish bilan chiqadi.", "Safari не показывает свой баннер — нужно самим подсказать «Поделиться → На экран Домой». Поэтому предложение выводится с объяснением.", "Safari shows no banner of its own — we have to point to Share → Add to Home Screen. That is why the prompt carries an explanation."), dot: "var(--warning-500)" },
+        { k: P("Do'konda topilmaydi", "Не находится в сторе", "Not found in a store"), v: P("Odam App Store'da qidirsa, topmaydi. Trafik QR kod, Telegram, Instagram va chekdan keladi — shuning uchun QR har chekda bo'lishi shart.", "Если гость ищет в App Store, он не найдёт. Трафик идёт с QR, из Telegram, Instagram и чека — поэтому QR обязателен на каждом чеке.", "Search the App Store and it is not there. Traffic comes from the QR code, Telegram, Instagram and the receipt — so the QR belongs on every receipt."), dot: "var(--warning-500)" },
+        { k: P("Domen restoranga tegishli emas", "Домен не принадлежит ресторану", "The domain is not the restaurant's"), v: P("oshxona.smartrestaurant.uz — bizning domenimiz. Restoran ketsa, manzil qoladi. O'z domenini ulash Enterprise tarifda beriladi.", "oshxona.smartrestaurant.uz — наш домен. Если ресторан уйдёт, адрес останется. Свой домен — на тарифе Enterprise.", "oshxona.smartrestaurant.uz is our domain. If the restaurant leaves, the address stays with us. A custom domain comes with Enterprise."), dot: "var(--brand-500)" },
+        { k: P("Oflayn faqat o'qish", "Офлайн только чтение", "Offline is read-only"), v: P("Menyu va manzil oflayn ishlaydi, buyurtma esa yo'q — tarmoqsiz buyurtma qabul qilib, keyin «yo'q ekan» deyish mijozni yo'qotadi.", "Меню и адрес работают офлайн, заказ — нет: принять заказ без сети и потом отказать значит потерять гостя.", "Menu and address work offline; ordering does not — taking an order with no network and refusing it later loses the guest."), dot: "var(--brand-500)" },
+      ],
+
+      atSite: stage === "site", atInstall: stage === "install", atHome: stage === "home", atApp: stage === "app",
+      goSite: () => this.setState({ stage: "site" }),
+      goInstall: () => this.setState({ stage: "install" }),
+      goHome: () => this.setState({ stage: "home" }),
+      goApp: () => this.setState({ stage: "app" }),
+      doInstall: () => { this.setState({ stage: "home", installed: true }); this.flash(P("Bosh ekranga qo'shildi", "Добавлено на экран Домой", "Added to the home screen")); },
+
+      chromeOn: stage === "site" || stage === "install",
+      contentOn: stage === "site" || stage === "install" || stage === "app",
+      standalone: stage === "app",
+      dockOn: stage === "app",
+      bannerOn: stage === "site" && !S.installed,
+
+      fullUrl: sub + ".smartrestaurant.uz",
+      shortUrl: sub + ".smartrestaurant.uz",
+      stageNote: stageOf,
+      standaloneLabel: P("Ilova", "Приложение", "App"),
+
+      biz: {
+        name: T(biz.name), kind: T(biz.kind), init: biz.init,
+        rating: biz.rating, reviews: T(biz.ratedBy),
+        dist: "2.4 km", eta: P("25–35 daq", "25–35 мин", "25–35 min"),
+        open: P("Ochiq", "Открыто", "Open"),
+        openBg: "var(--success-50)", openFg: "var(--success-700)", openDot: "var(--success-500)",
+        hours: T(biz.hours), phone: biz.phone,
+      },
+
+      quick: [
+        { l: P("Menyu", "Меню", "Menu"), icon: this.ico(QI.menu), go: () => this.flash(P("Menyu POS dan real vaqtda keladi", "Меню приходит из POS в реальном времени", "The menu comes from the POS in real time")) },
+        { l: P("Buyurtma", "Заказ", "Order"), icon: this.ico(QI.bag), go: () => this.flash(P("Buyurtma to'g'ridan-to'g'ri oshxona ekraniga tushadi", "Заказ попадает прямо на экран кухни", "The order lands straight on the kitchen screen")) },
+        { l: P("Bandlash", "Бронь", "Book"), icon: this.ico(QI.cal), go: () => this.flash(P("Bandlov zal ekranida darhol ko'rinadi", "Бронь сразу видна на экране зала", "The booking appears on the floor screen at once")) },
+        { l: P("Yo'l", "Маршрут", "Directions"), icon: this.ico(QI.pin), go: () => this.flash(P("Yandex Xarita yoki Google Maps ochiladi", "Откроется Яндекс Карты или Google Maps", "Opens Yandex Maps or Google Maps")) },
+      ],
+
+      menuH: P("Menyu", "Меню", "Menu"),
+      menuCount: biz.dishes.length + " " + P("pozitsiya", "позиций", "items"),
+      cats: CATS.map((l, i) => ({ l, on: i === Math.min(cat, CATS.length - 1), pick: () => this.setState({ cat: i }) })),
+      dishes: shown.map((d, i) => ({
+        n: T(d.n), desc: T(d.desc), price: this.f(d.p) + " " + P("so'm", "сум", "so'm"),
+        off: d.off, on: !d.off, op: d.off ? "0.5" : "1",
+        slot: biz.key + "-" + cat + "-" + i,
+        add: () => this.flash(P("Savatga qo'shildi: ", "Добавлено в корзину: ", "Added to the basket: ") + T(d.n)),
+      })),
+      soldOut: P("Tugadi", "Закончилось", "Sold out"),
+
+      brH: P("Filiallar", "Филиалы", "Branches"),
+      branches: biz.branches.map(b => ({
+        n: T(b.n), addr: T(b.addr),
+        st: b.open ? P("Ochiq", "Открыт", "Open") : P("Yopiq", "Закрыт", "Closed"),
+        bg: b.open ? "var(--success-50)" : "var(--bg-muted)",
+        fg: b.open ? "var(--success-700)" : "var(--fg-subtle)",
+      })),
+
+      revH: P("Baholar", "Отзывы", "Reviews"),
+      reviews: biz.reviews.map(r => ({ init: r.init, n: r.n, when: T(r.when), rate: r.rate, txt: T(r.txt) })),
+
+      ftLbl: P("Ish vaqti va aloqa", "Часы и контакты", "Hours and contact"),
+      poweredBy: P("Sayt Smart Restaurant Cloud tomonidan yaratilgan · menyu va narxlar restoran POS tizimidan olinadi", "Сайт создан на Smart Restaurant Cloud · меню и цены берутся из POS ресторана", "Built on Smart Restaurant Cloud · menu and prices come from the restaurant's POS"),
+
+      instH: P("Ilova sifatida o'rnatish", "Установить как приложение", "Install as an app"),
+      instP: P("Bosh ekranda belgi paydo bo'ladi", "На экране Домой появится иконка", "An icon appears on your home screen"),
+      instCta: P("O'rnatish", "Установить", "Install"),
+
+      sheetP: P("Do'konga o'tish kerak emas. Belgi bosh ekranda paydo bo'ladi va sayt ilova kabi ochiladi — manzil qatorisiz.", "Заходить в стор не нужно. Иконка появится на экране Домой, и сайт откроется как приложение — без адресной строки.", "No store to visit. The icon lands on your home screen and the site opens like an app — without an address bar."),
+      sheetRows: [
+        { l: P("Menyu tarmoqsiz ham ochiladi", "Меню открывается и без сети", "The menu opens even with no network") },
+        { l: P("Buyurtma holati bildirishnoma bo'lib keladi", "Статус заказа приходит уведомлением", "Order status arrives as a notification") },
+        { l: P("Telefon xotirasidan 1.4 MB oladi", "Занимает 1.4 МБ памяти", "Takes 1.4 MB of storage") },
+      ],
+      sheetYes: P("Bosh ekranga qo'shish", "Добавить на экран Домой", "Add to home screen"),
+      sheetNo: P("Keyinroq", "Позже", "Later"),
+      sheetNote: P("iOS da bu varaqani Safari o'zi ko'rsatmaydi — «Ulashish» tugmasidan o'tiladi. Shuning uchun ko'rsatma matn bilan beriladi.", "На iOS Safari не показывает этот лист сам — путь через кнопку «Поделиться». Поэтому инструкция даётся текстом.", "On iOS, Safari does not show this sheet itself — the route is the Share button. That is why the instruction is spelled out."),
+
+      homeDate: P("Seshanba, 11-avgust", "Вторник, 11 августа", "Tuesday, 11 August"),
+      homeIcons: [
+        { l: P("Telefon", "Телефон", "Phone"), mark: "\u2706", bg: "#2A6E4A", fg: "#fff", border: "0", anim: "" },
+        { l: "Telegram", mark: "T", bg: "#2AABEE", fg: "#fff", border: "0", anim: "" },
+        { l: P("Kamera", "Камера", "Camera"), mark: "\u25CE", bg: "#3A4252", fg: "#fff", border: "0", anim: "" },
+        { l: P("Xarita", "Карты", "Maps"), mark: "\u25B2", bg: "#E8442E", fg: "#fff", border: "0", anim: "" },
+        { l: T(biz.name), mark: biz.init, bg: this.ACCENTS[accIdx].hex, fg: "#fff", border: "2px solid rgba(255,255,255,.6)", anim: "up" },
+        { l: "Click", mark: "C", bg: "#0A5CD6", fg: "#fff", border: "0", anim: "" },
+        { l: P("Sozlamalar", "Настройки", "Settings"), mark: "\u2699", bg: "#5B6478", fg: "#fff", border: "0", anim: "" },
+        { l: P("Suratlar", "Фото", "Photos"), mark: "\u2740", bg: "#F5B93B", fg: "#3A2A00", border: "0", anim: "" },
+      ],
+      homeH: P("Belgi qo'shildi", "Иконка добавлена", "The icon is on your screen"),
+      homeP: P("App Store'ga kirilmadi, hech narsa yuklab olinmadi. Belgi boshqa ilovalardan farq qilmaydi.", "В App Store не заходили, ничего не скачивали. Иконка не отличается от других приложений.", "No App Store, nothing downloaded. The icon is indistinguishable from the other apps."),
+      homeCta: P("Ilovani ochish", "Открыть приложение", "Open the app"),
+
+      dock: [
+        { l: P("Bosh", "Главная", "Home"), icon: this.ico(QI.home, "var(--acc)"), fg: "var(--acc)", go: () => {} },
+        { l: P("Menyu", "Меню", "Menu"), icon: this.ico(QI.menu, "var(--fg-subtle)"), fg: "var(--fg-subtle)", go: () => this.flash(P("Menyu bo'limi", "Раздел меню", "The menu section")) },
+        { l: P("Buyurtma", "Заказ", "Order"), icon: this.ico(QI.bag, "var(--fg-subtle)"), fg: "var(--fg-subtle)", go: () => this.flash(P("Savat bo'sh", "Корзина пуста", "The basket is empty")) },
+        { l: P("Profil", "Профиль", "Profile"), icon: this.ico(QI.user, "var(--fg-subtle)"), fg: "var(--fg-subtle)", go: () => this.flash(P("Telefon raqami bilan kirish", "Вход по номеру телефона", "Sign in with a phone number")) },
+      ],
+
+      t: {
+        eyebrow: P("Smart Restaurant Cloud · restoran sayti", "Smart Restaurant Cloud · сайт ресторана", "Smart Restaurant Cloud · restaurant site"),
+        h1: P("Har restoranga o'z sayti va o'z ilovasi", "Каждому ресторану свой сайт и своё приложение", "A site and an app for every restaurant"),
+        lede: P("Restoran ro'yxatdan o'tadi — sayti o'zi yaratiladi. Menyu, narx va stop-list POS tizimidan real vaqtda keladi. Mijoz saytni bosh ekraniga qo'shadi va u ilova bo'lib ishlaydi: App Store yo'q, tekshiruv yo'q, komissiya yo'q.", "Ресторан регистрируется — сайт создаётся сам. Меню, цены и стоп-лист приходят из POS в реальном времени. Гость добавляет сайт на экран Домой, и он работает как приложение: без App Store, без проверок, без комиссии.", "A restaurant signs up and its site builds itself. Menu, prices and stop list come live from the POS. The guest adds the site to their home screen and it behaves like an app: no App Store, no review, no commission."),
+        tenantLbl: P("Restoran", "Ресторан", "Restaurant"),
+
+        addrH: P("Sayt manzili", "Адрес сайта", "Site address"),
+        addrP: P("Ro'yxatdan o'tishda tavsiya etiladi, keyin o'zgartirilishi mumkin", "Предлагается при регистрации, потом можно изменить", "Suggested at signup and changeable later"),
+        subLbl: P("Subdomen", "Субдомен", "Subdomain"),
+        accLbl: P("Asosiy rang", "Основной цвет", "Accent colour"),
+        langLbl: P("Sayt tillari", "Языки сайта", "Site languages"),
+        langNote: P("Menyu nomlari POS dagi tarjimalardan olinadi", "Названия блюд берутся из переводов в POS", "Dish names come from the POS translations"),
+
+        secH: P("Sayt bo'limlari", "Разделы сайта", "Site sections"),
+        secP: P("Restoran o'zi yoqadi va o'chiradi", "Ресторан включает и выключает сам", "The restaurant switches these on and off"),
+        secNote: P("O'chirilgan bo'lim saytdan yo'qoladi va uning havolasi ham olib tashlanadi — mijoz bo'sh sahifaga tushmaydi.", "Отключённый раздел исчезает вместе со ссылкой — гость не попадёт на пустую страницу.", "A section switched off disappears along with its link — the guest never lands on an empty page."),
+
+        pwaH: P("Nima uchun PWA, native ilova emas", "Почему PWA, а не нативное приложение", "Why a PWA and not a native app"),
+        pwaP: P("Bitta restoran ilovasini hech kim App Store'dan qidirib yuklab olmaydi", "Приложение одного ресторана никто не будет искать в App Store", "Nobody hunts the App Store for one restaurant's app"),
+
+        cmpH: P("Ikkisining farqi", "Разница между ними", "How the two differ"),
+        cmpP: P("Bu tanlov texnik emas, biznes tanlovi", "Это не технический выбор, а бизнес-выбор", "This is a business choice, not a technical one"),
+
+        limH: P("Cheklovlar — ochiq aytamiz", "Ограничения — говорим прямо", "The limits, stated plainly"),
+        limP: P("PWA hamma narsani hal qilmaydi. To'rt joyda u native ilovadan yutqazadi va restoranga buni oldindan aytish kerak.", "PWA решает не всё. В четырёх местах он проигрывает нативному приложению, и ресторан должен знать это заранее.", "A PWA does not solve everything. It loses to a native app in four places, and the restaurant should know that up front."),
+
+        stgSite: P("Sayt", "Сайт", "Site"),
+        stgInstall: P("O'rnatish", "Установка", "Install"),
+        stgHome: P("Bosh ekran", "Экран Домой", "Home screen"),
+        stgApp: P("Ilova", "Приложение", "App"),
+        standalone: P("Ilova", "Приложение", "App"),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

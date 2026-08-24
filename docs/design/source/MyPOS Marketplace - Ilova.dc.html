@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPOS Marketplace — Ilova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45}
+a{color:#1C5AD1;text-decoration:none}
+a:hover{color:#1947A8}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+input{outline:none}
+input::placeholder{color:#98A1B0}
+
+[data-theme="light"]{
+--n-0:#FFFFFF;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;--n-400:#98A1B0;--n-900:#0F1320;
+--page:#F1F3F7;--surface:#FFFFFF;--sunken:#F1F3F7;--fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--fg-disabled:#98A1B0;
+--border:#E7EAF0;--border-strong:#D9DEE6;--divider:#F1F3F7;
+--brand:#2E74EA;--brand-dark:#1C5AD1;--brand-soft:#EEF5FF;--brand-line:#BDD7FC;
+--ok:#12B76A;--ok-soft:#ECFDF3;--ok-fg:#027A48;
+--warn:#F79009;--warn-soft:#FFFAEB;--warn-fg:#B54708;
+--bad:#F04438;--bad-soft:#FEF3F2;--bad-fg:#B42318;
+--star:#FFB020;--sh-card:0 1px 2px rgba(16,24,40,.05);--sh-pop:0 12px 20px -6px rgba(16,24,40,.12),0 4px 8px -4px rgba(16,24,40,.06);
+--lock:linear-gradient(180deg,#1B2334 0%,#0F1320 100%);
+}
+[data-theme="dark"]{
+--n-0:#0B0E16;--n-50:#12161F;--n-100:#1A1F2B;--n-150:#232A38;--n-200:#2E3648;--n-400:#566073;--n-900:#EDF0F5;
+--page:#0B0E16;--surface:#12161F;--sunken:#1A1F2B;--fg:#EDF0F5;--fg-muted:#9AA3B4;--fg-subtle:#79839A;--fg-disabled:#566073;
+--border:#232A38;--border-strong:#2E3648;--divider:#1C2230;
+--brand:#3B82F6;--brand-dark:#2E74EA;--brand-soft:rgba(59,130,246,.14);--brand-line:rgba(59,130,246,.30);
+--ok:#12B76A;--ok-soft:rgba(18,183,106,.14);--ok-fg:#5AD69B;
+--warn:#F79009;--warn-soft:rgba(247,144,9,.14);--warn-fg:#F2B15C;
+--bad:#F04438;--bad-soft:rgba(240,68,56,.14);--bad-fg:#F58C84;
+--star:#FFB020;--sh-card:none;--sh-pop:0 16px 28px -8px rgba(0,0,0,.55);
+--lock:linear-gradient(180deg,#12161F 0%,#080A11 100%);
+}
+
+[data-fd]{font-family:'Inter Tight',system-ui,sans-serif}
+[data-num]{font-variant-numeric:tabular-nums}
+[data-mono]{font-family:'JetBrains Mono',monospace}
+[data-press]{transition:transform 120ms cubic-bezier(.4,0,.2,1),background-color 140ms cubic-bezier(.4,0,.2,1),border-color 140ms cubic-bezier(.4,0,.2,1),color 140ms cubic-bezier(.4,0,.2,1)}
+[data-press]:active{transform:scale(.97)}
+[data-seg][data-on="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--sh-card)}
+[data-chip][data-on="true"]{background:var(--fg);border-color:var(--fg);color:var(--surface)}
+[data-tab][data-on="true"]{color:var(--brand)}
+[data-row]:hover{background:var(--sunken)}
+[data-scroll]::-webkit-scrollbar{display:none}
+[data-scroll]{scrollbar-width:none}
+button:focus-visible,input:focus-visible{outline:3px solid rgba(46,116,234,.55);outline-offset:2px}
+image-slot{--is-bg:var(--sunken);--is-fg:var(--fg-subtle);--is-border:var(--border);width:100%;height:100%;display:block}
+@media (max-width:860px){[data-rail]{flex-wrap:wrap}}
+@media (max-width:520px){[data-wrap]{padding:0 !important}[data-frame]{width:100% !important;height:auto !important;min-height:100vh;border:0 !important;border-radius:0 !important;box-shadow:none !important}}
+</style>
+</helmet>
+
+<div data-theme="{{theme}}" style="min-height:100vh;background:var(--page);color:var(--fg)">
+
+  <div style="max-width:1180px;margin:0 auto;padding:26px 22px 12px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.eyebrow}}</div>
+    <h1 data-fd="1" style="margin:6px 0 0;font-size:31px;font-weight:700;letter-spacing:-.026em">{{t.h1}}</h1>
+    <p style="margin:8px 0 0;max-width:660px;font-size:15px;color:var(--fg-muted);line-height:1.55;text-wrap:pretty">{{t.lede}}</p>
+
+    <div data-rail="1" style="display:flex;align-items:center;gap:12px;margin-top:18px">
+      <div data-scroll="1" style="display:flex;gap:2px;padding:3px;background:var(--sunken);border-radius:11px;overflow-x:auto">
+        <sc-for list="{{stages}}" as="s" hint-placeholder-count="6">
+          <button onClick="{{s.go}}" data-seg="1" data-on="{{s.on}}" data-press="1" style="flex:none;height:32px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600;white-space:nowrap">{{s.l}}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex gap:1px;display:flex;gap:1px;padding:3px;background:var(--sunken);border-radius:10px">
+        <button onClick="{{setUz}}" data-seg="1" data-on="{{isUz}}" data-press="1" style="height:30px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--fg-subtle);font-size:11px;font-weight:700;letter-spacing:.03em">UZ</button>
+        <button onClick="{{setRu}}" data-seg="1" data-on="{{isRu}}" data-press="1" style="height:30px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--fg-subtle);font-size:11px;font-weight:700;letter-spacing:.03em">RU</button>
+        <button onClick="{{setEn}}" data-seg="1" data-on="{{isEn}}" data-press="1" style="height:30px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--fg-subtle);font-size:11px;font-weight:700;letter-spacing:.03em">EN</button>
+      </div>
+      <button onClick="{{toggleTheme}}" data-press="1" title="{{t.themeT}}" style="width:38px;height:38px;flex:none;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"></path></svg>
+      </button>
+    </div>
+    <p style="margin:12px 0 0;font-size:12px;color:var(--fg-subtle)">{{stageNote}}</p>
+  </div>
+
+  <div data-wrap="1" style="display:flex;justify-content:center;padding:20px 22px 48px">
+    <div data-frame="1" style="width:390px;height:844px;flex:none;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:30px;overflow:hidden;box-shadow:var(--sh-pop)">
+
+      <div style="height:44px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 6px;font-size:13px;font-weight:600">
+        <span data-num="1">11:24</span>
+        <span style="display:flex;align-items:center;gap:5px;color:var(--fg-muted);font-size:11px">
+          <span>▪▪▪</span><span data-num="1">61</span>
+        </span>
+      </div>
+
+      <sc-if value="{{at.home}}" hint-placeholder-val="{{true}}">
+        <div style="flex:none;padding:6px 18px 12px">
+          <button onClick="{{openAddr}}" data-press="1" style="display:flex;align-items:center;gap:7px;border:0;background:transparent;padding:0;color:var(--fg);max-width:100%">
+            <span data-fd="1" style="font-size:19px;font-weight:700;letter-spacing:-.022em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{addrShort}}</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{addrNote}}</div>
+        </div>
+
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding-bottom:20px">
+          <div data-scroll="1" style="display:flex;gap:8px;overflow-x:auto;padding:0 18px 14px">
+            <sc-for list="{{verticals}}" as="v" hint-placeholder-count="8">
+              <button onClick="{{v.go}}" data-chip="1" data-on="{{v.on}}" data-press="1" style="flex:none;height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:{{v.fg}};font-size:13px;font-weight:500;white-space:nowrap">{{v.l}}</button>
+            </sc-for>
+          </div>
+
+          <div data-scroll="1" style="display:flex;gap:16px;overflow-x:auto;padding:0 18px 18px">
+            <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="7">
+              <button onClick="{{c.go}}" data-press="1" style="flex:none;width:64px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;gap:7px">
+                <span style="width:56px;height:56px;border-radius:17px;border:1px solid {{c.ring}};background:{{c.bg}};color:{{c.fg}};display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.02em">{{c.short}}</span>
+                <span style="font-size:11px;font-weight:500;color:var(--fg-muted);text-align:center;line-height:1.2">{{c.l}}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="padding:0 18px">
+            <div style="position:relative;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--surface)">
+              <div style="height:132px"><image-slot id="mkt-m-promo" shape="rect" placeholder="Aksiya rasmi — osh yoki lavash"></image-slot></div>
+              <div style="padding:13px 15px 15px;border-top:1px solid var(--divider)">
+                <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bad-fg)">{{t.promoTag}}</div>
+                <div data-fd="1" style="font-size:17px;font-weight:700;letter-spacing:-.018em;margin-top:5px;line-height:1.25">{{t.promoH}}</div>
+                <div style="font-size:12px;color:var(--fg-muted);margin-top:4px">{{t.promoP}}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:24px 18px 0">
+            <h2 data-fd="1" style="margin:0;font-size:19px;font-weight:700;letter-spacing:-.02em">{{t.nearH}}</h2>
+            <span data-num="1" style="flex:none;font-size:12px;color:var(--fg-subtle)">{{nearCount}}</span>
+          </div>
+
+          <div style="display:grid;gap:14px;padding:14px 18px 0">
+            <sc-for list="{{stores}}" as="s" hint-placeholder-count="6">
+              <button onClick="{{s.go}}" data-press="1" style="display:block;text-align:left;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:0;overflow:hidden;color:var(--fg);box-shadow:var(--sh-card)">
+                <span style="position:relative;display:block;height:150px">
+                  <image-slot id="mkt-m-{{s.id}}" shape="rect" placeholder="{{s.slot}}"></image-slot>
+                  <sc-if value="{{s.hasBadge}}" hint-placeholder-val="{{true}}">
+                    <span style="position:absolute;left:11px;top:11px;height:24px;padding:0 10px;border-radius:7px;background:{{s.badgeBg}};color:#fff;display:flex;align-items:center;font-size:11px;font-weight:700">{{s.badge}}</span>
+                  </sc-if>
+                  <sc-if value="{{s.closed}}" hint-placeholder-val="{{false}}">
+                    <span style="position:absolute;inset:0;background:rgba(15,19,32,.62);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600">{{s.closedLbl}}</span>
+                  </sc-if>
+                </span>
+                <span style="display:block;padding:13px 15px 15px">
+                  <span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                    <span data-fd="1" style="min-width:0;font-size:16px;font-weight:700;letter-spacing:-.016em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{s.name}}</span>
+                    <span style="flex:none;display:flex;align-items:center;gap:4px">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--star)"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3.1 1.1-6.4L2.6 9.4l6.5-.9L12 2.6Z"></path></svg>
+                      <span data-num="1" style="font-size:13px;font-weight:700">{{s.rating}}</span>
+                      <span data-num="1" style="font-size:11px;color:var(--fg-subtle)">{{s.reviews}}</span>
+                    </span>
+                  </span>
+                  <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{s.kind}}</span>
+                  <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--fg-muted);margin-top:8px;white-space:nowrap">
+                    <span data-num="1">{{s.time}}</span>
+                    <span style="color:var(--border-strong)">·</span>
+                    <span data-num="1" style="color:{{s.feeFg}};font-weight:{{s.feeW}}">{{s.fee}}</span>
+                  </span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{at.store}}" hint-placeholder-val="{{false}}">
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto">
+          <div style="position:relative;height:186px">
+            <image-slot id="mkt-m-hero" shape="rect" placeholder="Osh Xona — zal yoki asosiy taom"></image-slot>
+            <button aria-label="Orqaga" title="Orqaga" onClick="{{goHome}}" data-press="1" style="position:absolute;left:14px;top:14px;width:36px;height:36px;border:0;border-radius:11px;background:var(--surface);color:var(--fg);box-shadow:var(--sh-pop);display:flex;align-items:center;justify-content:center">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"></path></svg>
+            </button>
+          </div>
+
+          <div style="padding:16px 18px 0">
+            <h1 data-fd="1" style="margin:0;font-size:25px;font-weight:700;letter-spacing:-.024em;line-height:1.15">{{shop.name}}</h1>
+            <div style="font-size:13px;color:var(--fg-muted);margin-top:5px">{{shop.kind}}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--fg-muted)">
+              <span style="display:flex;align-items:center;gap:4px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--star)"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3.1 1.1-6.4L2.6 9.4l6.5-.9L12 2.6Z"></path></svg>
+                <span data-num="1" style="font-weight:700;color:var(--fg)">{{shop.rating}}</span>
+                <span data-num="1">{{shop.reviews}}</span>
+              </span>
+              <span style="color:var(--border-strong)">·</span><span data-num="1">{{shop.time}}</span>
+              <span style="color:var(--border-strong)">·</span><span data-num="1">{{shop.fee}}</span>
+              <span style="display:flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:7px;background:var(--ok-soft);color:var(--ok-fg);font-size:11px;font-weight:600">
+                <span style="width:5px;height:5px;border-radius:999px;background:var(--ok)"></span>{{shop.open}}
+              </span>
+            </div>
+          </div>
+
+          <div data-scroll="1" style="display:flex;gap:8px;overflow-x:auto;padding:16px 18px 14px;position:sticky;top:0;background:var(--surface);z-index:10;border-bottom:1px solid var(--divider)">
+            <sc-for list="{{shopCats}}" as="c" hint-placeholder-count="5">
+              <button onClick="{{c.go}}" data-chip="1" data-on="{{c.on}}" data-press="1" style="flex:none;height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:500;white-space:nowrap">{{c.l}}</button>
+            </sc-for>
+          </div>
+
+          <div style="padding:0 18px 20px">
+            <sc-for list="{{dishes}}" as="d" hint-placeholder-count="4">
+              <div style="display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--divider);opacity:{{d.op}}">
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{d.n}}</span>
+                    <sc-if value="{{d.tagged}}" hint-placeholder-val="{{false}}">
+                      <span style="flex:none;height:19px;padding:0 7px;border-radius:6px;background:var(--bad-soft);color:var(--bad-fg);display:flex;align-items:center;font-size:10px;font-weight:700">{{t.offerTag}}</span>
+                    </sc-if>
+                  </div>
+                  <div style="font-size:12px;color:var(--fg-muted);line-height:1.45;margin-top:3px;text-wrap:pretty">{{d.desc}}</div>
+                  <div style="display:flex;align-items:baseline;gap:8px;margin-top:7px;flex-wrap:wrap">
+                    <span data-num="1" data-fd="1" style="font-size:15px;font-weight:700;white-space:nowrap">{{d.price}}</span>
+                    <sc-if value="{{d.wasShown}}" hint-placeholder-val="{{false}}">
+                      <span data-num="1" style="font-size:12px;color:var(--fg-disabled);text-decoration:line-through;white-space:nowrap">{{d.was}}</span>
+                    </sc-if>
+                  </div>
+                </div>
+                <div style="flex:none;width:96px;height:80px;border-radius:12px;overflow:hidden;position:relative">
+                  <image-slot id="mkt-md-{{d.id}}" shape="rect" placeholder="{{d.slot}}"></image-slot>
+                  <sc-if value="{{d.on}}" hint-placeholder-val="{{true}}">
+                    <button onClick="{{d.add}}" data-press="1" style="position:absolute;right:5px;bottom:5px;width:32px;height:32px;border:0;border-radius:10px;background:var(--surface);color:var(--fg);box-shadow:var(--sh-pop);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;line-height:1">+</button>
+                  </sc-if>
+                  <sc-if value="{{d.off}}" hint-placeholder-val="{{false}}">
+                    <span style="position:absolute;inset:0;background:rgba(15,19,32,.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">{{t.soldOut}}</span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{at.cart}}" hint-placeholder-val="{{false}}">
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding:6px 18px 20px">
+          <div style="display:flex;align-items:center;gap:11px;padding-bottom:14px;border-bottom:1px solid var(--divider)">
+            <span style="width:36px;height:36px;flex:none;border-radius:10px;background:#C2410C;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-size:12px;font-weight:800">OX</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:15px;font-weight:600">{{shop.name}}</div>
+              <div data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{shop.time}} · 2.4 km</div>
+            </div>
+            <button onClick="{{goStore}}" data-press="1" style="flex:none;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);font-size:12px;font-weight:600">{{t.addMore}}</button>
+          </div>
+
+          <sc-if value="{{cartEmpty}}" hint-placeholder-val="{{false}}">
+            <div style="padding:32px 0;text-align:center;font-size:13px;color:var(--fg-subtle);line-height:1.5">{{t.cartEmpty}}</div>
+          </sc-if>
+
+          <sc-for list="{{cartLines}}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--divider)">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{c.n}}</div>
+                <div data-num="1" style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{c.unit}}</div>
+              </div>
+              <div style="flex:none;display:flex;align-items:center;gap:8px">
+                <button onClick="{{c.dec}}" data-press="1" style="width:32px;height:32px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--fg);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center">−</button>
+                <span data-num="1" style="width:18px;text-align:center;font-size:14px;font-weight:700">{{c.q}}</span>
+                <button onClick="{{c.inc}}" data-press="1" style="width:32px;height:32px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--fg);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center">+</button>
+              </div>
+              <span data-num="1" style="flex:none;width:58px;text-align:right;font-size:13px;font-weight:600">{{c.sum}}</span>
+            </div>
+          </sc-for>
+
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin:22px 0 9px">{{t.payLbl}}</div>
+          <div style="display:grid;gap:8px">
+            <sc-for list="{{payOpts}}" as="p" hint-placeholder-count="4">
+              <button onClick="{{p.pick}}" data-press="1" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 13px;border:1px solid {{p.border}};border-radius:12px;background:{{p.bg}};color:var(--fg)">
+                <span style="width:18px;height:18px;flex:none;border-radius:50%;border:1.5px solid {{p.ring}};background:{{p.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">{{p.mark}}</span>
+                <span style="width:36px;height:24px;flex:none;border-radius:6px;background:{{p.logoBg}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800">{{p.logo}}</span>
+                <span style="min-width:0">
+                  <span style="display:block;font-size:13px;font-weight:600">{{p.l}}</span>
+                  <span style="display:block;font-size:11px;color:var(--fg-muted);margin-top:1px">{{p.note}}</span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">
+            <sc-for list="{{coTotals}}" as="r" hint-placeholder-count="5">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:8px">
+                <span style="font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}}">{{r.l}}</span>
+                <span data-num="1" data-fd="1" style="font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}}">{{r.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:11px;color:var(--fg-subtle);line-height:1.5;margin-top:12px;text-wrap:pretty">{{t.cartNote}}</div>
+        </div>
+
+        <sc-if value="{{cartHas}}" hint-placeholder-val="{{true}}">
+          <div style="flex:none;padding:12px 18px;background:var(--surface);border-top:1px solid var(--border)">
+            <button onClick="{{placeOrder}}" data-press="1" style="width:100%;height:52px;border:0;border-radius:13px;background:var(--brand);color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px">
+              {{t.place}}<span data-num="1" style="opacity:.85">{{coTotal}}</span>
+            </button>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{at.track}}" hint-placeholder-val="{{false}}">
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding:6px 18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.orderNo}} #4471</div>
+          <div data-fd="1" style="font-size:27px;font-weight:700;letter-spacing:-.024em;margin-top:5px">{{t.etaH}}</div>
+          <div style="font-size:13px;color:var(--fg-muted);margin-top:4px">{{t.etaP}}</div>
+
+          <div style="display:flex;gap:5px;margin-top:18px">
+            <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+              <div style="flex:1;min-width:0">
+                <div style="height:4px;border-radius:999px;background:{{s.bar}}"></div>
+                <div style="font-size:10px;font-weight:600;color:{{s.fg}};margin-top:7px;line-height:1.25">{{s.l}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="height:196px;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:18px">
+            <image-slot id="mkt-m-map" shape="rect" placeholder="Xarita — kuryer yo'li"></image-slot>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:15px 16px;margin-top:14px">
+            <span style="width:44px;height:44px;flex:none;border-radius:50%;background:var(--sunken);color:var(--fg-muted);display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-size:14px;font-weight:700">OS</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600">{{t.courier}}</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--fg-muted);margin-top:2px">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--star)"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3.1 1.1-6.4L2.6 9.4l6.5-.9L12 2.6Z"></path></svg>
+                <span data-num="1">4.9</span><span style="color:var(--border-strong)">·</span><span data-num="1">{{t.courierMeta}}</span>
+              </div>
+            </div>
+            <button aria-label="Kuryerga qo‘ng‘iroq" title="Kuryerga qo‘ng‘iroq" onClick="{{callCourier}}" data-press="1" style="flex:none;width:42px;height:42px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface);color:var(--fg);display:flex;align-items:center;justify-content:center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h3.5l1.6 4-2.2 1.4a11 11 0 0 0 6.7 6.7L16 13.9l4 1.6V19a1.8 1.8 0 0 1-2 1.8A15.5 15.5 0 0 1 3.2 6 1.8 1.8 0 0 1 5 4Z"></path></svg>
+            </button>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:16px 18px;margin-top:14px">
+            <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.014em">{{t.orderH}}</div>
+            <sc-for list="{{cartLines}}" as="c" hint-placeholder-count="3">
+              <div style="display:flex;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--divider)">
+                <span data-num="1" style="width:18px;flex:none;font-size:13px;font-weight:700;color:var(--brand-dark)">{{c.q}}</span>
+                <span style="flex:1;min-width:0;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{c.n}}</span>
+                <span data-num="1" style="flex:none;font-size:13px;font-weight:600">{{c.sum}}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--fg-muted)">{{t.paidBy}}</span>
+              <span data-num="1" data-fd="1" style="font-size:17px;font-weight:700">{{coTotal}}</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{at.orders}}" hint-placeholder-val="{{false}}">
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding:6px 18px 20px">
+          <h2 data-fd="1" style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.022em">{{t.ordersH}}</h2>
+          <div style="display:flex;gap:2px;padding:3px;background:var(--sunken);border-radius:10px;margin-top:14px">
+            <sc-for list="{{ordTabs}}" as="o" hint-placeholder-count="2">
+              <button onClick="{{o.go}}" data-seg="1" data-on="{{o.on}}" data-press="1" style="flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{o.l}}</button>
+            </sc-for>
+          </div>
+          <div style="display:grid;gap:10px;margin-top:16px">
+            <sc-for list="{{orderRows}}" as="o" hint-placeholder-count="4">
+              <button onClick="{{o.go}}" data-press="1" style="display:block;width:100%;text-align:left;border:1px solid var(--border);border-left:3px solid {{o.accent}};border-radius:14px;background:var(--surface);padding:15px 16px;color:var(--fg)">
+                <span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                  <span style="font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{o.shop}}</span>
+                  <span data-mono="1" style="flex:none;font-size:11px;color:var(--fg-subtle)">{{o.no}}</span>
+                </span>
+                <span style="display:block;font-size:12px;color:var(--fg-muted);margin-top:4px">{{o.items}}</span>
+                <span style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px">
+                  <span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:{{o.stFg}}">
+                    <span style="width:6px;height:6px;border-radius:999px;background:{{o.accent}}"></span>{{o.status}}
+                  </span>
+                  <span data-num="1" data-fd="1" style="flex:none;font-size:15px;font-weight:700">{{o.total}}</span>
+                </span>
+                <sc-if value="{{o.canRate}}" hint-placeholder-val="{{false}}">
+                  <span style="display:flex;align-items:center;gap:7px;margin-top:11px;padding-top:10px;border-top:1px solid var(--divider)">
+                    <sc-for list="{{o.stars}}" as="st" hint-placeholder-count="5">
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="{{st.fill}}" stroke="{{st.stroke}}" stroke-width="1.4"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3.1 1.1-6.4L2.6 9.4l6.5-.9L12 2.6Z"></path></svg>
+                    </sc-for>
+                    <span style="font-size:11px;color:var(--fg-subtle);margin-left:3px">{{o.rateNote}}</span>
+                  </span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{at.profile}}" hint-placeholder-val="{{false}}">
+        <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding:6px 18px 20px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="width:56px;height:56px;flex:none;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-size:19px;font-weight:800">DA</span>
+            <div style="min-width:0">
+              <div data-fd="1" style="font-size:19px;font-weight:700;letter-spacing:-.02em">Dilnoza Ahmedova</div>
+              <div data-num="1" style="font-size:13px;color:var(--fg-subtle);margin-top:2px">+998 90 123 45 67</div>
+            </div>
+          </div>
+
+          <div style="border:1px solid var(--brand-line);border-radius:16px;background:var(--brand-soft);padding:17px 18px;margin-top:18px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font-size:12px;color:var(--brand-dark);font-weight:600">{{t.pointsLbl}}</span>
+              <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-dark)">{{t.tier}}</span>
+            </div>
+            <div data-num="1" data-fd="1" style="font-size:33px;font-weight:700;letter-spacing:-.026em;color:var(--brand-dark);margin-top:3px;line-height:1">2 840</div>
+            <div style="height:4px;border-radius:999px;background:rgba(46,116,234,.22);margin-top:13px;overflow:hidden"><div style="height:100%;width:71%;background:var(--brand);border-radius:999px"></div></div>
+            <div style="font-size:11px;color:var(--brand-dark);margin-top:6px">{{t.tierNote}}</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+            <sc-for list="{{profStats}}" as="p" hint-placeholder-count="4">
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:14px 15px">
+                <div style="font-size:11px;color:var(--fg-subtle)">{{p.l}}</div>
+                <div data-num="1" data-fd="1" style="font-size:19px;font-weight:700;margin-top:4px">{{p.v}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;gap:1px;margin-top:20px">
+            <sc-for list="{{profRows}}" as="r" hint-placeholder-count="6">
+              <button onClick="{{r.go}}" data-row="1" data-press="1" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:14px 12px;border:0;border-radius:10px;background:transparent;color:var(--fg);text-align:left">
+                <span style="min-width:0">
+                  <span style="display:block;font-size:14px;font-weight:600">{{r.l}}</span>
+                  <span style="display:block;font-size:11px;color:var(--fg-subtle);margin-top:2px">{{r.note}}</span>
+                </span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="m9 6 6 6-6 6"></path></svg>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="flex:none;height:62px;display:flex;border-top:1px solid var(--border);background:var(--surface);padding-bottom:2px">
+        <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="5">
+          <button onClick="{{tb.go}}" data-tab="1" data-on="{{tb.on}}" data-press="1" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:var(--fg-subtle);padding:0;position:relative">
+            <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px">{{tb.icon}}</span>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.01em;text-align:center">{{tb.l}}</span>
+            <sc-if value="{{tb.badge}}" hint-placeholder-val="{{false}}">
+              <span data-num="1" style="position:absolute;top:4px;right:22px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--bad);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">{{tb.badgeN}}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:var(--n-0);box-shadow:var(--sh-pop);font-size:14px;font-weight:500;max-width:min(520px,90vw)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span>{{toast}}</span>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light' | 'dark'&quot;}}">
+class Component extends DCLogic {
+  state = { lang: "uz", theme: null, stage: "home", vert: 0, cuisine: 0, shopCat: 0, cart: null, pay: 0, ordTab: 0, rated: 0, toast: "" };
+
+  L(v) { return v && typeof v === "object" && v.en !== undefined ? (v[this.state.lang] || v.en) : v; }
+  f(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009"); }
+  theme() { return this.state.theme || this.props.theme || "light"; }
+
+  flash(m) {
+    clearTimeout(this._tt);
+    this.setState({ toast: m });
+    this._tt = setTimeout(() => this.setState({ toast: "" }), 2500);
+  }
+
+  VERTS = [
+    { l: { uz: "Hammasi", ru: "Все", en: "All" }, live: true },
+    { l: { uz: "Ovqat", ru: "Еда", en: "Food" }, live: true },
+    { l: { uz: "Oziq-ovqat", ru: "Продукты", en: "Grocery" }, live: true },
+    { l: { uz: "Non", ru: "Выпечка", en: "Bakery" }, live: true },
+    { l: { uz: "Ichimlik", ru: "Напитки", en: "Drinks" }, live: true },
+    { l: { uz: "Dorixona", ru: "Аптека", en: "Pharmacy" }, live: false },
+    { l: { uz: "Gullar", ru: "Цветы", en: "Flowers" }, live: false },
+    { l: { uz: "Elektronika", ru: "Электроника", en: "Electronics" }, live: false },
+  ];
+
+  CUISINES = [
+    { short: "Osh", l: { uz: "Osh", ru: "Плов", en: "Plov" } },
+    { short: "Lav", l: { uz: "Lavash", ru: "Лаваш", en: "Lavash" } },
+    { short: "Brg", l: { uz: "Burger", ru: "Бургер", en: "Burgers" } },
+    { short: "Piz", l: { uz: "Pitsa", ru: "Пицца", en: "Pizza" } },
+    { short: "Shs", l: { uz: "Shashlik", ru: "Шашлык", en: "Kebab" } },
+    { short: "Som", l: { uz: "Somsa", ru: "Самса", en: "Samsa" } },
+    { short: "Choy", l: { uz: "Choyxona", ru: "Чайхана", en: "Choyxona" } },
+    { short: "Shir", l: { uz: "Shirinlik", ru: "Десерты", en: "Desserts" } },
+  ];
+
+  STORES = [
+    { id: "osh", name: "Osh Xona", kind: { uz: "Milliy taomlar · osh markazi", ru: "Национальная кухня · плов", en: "Uzbek · plov house" }, rating: "4.9", reviews: 1240, time: "25–35", fee: 12000, badge: { uz: "Yangi narxlar", ru: "Новые цены", en: "New prices" }, badgeBg: "var(--warn)" },
+    { id: "smart", name: "Smart Restaurant", kind: { uz: "Milliy · burger · pitsa", ru: "Национальная · бургеры · пицца", en: "Uzbek · burgers · pizza" }, rating: "4.8", reviews: 2100, time: "20–30", fee: 0, badge: { uz: "Bepul yetkazish", ru: "Бесплатная доставка", en: "Free delivery" }, badgeBg: "var(--brand)" },
+    { id: "baraka", name: "Lavash Baraka", kind: { uz: "Lavash · tez tayyor", ru: "Лаваш · фастфуд", en: "Lavash · fast food" }, rating: "4.6", reviews: 3400, time: "15–25", fee: 8000, badge: { uz: "−20% ikkinchi lavash", ru: "−20% на второй", en: "−20% second one" }, badgeBg: "var(--bad)" },
+    { id: "navruz", name: "Choyxona Navruz", kind: { uz: "Choyxona · shashlik", ru: "Чайхана · шашлык", en: "Choyxona · kebab" }, rating: "4.7", reviews: 860, time: "30–40", fee: 9000 },
+    { id: "roma", name: "Pizza Roma", kind: { uz: "Pitsa · pasta", ru: "Пицца · паста", en: "Pizza · pasta" }, rating: "4.5", reviews: 1900, time: "25–35", fee: 10000 },
+    { id: "shashlik", name: "Shashlik Markazi", kind: { uz: "Shashlik · kabob", ru: "Шашлык · кебаб", en: "Kebab · grill" }, rating: "4.7", reviews: 1100, time: "30–40", fee: 12000, closed: true },
+  ];
+
+  SHOPCATS = [
+    { uz: "Osh", ru: "Плов", en: "Plov" },
+    { uz: "Grill", ru: "Гриль", en: "Grill" },
+    { uz: "Salatlar", ru: "Салаты", en: "Salads" },
+    { uz: "Choy", ru: "Чай", en: "Tea" },
+    { uz: "Shirinlik", ru: "Десерты", en: "Desserts" },
+  ];
+
+  DISHES = [
+    { id: "d1", c: 0, n: { uz: "Toshkent oshi", ru: "Ташкентский плов", en: "Tashkent plov" }, desc: { uz: "Qazi, tuxum, no'xat · bir kishilik tovoq", ru: "Казы, яйцо, горох · порция на одного", en: "Kazy, egg, chickpeas · one portion" }, p: 45000 },
+    { id: "d2", c: 0, n: { uz: "Sarimsoqli osh", ru: "Плов с чесноком", en: "Garlic plov" }, desc: { uz: "Butun sarimsoq bosh, qo'y go'shti", ru: "Целая головка чеснока, баранина", en: "A whole garlic head, lamb" }, p: 52000 },
+    { id: "d3", c: 0, n: { uz: "To'y oshi, lagan", ru: "Свадебный плов, лаган", en: "Wedding plov" }, desc: { uz: "Ikki kishilik lagan · 40 daqiqada tayyorlanadi", ru: "Лаган на двоих · готовится 40 минут", en: "Sharing dish for two · 40 minutes" }, p: 96000, was: 110000 },
+    { id: "d4", c: 1, n: { uz: "Qo'y kabobi", ru: "Кебаб из баранины", en: "Lamb kebab" }, desc: { uz: "Ikki sixcha · achchiq sous bilan", ru: "Два шампура · с острым соусом", en: "Two skewers · with a hot sauce" }, p: 62000 },
+    { id: "d5", c: 2, n: { uz: "Achchiq-chuchuk", ru: "Ачик-чучук", en: "Achichuk salad" }, desc: { uz: "Pomidor, piyoz, achchiq qalampir", ru: "Помидор, лук, острый перец", en: "Tomato, onion, hot pepper" }, p: 22000 },
+    { id: "d6", c: 3, n: { uz: "Ko'k choy, choynak", ru: "Зелёный чай, чайник", en: "Green tea, pot" }, desc: { uz: "Bir litr · limon qo'shiladi", ru: "Один литр · с лимоном", en: "One litre · lemon included" }, p: 12000 },
+    { id: "d7", c: 4, n: { uz: "Chak-chak", ru: "Чак-чак", en: "Chak-chak" }, desc: { uz: "Uy sharoitida tayyorlangan · asal bilan", ru: "Домашний · с медом", en: "Homemade · with honey" }, p: 18000, off: true },
+  ];
+
+  componentDidMount() {
+    try {
+      const t = localStorage.getItem("mypos-app-theme");
+      const l = localStorage.getItem("mypos-app-lang");
+      const s = {};
+      if (t) s.theme = t;
+      if (l) s.lang = l;
+      if (Object.keys(s).length) this.setState(s);
+    } catch (e) {}
+  }
+
+  setLang(l) { this.setState({ lang: l }); try { localStorage.setItem("mypos-app-lang", l); } catch (e) {} }
+  cart() { return this.state.cart || { d1: 2, d5: 1, d6: 1 }; }
+
+  ICON(kind, on) {
+    const c = on ? "var(--brand)" : "currentColor";
+    const P = {
+      home: "M3 10.5 12 3l9 7.5M5.5 9.5V20h13V9.5",
+      search: "",
+      bag: "M6 7h13l-1.3 9.2a2 2 0 0 1-2 1.8H9.3a2 2 0 0 1-2-1.8L6 7ZM9 7V5.5a3 3 0 0 1 6 0V7",
+      list: "M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+      user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20.5a7 7 0 0 1 14 0",
+    };
+    if (kind === "search") {
+      return React.createElement("svg", { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.85, strokeLinecap: "round" },
+        React.createElement("circle", { cx: 11, cy: 11, r: 7 }),
+        React.createElement("path", { d: "m16.5 16.5 4 4" }));
+    }
+    return React.createElement("svg", { width: 21, height: 21, viewBox: "0 0 24 24", fill: "none", stroke: c, strokeWidth: 1.85, strokeLinecap: "round", strokeLinejoin: "round" },
+      React.createElement("path", { d: P[kind] }));
+  }
+
+  renderVals() {
+    const S = this.state;
+    const T = (o) => this.L(o);
+    const P = (uz, ru, en) => T({ uz, ru, en });
+    const som = P("so'm", "сум", "so'm");
+    const stage = S.stage;
+    const cart = this.cart();
+    const ids = Object.keys(cart).filter((k) => cart[k] > 0);
+    const dish = (id) => this.DISHES.find((d) => d.id === id);
+    const itemsSum = ids.reduce((a, id) => a + (dish(id) ? dish(id).p * cart[id] : 0), 0);
+    const fee = S.pay === 3 ? 12000 : 12000;
+    const svc = Math.round(itemsSum * 0.03);
+    const promo = 5000;
+    const total = itemsSum + fee + svc - promo;
+    const count = ids.reduce((a, id) => a + cart[id], 0);
+
+    const PAY = [
+      { logo: "CLICK", logoBg: "#0A5CD6", l: "Click", note: P("Ilova ichida to'lanadi", "Оплата внутри приложения", "Paid inside the app") },
+      { logo: "PAYME", logoBg: "#00CCCC", l: "Payme", note: P("Saqlangan karta · ···4417", "Сохранённая карта · ···4417", "Saved card · ···4417") },
+      { logo: "UZUM", logoBg: "#7000FF", l: "Uzum Bank", note: P("Bo'lib to'lash mumkin", "Можно в рассрочку", "Instalments available") },
+      { logo: "NAQD", logoBg: "#4C5568", l: P("Yetkazishda naqd", "Наличными курьеру", "Cash on delivery"), note: P("Chaqa tayyorlab turing", "Подготовьте сдачу", "Have change ready") },
+    ];
+
+    const STEPS = [
+      P("Qabul qilindi", "Принят", "Accepted"),
+      P("Oshxonada", "На кухне", "Kitchen"),
+      P("Tayyor", "Готов", "Ready"),
+      P("Yo'lda", "В пути", "On the way"),
+      P("Yetkazildi", "Доставлен", "Delivered"),
+    ];
+    const at = 3;
+
+    const ORDERS = [
+      { shop: "Osh Xona", no: "#4471", items: P("2 × Toshkent oshi, 1 × Achchiq-chuchuk", "2 × Ташкентский плов, 1 × Ачик-чучук", "2 × Tashkent plov, 1 × Achichuk"), status: P("Kuryer yo'lda · 9 daqiqa", "Курьер в пути · 9 минут", "On the way · 9 min"), total: 134720, accent: "var(--brand)", live: true },
+      { shop: "Lavash Baraka", no: "#4462", items: P("2 × Tovuqli lavash, 1 × Kola", "2 × Лаваш с курицей, 1 × Кола", "2 × Chicken lavash, 1 × Cola"), status: P("Yetkazildi · kecha 20:14", "Доставлен · вчера 20:14", "Delivered · yesterday 20:14"), total: 84000, accent: "var(--ok)", rate: true },
+      { shop: "Choyxona Navruz", no: "#4418", items: P("1 × Qo'y kabobi, 1 × Ko'k choy", "1 × Кебаб из баранины, 1 × Зелёный чай", "1 × Lamb kebab, 1 × Green tea"), status: P("Yetkazildi · 12-avgust", "Доставлен · 12 августа", "Delivered · 12 August"), total: 74000, accent: "var(--border-strong)" },
+      { shop: "Pizza Roma", no: "#4390", items: P("1 × Margherita 30 sm", "1 × Маргарита 30 см", "1 × Margherita 30 cm"), status: P("Bekor qilingan · mijoz", "Отменён · клиентом", "Cancelled · by you"), total: 56000, accent: "var(--bad)" },
+    ];
+
+    const TABS = [
+      ["home", P("Bosh", "Главная", "Home"), "home"],
+      ["search", P("Qidiruv", "Поиск", "Search"), "search"],
+      ["cart", P("Savat", "Корзина", "Cart"), "bag"],
+      ["orders", P("Buyurtmalar", "Заказы", "Orders"), "list"],
+      ["profile", P("Profil", "Профиль", "Profile"), "user"],
+    ];
+    const tabFor = { home: "home", store: "home", cart: "cart", track: "orders", orders: "orders", profile: "profile" }[stage];
+
+    return {
+      theme: this.theme(),
+      isUz: S.lang === "uz", isRu: S.lang === "ru", isEn: S.lang === "en",
+      setUz: () => this.setLang("uz"), setRu: () => this.setLang("ru"), setEn: () => this.setLang("en"),
+      toggleTheme: () => {
+        const n = this.theme() === "dark" ? "light" : "dark";
+        this.setState({ theme: n });
+        try { localStorage.setItem("mypos-app-theme", n); } catch (e) {}
+      },
+      hasToast: !!S.toast, toast: S.toast,
+
+      at: { home: stage === "home", store: stage === "store", cart: stage === "cart", track: stage === "track", orders: stage === "orders", profile: stage === "profile" },
+      stages: [
+        ["home", P("Bosh ekran", "Главная", "Home")],
+        ["store", P("Do'kon", "Магазин", "Store")],
+        ["cart", P("Savat va to'lov", "Корзина и оплата", "Cart and payment")],
+        ["track", P("Kuzatish", "Отслеживание", "Tracking")],
+        ["orders", P("Buyurtmalar", "Заказы", "Orders")],
+        ["profile", P("Profil", "Профиль", "Profile")],
+      ].map(([k, l]) => ({ l, on: stage === k, go: () => this.setState({ stage: k }) })),
+      stageNote: {
+        home: P("Kategoriya chiplari 15 vertikalni ko'taradi · ochilmaganlari xira", "Чипы категорий держат 15 вертикалей · неоткрытые бледные", "The chips carry fifteen verticals · the unlaunched ones are dimmed"),
+        store: P("Menyu va stop-list POS dan real vaqtda keladi", "Меню и стоп-лист приходят из POS в реальном времени", "The menu and stop list come from the POS in real time"),
+        cart: P("Bir ekranda: savat, to'lov usuli, jami", "На одном экране: корзина, оплата, итог", "One screen: cart, payment method, total"),
+        track: P("Holat oshxona ekranidan keladi, taxmin emas", "Статус приходит с экрана кухни, не оценка", "Status comes from the kitchen screen, not a guess"),
+        orders: P("Yetkazilgan buyurtmaga to'g'ridan-to'g'ri baho beriladi", "Оценка ставится прямо в доставленном заказе", "You rate a delivered order right in the row"),
+        profile: P("Ball, daraja, manzillar va to'lov usullari", "Баллы, уровень, адреса и способы оплаты", "Points, tier, addresses and payment methods"),
+      }[stage],
+
+      addrShort: P("Chilonzor 24", "Чиланзар 24", "Chilonzor 24"),
+      addrNote: P("Toshkent · hozir yetkazish 25–35 daqiqa", "Ташкент · доставка сейчас 25–35 минут", "Tashkent · delivery now 25–35 min"),
+      openAddr: () => this.flash(P("Manzil xaritadan tanlanadi · mahalla darajasigacha", "Адрес выбирается на карте · до уровня махалли", "The address is picked on the map · down to the mahalla")),
+
+      verticals: this.VERTS.map((v, i) => ({
+        l: T(v.l), on: i === S.vert,
+        fg: v.live ? "var(--fg)" : "var(--fg-disabled)",
+        go: () => v.live
+          ? this.setState({ vert: i })
+          : this.flash(T(v.l) + " · " + P("keyingi bosqichda ochiladi", "откроется на следующем этапе", "opens in the next phase")),
+      })),
+      cuisines: this.CUISINES.map((c, i) => ({
+        short: c.short, l: T(c.l),
+        bg: i === S.cuisine ? "var(--brand-soft)" : "var(--surface)",
+        ring: i === S.cuisine ? "var(--brand-line)" : "var(--border)",
+        fg: i === S.cuisine ? "var(--brand-dark)" : "var(--fg-muted)",
+        go: () => this.setState({ cuisine: i }),
+      })),
+
+      nearCount: "412 " + P("do'kon", "магазинов", "stores"),
+      stores: this.STORES.map((s) => ({
+        id: s.id, name: s.name, kind: T(s.kind), rating: s.rating,
+        reviews: "(" + this.f(s.reviews) + ")",
+        time: s.time + " " + P("daq", "мин", "min"),
+        fee: s.fee ? this.f(s.fee) + " " + som : P("Bepul yetkazish", "Бесплатно", "Free delivery"),
+        feeFg: s.fee ? "var(--fg-muted)" : "var(--brand-dark)",
+        feeW: s.fee ? "400" : "600",
+        hasBadge: !!s.badge, badge: s.badge ? T(s.badge) : "", badgeBg: s.badgeBg || "transparent",
+        closed: !!s.closed, closedLbl: P("Yopiq · 17:00 da ochiladi", "Закрыто · откроется в 17:00", "Closed · opens at 17:00"),
+        slot: s.name + " — asosiy taom",
+        go: () => s.closed
+          ? this.flash(s.name + " · " + P("hozir yopiq", "сейчас закрыто", "closed right now"))
+          : this.setState({ stage: "store" }),
+      })),
+
+      goHome: () => this.setState({ stage: "home" }),
+      goStore: () => this.setState({ stage: "store" }),
+      shop: {
+        name: "Osh Xona",
+        kind: P("Milliy taomlar · Chilonzor filiali", "Национальная кухня · филиал Чиланзар", "Uzbek · Chilonzor branch"),
+        rating: "4.9", reviews: "(1\u2009240)", time: "25–35 " + P("daq", "мин", "min"),
+        fee: this.f(12000) + " " + som,
+        open: P("Ochiq · 23:00 gacha", "Открыто · до 23:00", "Open · until 23:00"),
+      },
+      shopCats: this.SHOPCATS.map((c, i) => ({ l: T(c), on: i === S.shopCat, go: () => this.setState({ shopCat: i }) })),
+      dishes: this.DISHES.filter((d) => d.c === S.shopCat).map((d) => ({
+        id: d.id, n: T(d.n), desc: T(d.desc),
+        price: this.f(d.p) + " " + som,
+        was: d.was ? this.f(d.was) + " " + som : "", wasShown: !!d.was,
+        tagged: !!d.was, on: !d.off, off: !!d.off, op: d.off ? "0.55" : "1",
+        slot: T(d.n),
+        add: () => {
+          const c = Object.assign({}, cart);
+          c[d.id] = (c[d.id] || 0) + 1;
+          this.setState({ cart: c });
+          this.flash(T(d.n) + " · " + P("savatga qo'shildi", "добавлено в корзину", "added to the cart"));
+        },
+      })),
+
+      cartLines: ids.map((id) => {
+        const d = dish(id);
+        return {
+          n: T(d.n), q: String(cart[id]),
+          unit: this.f(d.p) + " × " + cart[id],
+          sum: this.f(d.p * cart[id]),
+          inc: () => this.setState({ cart: Object.assign({}, cart, { [id]: cart[id] + 1 }) }),
+          dec: () => {
+            const c = Object.assign({}, cart);
+            if (c[id] > 1) c[id] -= 1; else delete c[id];
+            this.setState({ cart: c });
+          },
+        };
+      }),
+      cartHas: ids.length > 0, cartEmpty: ids.length === 0,
+      payOpts: PAY.map((p, i) => ({
+        l: p.l, note: p.note, logo: p.logo, logoBg: p.logoBg,
+        mark: i === S.pay ? "\u2713" : "",
+        ring: i === S.pay ? "var(--brand)" : "var(--border-strong)",
+        fill: i === S.pay ? "var(--brand)" : "transparent",
+        border: i === S.pay ? "var(--brand)" : "var(--border)",
+        bg: i === S.pay ? "var(--brand-soft)" : "var(--surface)",
+        pick: () => this.setState({ pay: i }),
+      })),
+      coTotals: [
+        { l: P("Taomlar", "Блюда", "Items"), v: this.f(itemsSum), size: "13px", w: "500", fg: "var(--fg-muted)" },
+        { l: P("Yetkazish", "Доставка", "Delivery"), v: this.f(fee), size: "13px", w: "500", fg: "var(--fg-muted)" },
+        { l: P("Xizmat haqi 3%", "Сервисный сбор 3%", "Service fee 3%"), v: this.f(svc), size: "13px", w: "500", fg: "var(--fg-muted)" },
+        { l: "OSH2026", v: "− " + this.f(promo), size: "13px", w: "600", fg: "var(--ok-fg)" },
+        { l: P("Jami", "Итого", "Total"), v: this.f(total), size: "21px", w: "700", fg: "var(--fg)" },
+      ],
+      coTotal: this.f(total) + " " + som,
+      placeOrder: () => { this.setState({ stage: "track" }); this.flash(P("Buyurtma qabul qilindi · #4471", "Заказ принят · #4471", "Order accepted · #4471")); },
+
+      steps: STEPS.map((l, i) => ({
+        l, bar: i < at ? "var(--ok)" : i === at ? "var(--brand)" : "var(--border)",
+        fg: i <= at ? "var(--fg)" : "var(--fg-disabled)",
+      })),
+      courier: "Oybek S.",
+      callCourier: () => this.flash(P("Qo'ng'iroq · raqam yashiriladi", "Звонок · номер скрыт", "Calling · the number stays hidden")),
+
+      ordTabs: [P("Faol", "Активные", "Active"), P("Tarix", "История", "History")].map((l, i) => ({
+        l, on: i === S.ordTab, go: () => this.setState({ ordTab: i }),
+      })),
+      orderRows: ORDERS.filter((o) => (S.ordTab === 0 ? o.live : !o.live)).map((o) => ({
+        shop: o.shop, no: o.no, items: o.items, status: o.status,
+        total: this.f(o.total), accent: o.accent, stFg: "var(--fg)",
+        canRate: !!o.rate,
+        rateNote: S.rated ? P("Rahmat, baho yuborildi", "Спасибо, оценка отправлена", "Thanks, your rating is in") : P("Baho bering · 100 ball", "Оцените · 100 баллов", "Rate it · 100 points"),
+        stars: [1, 2, 3, 4, 5].map((n) => ({
+          fill: n <= S.rated ? "var(--star)" : "transparent",
+          stroke: n <= S.rated ? "var(--star)" : "var(--border-strong)",
+        })),
+        go: () => o.live
+          ? this.setState({ stage: "track" })
+          : o.rate
+            ? (this.setState({ rated: 5 }), this.flash(P("5 yulduz · 100 ball qo'shildi", "5 звёзд · начислено 100 баллов", "Five stars · 100 points added")))
+            : this.flash(o.shop + " · " + P("chek va tarkibi", "чек и состав", "receipt and contents")),
+      })),
+
+      profStats: [
+        { l: P("Buyurtmalar", "Заказов", "Orders"), v: "47" },
+        { l: P("Jami sarflangan", "Всего потрачено", "Total spent"), v: "4.2 " + P("mln", "млн", "M") },
+        { l: P("O'rtacha chek", "Средний чек", "Average order"), v: "89 000" },
+        { l: P("Tejalgan", "Сэкономлено", "Saved"), v: "312 000" },
+      ],
+      profRows: [
+        { l: P("Manzillarim", "Мои адреса", "My addresses"), note: P("Uy, ish · 2 manzil", "Дом, работа · 2 адреса", "Home, work · 2 addresses") },
+        { l: P("To'lov usullari", "Способы оплаты", "Payment methods"), note: P("Click, Payme · ···4417", "Click, Payme · ···4417", "Click, Payme · ···4417") },
+        { l: "MyPOS Plus", note: P("Yetkazish bepul · oyiga 39 000 so'm", "Бесплатная доставка · 39 000 сум в месяц", "Free delivery · 39 000 so'm a month") },
+        { l: P("Bildirishnomalar", "Уведомления", "Notifications"), note: P("Buyurtma holati, aksiyalar", "Статус заказа, акции", "Order status, offers") },
+        { l: P("Til", "Язык", "Language"), note: P("O'zbekcha", "Русский", "English") },
+        { l: P("Yordam", "Помощь", "Help"), note: P("Operator ish vaqtida 2 daqiqada javob beradi", "Оператор отвечает за 2 минуты", "An operator replies within 2 minutes") },
+      ].map((r) => ({ l: r.l, note: r.note, go: () => this.flash(r.l + " · " + r.note) })),
+
+      tabs: TABS.map(([k, l, icon]) => ({
+        l, on: tabFor === k,
+        icon: this.ICON(icon, tabFor === k),
+        badge: k === "cart" && count > 0, badgeN: String(count),
+        go: () => k === "search"
+          ? this.flash(P("Qidiruv: restoran, taom yoki oshxona nomi", "Поиск: ресторан, блюдо или кухня", "Search: restaurant, dish or cuisine"))
+          : this.setState({ stage: k }),
+      })),
+
+      t: {
+        eyebrow: P("MyPOS Marketplace · mijoz ilovasi", "MyPOS Marketplace · приложение клиента", "MyPOS Marketplace · customer app"),
+        h1: P("Bitta ilova, 412 do'kon", "Одно приложение, 412 магазинов", "One app, 412 stores"),
+        lede: P("Barcha MyPOS restoranlari bitta ilovada. Buyurtma to'g'ridan-to'g'ri oshxonaga tushadi, tugagan taom shu zahoti yo'qoladi, komissiya 27% emas 9%.", "Все рестораны MyPOS в одном приложении. Заказ попадает прямо на кухню, закончившееся блюдо исчезает сразу, комиссия 9%, а не 27%.", "Every MyPOS restaurant in one app. Orders land straight in the kitchen, sold-out dishes vanish at once, and commission is 9% rather than 27%."),
+        themeT: P("Yorug' va qorong'i", "Светлая и тёмная", "Light and dark"),
+        promoTag: P("Aksiya", "Акция", "Offer"),
+        promoH: P("Ikkinchi osh 50% arzon", "Второй плов со скидкой 50%", "Second plov at half price"),
+        promoP: P("Osh Xona · 20-avgustgacha", "Osh Xona · до 20 августа", "Osh Xona · until 20 August"),
+        nearH: P("Yaqin atrofda", "Рядом с вами", "Near you"),
+        offerTag: P("Aksiya", "Акция", "Offer"),
+        soldOut: P("Tugadi", "Закончилось", "Sold out"),
+        addMore: P("Qo'shish", "Добавить", "Add more"),
+        cartEmpty: P("Savat bo'sh. Do'konga qaytib taom qo'shing.", "Корзина пуста. Вернитесь в магазин и добавьте блюдо.", "The cart is empty. Go back and add a dish."),
+        payLbl: P("To'lov usuli", "Способ оплаты", "Payment method"),
+        cartNote: P("Narx ichida QQS 12% bor. Buyurtma to'g'ridan-to'g'ri Osh Xona oshxonasiga tushadi.", "В цене уже есть НДС 12%. Заказ попадает прямо на кухню Osh Xona.", "VAT 12% is already in the price. The order lands straight in the Osh Xona kitchen."),
+        place: P("Buyurtma berish ·", "Оформить заказ ·", "Place the order ·"),
+        orderNo: P("Buyurtma", "Заказ", "Order"),
+        etaH: P("11:38 ga yetkaziladi", "Доставим к 11:38", "Arriving by 11:38"),
+        etaP: P("Kuryer 2.4 km masofada · taxminan 9 daqiqa", "Курьер в 2.4 км · примерно 9 минут", "The courier is 2.4 km away · about 9 minutes"),
+        courier: P("Oybek S. · kuryer", "Ойбек С. · курьер", "Oybek S. · courier"),
+        courierMeta: P("412 yetkazish", "412 доставок", "412 deliveries"),
+        orderH: P("Buyurtma tarkibi", "Состав заказа", "Order contents"),
+        paidBy: P("Click bilan to'landi", "Оплачено через Click", "Paid with Click"),
+        ordersH: P("Buyurtmalarim", "Мои заказы", "My orders"),
+        pointsLbl: P("Ball qoldig'i", "Баланс баллов", "Points balance"),
+        tier: P("Kumush", "Серебро", "Silver"),
+        tierNote: P("Oltin darajaga 1 160 ball qoldi", "До золотого уровня осталось 1 160 баллов", "1 160 points to the gold tier"),
+      },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;
+      --n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+      --brand-50:#EEF5FF;--brand-100:#DBE9FE;--brand-500:#2E74EA;--brand-600:#1C5AD1;
+      --success-500:#12B76A;--success-600:#039855;--success-700:#027A48;--success-50:#ECFDF3;
+      --warning-500:#F79009;--warning-600:#DC6803;--warning-50:#FFFAEB;
+      --danger-500:#F04438;--danger-600:#D92D20;--danger-50:#FEF3F2;
+      --accent-500:#0FB48A;--accent-600:#0A8F6C;
+      --fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--border:#E7EAF0;--divider:#F1F3F7;
+      --font-sans:'Inter',system-ui,sans-serif;--font-display:'Inter Tight','Inter',sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-sans);color:var(--fg);-webkit-font-smoothing:antialiased}
+    doc-page:not(:defined){visibility:hidden}
+    a{color:var(--brand-600);text-decoration:none}
+    a:hover{color:var(--brand-500)}
+    table{border-collapse:collapse;width:100%}
+  </style>
+  <script src="./doc-page.js"></script>
+</helmet>
+
+<doc-page size="a4">
+
+  <section class="page" id="p1" data-screen-label="01" style="padding:16mm 14mm;display:flex;flex-direction:column;font-size:9.5pt">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:2px solid var(--n-900)">
+      <div>
+        <div style="font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Chop etiladigan hujjatlar</div>
+        <div style="font-family:var(--font-display);font-size:22pt;font-weight:700;letter-spacing:-.022em;margin-top:3px">Smart Restaurant OS</div>
+      </div>
+      <div style="text-align:right;font-size:8.5pt;color:var(--fg-muted);line-height:1.5">
+        <div>Toshkent · Termiz · 5 filial</div>
+        <div style="font-family:var(--font-mono)">Versiya 1.0 · 15.08.2026</div>
+      </div>
+    </div>
+
+    <p style="margin:14px 0 0;font-size:10.5pt;line-height:1.6;color:var(--fg-muted);max-width:150mm">Tizim yetti xil hujjat chop etadi. Har biri boshqa qog'ozga, boshqa auditoriyaga va boshqa maqsadga chiqadi — shuning uchun ular bir xil ko'rinmaydi. Quyida har birining o'lchami, kim uchun ekani va nima uchun shundayligi.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px">
+      <div style="border:1px solid var(--border);border-left:3px solid var(--brand-500);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">80 mm termal</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Mijoz cheki</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Fiskal ma'lumot, QQS ajratilgan, QR kod. Mijozga.</div>
+      </div>
+      <div style="border:1px solid var(--border);border-left:3px solid var(--warning-500);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">80 mm termal</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Oshxona cheki</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Narx yo'q. Faqat taom, miqdor, modifikator, mehmon raqami.</div>
+      </div>
+      <div style="border:1px solid var(--border);border-left:3px solid var(--n-900);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">80 mm termal</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Z-hisobot</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Smena yopilishi. Kassir imzosi, farq sababi.</div>
+      </div>
+      <div style="border:1px solid var(--border);border-left:3px solid var(--accent-500);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">A4</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Xarid buyurtmasi</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Yetkazib beruvchiga. Imzo va muhr joyi bor.</div>
+      </div>
+      <div style="border:1px solid var(--border);border-left:3px solid var(--accent-500);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">A4</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Inventarizatsiya varaqasi</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Tizim soni <b>ko'rsatilmaydi</b> — omborchi ko'rmasdan sanaydi.</div>
+      </div>
+      <div style="border:1px solid var(--border);border-left:3px solid var(--brand-500);padding:11px 13px">
+        <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">A4</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:2px">Maosh varaqasi</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:4px">Xodimga. Xizmat haqi ulushi alohida qator.</div>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--border);border-left:3px solid var(--n-900);padding:11px 13px;margin-top:9px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:7.5pt;color:var(--fg-subtle)">A4</div>
+          <div style="font-size:11pt;font-weight:700;margin-top:2px">Foyda va zarar hisoboti</div>
+        </div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;max-width:110mm">Egasi va bankka. QQS'siz tushum, tannarx, mehnat, operatsion xarajat, EBITDA. Q1 qaroriga mos.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;font-size:8pt;color:var(--fg-muted);line-height:1.55">
+      <div><b style="color:var(--fg)">QQS narx ichida</b><br>Menyudagi narx yakuniy. QQS 12% chekda ajratib ko'rsatiladi, qo'shilmaydi.</div>
+      <div><b style="color:var(--fg)">Ish kuni 06:00–06:00</b><br>01:30 dagi chek o'tgan kunga tegishli. Barcha hujjat shu qoidani ishlatadi.</div>
+      <div><b style="color:var(--fg)">Xizmat haqi 10%</b><br>Tushumga kiradi, QQS'ga tortiladi. Zalda olinadi, olib ketishda yo'q.</div>
+    </div>
+  </section>
+
+  <section class="page" id="p2" data-screen-label="02" style="padding:14mm;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--n-900)">
+      <div style="font-family:var(--font-display);font-size:15pt;font-weight:700;letter-spacing:-.02em">Termal cheklar · 80 mm</div>
+      <div style="font-family:var(--font-mono);font-size:8pt;color:var(--fg-subtle)">haqiqiy o'lchamda</div>
+    </div>
+
+    <div style="display:flex;gap:12mm;margin-top:10mm;align-items:flex-start">
+
+      <div style="width:80mm;flex:none;border:1px dashed var(--n-300);padding:5mm 4mm;font-family:var(--font-mono);font-size:8pt;line-height:1.45">
+        <div style="text-align:center">
+          <div style="font-family:var(--font-display);font-size:13pt;font-weight:800;letter-spacing:-.02em">SMART RESTAURANT</div>
+          <div style="margin-top:2px">Chilonzor filiali</div>
+          <div>Bunyodkor shoh ko'chasi 12, Toshkent</div>
+          <div>STIR 302 458 719 · +998 71 200 40 40</div>
+        </div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Chek</span><span>№ 004 812</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Sana</span><span>15.08.2026 21:14</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Ish kuni</span><span>15.08.2026</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Stol · mehmon</span><span>12 · 4</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Hisob</span><span>1 / 2</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Buyurtmalar</span><span>25 69 70 74</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Buyurtma turi</span><span>Zalda</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Ofitsiant</span><span>Jasur T.</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Kassir</span><span>Dilshod K.</span></div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+
+        <div style="display:flex;justify-content:space-between;font-weight:700"><span>2 × Osh, to'y oshi</span><span>96 000</span></div>
+        <div style="padding-left:8px;color:var(--fg-subtle)">m1 · qo'shimcha go'sht</div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:3px"><span>1 × Lag'mon, qovurma</span><span>52 000</span></div>
+        <div style="padding-left:8px;color:var(--fg-subtle)">m2</div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:3px"><span>1 × Tovuq lavash</span><span>38 000</span></div>
+        <div style="padding-left:8px;color:var(--fg-subtle)">m3 · achchiq sous, piyoz yo'q</div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:3px"><span>4 × Choy, ko'k</span><span>32 000</span></div>
+        <div style="padding-left:8px;color:var(--fg-subtle)">umumiy</div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:3px"><span>2 × Coca-Cola 0.5</span><span>28 000</span></div>
+        <div style="padding-left:8px;color:var(--fg-subtle)">m1, m4</div>
+
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Taomlar</span><span>246 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Xizmat haqi &nbsp;10%</span><span>24 600</span></div>
+        <div style="display:flex;justify-content:space-between;color:var(--fg-subtle)"><span>Taomlar + xizmat</span><span>270 600</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Chegirma · Oltin karta 5%</span><span>−13 530</span></div>
+        <div style="border-top:1px solid var(--n-900);margin:5px 0"></div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--font-display);font-size:13pt;font-weight:800"><span>JAMI</span><span>257 070</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:3px"><span>shundan QQS 12%</span><span>27 543</span></div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Karta · Uzcard ···4417</span><span>257 070</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Choypuli</span><span>25 000</span></div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Fiskal modul</span><span>FM 7742 1180</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Fiskal belgi</span><span>1904 8827 3315</span></div>
+        <div style="display:flex;gap:5mm;align-items:center;margin-top:6px">
+          <div style="width:20mm;height:20mm;flex:none;background:repeating-conic-gradient(var(--n-900) 0% 25%,var(--n-0) 0% 50%) 50%/2.4mm 2.4mm;border:1.2mm solid var(--n-0);outline:1px solid var(--n-300)"></div>
+          <div style="line-height:1.4">Chekni soliq.uz saytida tekshirish uchun QR kodni skanerlang. Chek 30 kun saqlanadi.</div>
+        </div>
+        <div style="text-align:center;margin-top:7px;line-height:1.45">Tashrifingiz uchun rahmat<br>Yana kutamiz</div>
+        <div style="text-align:center;margin-top:4px;color:var(--fg-muted)">+998 71 200 40 40 · +998 90 123 45 67</div>
+        <div style="text-align:center;margin-top:3px;font-size:7pt;color:var(--fg-subtle)">Shikoyat va takliflar uchun</div>
+      </div>
+
+      <div style="width:80mm;flex:none;border:1px dashed var(--n-300);padding:5mm 4mm;font-family:var(--font-mono);font-size:9pt;line-height:1.45">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div>
+            <div style="font-family:var(--font-display);font-size:26pt;font-weight:800;letter-spacing:-.03em;line-height:1">№ 74</div>
+            <div style="font-size:11pt;font-weight:700;margin-top:2px">STOL 12 · HISOB 1</div>
+          </div>
+          <div style="font-size:9pt;font-weight:700;text-align:right">A-1291<br>4812</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px"><span>GRILL</span><span>21:14</span></div>
+        <div style="border-top:2px solid var(--n-900);margin:5px 0"></div>
+
+        <div style="font-size:13pt;font-weight:700;line-height:1.25">2 × OSH, TO'Y OSHI</div>
+        <div style="padding-left:6px;font-size:9.5pt">+ qo'shimcha go'sht</div>
+        <div style="padding-left:6px;font-size:9pt;color:var(--fg-subtle)">mehmon 1</div>
+
+        <div style="border-top:1px dashed var(--n-300);margin:5px 0"></div>
+        <div style="font-size:13pt;font-weight:700;line-height:1.25">1 × LAG'MON, QOVURMA</div>
+        <div style="padding-left:6px;font-size:9pt;color:var(--fg-subtle)">mehmon 2</div>
+
+        <div style="border-top:1px dashed var(--n-300);margin:5px 0"></div>
+        <div style="font-size:13pt;font-weight:700;line-height:1.25">1 × TOVUQ LAVASH</div>
+        <div style="padding-left:6px;font-size:9.5pt;font-weight:700;color:var(--danger-600)">! ACHCHIQ SOUS</div>
+        <div style="padding-left:6px;font-size:9.5pt;font-weight:700;color:var(--danger-600)">! PIYOZ YO'Q</div>
+        <div style="padding-left:6px;font-size:9pt;color:var(--fg-subtle)">mehmon 3</div>
+
+        <div style="border-top:2px solid var(--n-900);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Ofitsiant</span><span>Jasur T.</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Yuborilgan</span><span>21:14:32</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Me'yor</span><span>18 daqiqa</span></div>
+        <div style="margin-top:6px;padding:4px 6px;border:1.5px solid var(--n-900);text-align:center;font-size:10pt;font-weight:700">3 POZITSIYA · 4 PORTSIYA</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:10px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:8pt;color:var(--fg-muted);line-height:1.55">
+      <div><b style="color:var(--fg)">Mijoz cheki</b> — mijoz uchun yozilgan: nima yedi, qancha to'ladi, qanday tekshiradi. Fiskal ma'lumot majburiy, QQS ajratilgan (Q1). Chegirma qatori doim ko'rinadi.</div>
+      <div><b style="color:var(--fg)">Oshxona cheki</b> — <b style="color:var(--fg)">narx yo'q</b>, oshpazga kerak emas. Taom nomi 13 pt, 2 m dan o'qiladi. Modifikator qizil va katta — eng ko'p xato shu yerda. Mehmon raqami Q4 qaroriga mos, taomni to'g'ri odamga berish uchun.</div>
+    </div>
+  </section>
+
+  <section class="page" id="p3" data-screen-label="03" style="padding:14mm;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--n-900)">
+      <div style="font-family:var(--font-display);font-size:15pt;font-weight:700;letter-spacing:-.02em">Z-hisobot · smena yopilishi</div>
+      <div style="font-family:var(--font-mono);font-size:8pt;color:var(--fg-subtle)">80 mm termal</div>
+    </div>
+
+    <div style="display:flex;gap:12mm;margin-top:10mm;align-items:flex-start">
+      <div style="width:80mm;flex:none;border:1px dashed var(--n-300);padding:5mm 4mm;font-family:var(--font-mono);font-size:8pt;line-height:1.45">
+        <div style="text-align:center">
+          <div style="font-family:var(--font-display);font-size:14pt;font-weight:800;letter-spacing:-.02em">Z-HISOBOT</div>
+          <div style="margin-top:2px">SMART RESTAURANT · Chilonzor</div>
+          <div>Kassa 1 · FM 7742 1180</div>
+        </div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Smena</span><span>№ 318</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Ish kuni</span><span>15.08.2026</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Ochilgan</span><span>10:02</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Yopilgan</span><span>23:48</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Kassir</span><span>Dilshod Karimov</span></div>
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+
+        <div style="font-weight:700">AYLANMA</div>
+        <div style="display:flex;justify-content:space-between"><span>Cheklar soni</span><span>184</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Taomlar</span><span>16 842 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Xizmat haqi</span><span>1 512 400</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Chegirmalar</span><span>−684 200</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Yaxlitlash</span><span>+2 400</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid var(--n-900);margin-top:4px;padding-top:4px"><span>JAMI AYLANMA</span><span>17 672 600</span></div>
+        <div style="display:flex;justify-content:space-between"><span>shundan QQS 12%</span><span>1 893 493</span></div>
+
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="font-weight:700">TO'LOV TURLARI</div>
+        <div style="display:flex;justify-content:space-between"><span>Naqd</span><span>5 481 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Karta · Uzcard/Humo</span><span>8 126 600</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Click / Payme</span><span>3 180 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Kompaniya hisobi</span><span>885 000</span></div>
+
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="font-weight:700">NAQD KASSA</div>
+        <div style="display:flex;justify-content:space-between"><span>Boshlang'ich</span><span>500 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Naqd tushum</span><span>+5 481 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Qaytarish</span><span>−124 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Inkassatsiya</span><span>−4 000 000</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:3px"><span>Kutilgan</span><span>1 857 000</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700"><span>Sanalgan</span><span>1 825 000</span></div>
+        <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--danger-600);border-top:1px solid var(--n-900);margin-top:4px;padding-top:4px"><span>FARQ</span><span>−32 000</span></div>
+
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="font-weight:700">TUZATISHLAR</div>
+        <div style="display:flex;justify-content:space-between"><span>Bekor qilingan</span><span>3 · 148 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Qaytarilgan</span><span>1 · 124 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Sovg'a qilingan</span><span>2 · 96 000</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Choypuli · karta</span><span>412 000</span></div>
+
+        <div style="border-top:1px dashed var(--n-400);margin:6px 0"></div>
+        <div style="line-height:1.5">Farq sababi<br><span style="display:block;border-bottom:1px solid var(--n-400);height:12px"></span><span style="display:block;border-bottom:1px solid var(--n-400);height:12px"></span></div>
+        <div style="display:flex;gap:6mm;margin-top:8px">
+          <div style="flex:1"><div style="border-bottom:1px solid var(--n-900);height:14px"></div><div style="font-size:7pt;margin-top:2px">Kassir imzosi</div></div>
+          <div style="flex:1"><div style="border-bottom:1px solid var(--n-900);height:14px"></div><div style="font-size:7pt;margin-top:2px">Menejer imzosi</div></div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0">
+        <div style="border:1px solid var(--border);border-left:3px solid var(--danger-500);background:var(--danger-50);padding:12px 14px">
+          <div style="font-size:10.5pt;font-weight:700">Farq nolga teng bo'lmasa, smena yopilmaydi</div>
+          <p style="margin:5px 0 0;font-size:9pt;line-height:1.6;color:var(--fg-muted)">Kassir sababni yozishi va menejer imzolashi shart. Sababsiz yopilgan smena — bu tizimga ishonchni yo'qotadigan birinchi joy. Farq 50 000 so'mdan oshsa, egaga bildirishnoma ketadi.</p>
+        </div>
+
+        <div style="margin-top:12px;border:1px solid var(--border);padding:12px 14px">
+          <div style="font-size:10.5pt;font-weight:700">Pul zanjiri · Q10</div>
+          <p style="margin:5px 0 0;font-size:9pt;line-height:1.6;color:var(--fg-muted)">Z-hisobot beshta raqamdan bittasi. Kun yopilganda tizim beshtasini solishtiradi:</p>
+          <div style="display:grid;gap:5px;margin-top:8px;font-family:var(--font-mono);font-size:8.5pt">
+            <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--n-50)"><span>POS cheklari</span><span>17 672 600</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--n-50)"><span>Fiskal modul</span><span>17 672 600</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--n-50)"><span>To'lovlar jami</span><span>17 672 600</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--n-50)"><span>Z-hisobot</span><span>17 672 600</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--success-50);color:var(--success-700);font-weight:700"><span>Buxgalteriya</span><span>17 672 600</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;border:1px solid var(--border);padding:12px 14px">
+          <div style="font-size:10.5pt;font-weight:700">X-hisobot bilan farqi</div>
+          <p style="margin:5px 0 0;font-size:9pt;line-height:1.6;color:var(--fg-muted)">X-hisobot — smenani yopmasdan o'qish, kun bo'yi necha marta ham olinadi, hisoblagichni nolga tushirmaydi. Z-hisobot bir marta olinadi va smenani qulflaydi. Ikkisi bir xil ko'rinmasligi kerak — shuning uchun Z sarlavhasi qalin va imzo joyi bor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="p4" data-screen-label="04" style="padding:16mm 14mm;display:flex;flex-direction:column;font-size:9.5pt">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:11pt;font-weight:800;letter-spacing:-.02em">SMART RESTAURANT</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.5;margin-top:3px">MChJ «Smart Restaurant Group»<br>Bunyodkor shoh ko'chasi 12, Toshkent<br>STIR 302 458 719 · +998 71 200 40 40</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--font-display);font-size:18pt;font-weight:700;letter-spacing:-.022em">Xarid buyurtmasi</div>
+        <div style="font-family:var(--font-mono);font-size:9pt;margin-top:3px">№ XB-2026-0418</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);margin-top:2px">15.08.2026</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;padding-top:12px;border-top:2px solid var(--n-900)">
+      <div>
+        <div style="font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Yetkazib beruvchi</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:4px">«Toshkent Go'sht» MChJ</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.55;margin-top:3px">STIR 304 117 882<br>Sergeli tumani, Yangi Sergeli 4/2<br>Sotuv menejeri: Farrux Ismoilov<br>+998 90 344 12 08</div>
+      </div>
+      <div>
+        <div style="font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Yetkazib berish</div>
+        <div style="font-size:11pt;font-weight:700;margin-top:4px">Chilonzor filiali · ombor</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.55;margin-top:3px">Kutilgan sana: 17.08.2026, 07:00–09:00<br>Qabul qiluvchi: Sardor Nazarov, omborchi<br>To'lov: yetkazib berilgandan 14 kun<br>Shartnoma № 2026/41</div>
+      </div>
+    </div>
+
+    <table style="margin-top:14px;font-size:9pt">
+      <thead>
+        <tr style="border-top:1px solid var(--n-900);border-bottom:1px solid var(--n-900)">
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:26px">№</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">Nomi</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:60px">Birlik</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:52px">Soni</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:78px">Narxi</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:88px">Summa</th>
+        </tr>
+      </thead>
+      <tbody style="font-family:var(--font-mono)">
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:6px 8px">1</td><td style="padding:6px 8px;font-family:var(--font-sans)">Mol go'shti, orqa qism</td><td style="padding:6px 8px">kg</td><td style="padding:6px 8px;text-align:right">40</td><td style="padding:6px 8px;text-align:right">92 000</td><td style="padding:6px 8px;text-align:right">3 680 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:6px 8px">2</td><td style="padding:6px 8px;font-family:var(--font-sans)">Qo'y go'shti, qovurga</td><td style="padding:6px 8px">kg</td><td style="padding:6px 8px;text-align:right">25</td><td style="padding:6px 8px;text-align:right">118 000</td><td style="padding:6px 8px;text-align:right">2 950 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:6px 8px">3</td><td style="padding:6px 8px;font-family:var(--font-sans)">Tovuq filesi</td><td style="padding:6px 8px">kg</td><td style="padding:6px 8px;text-align:right">60</td><td style="padding:6px 8px;text-align:right">46 000</td><td style="padding:6px 8px;text-align:right">2 760 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:6px 8px">4</td><td style="padding:6px 8px;font-family:var(--font-sans)">Mol dumbasi</td><td style="padding:6px 8px">kg</td><td style="padding:6px 8px;text-align:right">8</td><td style="padding:6px 8px;text-align:right">74 000</td><td style="padding:6px 8px;text-align:right">592 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:6px 8px">5</td><td style="padding:6px 8px;font-family:var(--font-sans)">Tovuq qanoti</td><td style="padding:6px 8px">kg</td><td style="padding:6px 8px;text-align:right">18</td><td style="padding:6px 8px;text-align:right">38 000</td><td style="padding:6px 8px;text-align:right">684 000</td></tr>
+      </tbody>
+    </table>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <div style="width:78mm;font-family:var(--font-mono);font-size:9pt">
+        <div style="display:flex;justify-content:space-between;padding:4px 8px"><span style="font-family:var(--font-sans);color:var(--fg-muted)">Jami, QQS'siz</span><span>9 523 214</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 8px"><span style="font-family:var(--font-sans);color:var(--fg-muted)">QQS 12%</span><span>1 142 786</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px;border-top:1px solid var(--n-900);margin-top:3px"><span style="font-family:var(--font-display);font-size:11pt;font-weight:700">To'lanadi</span><span style="font-family:var(--font-display);font-size:13pt;font-weight:800">10 666 000</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:10px 12px;border:1px solid var(--border);background:var(--n-25);font-size:8.5pt;line-height:1.6;color:var(--fg-muted)">
+      <b style="color:var(--fg)">Qabul shartlari.</b> Go'sht +2…+4 °C da, muzlatilmagan holda yetkaziladi. Har bir pozitsiya uchun veterinariya guvohnomasi talab qilinadi. Harorat yoki hujjat mos kelmasa, omborchi qabul qilishdan bosh tortadi va tizimda «rad etildi» deb belgilaydi. Kam chiqqan miqdor hisob-fakturadan chegiriladi.
+    </div>
+
+    <div style="margin-top:auto;padding-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:20mm">
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:26px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Buyurtma bergan · Sardor Nazarov, omborchi</div>
+        <div style="font-size:8pt;color:var(--fg-subtle);margin-top:10px">Muhr joyi</div>
+      </div>
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:26px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Tasdiqlagan · Aziza Rasulova, menejer</div>
+        <div style="font-size:8pt;color:var(--fg-subtle);margin-top:10px">Sana</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="p5" data-screen-label="05" style="padding:16mm 14mm;display:flex;flex-direction:column;font-size:9.5pt">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:2px solid var(--n-900)">
+      <div>
+        <div style="font-family:var(--font-display);font-size:18pt;font-weight:700;letter-spacing:-.022em">Inventarizatsiya varaqasi</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);margin-top:3px">Chilonzor filiali · asosiy ombor va sovutgich</div>
+      </div>
+      <div style="text-align:right;font-family:var(--font-mono);font-size:9pt;line-height:1.6">
+        <div>№ INV-2026-08-31</div>
+        <div style="color:var(--fg-muted)">31.08.2026</div>
+        <div style="color:var(--fg-muted)">23:50 · smena yopilgandan keyin</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:12px;padding:10px 12px;border:1px solid var(--border);border-left:3px solid var(--warning-500);background:var(--warning-50);font-size:9pt;line-height:1.6">
+      <div><b>Tizim soni bu varaqada ataylab ko'rsatilmagan.</b> Omborchi tizimdagi raqamni ko'rib sanasa, u raqamni tasdiqlaydi — sanamaydi. Haqiqiy son qo'lda yozilib, tizimga kiritilgandan keyingina farq ko'rinadi.</div>
+    </div>
+
+    <table style="margin-top:12px;font-size:9pt">
+      <thead>
+        <tr style="border-top:1px solid var(--n-900);border-bottom:1px solid var(--n-900)">
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:26px">№</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">Xomashyo</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:70px">Joy</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:52px">Birlik</th>
+          <th style="text-align:center;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:88px">Sanalgan</th>
+          <th style="text-align:center;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:88px">Yaroqsiz</th>
+          <th style="text-align:left;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:74px">Izoh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{invSheet}}" as="r" hint-placeholder-count="14">
+          <tr style="border-bottom:1px solid var(--divider)">
+            <td style="padding:7px 8px;font-family:var(--font-mono);color:var(--fg-subtle)">{{r.i}}</td>
+            <td style="padding:7px 8px;font-weight:500">{{r.n}}</td>
+            <td style="padding:7px 8px;color:var(--fg-muted);font-size:8.5pt">{{r.loc}}</td>
+            <td style="padding:7px 8px;font-family:var(--font-mono);color:var(--fg-muted)">{{r.u}}</td>
+            <td style="padding:7px 8px"><span style="display:block;border-bottom:1px solid var(--n-400);height:13px"></span></td>
+            <td style="padding:7px 8px"><span style="display:block;border-bottom:1px solid var(--n-400);height:13px"></span></td>
+            <td style="padding:7px 8px"><span style="display:block;border-bottom:1px solid var(--n-200);height:13px"></span></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+
+    <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14mm">
+        <div>
+          <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+          <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Sanagan · omborchi</div>
+        </div>
+        <div>
+          <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+          <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Kuzatgan · menejer</div>
+        </div>
+        <div>
+          <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+          <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Boshlangan / tugagan vaqt</div>
+        </div>
+      </div>
+      <p style="margin:12px 0 0;font-size:8pt;line-height:1.6;color:var(--fg-muted)">Varaq to'ldirilgandan keyin ma'lumot tizimga kiritiladi. Tizim farqni o'zi hisoblaydi va 3% dan oshgan har bir pozitsiya uchun sabab talab qiladi. Sanoq ikki kishi ishtirokida o'tkaziladi — bittasi sanaydi, ikkinchisi yozadi.</p>
+    </div>
+  </section>
+
+  <section class="page" id="p6" data-screen-label="06" style="padding:16mm 14mm;display:flex;flex-direction:column;font-size:9.5pt">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:2px solid var(--n-900)">
+      <div>
+        <div style="font-family:var(--font-display);font-size:18pt;font-weight:700;letter-spacing:-.022em">Maosh varaqasi</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);margin-top:3px">2026-yil avgust · Chilonzor filiali</div>
+      </div>
+      <div style="text-align:right;font-size:8.5pt;color:var(--fg-muted);line-height:1.55">
+        <div style="font-family:var(--font-display);font-size:11pt;font-weight:800;color:var(--fg);letter-spacing:-.02em">SMART RESTAURANT</div>
+        <div style="font-family:var(--font-mono);margin-top:3px">№ MV-2026-08-JT</div>
+        <div>Berilgan sana: 01.09.2026</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+      <div style="border:1px solid var(--border);padding:12px 14px">
+        <div style="font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Xodim</div>
+        <div style="font-family:var(--font-display);font-size:14pt;font-weight:700;letter-spacing:-.02em;margin-top:4px">Jasur Toshev</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.6;margin-top:4px">Ofitsiant · tabel № 0042<br>Ishga qabul: 12.03.2025<br>Soatbay · 26 000 so'm / soat</div>
+      </div>
+      <div style="border:1px solid var(--border);padding:12px 14px">
+        <div style="font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Davr</div>
+        <div style="font-family:var(--font-display);font-size:14pt;font-weight:700;letter-spacing:-.02em;margin-top:4px">01.08 – 31.08.2026</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);line-height:1.6;margin-top:4px">Ishlangan: 144 soat · 18 smena<br>Kechikish: 1 marta (18 daqiqa)<br>Sotgan: 46 800 000 so'm</div>
+      </div>
+    </div>
+
+    <table style="margin-top:14px;font-size:9.5pt">
+      <tbody>
+        <tr style="border-top:1px solid var(--n-900)"><td colspan="3" style="padding:8px;font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Hisoblandi</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Asosiy · 144 soat × 26 000</td><td style="padding:7px 8px;text-align:right;color:var(--fg-subtle);font-family:var(--font-mono);font-size:8.5pt">144 × 26 000</td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600;width:100px">3 744 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Bonus · sotuvdan 3%</td><td style="padding:7px 8px;text-align:right;color:var(--fg-subtle);font-family:var(--font-mono);font-size:8.5pt">46 800 000 × 3%</td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600">1 404 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Xizmat haqi ulushi<div style="font-size:8pt;color:var(--fg-subtle);margin-top:2px">fondning 40% i, smena soatlariga qarab</div></td><td style="padding:7px 8px;text-align:right;color:var(--fg-subtle);font-family:var(--font-mono);font-size:8.5pt">144 / 1 042 soat</td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--accent-600)">1 240 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Bayram smenasi · 1-sentabr</td><td style="padding:7px 8px;text-align:right;color:var(--fg-subtle);font-family:var(--font-mono);font-size:8.5pt">×1.5</td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600">312 000</td></tr>
+        <tr style="border-bottom:1px solid var(--n-900);background:var(--n-25)"><td style="padding:8px" colspan="2"><b>Jami hisoblandi</b></td><td style="padding:8px;text-align:right;font-family:var(--font-mono);font-weight:700">6 700 000</td></tr>
+
+        <tr><td colspan="3" style="padding:12px 8px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">Ushlandi</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Avans · 15.08.2026</td><td style="padding:7px 8px"></td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600">−1 500 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Kechikish · 1 marta</td><td style="padding:7px 8px;text-align:right;color:var(--fg-subtle);font-family:var(--font-mono);font-size:8.5pt">18 daqiqa</td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--danger-600)">−80 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Sindirilgan idish<div style="font-size:8pt;color:var(--fg-subtle);margin-top:2px">2 ta likopcha · tannarx bo'yicha</div></td><td style="padding:7px 8px"></td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--danger-600)">−100 000</td></tr>
+        <tr style="border-bottom:1px solid var(--divider)"><td style="padding:7px 8px">Daromad solig'i · 12%</td><td style="padding:7px 8px"></td><td style="padding:7px 8px;text-align:right;font-family:var(--font-mono);font-weight:600">−804 000</td></tr>
+        <tr style="border-bottom:1px solid var(--n-900);background:var(--n-25)"><td style="padding:8px" colspan="2"><b>Jami ushlandi</b></td><td style="padding:8px;text-align:right;font-family:var(--font-mono);font-weight:700">−2 484 000</td></tr>
+      </tbody>
+    </table>
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-top:14px;padding:14px 16px;background:var(--n-900);color:#fff">
+      <div>
+        <div style="font-size:8pt;letter-spacing:.09em;text-transform:uppercase;opacity:.7">Qo'lga tegadi</div>
+        <div style="font-size:8pt;opacity:.7;margin-top:2px">Karta · Uzcard ···8814 · 01.09.2026</div>
+      </div>
+      <div style="font-family:var(--font-display);font-size:22pt;font-weight:800;letter-spacing:-.022em">4 216 000</div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:20mm">
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Xodim imzosi · tanishdim</div>
+      </div>
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Buxgalter · Malika Yo'ldosheva</div>
+      </div>
+    </div>
+    <p style="margin:12px 0 0;font-size:8pt;line-height:1.6;color:var(--fg-muted)">Hisob-kitob bo'yicha savol bo'lsa, varaq berilgan kundan 5 ish kuni ichida buxgalteriyaga murojaat qiling. Xizmat haqi ulushi tushumga bog'liq va har oy o'zgaradi.</p>
+  </section>
+
+  <section class="page" id="p7" data-screen-label="07" style="padding:16mm 14mm;display:flex;flex-direction:column;font-size:9.5pt">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:2px solid var(--n-900)">
+      <div>
+        <div style="font-family:var(--font-display);font-size:18pt;font-weight:700;letter-spacing:-.022em">Foyda va zarar hisoboti</div>
+        <div style="font-size:8.5pt;color:var(--fg-muted);margin-top:3px">2026-yil iyul · barcha filiallar · QQS'siz</div>
+      </div>
+      <div style="text-align:right;font-size:8.5pt;color:var(--fg-muted);line-height:1.55">
+        <div style="font-family:var(--font-display);font-size:11pt;font-weight:800;color:var(--fg);letter-spacing:-.02em">SMART RESTAURANT</div>
+        <div style="font-family:var(--font-mono);margin-top:3px">№ PL-2026-07</div>
+        <div>Tuzilgan: 05.08.2026</div>
+      </div>
+    </div>
+
+    <table style="margin-top:11px;font-size:8.5pt">
+      <thead>
+        <tr style="border-bottom:1px solid var(--n-900)">
+          <th style="text-align:left;padding:5px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">Ko'rsatkich</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:104px">Iyul</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:56px">%</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:104px">Iyun</th>
+          <th style="text-align:right;padding:7px 8px;font-size:7.5pt;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle);width:64px">O'zgarish</th>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{plRows}}" as="r" hint-placeholder-count="16">
+          <tr style="border-bottom:1px solid {{r.bd}};background:{{r.bg}}">
+            <td style="padding:{{r.pad}} 8px;font-weight:{{r.fw}};padding-left:{{r.indent}}">{{r.l}}</td>
+            <td style="padding:{{r.pad}} 8px;text-align:right;font-family:var(--font-mono);font-weight:{{r.fw}};color:{{r.fg}}">{{r.v}}</td>
+            <td style="padding:{{r.pad}} 8px;text-align:right;font-family:var(--font-mono);font-size:8.5pt;color:var(--fg-subtle)">{{r.pct}}</td>
+            <td style="padding:{{r.pad}} 8px;text-align:right;font-family:var(--font-mono);color:var(--fg-muted)">{{r.prev}}</td>
+            <td style="padding:{{r.pad}} 8px;text-align:right;font-family:var(--font-mono);font-size:8.5pt;font-weight:600;color:{{r.dFg}}">{{r.delta}}</td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:11px;padding:9px 12px;border:1px solid var(--border);background:var(--n-25);font-size:8pt">
+      <span><span style="color:var(--fg-subtle)">Tannarx ulushi</span> <b style="font-family:var(--font-mono)">31.4%</b> <span style="color:var(--success-600)">me'yor 32%</span></span>
+      <span><span style="color:var(--fg-subtle)">Mehnat ulushi</span> <b style="font-family:var(--font-mono)">26.4%</b> <span style="color:var(--success-600)">me'yor 28%</span></span>
+      <span><span style="color:var(--fg-subtle)">EBITDA marja</span> <b style="font-family:var(--font-mono)">18.1%</b> <span style="color:var(--warning-600)">iyunda 19.4%</span></span>
+    </div>
+
+    <div style="margin-top:9px;padding:9px 12px;border:1px solid var(--border);border-left:3px solid var(--brand-500);font-size:7.5pt;line-height:1.55;color:var(--fg-muted)">
+      <b style="color:var(--fg)">Metodika.</b> Tushum QQS'siz ko'rsatilgan (Q1: menyudagi narx QQS bilan, hisobotda jami / 1.12). Xizmat haqi tushumga kiritilgan (Q2). Sovg'a qilingan taomlar marketing xarajatida, qaytarilgan cheklar tushumdan chegirilgan (Q8). Xodim ovqati tannarx bo'yicha operatsion xarajatda (Q9). Ish kuni 06:00–06:00 (Q3).
+    </div>
+
+    <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:20mm">
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Buxgalter · Malika Yo'ldosheva</div>
+      </div>
+      <div>
+        <div style="border-bottom:1px solid var(--n-900);height:24px"></div>
+        <div style="font-size:8pt;color:var(--fg-muted);margin-top:4px">Tasdiqlagan · Rustam Kamolov, egasi</div>
+      </div>
+    </div>
+  </section>
+
+</doc-page>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const invSheet = [
+      ["Mol go'shti, orqa qism", "Sovutgich 1", "kg"],
+      ["Qo'y go'shti, qovurga", "Sovutgich 1", "kg"],
+      ["Tovuq filesi", "Sovutgich 2", "kg"],
+      ["Mol dumbasi", "Muzlatgich", "kg"],
+      ["Guruch, lazer", "Quruq ombor", "kg"],
+      ["Sabzi", "Sabzavot", "kg"],
+      ["Piyoz", "Sabzavot", "kg"],
+      ["Pomidor", "Sabzavot", "kg"],
+      ["Kartoshka", "Sabzavot", "kg"],
+      ["Un, oliy navli", "Quruq ombor", "kg"],
+      ["Paxta yog'i", "Quruq ombor", "l"],
+      ["Tuz", "Quruq ombor", "kg"],
+      ["Zira", "Ziravor", "kg"],
+      ["Suzma", "Sovutgich 2", "kg"],
+      ["Coca-Cola 0.5", "Ichimlik", "dona"],
+      ["Choy, ko'k", "Quruq ombor", "kg"],
+      ["Pishloq, mozzarella", "Sovutgich 2", "kg"],
+    ];
+
+    const PL = [
+      ["h", "Tushum", "", "", "", ""],
+      ["r", "Zal", 214800000, "68.2", 201400000, "+6.7%"],
+      ["r", "Olib ketish", 62400000, "19.8", 58900000, "+5.9%"],
+      ["r", "Yetkazish · o'z kuryerlarimiz", 24100000, "7.6", 19800000, "+21.7%"],
+      ["r", "Agregatorlar · komissiyadan keyin", 13800000, "4.4", 11200000, "+23.2%"],
+      ["t", "Jami tushum, QQS'siz", 315100000, "100.0", 291300000, "+8.2%"],
+
+      ["h", "Tannarx", "", "", "", ""],
+      ["r", "Xomashyo", -94300000, "29.9", -88100000, "+7.0%"],
+      ["r", "Chiqindi va yaroqsiz", -3200000, "1.0", -3800000, "−15.8%"],
+      ["r", "Xodim ovqati", -1400000, "0.5", -1300000, "+7.7%"],
+      ["t", "Yalpi foyda", 216200000, "68.6", 198100000, "+9.1%"],
+
+      ["h", "Operatsion xarajatlar", "", "", "", ""],
+      ["r", "Mehnat · maosh, bonus, xizmat haqi", -83200000, "26.4", -78400000, "+6.1%"],
+      ["r", "Ijara · 5 filial", -42000000, "13.3", -42000000, "0%"],
+      ["r", "Kommunal", -11600000, "3.7", -9800000, "+18.4%"],
+      ["r", "Marketing · aksiya va sovg'a", -8400000, "2.7", -6900000, "+21.7%"],
+      ["r", "Ta'mirlash va xizmat", -6100000, "1.9", -4200000, "+45.2%"],
+      ["r", "Bank komissiyasi va boshqa", -7900000, "2.5", -7200000, "+9.7%"],
+      ["t", "EBITDA", 57000000, "18.1", 49600000, "+14.9%"],
+
+      ["h", "Moliyaviy va soliq", "", "", "", ""],
+      ["r", "Amortizatsiya", -7800000, "2.5", -7800000, "0%"],
+      ["r", "Kredit foizi", -4200000, "1.3", -4400000, "−4.5%"],
+      ["r", "Foyda solig'i · 15%", -6750000, "2.1", -5610000, "+20.3%"],
+      ["f", "Sof foyda", 38250000, "12.1", 31790000, "+20.3%"],
+    ];
+
+    const f = (n) => {
+      const neg = n < 0;
+      const s = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009");
+      return (neg ? "\u2212" : "") + s;
+    };
+
+    return {
+      invSheet: invSheet.map((r, i) => ({ i: i + 1, n: r[0], loc: r[1], u: r[2] })),
+      plRows: PL.map((r) => {
+        const kind = r[0];
+        if (kind === "h") {
+          return {
+            l: r[1], v: "", pct: "", prev: "", delta: "",
+            fw: "600", fg: "var(--fg-subtle)", dFg: "var(--fg-subtle)",
+            bg: "transparent", bd: "var(--n-900)", pad: "6px", indent: "8px",
+          };
+        }
+        const isTot = kind === "t" || kind === "f";
+        const up = String(r[5]).startsWith("+");
+        const good = isTot ? up : !up;
+        return {
+          l: r[1], v: f(r[2]), pct: r[3] + "%", prev: f(r[4]), delta: r[5],
+          fw: isTot ? "700" : "400",
+          fg: r[2] < 0 ? "var(--fg-muted)" : "var(--fg)",
+          dFg: r[5] === "0%" ? "var(--fg-subtle)" : good ? "var(--success-600)" : "var(--danger-600)",
+          bg: kind === "f" ? "var(--n-900)" : isTot ? "var(--n-25)" : "transparent",
+          bd: isTot ? "var(--n-900)" : "var(--divider)",
+          pad: isTot ? "5px" : "2.5px",
+          indent: isTot ? "8px" : "18px",
+        };
+      }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

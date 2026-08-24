@@ -3,29 +3,35 @@
 Bu hujjat ikki tomonlama shartnoma: **dizaynerga nima beriladi** va **qaytgan
 dizayn kodga qanday tushadi**.
 
-Prototiplarning o'zi [`source/`](source/) da turadi: `Smart Restaurant OS.dc.html`
-(konsol — 8 rol, rollar matritsasi shu fayldan ko'chirilgan) va
-`Smart Restaurant Cloud - Sayt.dc.html` (marketing sahifa). Ular claude.ai/design
-eksporti — vendor artefakt, qo'lda tahrirlanmaydi va prettier ularga tegmaydi.
+## Dizayn qayerda turadi
 
-**Nega bitta nusxa, ilgari ikkita papka bo'lsa ham.** Repo ildizida ikkita
-handoff to'plami turardi (biri `… (1)` bilan). Ular dizaynning ikki
-**versiyasi emas** — ikki **eksport seansi**: 30 fayl, ichida atigi 11 xil
-mazmun. Ikkala to'plamdagi `.dc.html`, `support.js` va rasmlar blob darajasida
-aynan bir xil; yagona farq har to'plamning ildizidagi
-«CODING AGENTS: READ THIS FIRST» qolipida bo'lgan — u eksport paytida qaysi
-fayl ochiq turganini aytadi:
+**[`source/`](source/) — yagona manba.** Unda **o'n to'rtta** `.dc.html` fayl va
+ularning uchta runtime skripti (`support.js`, `image-slot.js`, `doc-page.js`)
+bor. Bular claude.ai/design eksporti — vendor artefakt, qo'lda tahrirlanmaydi va
+prettier ularga tegmaydi.
 
-| To'plam    | O'sha qolip «asosiy» degan fayl         |
-| ---------- | --------------------------------------- |
-| birinchisi | `Smart Restaurant OS.dc.html`           |
-| `… (1)`    | `Smart Restaurant Cloud - Sayt.dc.html` |
+`apps/web/src/app/design-coverage.test.ts` **aynan shu papkani** o'qiydi, ya'ni
+«dizayn bilan 1:1» degan da'vo har bir push'da mexanik tekshiriladi.
 
-Ya'ni konsol bir marta, sayt bir marta eksport qilingan. `source/README.md` —
-o'sha qoliplardan biri emas, ikkala to'plamda bir xil bo'lgan **haqiqiy dizayn
-hujjati** (32 KB, ikkala mahsulotni ham qamraydi). Qoliplarning o'zi kerak
-bo'lsa git tarixidan olinadi: `git show 30ed902:"Restaurant form scope
-questions-handoff/restaurant-form-scope-questions/README.md"`.
+> **2026-08-21 gacha bu boshqacha edi va aynan shu «dizayner ikki xil bo'lib
+> qolgan» muammosini keltirib chiqargan.** `source/` da ikkita **bekor
+> qilingan v1.0** fayl turardi — konsolnikida `NAV_ALL` **19** modul sanardi —
+> joriy o'n to'rtta fayl esa `.gitignore` dagi eksport papkasida yotardi va
+> `NAV_ALL` da **24** modul bor edi. Ekranlar muallif qaysi nusxani ochganiga
+> qarab qurilgan; CI esa dizayn qamrovi testini butunlay **skip** qilardi.
+> `GAPS.md` v1 haqida to'g'ridan-to'g'ri shunday deydi: «That package is
+> superseded. **Discard any copy of it.**»
+
+**Dizaynni yangilash:** yangi eksportni repo yoniga qo'ying va uning
+`project/*.dc.html` fayllarini `docs/design/source/` ustiga ko'chiring. Test
+eksport papkasi mavjud bo'lsa uni afzal ko'radi, aks holda repodagi nusxani
+o'qiydi — shuning uchun dizayner uchun ish tartibi o'zgarmaydi.
+
+**Qoida:** hujjat (`specs/*.md`, `FOUNDATIONS.md`) bilan `.dc.html` ziddiyatga
+tushsa — **fayl g'olib**, hujjat esa xato. Handoff README'ning o'zi shuni
+talab qiladi va bu qoida repoda bir necha marta ishlagan: yon panelda 24 qator
+(spec 22 deydi), qorong'i palitrada faylning qiymatlari (FOUNDATIONS boshqasini
+yozadi), breakpointlarda 1280/1180/1080/900 (hujjat 1320/1260/1140 deydi).
 
 ---
 

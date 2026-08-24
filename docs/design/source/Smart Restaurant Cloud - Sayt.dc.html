@@ -23,7 +23,7 @@
 --border:var(--n-150);--border-strong:var(--n-200);--divider:var(--n-100);
 --fg:var(--n-900);--fg-muted:var(--n-600);--fg-subtle:var(--n-500);--fg-inverse:var(--n-0);
 --font-display:'Inter Tight',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
---font-sans:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+--font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
 --shadow-xs:0 1px 2px rgba(16,24,40,.04);
 --shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
 --shadow-md:0 4px 8px -2px rgba(16,24,40,.06),0 2px 4px -2px rgba(16,24,40,.04);
@@ -371,16 +371,16 @@ h1,h2,h3,h4,p{margin:0}
               <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em">{{t.lEmailH}}</div>
               <p style="font-size:13px;color:var(--fg-subtle);margin-top:5px">{{t.lEmailP}}</p>
               <label style="display:block;font-size:13px;font-weight:600;margin-top:20px">{{t.lMail}}</label>
-              <input type="email" placeholder="rustam@smartrestaurant.uz" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <input type="email" placeholder="rustam@smartrestaurant.uz" value="{{lf.mail}}" onChange="{{lc.mail}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
               <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:16px">
                 <label style="font-size:13px;font-weight:600">{{t.lPass}}</label>
-                <a href="#login" style="font-size:13px;font-weight:500">{{t.lForgot}}</a>
+                <a href="#login" onClick="{{doForgot}}" style="font-size:13px;font-weight:500">{{t.lForgot}}</a>
               </div>
-              <input type="password" placeholder="••••••••" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <input type="password" placeholder="••••••••" value="{{lf.pass}}" onChange="{{lc.pass}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
               <label style="display:flex;align-items:center;gap:9px;margin-top:16px;font-size:13px;color:var(--fg-muted);cursor:pointer">
-                <input type="checkbox" style="width:16px;height:16px;accent-color:var(--brand-500)"> {{t.lRemember}}
+                <input type="checkbox" checked="{{lf.remember}}" onChange="{{lc.remember}}" style="width:16px;height:16px;accent-color:var(--brand-500)"> {{t.lRemember}}
               </label>
-              <button onClick="{{doLogin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:var(--brand-500);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--brand-600)">{{t.lEnter}}</button>
+              <button onClick="{{doLogin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:{{loginBg}};color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--brand-600)">{{t.lEnter}}</button>
               <p style="font-size:12px;color:var(--fg-subtle);margin-top:14px;line-height:1.5">{{t.lEmailNote}}</p>
             </div>
           </sc-if>
@@ -412,10 +412,10 @@ h1,h2,h3,h4,p{margin:0}
                 <span style="font-size:13px;line-height:1.5;color:var(--warning-600);font-weight:500">{{t.lAdminWarn}}</span>
               </div>
               <label style="display:block;font-size:13px;font-weight:600;margin-top:18px">{{t.lMail}}</label>
-              <input type="email" placeholder="admin@smartrestaurant.uz" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
+              <input type="email" placeholder="admin@smartrestaurant.uz" value="{{lf.amail}}" onChange="{{lc.amail}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-sans);font-size:15px;color:var(--fg);background:var(--surface)">
               <label style="display:block;font-size:13px;font-weight:600;margin-top:16px">{{t.lCode}}</label>
-              <input type="text" placeholder="000 000" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:16px;letter-spacing:.14em;color:var(--fg);background:var(--surface)">
-              <button onClick="{{doLogin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:var(--n-900);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--n-800)">{{t.lEnter}}</button>
+              <input type="text" placeholder="000 000" value="{{lf.code}}" onChange="{{lc.code}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:16px;letter-spacing:.14em;color:var(--fg);background:var(--surface)">
+              <button onClick="{{doAdmin}}" style="width:100%;height:46px;margin-top:20px;border:0;border-radius:11px;background:{{adminBg}};color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--n-800)">{{t.lEnter}}</button>
               <p style="font-size:12px;color:var(--fg-subtle);margin-top:14px;line-height:1.5">{{t.lAdminNote}}</p>
             </div>
           </sc-if>
@@ -506,6 +506,7 @@ class Component extends DCLogic {
   }
 
   renderVals() {
+    const S = this.state;
     const L = this.state.lang;
     const P = (u, r, e) => (L === "ru" ? r : L === "en" ? e : u);
 
@@ -706,8 +707,29 @@ class Component extends DCLogic {
       tabEmail: () => this.setState({ ltab: "email" }),
       tabPin: () => this.setState({ ltab: "pin", pin: "" }),
       tabAdmin: () => this.setState({ ltab: "admin" }),
-      doLogin: () => this.flash(P("Namoyish rejimi · haqiqiy kirish tizim ichida", "Демо-режим · реальный вход внутри системы", "Demo mode · real sign-in lives inside the product")),
-      setUz: () => this.setState({ lang: "uz" }),
+      lf: { mail: S.lmail || "", pass: S.lpass || "", remember: !!S.lremember, amail: S.lamail || "", code: S.lcode || "" },
+      lc: {
+        mail: (e) => this.setState({ lmail: e.target.value }),
+        pass: (e) => this.setState({ lpass: e.target.value }),
+        remember: () => this.setState({ lremember: !S.lremember }),
+        amail: (e) => this.setState({ lamail: e.target.value }),
+        code: (e) => { const d = e.target.value.replace(/[^0-9]/g, "").slice(0, 6); this.setState({ lcode: d.replace(/^(\d{3})(\d{0,3})$/, (m, a2, b2) => b2 ? a2 + " " + b2 : a2) }); },
+      },
+      loginBg: (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.lmail || "") && (S.lpass || "").length >= 6) ? "var(--brand-500)" : "var(--n-300)",
+      adminBg: (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.lamail || "") && (S.lcode || "").replace(/\s/g, "").length === 6) ? "var(--n-900)" : "var(--n-300)",
+      doForgot: () => this.flash(P("Tiklash havolasi pochtaga yuborildi", "Ссылка для сброса отправлена на почту", "A reset link has been sent to your email")),
+      doLogin: () => {
+        const m = (S.lmail || "").trim(), p = S.lpass || "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)) return this.flash(P("Elektron pochtani to'g'ri kiriting", "Введите корректную почту", "Enter a valid email address"));
+        if (p.length < 6) return this.flash(P("Parol kamida 6 belgidan bo'lishi kerak", "Пароль минимум 6 символов", "The password needs at least 6 characters"));
+        this.flash(m + " · " + P("namoyish rejimi, haqiqiy kirish tizim ichida", "демо-режим, реальный вход внутри системы", "demo mode, real sign-in lives inside the product"));
+      },
+      doAdmin: () => {
+        const m = (S.lamail || "").trim(), c = (S.lcode || "").replace(/\s/g, "");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)) return this.flash(P("Elektron pochtani to'g'ri kiriting", "Введите корректную почту", "Enter a valid email address"));
+        if (c.length !== 6) return this.flash(P("Tasdiqlash kodi 6 raqamdan iborat", "Код подтверждения — 6 цифр", "The verification code is 6 digits"));
+        this.flash(P("Kirish jurnalga yozildi · restoran egasiga ko'rinadi", "Вход записан в журнал · виден владельцу", "Sign-in logged · visible to the restaurant owner"));
+      },      setUz: () => this.setState({ lang: "uz" }),
       setRu: () => this.setState({ lang: "ru" }),
       setEn: () => this.setState({ lang: "en" }),
     };

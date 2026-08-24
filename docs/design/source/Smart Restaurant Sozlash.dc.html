@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;
+      --n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+      --brand-50:#EEF5FF;--brand-100:#DBE9FE;--brand-200:#BDD7FC;--brand-500:#2E74EA;--brand-600:#1C5AD1;
+      --success-50:#ECFDF3;--success-500:#12B76A;--success-600:#039855;--success-700:#027A48;
+      --warning-50:#FFFAEB;--warning-500:#F79009;--warning-600:#DC6803;
+      --danger-50:#FEF3F2;--danger-500:#F04438;--danger-600:#D92D20;
+      --accent-50:#ECFBF6;--accent-500:#0FB48A;--accent-600:#0A8F6C;
+      --fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--fg-disabled:#98A1B0;
+      --border:#E7EAF0;--border-strong:#D9DEE6;--divider:#F1F3F7;
+      --font-sans:'Inter',system-ui,sans-serif;--font-display:'Inter Tight','Inter',sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace;
+      --shadow-xs:0 1px 2px rgba(16,24,40,.04);
+      --shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+      --shadow-lg:0 12px 16px -4px rgba(16,24,40,.06),0 4px 6px -2px rgba(16,24,40,.03);
+      --shadow-xl:0 24px 40px -8px rgba(16,24,40,.1),0 8px 12px -6px rgba(16,24,40,.04);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-sans);color:var(--fg);background:var(--n-50);-webkit-font-smoothing:antialiased}
+    a{color:var(--brand-600);text-decoration:none}
+    a:hover{color:var(--brand-500)}
+    button,input{font-family:inherit}
+    input{color:var(--fg)}
+    input::placeholder{color:var(--fg-disabled)}
+    input:focus-visible,button:focus-visible{outline:3px solid rgba(46,116,234,.5);outline-offset:2px}
+    [data-tap]{transition:background .12s cubic-bezier(.4,0,.2,1),border-color .12s cubic-bezier(.4,0,.2,1),transform .1s cubic-bezier(.4,0,.2,1)}
+    [data-tap]:active{transform:scale(.985)}
+    [data-scr]{scrollbar-width:thin}
+    [data-scr]::-webkit-scrollbar{width:8px}
+    [data-scr]::-webkit-scrollbar-thumb{background:var(--n-200);border-radius:99px}
+    @media(max-width:1080px){[data-rail]{display:none !important}[data-grid2]{grid-template-columns:1fr !important}}
+    @media(max-width:1240px){[data-hd-opt]{display:none !important}}
+    @media(max-width:1000px){[data-hd-time]{display:none !important}}
+  </style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:var(--n-50)">
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:#fff;box-shadow:var(--shadow-xl);font-size:14px;font-weight:500">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+      {{toast}}
+    </div>
+  </sc-if>
+
+  <header style="height:64px;flex:none;display:flex;align-items:center;gap:16px;padding:0 28px;background:var(--n-0);border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:11px">
+      <span style="width:30px;height:30px;border-radius:9px;background:var(--brand-500);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:-.02em">SR</span>
+      <span data-hd-opt="1" style="font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">Smart Restaurant</span>
+    </div>
+    <span data-hd-opt="1" style="width:1px;height:22px;background:var(--border);flex:none"></span>
+    <span style="font-size:14px;color:var(--fg-muted);white-space:nowrap">{{t.setup}}</span>
+
+    <div style="flex:1"></div>
+
+    <div style="display:flex;align-items:center;gap:14px">
+      <div data-hd-time="1" style="text-align:right">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap">{{pctLabel}}</div>
+        <div style="font-size:12px;color:var(--fg-subtle);margin-top:1px;white-space:nowrap">{{timeLeft}}</div>
+      </div>
+      <div style="width:132px;flex:none;height:6px;border-radius:99px;background:var(--n-150);overflow:hidden">
+        <div style="height:100%;border-radius:99px;background:var(--brand-500);width:{{pct}}"></div>
+      </div>
+      <span style="width:1px;height:22px;background:var(--border)"></span>
+      <div style="display:flex;gap:3px;padding:3px;background:var(--n-100);border-radius:9px">
+        <button data-lg="uz" onClick="{{setUz}}" style="height:28px;padding:0 10px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)">UZ</button>
+        <button data-lg="ru" onClick="{{setRu}}" style="height:28px;padding:0 10px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)">RU</button>
+        <button data-lg="en" onClick="{{setEn}}" style="height:28px;padding:0 10px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:transparent;color:var(--fg-muted)">EN</button>
+      </div>
+      <button data-tap="1" onClick="{{saveExit}}" style="height:36px;padding:0 15px;border:1px solid var(--border-strong);border-radius:10px;background:var(--n-0);font-size:14px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.saveExit}}</button>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:296px 1fr" data-grid2="1">
+
+    <aside data-rail="1" style="border-right:1px solid var(--border);background:var(--n-0);padding:24px 20px;overflow-y:auto" data-scr="1">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle);padding:0 8px 12px">{{t.steps}}</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{rail}}" as="s" hint-placeholder-count="8">
+          <button data-tap="1" onClick="{{s.go}}" style="display:flex;align-items:flex-start;gap:12px;width:100%;padding:11px 10px;border:0;border-radius:10px;background:{{s.bg}};text-align:left" style-hover="background:var(--n-50)">
+            <span style="width:24px;height:24px;flex:none;border-radius:999px;border:1.6px solid {{s.ring}};background:{{s.fill}};display:grid;place-items:center;font-family:var(--font-mono);font-size:11px;font-weight:600;color:{{s.numFg}};margin-top:1px">
+              <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+              </sc-if>
+              <sc-if value="{{s.pending}}" hint-placeholder-val="{{true}}">{{s.n}}</sc-if>
+            </span>
+            <span style="flex:1;min-width:0">
+              <span style="display:flex;align-items:center;gap:7px">
+                <span style="font-size:14px;font-weight:{{s.fw}};color:{{s.fg}}">{{s.t}}</span>
+                <sc-if value="{{s.opt}}" hint-placeholder-val="{{false}}">
+                  <span style="padding:1px 6px;border-radius:999px;background:var(--n-100);color:var(--fg-subtle);font-size:10px;font-weight:600">{{t.optional}}</span>
+                </sc-if>
+              </span>
+              <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:2px">{{s.meta}}</span>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="margin-top:20px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--n-25)">
+        <div style="font-size:12px;font-weight:600">{{t.minToOpen}}</div>
+        <p style="margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--fg-muted)">{{t.minToOpenP}}</p>
+      </div>
+    </aside>
+
+    <main data-scr="1" style="min-width:0;overflow-y:auto;padding:36px 44px 40px">
+      <div style="max-width:760px">
+
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">{{stepNo}}</span>
+          <sc-if value="{{stepOpt}}" hint-placeholder-val="{{false}}">
+            <span style="padding:3px 9px;border-radius:999px;background:var(--n-100);color:var(--fg-subtle);font-size:11px;font-weight:600">{{t.canSkip}}</span>
+          </sc-if>
+          <sc-if value="{{stepReq}}" hint-placeholder-val="{{true}}">
+            <span style="padding:3px 9px;border-radius:999px;background:var(--brand-50);color:var(--brand-600);font-size:11px;font-weight:600">{{t.required}}</span>
+          </sc-if>
+        </div>
+        <h1 style="margin:10px 0 0;font-family:var(--font-display);font-size:32px;font-weight:700;letter-spacing:-.022em;text-wrap:balance">{{stepH}}</h1>
+        <p style="margin:10px 0 0;font-size:16px;line-height:1.6;color:var(--fg-muted);text-wrap:pretty">{{stepP}}</p>
+
+        <div style="margin-top:32px">
+
+          <sc-if value="{{at1}}" hint-placeholder-val="{{true}}">
+            <div style="display:grid;gap:22px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.rName}}</label>
+                  <input value="{{f.rName}}" onChange="{{fc.rName}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-size:15px;background:var(--n-0)">
+                </div>
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.stir}}</label>
+                  <input value="{{f.stir}}" onChange="{{fc.stir}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:15px;letter-spacing:.04em;background:var(--n-0)">
+                  <div style="font-size:12px;color:var(--fg-subtle);margin-top:6px">{{t.stirNote}}</div>
+                </div>
+              </div>
+
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600">{{t.cuisine}}</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+                  <sc-for list="{{cuisines}}" as="c" hint-placeholder-count="6">
+                    <button data-tap="1" onClick="{{c.pick}}" style="height:38px;padding:0 15px;border:1px solid {{c.bd}};border-radius:999px;background:{{c.bg}};color:{{c.fg}};font-size:14px;font-weight:600">{{c.n}}</button>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px;color:var(--fg-subtle);margin-top:9px">{{t.cuisineNote}}</div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.langs}}</label>
+                  <div style="display:flex;gap:8px;margin-top:10px">
+                    <sc-for list="{{langOpts}}" as="l" hint-placeholder-count="3">
+                      <button data-tap="1" onClick="{{l.pick}}" style="flex:1;height:42px;border:1px solid {{l.bd}};border-radius:10px;background:{{l.bg}};color:{{l.fg}};font-size:14px;font-weight:600">{{l.n}}</button>
+                    </sc-for>
+                  </div>
+                  <div style="font-size:12px;color:var(--fg-subtle);margin-top:9px">{{t.langsNote}}</div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.currency}}</label>
+                  <div style="display:flex;align-items:center;gap:11px;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border);border-radius:10px;background:var(--n-50)">
+                    <span style="font-size:15px;font-weight:600">UZS · so'm</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                  </div>
+                  <div style="font-size:12px;color:var(--fg-subtle);margin-top:6px">{{t.currencyNote}}</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at2}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:22px">
+              <div style="display:grid;grid-template-columns:1fr 200px;gap:16px">
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.bName}}</label>
+                  <input value="{{f.bName}}" onChange="{{fc.bName}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-size:15px;background:var(--n-0)">
+                </div>
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.city}}</label>
+                  <div style="display:flex;align-items:center;justify-content:space-between;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;background:var(--n-0);font-size:15px">
+                    <span>Toshkent</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 220px;gap:16px">
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.address}}</label>
+                  <input value="{{f.address}}" onChange="{{fc.address}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-size:15px;background:var(--n-0)">
+                </div>
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600">{{t.phone}}</label>
+                  <input value="{{f.phone}}" onChange="{{fc.phone}}" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:14px;background:var(--n-0)">
+                </div>
+              </div>
+
+              <div>
+                <label style="display:block;font-size:13px;font-weight:600">{{t.hours}}</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+                  <input value="{{f.openT}}" onChange="{{fc.openT}}" style="width:104px;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:15px;text-align:center;background:var(--n-0)">
+                  <span style="color:var(--fg-subtle)">—</span>
+                  <input value="{{f.closeT}}" onChange="{{fc.closeT}}" style="width:104px;height:44px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:15px;text-align:center;background:var(--n-0)">
+                  <span style="font-size:13px;color:var(--fg-subtle)">{{t.hoursNote}}</span>
+                </div>
+              </div>
+
+              <div style="padding:18px 20px;border:1px solid var(--border);border-left:3px solid var(--brand-500);border-radius:12px;background:var(--brand-50)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                  <div>
+                    <div style="font-size:15px;font-weight:600">{{t.bizDay}}</div>
+                    <p style="margin:5px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted);max-width:520px;text-wrap:pretty">{{t.bizDayP}}</p>
+                  </div>
+                  <input value="{{f.bizDay}}" onChange="{{fc.bizDay}}" style="width:96px;flex:none;height:44px;padding:0 13px;border:1px solid var(--brand-200);border-radius:10px;font-family:var(--font-mono);font-size:15px;text-align:center;background:var(--n-0)">
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--brand-100);font-size:12px;color:var(--brand-600);font-weight:500">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h0"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                  {{t.bizDayEx}}
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at3}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{zones}}" as="z" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:15px;font-weight:600">{{z.n}}</div>
+                      <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{z.code}}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <span style="font-size:13px;color:var(--fg-muted)">{{t.tables}}</span>
+                      <div style="display:flex;align-items:center;gap:2px;border:1px solid var(--border);border-radius:10px;padding:3px">
+                        <button data-tap="1" onClick="{{z.dec}}" style="width:32px;height:32px;border:0;border-radius:8px;background:transparent;font-size:17px;font-weight:600;color:var(--fg-muted)">−</button>
+                        <span style="width:32px;text-align:center;font-family:var(--font-mono);font-size:15px;font-weight:600">{{z.count}}</span>
+                        <button data-tap="1" onClick="{{z.inc}}" style="width:32px;height:32px;border:0;border-radius:8px;background:var(--n-100);font-size:17px;font-weight:600;color:var(--fg)">+</button>
+                      </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <span style="font-size:13px;color:var(--fg-muted)">{{t.seats}}</span>
+                      <input value="{{z.seats}}" onChange="{{z.setSeats}}" style="width:56px;height:38px;padding:0 10px;border:1px solid var(--border-strong);border-radius:9px;font-family:var(--font-mono);font-size:14px;text-align:center;background:var(--n-0)">
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <button data-tap="1" onClick="{{addZone}}" style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border:1px dashed var(--border-strong);border-radius:12px;background:transparent;font-size:14px;font-weight:600;color:var(--fg-muted)" style-hover="background:var(--n-0)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                {{t.addZone}}
+              </button>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                  <div style="font-family:var(--font-display);font-size:30px;font-weight:700;letter-spacing:-.022em">{{tableTotal}}</div>
+                  <div style="font-size:13px;color:var(--fg-muted);margin-top:2px">{{t.willCreate}}</div>
+                  <div style="font-family:var(--font-mono);font-size:12px;color:var(--fg-subtle);margin-top:10px;line-height:1.6">{{tableCodes}}</div>
+                </div>
+                <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM19 19h2v2h-2z"></path></svg>
+                    <span style="font-size:15px;font-weight:600">{{t.qrH}}</span>
+                  </div>
+                  <p style="margin:7px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.qrP}}</p>
+                  <button data-tap="1" onClick="{{qrPdf}}" style="height:36px;padding:0 14px;margin-top:12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--n-0);font-size:13px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.qrBtn}}</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at4}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:14px">
+              <sc-for list="{{menuWays}}" as="w" hint-placeholder-count="3">
+                <button data-tap="1" onClick="{{w.pick}}" style="display:flex;align-items:flex-start;gap:15px;width:100%;padding:20px;border:1px solid {{w.bd}};border-radius:14px;background:{{w.bg}};text-align:left;box-shadow:{{w.sh}}" style-hover="border-color:var(--border-strong)">
+                  <span style="width:22px;height:22px;flex:none;border-radius:999px;border:1.8px solid {{w.dot}};display:grid;place-items:center;margin-top:2px">
+                    <sc-if value="{{w.on}}" hint-placeholder-val="{{false}}">
+                      <span style="width:10px;height:10px;border-radius:999px;background:var(--brand-500)"></span>
+                    </sc-if>
+                  </span>
+                  <span style="flex:1;min-width:0">
+                    <span style="display:flex;align-items:center;gap:9px">
+                      <span style="font-size:16px;font-weight:600">{{w.t}}</span>
+                      <sc-if value="{{w.tag}}" hint-placeholder-val="{{false}}">
+                        <span style="padding:2px 8px;border-radius:999px;background:var(--accent-50);color:var(--accent-600);font-size:11px;font-weight:600">{{w.tag}}</span>
+                      </sc-if>
+                    </span>
+                    <span style="display:block;font-size:14px;line-height:1.6;color:var(--fg-muted);margin-top:4px">{{w.d}}</span>
+                    <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:7px">{{w.meta}}</span>
+                  </span>
+                </button>
+              </sc-for>
+
+              <sc-if value="{{preset}}" hint-placeholder-val="{{true}}">
+                <div style="padding:20px;border:1px solid var(--border);border-radius:14px;background:var(--n-0)">
+                  <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.presetIncl}}</div>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:14px">
+                    <sc-for list="{{presetCats}}" as="c" hint-placeholder-count="6">
+                      <div>
+                        <div style="font-size:14px;font-weight:600">{{c.n}}</div>
+                        <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{c.d}}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--divider);font-size:12px;color:var(--fg-muted)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warning-500)" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h0"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                    {{t.presetNote}}
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at5}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:20px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:14px;font-weight:600">{{t.vat}}</span>
+                    <span style="font-family:var(--font-mono);font-size:20px;font-weight:600">12%</span>
+                  </div>
+                  <div style="display:flex;gap:3px;padding:3px;margin-top:12px;background:var(--n-100);border-radius:9px">
+                    <span style="flex:1;height:32px;display:grid;place-items:center;border-radius:7px;background:var(--n-0);font-size:12px;font-weight:600;box-shadow:var(--shadow-xs)">{{t.vatIn}}</span>
+                    <span style="flex:1;height:32px;display:grid;place-items:center;border-radius:7px;font-size:12px;font-weight:600;color:var(--fg-disabled)">{{t.vatOn}}</span>
+                  </div>
+                  <div style="font-size:12px;line-height:1.55;color:var(--fg-subtle);margin-top:10px">{{t.vatNote}}</div>
+                </div>
+                <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between">
+                    <span style="font-size:14px;font-weight:600">{{t.svc}}</span>
+                    <span style="font-family:var(--font-mono);font-size:20px;font-weight:600">10%</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+                    <sc-for list="{{svcWhere}}" as="s" hint-placeholder-count="3">
+                      <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--fg-muted)">
+                        <span style="width:17px;height:17px;flex:none;border-radius:5px;border:1.6px solid {{s.bd}};background:{{s.bg}};display:grid;place-items:center">
+                          <sc-if value="{{s.on}}" hint-placeholder-val="{{true}}">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                          </sc-if>
+                        </span>
+                        {{s.n}}
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                  <div>
+                    <div style="font-size:14px;font-weight:600">{{t.round}}</div>
+                    <div style="font-size:13px;color:var(--fg-muted);margin-top:3px">{{t.roundP}}</div>
+                  </div>
+                  <div style="display:flex;gap:7px;flex:none">
+                    <sc-for list="{{roundOpts}}" as="r" hint-placeholder-count="4">
+                      <button data-tap="1" onClick="{{r.pick}}" style="height:38px;padding:0 14px;border:1px solid {{r.bd}};border-radius:10px;background:{{r.bg}};color:{{r.fg}};font-family:var(--font-mono);font-size:13px;font-weight:600">{{r.l}}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div style="font-size:14px;font-weight:600">{{t.payMethods}}</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px">
+                  <sc-for list="{{payOpts}}" as="p" hint-placeholder-count="6">
+                    <button data-tap="1" onClick="{{p.pick}}" style="display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid {{p.bd}};border-radius:11px;background:{{p.bg}};text-align:left">
+                      <span style="width:17px;height:17px;flex:none;border-radius:5px;border:1.6px solid {{p.dot}};background:{{p.dotBg}};display:grid;place-items:center">
+                        <sc-if value="{{p.on}}" hint-placeholder-val="{{true}}">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                        </sc-if>
+                      </span>
+                      <span style="flex:1;font-size:14px;font-weight:500">{{p.n}}</span>
+                      <sc-if value="{{p.fee}}" hint-placeholder-val="{{false}}">
+                        <span style="font-family:var(--font-mono);font-size:12px;color:var(--fg-subtle)">{{p.fee}}</span>
+                      </sc-if>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="padding:18px 20px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+                  <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <span style="font-size:15px;font-weight:600">{{t.fiscal}}</span>
+                      <span style="padding:2px 8px;border-radius:999px;background:var(--danger-50);color:var(--danger-600);font-size:11px;font-weight:600">{{t.mandatory}}</span>
+                    </div>
+                    <p style="margin:6px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.fiscalP}}</p>
+                    <div style="display:flex;gap:12px;margin-top:14px">
+                      <input placeholder="{{t.fiscalNo}}" value="{{f.fiscalNo}}" onChange="{{fc.fiscalNo}}" value="FM 4471 2290" style="width:190px;height:42px;padding:0 13px;border:1px solid var(--border-strong);border-radius:10px;font-family:var(--font-mono);font-size:14px;background:var(--n-0)">
+                      <button data-tap="1" onClick="{{testFiscal}}" style="height:42px;padding:0 16px;border:1px solid var(--border-strong);border-radius:10px;background:var(--n-0);font-size:14px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.testConn}}</button>
+                    </div>
+                  </div>
+                  <div style="flex:none;display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;background:{{fiscalBg}};font-size:13px;font-weight:600;color:{{fiscalFg}}">
+                    <span style="width:7px;height:7px;border-radius:999px;background:{{fiscalDot}}"></span>
+                    {{fiscalLbl}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at6}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:18px">
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--n-0);overflow:hidden">
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 90px 110px 40px;gap:14px;padding:12px 18px;background:var(--n-50);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--fg-subtle)">
+                  <span>{{t.person}}</span><span>{{t.role}}</span><span>{{t.pin}}</span><span>{{t.access}}</span><span></span>
+                </div>
+                <sc-for list="{{crew}}" as="c" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:1.3fr 1fr 90px 110px 40px;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--divider)">
+                    <div style="display:flex;align-items:center;gap:11px;min-width:0">
+                      <span style="width:32px;height:32px;flex:none;border-radius:999px;background:var(--n-100);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--fg-muted)">{{c.init}}</span>
+                      <span style="min-width:0">
+                        <span style="display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.n}}</span>
+                        <span style="display:block;font-size:12px;color:var(--fg-subtle)">{{c.contact}}</span>
+                      </span>
+                    </div>
+                    <span style="font-size:13px;color:var(--fg-muted)">{{c.role}}</span>
+                    <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:{{c.pinFg}}">{{c.pin}}</span>
+                    <span style="font-size:12px;color:var(--fg-subtle)">{{c.access}}</span>
+                    <button aria-label="Yopish" title="Yopish" data-tap="1" onClick="{{c.rm}}" style="width:30px;height:30px;border:0;border-radius:8px;background:transparent;display:grid;place-items:center;color:var(--fg-subtle)" style-hover="background:var(--danger-50);color:var(--danger-600)">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;gap:10px">
+                <button data-tap="1" onClick="{{addWaiter}}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 17px;border:1px solid var(--border-strong);border-radius:11px;background:var(--n-0);font-size:14px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                  {{t.addCrew}}
+                </button>
+                <button data-tap="1" onClick="{{inviteMgr}}" style="height:44px;padding:0 17px;border:1px solid var(--border-strong);border-radius:11px;background:var(--n-0);font-size:14px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.inviteMgr}}</button>
+              </div>
+
+              <div style="display:flex;align-items:flex-start;gap:11px;padding:16px 18px;border:1px solid var(--border);border-left:3px solid var(--warning-500);border-radius:12px;background:var(--warning-50)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2.2" stroke-linecap="round" style="flex:none;margin-top:1px"><path d="M12 8v5M12 17h0"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:var(--warning-600)">{{t.pinWarnH}}</div>
+                  <p style="margin:4px 0 0;font-size:13px;line-height:1.6;color:var(--warning-600)">{{t.pinWarnP}}</p>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at7}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:18px">
+              <div style="padding:20px;border:1px solid var(--border);border-radius:14px;background:var(--n-0)">
+                <div style="font-size:15px;font-weight:600">{{t.pairH}}</div>
+                <p style="margin:6px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.pairP}}</p>
+                <div style="display:flex;align-items:center;gap:14px;margin-top:16px">
+                  <div style="display:flex;gap:8px">
+                    <sc-for list="{{pairCode}}" as="d" hint-placeholder-count="6">
+                      <span style="width:46px;height:56px;border-radius:11px;border:1px solid var(--border);background:var(--n-50);display:grid;place-items:center;font-family:var(--font-mono);font-size:24px;font-weight:600">{{d.c}}</span>
+                    </sc-for>
+                  </div>
+                  <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;max-width:180px">{{t.pairExp}}</div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{devices}}" as="d" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:15px;padding:15px 18px;border:1px solid var(--border);border-radius:12px;background:var(--n-0)">
+                    <span style="width:36px;height:36px;flex:none;border-radius:10px;background:var(--n-100);display:grid;place-items:center;color:var(--fg-muted)">{{d.icon}}</span>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:14px;font-weight:600">{{d.n}}</div>
+                      <div style="font-size:12px;color:var(--fg-subtle);margin-top:1px">{{d.meta}}</div>
+                    </div>
+                    <sc-if value="{{d.canTest}}" hint-placeholder-val="{{true}}">
+                      <button data-tap="1" onClick="{{d.test}}" style="height:34px;padding:0 13px;border:1px solid var(--border-strong);border-radius:9px;background:var(--n-0);font-size:13px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.testPrint}}</button>
+                    </sc-if>
+                    <span style="display:flex;align-items:center;gap:7px;flex:none;padding:6px 11px;border-radius:999px;background:{{d.bg}};font-size:12px;font-weight:600;color:{{d.fg}}">
+                      <span style="width:6px;height:6px;border-radius:999px;background:{{d.dot}}"></span>
+                      {{d.status}}
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:flex;align-items:flex-start;gap:11px;padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:var(--n-25)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-4M12 8h0"></path></svg>
+                <p style="margin:0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.printerNote}}</p>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{at8}}" hint-placeholder-val="{{false}}">
+            <div style="display:grid;gap:20px">
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--n-0);overflow:hidden">
+                <div style="padding:14px 20px;background:var(--n-50);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.readyReq}}</div>
+                <sc-for list="{{checkReq}}" as="c" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid var(--divider)">
+                    <span style="width:22px;height:22px;flex:none;border-radius:999px;background:{{c.fill}};border:1.6px solid {{c.ring}};display:grid;place-items:center">
+                      <sc-if value="{{c.ok}}" hint-placeholder-val="{{true}}">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="flex:1;font-size:14px;font-weight:500">{{c.n}}</span>
+                    <span style="font-size:13px;color:var(--fg-subtle)">{{c.v}}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="border:1px solid var(--border);border-radius:14px;background:var(--n-0);overflow:hidden">
+                <div style="padding:14px 20px;background:var(--n-50);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.readyLater}}</div>
+                <sc-for list="{{checkLater}}" as="c" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid var(--divider)">
+                    <span style="width:22px;height:22px;flex:none;border-radius:999px;border:1.6px dashed var(--n-300)"></span>
+                    <span style="flex:1;font-size:14px;font-weight:500;color:var(--fg-muted)">{{c.n}}</span>
+                    <span style="font-size:13px;color:var(--fg-subtle)">{{c.v}}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="padding:24px;border:1px solid var(--border);border-radius:16px;background:var(--n-900);color:#fff">
+                <div style="font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.022em">{{t.openH}}</div>
+                <p style="margin:8px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.72);max-width:520px;text-wrap:pretty">{{t.openP}}</p>
+                <button data-tap="1" onClick="{{openShift}}" style="height:48px;padding:0 22px;margin-top:18px;border:0;border-radius:12px;background:#fff;color:var(--n-900);font-size:15px;font-weight:600" style-hover="background:var(--n-100)">{{t.openBtn}}</button>
+              </div>
+            </div>
+          </sc-if>
+
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:34px;padding-top:22px;border-top:1px solid var(--border)">
+          <button data-tap="1" onClick="{{prev}}" style="height:44px;padding:0 18px;border:1px solid var(--border-strong);border-radius:11px;background:var(--n-0);font-size:14px;font-weight:600;color:{{prevFg}}" style-hover="background:var(--n-50)">{{t.back}}</button>
+          <div style="flex:1"></div>
+          <sc-if value="{{stepOpt}}" hint-placeholder-val="{{false}}">
+            <button data-tap="1" onClick="{{skip}}" style="height:44px;padding:0 18px;border:0;border-radius:11px;background:transparent;font-size:14px;font-weight:600;color:var(--fg-muted)" style-hover="background:var(--n-100)">{{t.later}}</button>
+          </sc-if>
+          <sc-if value="{{notLast}}" hint-placeholder-val="{{true}}">
+            <button data-tap="1" onClick="{{next}}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 20px;border:0;border-radius:11px;background:var(--brand-500);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--brand-600)">
+              {{t.continue}}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+          </sc-if>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:920}}">
+class Component extends DCLogic {
+  state = {
+    lang: "uz", step: 1, done: { 1: true, 2: true },
+    form: {
+      rName: "Smart Restaurant", stir: "304 812 776",
+      bName: "Chilonzor", address: "Bunyodkor shoh ko'chasi 14", phone: "+998 71 200 41 12",
+      openT: "10:00", closeT: "02:00", bizDay: "06:00", fiscalNo: "",
+    },
+    cuisine: 0, langs: { 0: true, 1: true }, menuWay: 1,
+    zones: [{ k: "hall", c: 18, s: 4 }, { k: "terrace", c: 8, s: 4 }, { k: "vip", c: 3, s: 8 }],
+    round: 2, pays: { 0: true, 1: true, 2: true, 3: true, 4: false, 5: false },
+    svc: { 0: true, 1: false, 2: false }, fiscal: 0,
+    crew: [0, 1, 2, 3], toast: "",
+  };
+
+  flash(m) {
+    clearTimeout(this._t);
+    this.setState({ toast: m });
+    this._t = setTimeout(() => this.setState({ toast: "" }), 2600);
+  }
+
+  componentDidMount() { this.paint(); }
+  componentDidUpdate() { this.paint(); }
+
+  paint() {
+    document.querySelectorAll("[data-lg]").forEach(b => {
+      const on = b.getAttribute("data-lg") === this.state.lang;
+      b.style.background = on ? "var(--n-0)" : "transparent";
+      b.style.color = on ? "var(--fg)" : "var(--fg-muted)";
+      b.style.boxShadow = on ? "var(--shadow-xs)" : "none";
+    });
+  }
+
+  fv(k) { return (this.state.form || {})[k] || ""; }
+  fset(k) { return (e) => { const v = e.target.value; this.setState(s => ({ form: { ...s.form, [k]: v } })); }; }
+
+  goStep(n) {
+    this.setState(s => ({ step: n, done: { ...s.done, [s.step]: true } }));
+    const m = document.querySelector("main");
+    if (m) m.scrollTop = 0;
+  }
+
+  renderVals() {
+    const L = ["uz", "ru", "en"].indexOf(this.state.lang);
+    const P = (a, b, c) => [a, b, c][L];
+    const S = this.state;
+
+    const t = {
+      setup: P("Boshlang'ich sozlash", "Первоначальная настройка", "First-run setup"),
+      saveExit: P("Saqlab chiqish", "Сохранить и выйти", "Save and exit"),
+      steps: P("Qadamlar", "Шаги", "Steps"),
+      optional: P("ixtiyoriy", "необязательно", "optional"),
+      canSkip: P("Keyinroq qilish mumkin", "Можно сделать позже", "Can be done later"),
+      required: P("Majburiy", "Обязательно", "Required"),
+      minToOpen: P("Ochilish uchun eng kami", "Минимум для открытия", "Minimum to open"),
+      minToOpenP: P("Filial, bitta stol, bitta taom va kassa. Qolgan hammasi keyinroq — mijoz kutmaydi.", "Филиал, один стол, одно блюдо и касса. Всё остальное позже — гость не ждёт.", "A branch, one table, one dish and a till. Everything else can wait — the guest will not."),
+      back: P("Orqaga", "Назад", "Back"),
+      later: P("Keyinroq", "Позже", "Later"),
+      continue: P("Davom etish", "Продолжить", "Continue"),
+
+      rName: P("Restoran nomi", "Название ресторана", "Restaurant name"),
+      stir: P("STIR", "ИНН", "Tax ID"),
+      stirNote: P("Chekda va hisob-fakturada chiqadi", "Печатается на чеке и в счёте-фактуре", "Printed on receipts and invoices"),
+      cuisine: P("Oshxona turi", "Тип кухни", "Kind of kitchen"),
+      cuisineNote: P("Bu menyu andozasini va oshxona bo'limlarini tanlashga yordam beradi.", "Это помогает подобрать шаблон меню и цеха кухни.", "This picks the menu template and the kitchen stations for you."),
+      langs: P("Ish tillari", "Рабочие языки", "Working languages"),
+      langsNote: P("Menyu va cheklar shu tillarda bo'ladi", "Меню и чеки будут на этих языках", "Menus and receipts use these languages"),
+      currency: P("Valyuta", "Валюта", "Currency"),
+      currencyNote: P("O'zbekiston uchun o'zgartirilmaydi", "Для Узбекистана не меняется", "Fixed for Uzbekistan"),
+
+      bName: P("Filial nomi", "Название филиала", "Branch name"),
+      city: P("Shahar", "Город", "City"),
+      address: P("Manzil", "Адрес", "Address"),
+      phone: P("Telefon", "Телефон", "Phone"),
+      hours: P("Ish vaqti", "Часы работы", "Opening hours"),
+      hoursNote: P("Yopilish yarim kechadan keyin bo'lishi mumkin", "Закрытие может быть после полуночи", "Closing may fall after midnight"),
+      bizDay: P("Ish kuni qachon boshlanadi", "Когда начинается рабочий день", "When the business day starts"),
+      bizDayP: P("Restoran yarim kechadan keyin ishlaydi, shuning uchun kechqurungi tushum kalendar kunga bo'linib ketmasligi kerak. Ish kuni shu vaqtdan boshlanadi va ertasi kun shu vaqtda tugaydi.", "Ресторан работает после полуночи, поэтому вечерняя выручка не должна делиться по календарным дням. Рабочий день начинается в это время и заканчивается в это же время на следующий день.", "The restaurant works past midnight, so the evening's takings must not split across calendar days. The business day starts at this time and ends at the same time the next day."),
+      bizDayEx: P("01:30 dagi buyurtma o'tgan kunga yoziladi. Barcha hisobotlar shu qoidaga bo'ysunadi.", "Заказ в 01:30 относится к предыдущему дню. Все отчёты подчиняются этому правилу.", "An order at 01:30 belongs to the previous day. Every report follows this rule."),
+
+      tables: P("stol", "столов", "tables"),
+      seats: P("o'rin", "мест", "seats"),
+      addZone: P("Zona qo'shish", "Добавить зону", "Add a zone"),
+      willCreate: P("stol yaratiladi", "столов будет создано", "tables will be created"),
+      qrH: P("QR kodlar", "QR-коды", "QR codes"),
+      qrP: P("Har bir stol uchun QR yaratiladi. Mehmon skanerlaganda menyu ochiladi va buyurtma shu stolga bog'lanadi.", "Для каждого стола создаётся QR. Гость сканирует — открывается меню, заказ привязан к этому столу.", "Each table gets a QR. The guest scans it, the menu opens, and the order binds to that table."),
+      qrBtn: P("PDF bo'lib yuklab olish", "Скачать в PDF", "Download as PDF"),
+
+      presetIncl: P("Andozada nima bor", "Что входит в шаблон", "What the template includes"),
+      presetNote: P("Narxlar namuna uchun qo'yilgan — birinchi smenadan oldin o'zingizning narxlaringizni kiritishingiz kerak.", "Цены проставлены для примера — до первой смены нужно ввести свои.", "Prices are placeholders — put your own in before the first shift."),
+
+      vat: P("QQS", "НДС", "VAT"),
+      vatIn: P("Narx ichida", "В цене", "In the price"),
+      vatOn: P("Narx ustiga", "Сверху цены", "On top"),
+      vatNote: P("Menyudagi narx — mijoz to'laydigan narx. Kassada summa oshmaydi.", "Цена в меню — цена к оплате. На кассе сумма не вырастет.", "The menu price is the price paid. Nothing is added at the till."),
+      svc: P("Xizmat haqi", "Сервисный сбор", "Service charge"),
+      round: P("Naqd yaxlitlash", "Округление наличных", "Cash rounding"),
+      roundP: P("Naqd to'lovda jami summa shu qadamga yaxlitlanadi. Karta va Click yaxlitlanmaydi.", "При оплате наличными сумма округляется до этого шага. Карта и Click не округляются.", "Cash totals round to this step. Card and Click are taken exactly."),
+      payMethods: P("To'lov turlari", "Способы оплаты", "Payment methods"),
+      fiscal: P("Onlayn-kassa (fiskal modul)", "Онлайн-касса (фискальный модуль)", "Fiscal module"),
+      mandatory: P("QONUNIY TALAB", "ТРЕБОВАНИЕ ЗАКОНА", "REQUIRED BY LAW"),
+      fiscalP: P("Fiskal modulsiz chek qonuniy hisoblanmaydi. Modul raqamini kiriting va ulanishni tekshirib ko'ring.", "Без фискального модуля чек не имеет юридической силы. Введите номер модуля и проверьте связь.", "Without the fiscal module a receipt has no legal standing. Enter the module number and test the connection."),
+      fiscalNo: P("Modul raqami", "Номер модуля", "Module number"),
+      testConn: P("Ulanishni tekshirish", "Проверить связь", "Test the connection"),
+
+      person: P("Xodim", "Сотрудник", "Person"),
+      role: P("Rol", "Роль", "Role"),
+      pin: "PIN",
+      access: P("Kirish", "Доступ", "Signs in"),
+      addCrew: P("Xodim qo'shish", "Добавить сотрудника", "Add a person"),
+      inviteMgr: P("Menejerni pochta bilan chaqirish", "Пригласить менеджера по почте", "Invite a manager by email"),
+      pinWarnH: P("PIN kodlar bir marta ko'rsatiladi", "PIN-коды показываются один раз", "PIN codes are shown once"),
+      pinWarnP: P("Sozlash tugagandan keyin kodni ko'rish mumkin bo'lmaydi — faqat yangisini yaratish. Xodimlarga hozir yozib bering.", "После завершения настройки код увидеть нельзя — только создать новый. Раздайте их сотрудникам сейчас.", "Once setup finishes the code cannot be read again, only replaced. Hand them out now."),
+
+      pairH: P("Planshetni ulash", "Подключить планшет", "Pair a tablet"),
+      pairP: P("Planshetda ilovani ochib, shu kodni kiriting. Har bir qurilma bir marta ulanadi va keyin o'zi eslab qoladi.", "Откройте приложение на планшете и введите этот код. Каждое устройство подключается один раз и запоминается.", "Open the app on the tablet and enter this code. Each device pairs once and remembers itself."),
+      pairExp: P("Kod 15 daqiqada eskiradi. Yangisini olish mumkin.", "Код истекает через 15 минут. Можно получить новый.", "The code expires in 15 minutes. A new one can be issued."),
+      testPrint: P("Sinov cheki", "Тестовый чек", "Test print"),
+      printerNote: P("Oshxona printeri har bir bo'limga alohida bo'lishi kerak: grill cheki grillda, salat cheki salatda chiqsin. Bitta printerdan hamma bo'lim ishlasa, cheklar aralashadi.", "Кухонный принтер нужен на каждый цех: чек гриля — на гриле, чек салатов — на салатах. С одним принтером чеки перемешиваются.", "Each station needs its own kitchen printer: the grill ticket prints at the grill, the salad ticket at the salads. One shared printer mixes them up."),
+
+      readyReq: P("Ochilish uchun kerak bo'lgan narsalar", "Что нужно для открытия", "What opening requires"),
+      readyLater: P("Keyinroq qilinadigan narsalar", "Что можно сделать позже", "What can wait"),
+      openH: P("Birinchi smenani ochishga tayyor", "Готово к открытию первой смены", "Ready to open the first shift"),
+      openP: P("Kassa ochiladi, stollar bo'sh holatga o'tadi va planshetlar buyurtma qabul qila boshlaydi. Sozlamalarni keyin ham o'zgartirish mumkin.", "Касса откроется, столы станут свободными, планшеты начнут принимать заказы. Настройки можно менять и потом.", "The till opens, tables become available, and the tablets start taking orders. Settings stay editable afterwards."),
+      openBtn: P("Birinchi smenani ochish", "Открыть первую смену", "Open the first shift"),
+    };
+
+    const STEPS = [
+      { t: P("Restoran", "Ресторан", "Restaurant"), m: P("Nom, STIR, oshxona turi", "Название, ИНН, тип кухни", "Name, tax ID, kitchen"), min: 3,
+        p: P("Bu ma'lumotlar chekda, hisob-fakturada va soliq hisobotida chiqadi. Keyinchalik o'zgartirish mumkin, lekin STIR o'zgarsa eski cheklar qayta chiqarilmaydi.", "Эти данные печатаются на чеке, в счёте-фактуре и в налоговой отчётности. Изменить можно позже, но при смене ИНН старые чеки не перевыпускаются.", "These details print on receipts, invoices and tax filings. They stay editable, but changing the tax ID does not reissue old receipts.") },
+      { t: P("Filial", "Филиал", "Branch"), m: P("Manzil, ish vaqti, ish kuni", "Адрес, часы, рабочий день", "Address, hours, business day"), min: 4,
+        p: P("Birinchi filialni qo'shamiz. Qolganlarini keyin qo'shasiz — har biri o'z stollari, xodimlari va omboriga ega bo'ladi.", "Добавим первый филиал. Остальные добавите позже — у каждого свои столы, сотрудники и склад.", "We will add the first branch. The rest come later, each with its own tables, staff and stock.") },
+      { t: P("Zal va stollar", "Зал и столы", "Floor and tables"), m: P("Zonalar, stollar, QR kodlar", "Зоны, столы, QR-коды", "Zones, tables, QR codes"), min: 3,
+        p: P("Zonalarni ajratish ofitsiantga stolni tezroq topishga yordam beradi. Stol raqamlari avtomatik beriladi va keyin o'zgartirilishi mumkin.", "Разделение на зоны помогает официанту быстрее находить стол. Номера столов присваиваются автоматически и потом меняются.", "Zones help a waiter find a table faster. Table numbers are assigned automatically and can be renamed later.") },
+      { t: P("Menyu", "Меню", "Menu"), m: P("Andoza, import yoki qo'lda", "Шаблон, импорт или вручную", "Template, import or by hand"), min: 6,
+        p: P("Menyusiz buyurtma qabul qilib bo'lmaydi — bu eng muhim qadam. Uchta yo'ldan bittasini tanlaysiz, keyin baribir tahrirlaysiz.", "Без меню заказ принять нельзя — это самый важный шаг. Выберите один из трёх путей, править всё равно будете потом.", "No menu means no orders — this is the step that matters most. Pick one of three routes; you will edit it either way.") },
+      { t: P("Soliq va to'lov", "Налоги и оплата", "Tax and payment"), m: P("QQS, xizmat haqi, fiskal modul", "НДС, сервис, фискальный модуль", "VAT, service, fiscal module"), min: 4,
+        p: P("Bu sozlamalar har bir chekka ta'sir qiladi, shuning uchun ular birinchi smenadan oldin to'g'ri bo'lishi kerak. Keyin o'zgartirilsa, eski cheklar qayta hisoblanmaydi.", "Эти настройки влияют на каждый чек, поэтому должны быть верными до первой смены. При изменении позже старые чеки не пересчитываются.", "These settings touch every receipt, so they must be right before the first shift. Changing them later does not recalculate old receipts.") },
+      { t: P("Xodimlar", "Сотрудники", "People"), m: P("Rollar va PIN kodlar", "Роли и PIN-коды", "Roles and PIN codes"), min: 5, opt: true,
+        p: P("Bitta odam bir nechta rolga ega bo'lishi mumkin — kichik restoranda ofitsiant ham kassir bo'ladi. Hozir o'tkazib yuborsangiz, o'zingiz hamma rolda ishlaysiz.", "Один человек может иметь несколько ролей — в маленьком ресторане официант же и кассир. Если пропустить, вы будете работать во всех ролях сами.", "One person can hold several roles — in a small restaurant the waiter is also the cashier. Skip this and you work every role yourself.") },
+      { t: P("Qurilmalar", "Устройства", "Devices"), m: P("Planshet, ekran, printerlar", "Планшет, экран, принтеры", "Tablet, screen, printers"), min: 4, opt: true,
+        p: P("Kompyuterdan ham ishlash mumkin, lekin planshet va oshxona printeri bo'lmasa buyurtmani oshxonaga og'zaki aytish kerak bo'ladi.", "Работать можно и с компьютера, но без планшета и кухонного принтера заказ придётся передавать на словах.", "A computer alone works, but without a tablet and a kitchen printer the order has to be passed on by voice.") },
+      { t: P("Tayyor", "Готово", "Ready"), m: P("Tekshirish va ochish", "Проверка и открытие", "Review and open"), min: 1,
+        p: P("Ochilish uchun kerak bo'lgan narsalarni tekshirib chiqing. Yetishmayotgani bo'lsa, o'sha qadamga qaytish mumkin.", "Проверьте, что нужно для открытия. Если чего-то не хватает, можно вернуться к нужному шагу.", "Check what opening requires. If something is missing, step back to it.") },
+    ];
+
+    const step = S.step;
+    const rail = STEPS.map((s, i) => {
+      const n = i + 1;
+      const done = !!S.done[n] && n !== step;
+      const cur = n === step;
+      return {
+        n: String(n), t: s.t, meta: done ? P("bajarildi", "выполнено", "done") : s.m,
+        opt: !!s.opt, done, pending: !done,
+        bg: cur ? "var(--brand-50)" : "transparent",
+        ring: done ? "var(--success-500)" : cur ? "var(--brand-500)" : "var(--n-200)",
+        fill: done ? "var(--success-500)" : "transparent",
+        numFg: cur ? "var(--brand-600)" : "var(--fg-subtle)",
+        fg: cur ? "var(--fg)" : done ? "var(--fg-muted)" : "var(--fg-muted)",
+        fw: cur ? "600" : "500",
+        go: () => this.goStep(n),
+      };
+    });
+
+    const doneCount = STEPS.filter((s, i) => S.done[i + 1] && i + 1 !== step).length;
+    const minsLeft = STEPS.filter((s, i) => !S.done[i + 1]).reduce((a, s) => a + s.min, 0);
+    const cur = STEPS[step - 1];
+
+    const CUIS = [
+      P("Milliy oshxona", "Национальная кухня", "Uzbek"), P("Fast-casual", "Fast-casual", "Fast-casual"),
+      P("Pizza", "Пицца", "Pizza"), P("Burger", "Бургеры", "Burgers"),
+      P("Kafe", "Кафе", "Cafe"), P("Choyxona", "Чайхана", "Teahouse"),
+    ];
+    const cuisines = CUIS.map((n, i) => {
+      const on = S.cuisine === i;
+      return { n, bg: on ? "var(--n-900)" : "var(--n-0)", fg: on ? "#fff" : "var(--fg)", bd: on ? "var(--n-900)" : "var(--border-strong)", pick: () => this.setState({ cuisine: i }) };
+    });
+
+    const langOpts = ["O'zbekcha", "Русский", "English"].map((n, i) => {
+      const on = !!S.langs[i];
+      return { n, bg: on ? "var(--brand-50)" : "var(--n-0)", fg: on ? "var(--brand-600)" : "var(--fg-muted)", bd: on ? "var(--brand-200)" : "var(--border-strong)", pick: () => this.setState(s => ({ langs: { ...s.langs, [i]: !s.langs[i] } })) };
+    });
+
+    const ZNAMES = {
+      hall: [P("Asosiy zal", "Основной зал", "Main hall"), "T"],
+      terrace: [P("Terrasa", "Терраса", "Terrace"), "TR"],
+      vip: [P("VIP xona", "VIP-комната", "VIP room"), "V"],
+      extra: [P("Yangi zona", "Новая зона", "New zone"), "Z"],
+    };
+    const zones = S.zones.map((z, i) => ({
+      n: ZNAMES[z.k][0],
+      code: ZNAMES[z.k][1] + "1 – " + ZNAMES[z.k][1] + z.c,
+      count: z.c, seats: z.s,
+      setSeats: (e) => { const raw = e.target.value.replace(/[^0-9]/g, "").slice(0, 2); const n = raw === "" ? "" : Math.min(24, Math.max(1, parseInt(raw, 10))); this.setState(s => ({ zones: s.zones.map((x, j) => j === i ? { ...x, s: n } : x) })); },
+      inc: () => this.setState(s => ({ zones: s.zones.map((x, j) => j === i ? { ...x, c: Math.min(60, x.c + 1) } : x) })),
+      dec: () => this.setState(s => ({ zones: s.zones.map((x, j) => j === i ? { ...x, c: Math.max(1, x.c - 1) } : x) })),
+    }));
+    const tableTotal = S.zones.reduce((a, z) => a + z.c, 0);
+    const tableCodes = S.zones.map(z => ZNAMES[z.k][1] + "1–" + ZNAMES[z.k][1] + z.c + " · " + z.s + " " + t.seats).join("   ");
+
+    const WAYS = [
+      { t: P("Excel fayldan yuklash", "Загрузить из Excel", "Import from Excel"), d: P("Menyungiz allaqachon jadvalda bo'lsa, eng tez yo'l. Ustunlarni moslashtirasiz, tizim tekshiradi.", "Если меню уже в таблице — самый быстрый путь. Сопоставите столбцы, система проверит.", "Fastest if your menu is already a spreadsheet. Map the columns and the system validates."), meta: P("Taxminan 6 daqiqa · 40–200 pozitsiya", "Примерно 6 минут · 40–200 позиций", "About 6 minutes · 40–200 items") },
+      { t: P("Andozadan boshlash", "Начать с шаблона", "Start from a template"), tag: P("TAVSIYA ETILADI", "РЕКОМЕНДУЕМ", "RECOMMENDED"), d: P("O'zbek restorani uchun tayyor menyu: 68 taom, kategoriyalar, oshxona bo'limlari va texnologik kartalar bilan.", "Готовое меню для узбекского ресторана: 68 блюд с категориями, цехами и техкартами.", "A ready menu for an Uzbek restaurant: 68 dishes with categories, stations and recipe cards."), meta: P("Taxminan 4 daqiqa · keyin tahrirlash mumkin", "Примерно 4 минуты · потом можно править", "About 4 minutes · editable afterwards") },
+      { t: P("Qo'lda kiritish", "Ввести вручную", "Enter by hand"), d: P("Kichik menyu bo'lsa yoki hozir faqat bir nechta taom kerak bo'lsa.", "Если меню небольшое или сейчас нужно всего несколько блюд.", "For a short menu, or when only a few dishes are needed now."), meta: P("Bitta taom ham yetarli — qolganini keyin qo'shasiz", "Достаточно одного блюда — остальное потом", "One dish is enough — add the rest later") },
+    ];
+    const menuWays = WAYS.map((w, i) => {
+      const on = S.menuWay === i;
+      return {
+        t: w.t, d: w.d, meta: w.meta, tag: w.tag || "", on,
+        bg: on ? "var(--brand-50)" : "var(--n-0)",
+        bd: on ? "var(--brand-200)" : "var(--border)",
+        dot: on ? "var(--brand-500)" : "var(--n-300)",
+        sh: on ? "var(--shadow-sm)" : "none",
+        pick: () => this.setState({ menuWay: i }),
+      };
+    });
+
+    const presetCats = [
+      { n: P("Milliy taomlar", "Национальные", "Uzbek dishes"), d: P("14 taom · osh, lag'mon, manti", "14 блюд · плов, лагман, манты", "14 dishes · plov, lagman, manti") },
+      { n: P("Grill va kabob", "Гриль и кебаб", "Grill and kebab"), d: P("11 taom", "11 блюд", "11 dishes") },
+      { n: P("Salatlar", "Салаты", "Salads"), d: P("9 taom", "9 блюд", "9 dishes") },
+      { n: P("Lavash va burger", "Лаваш и бургеры", "Lavash and burgers"), d: P("12 taom", "12 блюд", "12 dishes") },
+      { n: P("Pizza", "Пицца", "Pizza"), d: P("8 taom", "8 блюд", "8 dishes") },
+      { n: P("Ichimliklar", "Напитки", "Drinks"), d: P("14 pozitsiya", "14 позиций", "14 items") },
+    ];
+
+    const svcWhere = [
+      P("Zaldagi buyurtmalarga", "К заказам в зале", "Dine-in orders"),
+      P("Olib ketishga", "К заказам на вынос", "Takeaway"),
+      P("Yetkazishga", "К доставке", "Delivery"),
+    ].map((n, i) => {
+      const on = !!S.svc[i];
+      return { n, on, bg: on ? "var(--brand-500)" : "transparent", bd: on ? "var(--brand-500)" : "var(--n-300)" };
+    });
+
+    const roundOpts = ["1", "100", "1 000", "5 000"].map((l, i) => {
+      const on = S.round === i;
+      return { l, bg: on ? "var(--n-900)" : "var(--n-0)", fg: on ? "#fff" : "var(--fg)", bd: on ? "var(--n-900)" : "var(--border-strong)", pick: () => this.setState({ round: i }) };
+    });
+
+    const PAYS = [
+      [P("Naqd", "Наличные", "Cash"), ""],
+      ["Uzcard · Humo", "1.2%"],
+      ["Visa · Mastercard", "2.4%"],
+      ["Click", "1.5%"],
+      ["Payme", "1.5%"],
+      [P("Kompaniya hisobi", "Счёт компании", "Company account"), ""],
+    ];
+    const payOpts = PAYS.map((p, i) => {
+      const on = !!S.pays[i];
+      return {
+        n: p[0], fee: p[1], on,
+        bg: on ? "var(--brand-50)" : "var(--n-0)",
+        bd: on ? "var(--brand-200)" : "var(--border)",
+        dot: on ? "var(--brand-500)" : "var(--n-300)",
+        dotBg: on ? "var(--brand-500)" : "transparent",
+        pick: () => this.setState(s => ({ pays: { ...s.pays, [i]: !s.pays[i] } })),
+      };
+    });
+
+    const FISCAL = [
+      [P("Tekshirilmagan", "Не проверено", "Not tested"), "var(--n-100)", "var(--fg-muted)", "var(--n-400)"],
+      [P("Ulandi", "Подключено", "Connected"), "var(--success-50)", "var(--success-700)", "var(--success-500)"],
+    ];
+    const fs = FISCAL[S.fiscal];
+
+    const CREW = [
+      { n: "Aziza Rahimova", c: "aziza@smartrestaurant.uz", r: P("Menejer", "Менеджер", "Manager"), pin: "—", a: P("Pochta va parol", "Почта и пароль", "Email"), inv: true },
+      { n: "Jasur Toshev", c: "+998 90 122 41 08", r: P("Ofitsiant", "Официант", "Waiter"), pin: "4172", a: "PIN" },
+      { n: "Malika Yo'ldosheva", c: "+998 91 330 55 02", r: P("Kassir", "Кассир", "Cashier"), pin: "8043", a: "PIN" },
+      { n: "Sardor Nazarov", c: "+998 93 447 19 76", r: P("Oshpaz", "Повар", "Kitchen"), pin: "2915", a: "PIN" },
+    ];
+    const crew = S.crew.map(i => {
+      const c = CREW[i];
+      return {
+        init: c.n.split(" ").map(w => w[0]).join(""),
+        n: c.n, contact: c.c, role: c.r, pin: c.pin, access: c.a,
+        pinFg: c.pin === "—" ? "var(--fg-disabled)" : "var(--fg)",
+        rm: () => this.setState(s => ({ crew: s.crew.filter(x => x !== i) })),
+      };
+    });
+
+    const pairCode = "482 907".replace(" ", "").split("").map(c => ({ c }));
+
+    const ic = (d) => React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round" }, React.createElement("path", { d }));
+    const DEV = [
+      { n: P("POS planshet · Zal 1", "POS-планшет · Зал 1", "POS tablet · Hall 1"), m: P("iPad 10.9\" · ulandi 21:04", "iPad 10.9\" · подключён 21:04", "iPad 10.9\" · paired 21:04"), st: 1, d: "M5 3h14v18H5zM12 18h.01" },
+      { n: P("Oshxona ekrani · Grill", "Экран кухни · Гриль", "Kitchen screen · Grill"), m: P("43\" TV · ulandi 20:58", "43\" TV · подключён 20:58", "43\" TV · paired 20:58"), st: 1, d: "M2 4h20v13H2zM8 21h8" },
+      { n: P("Kassa printeri", "Принтер кассы", "Till printer"), m: P("80 mm termal · Wi-Fi", "80 мм термальный · Wi-Fi", "80 mm thermal · Wi-Fi"), st: 1, test: true, d: "M6 9V3h12v6M6 18h12v3H6z" },
+      { n: P("Oshxona printeri · Grill", "Принтер кухни · Гриль", "Kitchen printer · Grill"), m: P("80 mm termal · sinov chekini yuboring", "80 мм термальный · отправьте тестовый чек", "80 mm thermal · send a test ticket"), st: 0, test: true, d: "M6 9V3h12v6M6 18h12v3H6z" },
+    ];
+    const DEVST = [
+      [P("Tekshirilmagan", "Не проверено", "Untested"), "var(--warning-50)", "var(--warning-600)", "var(--warning-500)"],
+      [P("Ishlaydi", "Работает", "Working"), "var(--success-50)", "var(--success-700)", "var(--success-500)"],
+    ];
+    const devices = DEV.map(d => {
+      const s = DEVST[d.st];
+      return {
+        n: d.n, meta: d.m, icon: ic(d.d), canTest: !!d.test,
+        status: s[0], bg: s[1], fg: s[2], dot: s[3],
+        test: () => this.flash(P("Sinov cheki yuborildi", "Тестовый чек отправлен", "Test ticket sent")),
+      };
+    });
+
+    const F = S.form || {};
+    const nm = (F.rName || "").trim(), st = (F.stir || "").replace(/\s/g, "");
+    const bn = (F.bName || "").trim(), ad = (F.address || "").trim();
+    const seatTotal = S.zones.reduce((a, z) => a + z.c * (parseInt(z.s, 10) || 0), 0);
+
+    const checkReq = [
+      { n: P("Restoran ma'lumotlari", "Данные ресторана", "Restaurant details"),
+        v: nm ? nm + (st ? " · " + F.stir : " · " + P("STIR kiritilmagan", "ИНН не указан", "no tax ID")) : P("nom kiritilmagan", "название не указано", "no name given"),
+        ok: !!nm && st.length >= 9 },
+      { n: P("Filial", "Филиал", "Branch"),
+        v: bn ? bn + " · " + F.openT + "–" + F.closeT + " · " + P("ish kuni ", "день с ", "day from ") + F.bizDay : P("filial nomi kiritilmagan", "название филиала не указано", "no branch name"),
+        ok: !!bn && !!ad },
+      { n: P("Stollar", "Столы", "Tables"),
+        v: tableTotal + " " + t.tables + " · " + seatTotal + " " + t.seats + " · " + S.zones.length + " " + P("zona", "зоны", "zones"),
+        ok: tableTotal > 0 && seatTotal > 0 },
+      { n: P("Menyu", "Меню", "Menu"), v: P("68 taom · andozadan", "68 блюд · из шаблона", "68 dishes · from template"), ok: true },
+      { n: P("Soliq va to'lov", "Налоги и оплата", "Tax and payment"), v: P("QQS 12% narx ichida · 4 to'lov turi", "НДС 12% в цене · 4 способа оплаты", "VAT 12% inclusive · 4 payment methods"), ok: true },
+      { n: P("Fiskal modul", "Фискальный модуль", "Fiscal module"),
+        v: S.fiscal ? ((F.fiscalNo || "").trim() || "FM 4471 2290") + " · " + P("ulandi", "подключено", "connected") : P("tekshirilmagan", "не проверено", "not tested"),
+        ok: !!S.fiscal },
+    ].map(c => ({ ...c, fill: c.ok ? "var(--success-500)" : "transparent", ring: c.ok ? "var(--success-500)" : "var(--warning-500)" }));
+
+    const checkLater = [
+      { n: P("Ombor va texnologik kartalar", "Склад и техкарты", "Inventory and recipe cards"), v: P("tannarx aniq bo'lishi uchun", "чтобы себестоимость была точной", "so food cost becomes accurate") },
+      { n: P("Yetkazib beruvchilar", "Поставщики", "Suppliers"), v: P("birinchi xariddan oldin", "до первой закупки", "before the first purchase") },
+      { n: P("Mijozlar va loyallik", "Клиенты и лояльность", "Customers and loyalty"), v: P("birinchi haftadan keyin", "после первой недели", "after the first week") },
+      { n: P("Buxgalteriya va byudjet", "Бухгалтерия и бюджет", "Bookkeeping and budget"), v: P("oy oxiriga qadar", "до конца месяца", "before month end") },
+    ];
+
+    return {
+      t, rail, cuisines, langOpts, zones, tableTotal, tableCodes, menuWays, presetCats,
+      svcWhere, roundOpts, payOpts, crew, pairCode, devices, checkReq, checkLater,
+      pct: Math.round((doneCount / 8) * 100) + "%",
+      pctLabel: doneCount + "/8 " + P("bajarildi", "выполнено", "done"),
+      timeLeft: minsLeft > 0 ? P("taxminan " + minsLeft + " daqiqa qoldi", "осталось примерно " + minsLeft + " минут", "about " + minsLeft + " minutes left") : P("hammasi bajarildi", "всё выполнено", "all done"),
+      stepNo: P("Qadam ", "Шаг ", "Step ") + step + " / 8",
+      stepH: cur.t, stepP: cur.p,
+      stepOpt: !!cur.opt, stepReq: !cur.opt,
+      at1: step === 1, at2: step === 2, at3: step === 3, at4: step === 4,
+      at5: step === 5, at6: step === 6, at7: step === 7, at8: step === 8,
+      preset: S.menuWay === 1,
+      notLast: step < 8,
+      prevFg: step > 1 ? "var(--fg)" : "var(--fg-disabled)",
+      fiscalLbl: fs[0], fiscalBg: fs[1], fiscalFg: fs[2], fiscalDot: fs[3],
+      hasToast: !!S.toast, toast: S.toast,
+      next: () => this.goStep(Math.min(8, step + 1)),
+      f: { rName: this.fv("rName"), stir: this.fv("stir"), bName: this.fv("bName"), address: this.fv("address"), phone: this.fv("phone"), openT: this.fv("openT"), closeT: this.fv("closeT"), bizDay: this.fv("bizDay"), fiscalNo: this.fv("fiscalNo") },
+      fc: { rName: this.fset("rName"), stir: this.fset("stir"), bName: this.fset("bName"), address: this.fset("address"), phone: this.fset("phone"), openT: this.fset("openT"), closeT: this.fset("closeT"), bizDay: this.fset("bizDay"), fiscalNo: this.fset("fiscalNo") },
+      prev: () => step > 1 && this.goStep(step - 1),
+      skip: () => this.goStep(Math.min(8, step + 1)),
+      addZone: () => this.setState(s => ({ zones: [...s.zones, { k: "extra", c: 4, s: 4 }] })),
+      qrPdf: () => this.flash(tableTotal + " " + P("QR kod PDF bo'lib tayyorlandi", "QR-кодов подготовлено в PDF", "QR codes prepared as PDF")),
+      testFiscal: () => {
+        const no = (F.fiscalNo || "").replace(/[^0-9]/g, "");
+        if (no.length < 8) return this.flash(P("Fiskal modul raqamini kiriting — kamida 8 raqam", "Введите номер фискального модуля — минимум 8 цифр", "Enter the fiscal module number — at least 8 digits"));
+        this.setState({ fiscal: 1 });
+        this.flash(P("Fiskal modul ulandi · soliq.uz javob berdi", "Фискальный модуль подключён · soliq.uz ответил", "Fiscal module connected · soliq.uz responded"));
+      },
+      addWaiter: () => {
+        const next = [0, 1, 2, 3].find(i => !S.crew.includes(i));
+        if (next === undefined) return this.flash(P("Namoyish uchun 4 xodim yetarli", "Для демонстрации достаточно 4 сотрудников", "Four people is enough for the demo"));
+        this.setState(s => ({ crew: [...s.crew, next].sort() }));
+      },
+      inviteMgr: () => this.flash(P("Chaqiruv yuborildi · aziza@smartrestaurant.uz", "Приглашение отправлено · aziza@smartrestaurant.uz", "Invitation sent · aziza@smartrestaurant.uz")),
+      saveExit: () => this.flash(P("Saqlandi · keyin shu qadamdan davom etasiz", "Сохранено · продолжите с этого шага", "Saved · you will resume at this step")),
+      openShift: () => this.flash(P("Birinchi smena ochildi · stollar bo'sh holatda", "Первая смена открыта · столы свободны", "First shift open · tables are available")),
+      setUz: () => this.setState({ lang: "uz" }),
+      setRu: () => this.setState({ lang: "ru" }),
+      setEn: () => this.setState({ lang: "en" }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

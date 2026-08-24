@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --n-0:#FFFFFF;--n-25:#FCFCFD;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;
+      --n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-700:#333B4C;--n-800:#1F2533;--n-900:#0F1320;
+      --brand-50:#EEF5FF;--brand-100:#DBE9FE;--brand-200:#BDD7FC;--brand-500:#2E74EA;--brand-600:#1C5AD1;
+      --success-50:#ECFDF3;--success-500:#12B76A;--success-600:#039855;--success-700:#027A48;
+      --warning-50:#FFFAEB;--warning-500:#F79009;--warning-600:#DC6803;
+      --danger-50:#FEF3F2;--danger-500:#F04438;--danger-600:#D92D20;
+      --accent-50:#ECFBF6;--accent-500:#0FB48A;--accent-600:#0A8F6C;
+      --rating-star:#FFB020;
+      --fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--border:#E7EAF0;--divider:#F1F3F7;
+      --font-sans:'Inter',system-ui,sans-serif;--font-display:'Inter Tight','Inter',sans-serif;--font-mono:'JetBrains Mono',ui-monospace,monospace;
+      --shadow-lg:0 12px 16px -4px rgba(16,24,40,.06),0 4px 6px -2px rgba(16,24,40,.03);
+      --shadow-xl:0 24px 40px -8px rgba(16,24,40,.12),0 8px 12px -6px rgba(16,24,40,.05);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font-sans);color:var(--fg);background:#EEF0F4;-webkit-font-smoothing:antialiased}
+    a{color:var(--brand-600);text-decoration:none}
+    a:hover{color:var(--brand-500)}
+    button{font-family:inherit}
+    [data-tap]{transition:transform .1s cubic-bezier(.4,0,.2,1),background .12s cubic-bezier(.4,0,.2,1)}
+    [data-tap]:active{transform:scale(.97)}
+    [data-scr]{scrollbar-width:none}
+    [data-scr]::-webkit-scrollbar{width:0;height:0}
+    [data-phone]{transition:box-shadow .25s cubic-bezier(.4,0,.2,1)}
+    [data-panel][data-ring="1"] [data-phone]{box-shadow:0 0 0 3px var(--brand-500),var(--shadow-xl)}
+    input,textarea{font-family:inherit}
+    input:focus-visible,textarea:focus-visible{outline:2px solid var(--brand-500);outline-offset:1px}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;padding:44px 40px 72px">
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:32px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:#fff;box-shadow:var(--shadow-xl);font-size:14px;font-weight:500">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+      {{toast}}
+    </div>
+  </sc-if>
+
+  <div style="max-width:1560px;margin:0 auto">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--fg-subtle)">{{t.eyebrow}}</div>
+        <h1 style="margin:6px 0 0;font-family:var(--font-display);font-size:36px;font-weight:700;letter-spacing:-.022em">{{t.h1}}</h1>
+        <p style="margin:10px 0 0;font-size:16px;line-height:1.6;color:var(--fg-muted);max-width:660px;text-wrap:pretty">{{t.lede}}</p>
+      </div>
+      <div style="display:flex;gap:3px;padding:3px;background:var(--n-0);border:1px solid var(--border);border-radius:11px">
+        <button data-lg="uz" onClick="{{setUz}}" style="height:32px;padding:0 14px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">O'zbekcha</button>
+        <button data-lg="ru" onClick="{{setRu}}" style="height:32px;padding:0 14px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">Русский</button>
+        <button data-lg="en" onClick="{{setEn}}" style="height:32px;padding:0 14px;border:0;border-radius:8px;font-size:13px;font-weight:600;background:transparent;color:var(--fg-muted)">English</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:36px;align-items:flex-start">
+
+      <div data-panel="1" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">01</span>
+          <span style="font-size:15px;font-weight:600">{{t.s1}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;color:var(--fg)">
+            <span style="font-family:var(--font-mono)">21:14</span>
+            <span style="display:flex;gap:5px;align-items:center"><span style="width:15px;height:9px;border:1.2px solid var(--fg);border-radius:2px;position:relative"><span style="position:absolute;inset:1.2px;right:4px;background:var(--fg);border-radius:1px"></span></span></span>
+          </div>
+
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto">
+            <div style="height:196px;background:linear-gradient(180deg,var(--n-800),var(--n-900));display:flex;flex-direction:column;justify-content:flex-end;padding:22px;color:#fff;position:relative">
+              <div style="position:absolute;top:18px;right:18px;display:flex;gap:6px">
+                <sc-for list="{{heroLangs}}" as="g" hint-placeholder-count="3">
+                  <button data-tap="1" onClick="{{g.pick}}" style="padding:5px 9px;border:0;border-radius:999px;background:{{g.bg}};font-size:11px;font-weight:{{g.fw}};color:{{g.fg}};backdrop-filter:blur(6px)">{{g.l}}</button>
+                </sc-for>
+              </div>
+              <div style="font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.03em">SMART RESTAURANT</div>
+              <div style="font-size:14px;color:rgba(255,255,255,.72);margin-top:3px">{{t.branch}}</div>
+            </div>
+
+            <div style="padding:22px">
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:14px;background:var(--brand-50)">
+                <div style="width:44px;height:44px;flex:none;border-radius:12px;background:var(--brand-500);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-size:19px;font-weight:800">12</div>
+                <div>
+                  <div style="font-size:15px;font-weight:600">{{t.yourTable}}</div>
+                  <div style="font-size:13px;color:var(--fg-muted);margin-top:1px">{{t.tableMeta}}</div>
+                </div>
+              </div>
+
+              <div style="display:grid;gap:10px;margin-top:20px">
+                <button aria-label="Menyuga qaytish" title="Menyuga qaytish" data-tap="1" onClick="{{goMenu}}" style="display:flex;align-items:center;gap:13px;width:100%;padding:16px;border:0;border-radius:14px;background:var(--n-900);color:#fff;text-align:left" style-hover="background:var(--n-800)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><path d="M3 9h18M9 21V9"></path></svg>
+                  <span style="flex:1">
+                    <span style="display:block;font-size:16px;font-weight:600">{{t.openMenu}}</span>
+                    <span style="display:block;font-size:13px;color:rgba(255,255,255,.6);margin-top:1px">{{menuSub}}</span>
+                  </span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+
+                <button data-tap="1" onClick="{{callWaiter}}" style="display:flex;align-items:center;gap:13px;width:100%;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--n-0);color:var(--fg);text-align:left" style-hover="background:var(--n-50)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                  <span style="flex:1">
+                    <span style="display:block;font-size:16px;font-weight:600">{{t.callWaiter}}</span>
+                    <span style="display:block;font-size:13px;color:var(--fg-subtle);margin-top:1px">{{t.callWaiterSub}}</span>
+                  </span>
+                </button>
+
+                <button data-tap="1" onClick="{{goBill}}" style="display:flex;align-items:center;gap:13px;width:100%;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--n-0);color:var(--fg);text-align:left" style-hover="background:var(--n-50)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9V5h20v4"></path><path d="M2 13h20v6H2z"></path><path d="M6 9v4M18 9v4"></path></svg>
+                  <span style="flex:1">
+                    <span style="display:block;font-size:16px;font-weight:600">{{t.payBill}}</span>
+                    <span style="display:block;font-size:13px;color:var(--fg-subtle);margin-top:1px">{{t.payBillSub}}</span>
+                  </span>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </div>
+
+              <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--divider)">
+                <div style="font-size:13px;color:var(--fg-subtle);line-height:1.6">{{t.noApp}}</div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;margin-top:16px;font-size:12px;color:var(--fg-subtle)">
+                <span style="width:6px;height:6px;border-radius:999px;background:var(--success-500)"></span>
+                {{t.wifi}}
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n1}}</p>
+      </div>
+
+      <div data-panel="2" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">02</span>
+          <span style="font-size:15px;font-weight:600">{{t.s2}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:none;padding:14px 20px 0">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.022em">{{t.menu}}</div>
+                <div style="font-size:12px;color:var(--fg-subtle);margin-top:1px">{{menuCount}}</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:12px;font-weight:600;color:var(--fg-muted)">{{langShort}}</span>
+                <button aria-label="Qidirish" title="Qidirish" data-tap="1" onClick="{{toggleSearch}}" style="width:34px;height:34px;border-radius:11px;border:1px solid {{srchBd}};background:{{srchBg}};display:grid;place-items:center;padding:0">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="{{srchFg}}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                </button>
+              </div>
+            </div>
+            <sc-if value="{{searchOpen}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;align-items:center;gap:9px;margin-top:12px;padding:0 13px;height:42px;border:1px solid var(--border);border-radius:12px;background:var(--n-50)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="1.9" stroke-linecap="round" style="flex:none"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                <input value="{{q}}" onChange="{{setQ}}" placeholder="{{t.searchPh}}" style="flex:1;min-width:0;border:0;background:transparent;font-size:14px;color:var(--fg);outline:none">
+                <sc-if value="{{hasQ}}" hint-placeholder-val="{{false}}">
+                  <button data-tap="1" onClick="{{clearQ}}" style="width:22px;height:22px;flex:none;border:0;border-radius:999px;background:var(--n-200);color:var(--fg-muted);font-size:13px;line-height:1;display:grid;place-items:center;padding:0">×</button>
+                </sc-if>
+              </div>
+            </sc-if>
+            <div data-scr="1" style="display:flex;gap:7px;overflow-x:auto;margin-top:14px;padding-bottom:12px;scrollbar-width:none">
+              <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+                <button data-tap="1" onClick="{{c.pick}}" style="flex:none;height:34px;padding:0 14px;border:1px solid {{c.bd}};border-radius:999px;background:{{c.bg}};color:{{c.fg}};font-size:13px;font-weight:600;white-space:nowrap">{{c.n}}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto;padding:4px 20px 20px">
+            <sc-for list="{{dishes}}" as="d" hint-placeholder-count="6">
+              <div style="display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--divider)">
+                <button data-tap="1" onClick="{{d.open}}" style="flex:1;min-width:0;border:0;background:transparent;padding:0;text-align:left;color:var(--fg);font-family:inherit">
+                  <div style="display:flex;align-items:baseline;gap:7px">
+                    <span style="font-size:16px;font-weight:600">{{d.n}}</span>
+                    <sc-if value="{{d.veg}}" hint-placeholder-val="{{false}}">
+                      <span style="padding:2px 7px;border-radius:999px;background:var(--accent-50);color:var(--accent-600);font-size:10px;font-weight:700;letter-spacing:.03em">{{t.veg}}</span>
+                    </sc-if>
+                    <sc-if value="{{d.hot}}" hint-placeholder-val="{{false}}">
+                      <span style="padding:2px 7px;border-radius:999px;background:var(--danger-50);color:var(--danger-600);font-size:10px;font-weight:700;letter-spacing:.03em">{{t.hot}}</span>
+                    </sc-if>
+                  </div>
+                  <div style="font-size:13px;line-height:1.5;color:var(--fg-muted);margin-top:3px">{{d.d}}</div>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:7px">
+                    <span style="font-family:var(--font-mono);font-size:14px;font-weight:600">{{d.p}}</span>
+                    <span style="font-size:12px;color:var(--fg-subtle)">{{d.g}}</span>
+                  </div>
+                  <sc-if value="{{d.allerg}}" hint-placeholder-val="{{true}}">
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--warning-600)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h0"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                      {{d.allerg}}
+                    </div>
+                  </sc-if>
+                </button>
+                <div style="flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+                  <div style="width:78px;height:78px;border-radius:12px;background:var(--n-100);border:1px solid var(--border);display:grid;place-items:center;color:var(--n-400)">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="1.6"></circle><path d="m21 15-5-5L5 21"></path></svg>
+                  </div>
+                  <button data-tap="1" onClick="{{d.add}}" style="width:78px;height:34px;border:1px solid {{d.btnBd}};border-radius:10px;background:{{d.btnBg}};color:{{d.btnFg}};font-size:13px;font-weight:600">{{d.btn}}</button>
+                </div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{menuEmpty}}" hint-placeholder-val="{{false}}">
+              <div style="padding:36px 12px;text-align:center">
+                <div style="font-size:16px;font-weight:600">{{t.noDish}}</div>
+                <div style="font-size:13px;line-height:1.55;color:var(--fg-subtle);margin-top:5px">{{t.noDishSub}}</div>
+                <button data-tap="1" onClick="{{clearQ}}" style="height:40px;margin-top:16px;padding:0 18px;border:0;border-radius:11px;background:var(--brand-500);color:#fff;font-size:14px;font-weight:600">{{t.showAll}}</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{hasOff}}" hint-placeholder-val="{{true}}">
+              <button data-tap="1" onClick="{{tapOff}}" style="display:flex;gap:13px;width:100%;padding:14px 0;border:0;border-bottom:1px solid var(--divider);opacity:.5;background:transparent;text-align:left;color:var(--fg);font-family:inherit">
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:baseline;gap:7px">
+                    <span style="font-size:16px;font-weight:600;text-decoration:line-through">{{t.offDish}}</span>
+                    <span style="padding:2px 7px;border-radius:999px;background:var(--n-100);color:var(--fg-subtle);font-size:10px;font-weight:700">{{t.offLbl}}</span>
+                  </div>
+                  <div style="font-size:13px;line-height:1.5;color:var(--fg-muted);margin-top:3px">{{t.offNote}}</div>
+                </div>
+                <div style="width:78px;height:78px;flex:none;border-radius:12px;background:var(--n-100);border:1px dashed var(--border)"></div>
+              </button>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{hasCart}}" hint-placeholder-val="{{true}}">
+            <div style="flex:none;padding:14px 20px 20px;border-top:1px solid var(--border);background:var(--n-0)">
+              <button data-tap="1" onClick="{{goStatus}}" style="display:flex;align-items:center;gap:12px;width:100%;height:52px;padding:0 18px;border:0;border-radius:14px;background:var(--brand-500);color:#fff" style-hover="background:var(--brand-600)">
+                <span style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:13px;font-weight:700">{{cartQty}}</span>
+                <span style="flex:1;text-align:left;font-size:16px;font-weight:600">{{t.viewOrder}}</span>
+                <span style="font-family:var(--font-mono);font-size:16px;font-weight:600">{{cartTotal}}</span>
+              </button>
+            </div>
+          </sc-if>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n2}}</p>
+      </div>
+
+      <div data-panel="3" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">03</span>
+          <span style="font-size:15px;font-weight:600">{{t.s3}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:none;height:200px;background:var(--n-100);border-bottom:1px solid var(--border);display:grid;place-items:center;color:var(--n-400);position:relative">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="1.6"></circle><path d="m21 15-5-5L5 21"></path></svg>
+            <button aria-label="Menyuga qaytish" title="Menyuga qaytish" data-tap="1" onClick="{{goMenu}}" style="position:absolute;top:16px;left:16px;width:36px;height:36px;border:0;border-radius:12px;background:rgba(255,255,255,.9);display:grid;place-items:center;backdrop-filter:blur(8px)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--fg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+          </div>
+
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto;padding:20px">
+            <div style="font-family:var(--font-display);font-size:24px;font-weight:700;letter-spacing:-.022em">{{det.n}}</div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:7px">
+              <span style="font-family:var(--font-mono);font-size:17px;font-weight:600">{{det.p}} {{t.som}}</span>
+              <span style="width:1px;height:12px;background:var(--border)"></span>
+              <span style="font-size:13px;color:var(--fg-subtle)">{{det.g}}</span>
+            </div>
+            <p style="margin:12px 0 0;font-size:14px;line-height:1.6;color:var(--fg-muted);text-wrap:pretty">{{det.desc}}</p>
+
+            <div style="margin-top:18px;padding:13px 15px;border:1px solid var(--border);border-radius:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.ingredients}}</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--fg-muted);margin-top:6px">{{det.ing}}</div>
+            </div>
+
+            <div style="margin-top:10px;padding:13px 15px;border:1px solid var(--border);border-left:3px solid var(--warning-500);border-radius:12px;background:var(--warning-50)">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--warning-600)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 8v5M12 17h0"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                {{t.allergens}}
+              </div>
+              <div style="font-size:13px;line-height:1.6;color:var(--warning-600);margin-top:4px">{{det.allerg}}</div>
+            </div>
+
+            <div style="margin-top:20px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <span style="font-size:15px;font-weight:600">{{t.modGroup1}}</span>
+                <span style="font-size:12px;color:var(--fg-subtle)">{{t.optional}}</span>
+              </div>
+              <div style="display:grid;gap:8px;margin-top:10px">
+                <sc-for list="{{mods}}" as="m" hint-placeholder-count="3">
+                  <button data-tap="1" onClick="{{m.pick}}" style="display:flex;align-items:center;gap:11px;width:100%;padding:12px 14px;border:1px solid {{m.bd}};border-radius:12px;background:{{m.bg}};text-align:left">
+                    <span style="width:20px;height:20px;flex:none;border-radius:6px;border:1.6px solid {{m.dot}};background:{{m.dotBg}};display:grid;place-items:center">
+                      <sc-if value="{{m.on}}" hint-placeholder-val="{{false}}">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="flex:1;font-size:14px;font-weight:500">{{m.n}}</span>
+                    <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-muted)">{{m.p}}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="margin-top:20px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <span style="font-size:15px;font-weight:600">{{t.note}}</span>
+                <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{noteLeft}}</span>
+              </div>
+              <textarea value="{{note}}" onChange="{{setNote}}" placeholder="{{t.notePh}}" rows="2" style="width:100%;margin-top:9px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--fg);background:var(--n-0);resize:none;line-height:1.5"></textarea>
+            </div>
+          </div>
+
+          <div style="flex:none;padding:14px 20px 20px;border-top:1px solid var(--border);display:flex;gap:11px;align-items:center">
+            <div style="display:flex;align-items:center;gap:2px;flex:none;border:1px solid var(--border);border-radius:12px;padding:3px">
+              <button data-tap="1" onClick="{{qtyDec}}" style="width:36px;height:36px;border:0;border-radius:9px;background:transparent;font-size:19px;font-weight:600;color:{{decFg}}">−</button>
+              <span data-num="1" style="width:26px;text-align:center;font-family:var(--font-mono);font-size:15px;font-weight:600">{{qty}}</span>
+              <button data-tap="1" onClick="{{qtyInc}}" style="width:36px;height:36px;border:0;border-radius:9px;background:var(--n-100);font-size:19px;font-weight:600;color:var(--fg)">+</button>
+            </div>
+            <button data-tap="1" onClick="{{addDetail}}" style="flex:1;height:48px;border:0;border-radius:13px;background:var(--n-900);color:#fff;font-size:15px;font-weight:600" style-hover="background:var(--n-800)">{{t.addFor}} {{detTotal}}</button>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n3}}</p>
+      </div>
+
+      <div data-panel="4" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">04</span>
+          <span style="font-size:15px;font-weight:600">{{t.s4}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:none;padding:18px 20px 14px;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.022em">{{t.orderStatus}}</div>
+            <div style="font-size:13px;color:var(--fg-subtle);margin-top:2px">{{t.orderNo}} · {{orderCount}}</div>
+          </div>
+
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto;padding:20px">
+            <div style="padding:18px;border:1px solid var(--border);border-radius:16px;background:var(--warning-50)">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="width:9px;height:9px;border-radius:999px;background:var(--warning-500)"></span>
+                <span style="font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--warning-600)">{{t.cooking}}</span>
+              </div>
+              <div style="font-family:var(--font-display);font-size:30px;font-weight:700;letter-spacing:-.022em;margin-top:8px">{{t.about}} 12 {{t.min}}</div>
+              <div style="font-size:13px;color:var(--fg-muted);margin-top:3px">{{t.readyBy}} 21:36</div>
+            </div>
+
+            <div style="margin-top:20px;display:grid;gap:0">
+              <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+                <div style="display:flex;gap:14px">
+                  <div style="flex:none;display:flex;flex-direction:column;align-items:center;width:22px">
+                    <span style="width:22px;height:22px;border-radius:999px;border:2px solid {{s.ring}};background:{{s.fill}};display:grid;place-items:center">
+                      <sc-if value="{{s.done}}" hint-placeholder-val="{{true}}">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="width:2px;flex:1;background:{{s.line}};min-height:{{s.gap}}"></span>
+                  </div>
+                  <div style="padding-bottom:18px">
+                    <div style="font-size:15px;font-weight:{{s.fw}};color:{{s.fg}}">{{s.n}}</div>
+                    <div style="font-size:13px;color:var(--fg-subtle);margin-top:1px">{{s.time}}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:6px;padding-top:18px;border-top:1px solid var(--divider)">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.yourOrder}}</div>
+              <div style="display:grid;gap:11px;margin-top:12px">
+                <sc-for list="{{orderLines}}" as="l" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:baseline;gap:10px">
+                    <span data-num="1" style="font-family:var(--font-mono);font-size:13px;color:var(--fg-subtle);width:20px">{{l.q}}×</span>
+                    <span style="flex:1;font-size:14px;font-weight:500">{{l.n}}<span style="display:block;font-size:12px;color:var(--fg-subtle);font-weight:400;margin-top:1px">{{l.m}}</span></span>
+                    <span data-num="1" style="font-family:var(--font-mono);font-size:14px">{{l.p}}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{orderEmpty}}" hint-placeholder-val="{{false}}">
+                  <div style="padding:14px 0;font-size:14px;line-height:1.55;color:var(--fg-subtle)">{{t.orderEmpty}}</div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:none;padding:14px 20px 20px;border-top:1px solid var(--border);display:grid;gap:9px">
+            <button data-tap="1" onClick="{{callWaiter}}" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--n-0);font-size:15px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.callWaiter}}</button>
+            <button aria-label="Menyuga qaytish" title="Menyuga qaytish" data-tap="1" onClick="{{goMenu}}" style="width:100%;height:46px;border:1px solid var(--border);border-radius:13px;background:var(--n-0);font-size:15px;font-weight:600;color:var(--fg)" style-hover="background:var(--n-50)">{{t.addMore}}</button>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n4}}</p>
+      </div>
+
+      <div data-panel="5" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">05</span>
+          <span style="font-size:15px;font-weight:600">{{t.s5}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div style="flex:none;padding:18px 20px 14px;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.022em">{{t.bill}}</div>
+            <div style="font-size:13px;color:var(--fg-subtle);margin-top:2px">{{t.table12}} · {{guestCount}}</div>
+          </div>
+
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto;padding:20px">
+            <div style="display:grid;gap:11px">
+              <sc-for list="{{billLines}}" as="l" hint-placeholder-count="5">
+                <div style="display:flex;align-items:baseline;gap:10px">
+                  <span data-num="1" style="font-family:var(--font-mono);font-size:13px;color:var(--fg-subtle);width:20px">{{l.q}}×</span>
+                  <span style="flex:1;font-size:14px;font-weight:500">{{l.n}}<span style="display:block;font-size:12px;color:var(--fg-subtle);font-weight:400;margin-top:1px">{{l.m}}</span></span>
+                  <span data-num="1" style="font-family:var(--font-mono);font-size:14px">{{l.p}}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--divider);display:grid;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--fg-muted)"><span>{{t.items}}</span><span data-num="1" style="font-family:var(--font-mono)">{{sumItems}}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--fg-muted)"><span>{{t.service}}</span><span data-num="1" style="font-family:var(--font-mono)">{{sumService}}</span></div>
+              <sc-if value="{{hasDiscount}}" hint-placeholder-val="{{true}}">
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--success-600)"><span>{{t.discount}}</span><span data-num="1" style="font-family:var(--font-mono)">{{sumDiscount}}</span></div>
+              </sc-if>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:6px;padding-top:12px;border-top:1px solid var(--n-900)">
+                <span style="font-size:15px;font-weight:600">{{t.total}}</span>
+                <span data-num="1" style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-.022em">{{sumTotal}}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--fg-subtle)"><span>{{t.vatIncl}}</span><span data-num="1" style="font-family:var(--font-mono)">{{sumVat}}</span></div>
+            </div>
+
+            <sc-if value="{{splitOpen}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top:20px;padding:15px 16px;border:1px solid var(--brand-200);border-radius:14px;background:var(--brand-50)">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <span style="font-size:15px;font-weight:600">{{t.splitH}}</span>
+                  <button data-tap="1" onClick="{{closeSplit}}" style="border:0;background:transparent;font-size:13px;font-weight:600;color:var(--brand-600);padding:0">{{t.close}}</button>
+                </div>
+                <div style="font-size:13px;line-height:1.55;color:var(--fg-muted);margin-top:5px">{{t.splitSub}}</div>
+                <div style="display:flex;align-items:center;gap:11px;margin-top:13px">
+                  <button data-tap="1" onClick="{{splitDec}}" style="width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--n-0);font-size:18px;font-weight:600;color:{{splitDecFg}};display:grid;place-items:center;padding:0">−</button>
+                  <div style="flex:1;text-align:center">
+                    <div data-num="1" style="font-family:var(--font-display);font-size:22px;font-weight:700">{{splitWays}}</div>
+                    <div style="font-size:11px;color:var(--fg-subtle);margin-top:1px">{{t.splitWays}}</div>
+                  </div>
+                  <button data-tap="1" onClick="{{splitInc}}" style="width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--n-0);font-size:18px;font-weight:600;color:var(--fg);display:grid;place-items:center;padding:0">+</button>
+                </div>
+                <div style="display:grid;gap:6px;margin-top:13px;padding-top:12px;border-top:1px solid var(--brand-200)">
+                  <sc-for list="{{splitRows}}" as="s" hint-placeholder-count="2">
+                    <div style="display:flex;justify-content:space-between;font-size:14px">
+                      <span style="color:var(--fg-muted)">{{s.l}}</span>
+                      <span data-num="1" style="font-family:var(--font-mono);font-weight:600">{{s.v}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="font-size:12px;line-height:1.5;color:var(--fg-subtle);margin-top:10px">{{t.splitNote}}</div>
+              </div>
+            </sc-if>
+
+            <div style="margin-top:22px">
+              <div style="font-size:15px;font-weight:600">{{t.howPay}}</div>
+              <div style="display:grid;gap:8px;margin-top:11px">
+                <sc-for list="{{payWays}}" as="p" hint-placeholder-count="3">
+                  <button data-tap="1" onClick="{{p.pick}}" style="display:flex;align-items:center;gap:11px;width:100%;padding:14px;border:1px solid {{p.bd}};border-radius:13px;background:{{p.bg}};text-align:left">
+                    <span style="width:20px;height:20px;flex:none;border-radius:999px;border:1.8px solid {{p.dot}};display:grid;place-items:center">
+                      <sc-if value="{{p.on}}" hint-placeholder-val="{{false}}">
+                        <span style="width:9px;height:9px;border-radius:999px;background:var(--brand-500)"></span>
+                      </sc-if>
+                    </span>
+                    <span style="flex:1">
+                      <span style="display:block;font-size:15px;font-weight:600">{{p.n}}</span>
+                      <span style="display:block;font-size:12px;color:var(--fg-subtle);margin-top:1px">{{p.d}}</span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="margin-top:20px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <span style="font-size:15px;font-weight:600">{{t.tip}}</span>
+                <span style="font-size:12px;color:var(--fg-subtle)">{{t.tipNote}}</span>
+              </div>
+              <div style="display:flex;gap:7px;margin-top:10px">
+                <sc-for list="{{tips}}" as="p" hint-placeholder-count="4">
+                  <button data-tap="1" onClick="{{p.pick}}" style="flex:1;height:44px;border:1px solid {{p.bd}};border-radius:11px;background:{{p.bg}};color:{{p.fg}};font-size:14px;font-weight:600">{{p.l}}</button>
+                </sc-for>
+              </div>
+              <div style="font-family:var(--font-mono);font-size:13px;color:var(--fg-muted);margin-top:8px">{{tipAmount}}</div>
+            </div>
+          </div>
+
+          <div style="flex:none;padding:14px 20px 20px;border-top:1px solid var(--border);display:grid;gap:9px">
+            <button data-tap="1" onClick="{{doPay}}" style="width:100%;height:52px;border:0;border-radius:14px;background:var(--brand-500);color:#fff;font-size:16px;font-weight:600" style-hover="background:var(--brand-600)">{{t.payNow}} {{payTotal}}</button>
+            <button data-tap="1" onClick="{{toggleSplit}}" style="width:100%;height:44px;border:0;border-radius:13px;background:{{splitBtnBg}};font-size:14px;font-weight:600;color:{{splitBtnFg}}" style-hover="background:var(--n-50)">{{splitBtnLabel}}</button>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n5}}</p>
+      </div>
+
+      <div data-panel="6" style="width:390px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:12px">
+          <span style="font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--fg-subtle)">06</span>
+          <span style="font-size:15px;font-weight:600">{{t.s6}}</span>
+        </div>
+        <div data-phone="1" style="width:390px;height:800px;background:var(--n-0);border:1px solid var(--border);border-radius:34px;box-shadow:var(--shadow-xl);overflow:hidden;display:flex;flex-direction:column">
+          <div data-scr="1" style="flex:1;min-height:0;overflow-y:auto;padding:28px 22px">
+            <div style="width:52px;height:52px;border-radius:16px;background:var(--success-50);display:grid;place-items:center">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+            </div>
+            <div style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-.022em;margin-top:16px;text-wrap:balance">{{t.paidH}}</div>
+            <p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:var(--fg-muted)">{{paidLine}}</p>
+
+            <button data-tap="1" onClick="{{getReceipt}}" style="width:100%;margin-top:20px;padding:14px 16px;border:1px solid var(--border);border-radius:13px;display:flex;align-items:center;gap:11px;background:var(--n-0);text-align:left;color:var(--fg);font-family:inherit" style-hover="background:var(--n-50)">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--brand-600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+              <span style="flex:1;font-size:14px;font-weight:500">{{t.getReceipt}}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
+
+            <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--divider)">
+              <div style="font-size:17px;font-weight:600;text-wrap:balance">{{t.rateH}}</div>
+              <div style="font-size:13px;color:var(--fg-subtle);margin-top:4px">{{t.rateSub}}</div>
+
+              <div style="display:flex;gap:10px;margin-top:16px">
+                <sc-for list="{{stars}}" as="s" hint-placeholder-count="5">
+                  <button aria-label="Tanlash" title="Tanlash" data-tap="1" onClick="{{s.pick}}" style="width:52px;height:52px;border:0;border-radius:14px;background:{{s.bg}};display:grid;place-items:center">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="1.6" stroke-linejoin="round"><path d="m12 2.6 2.9 6 6.5.9-4.7 4.6 1.1 6.5-5.8-3.1-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z"></path></svg>
+                  </button>
+                </sc-for>
+              </div>
+              <div style="font-size:14px;font-weight:600;color:var(--fg);margin-top:12px;min-height:20px">{{starLabel}}</div>
+
+              <sc-if value="{{rated}}" hint-placeholder-val="{{false}}">
+                <div style="margin-top:20px">
+                  <div style="font-size:14px;font-weight:600">{{t.whatGood}}</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px">
+                    <sc-for list="{{tags}}" as="g" hint-placeholder-count="6">
+                      <button data-tap="1" onClick="{{g.pick}}" style="height:36px;padding:0 14px;border:1px solid {{g.bd}};border-radius:999px;background:{{g.bg}};color:{{g.fg}};font-size:13px;font-weight:600">{{g.n}}</button>
+                    </sc-for>
+                  </div>
+
+                  <textarea value="{{comment}}" onChange="{{setComment}}" placeholder="{{t.commentPh}}" rows="3" style="width:100%;margin-top:18px;padding:14px;border:1px solid var(--border);border-radius:13px;font-size:14px;color:var(--fg);background:var(--n-0);resize:none;line-height:1.55"></textarea>
+
+                  <button data-tap="1" onClick="{{toggleLoyalty}}" style="display:flex;align-items:flex-start;gap:10px;width:100%;margin-top:16px;padding:13px 15px;border:1px solid {{loyBd}};border-radius:13px;background:{{loyBg}};text-align:left;color:var(--fg);font-family:inherit">
+                    <span style="width:18px;height:18px;flex:none;border-radius:5px;border:1.6px solid {{loyRing}};background:{{loyFill}};display:grid;place-items:center;margin-top:1px">
+                      <sc-if value="{{loyalty}}" hint-placeholder-val="{{true}}">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      </sc-if>
+                    </span>
+                    <span style="font-size:13px;line-height:1.55;color:var(--fg-muted)">{{t.loyaltyOptIn}}</span>
+                  </button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="flex:none;padding:14px 20px 20px;border-top:1px solid var(--border);display:grid;gap:9px">
+            <button data-tap="1" onClick="{{sendRating}}" style="width:100%;height:52px;border:0;border-radius:14px;background:{{sendBg}};color:{{sendFg}};font-size:16px;font-weight:600">{{t.sendRating}}</button>
+            <button data-tap="1" onClick="{{skipRating}}" style="width:100%;height:42px;border:0;border-radius:13px;background:transparent;font-size:14px;font-weight:500;color:var(--fg-subtle)" style-hover="background:var(--n-50)">{{t.skip}}</button>
+          </div>
+        </div>
+        <p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--fg-muted)">{{t.n6}}</p>
+      </div>
+
+    </div>
+
+    <div style="margin-top:44px;padding:24px 28px;background:var(--n-0);border:1px solid var(--border);border-radius:18px">
+      <div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.02em">{{t.rulesH}}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:18px">
+        <sc-for list="{{rules}}" as="r" hint-placeholder-count="6">
+          <div>
+            <div style="font-size:15px;font-weight:600">{{r.t}}</div>
+            <p style="margin:5px 0 0;font-size:14px;line-height:1.6;color:var(--fg-muted);text-wrap:pretty">{{r.d}}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    lang: "uz", cat: 1, q: "", searchOpen: false,
+    order: [
+      { id: "d1", qty: 2, mods: [0], note: "" },
+      { id: "d2", qty: 1, mods: [], note: "" },
+      { id: "d4", qty: 1, mods: [], note: "" },
+      { id: "d6", qty: 4, mods: [], note: "" },
+    ],
+    detId: "d1", detQty: 2, detMods: { 0: true }, detNote: "",
+    pay: 1, tip: 1, stars: 0, tags: {}, comment: "", loyalty: true,
+    splitOpen: false, splitWays: 4, ring: 0, toast: "",
+  };
+
+  flash(m) {
+    clearTimeout(this._t);
+    this.setState({ toast: m });
+    this._t = setTimeout(() => this.setState({ toast: "" }), 2600);
+  }
+
+  jump(n) {
+    const el = document.querySelector('[data-panel="' + n + '"]');
+    if (el) {
+      const r = el.getBoundingClientRect();
+      const dx = r.left - 40, dy = r.top - 80;
+      window.scrollTo({
+        left: Math.max(0, window.scrollX + dx),
+        top: Math.max(0, window.scrollY + dy),
+        behavior: "smooth",
+      });
+    }
+    clearTimeout(this._r);
+    this.setState({ ring: n });
+    this._r = setTimeout(() => this.setState({ ring: 0 }), 1400);
+  }
+
+  componentDidUpdate() { this.paint(); }
+  componentDidMount() { this.paint(); }
+
+  paint() {
+    document.querySelectorAll("[data-lg]").forEach(b => {
+      const on = b.getAttribute("data-lg") === this.state.lang;
+      b.style.background = on ? "var(--n-100)" : "transparent";
+      b.style.color = on ? "var(--fg)" : "var(--fg-muted)";
+    });
+    document.querySelectorAll("[data-panel]").forEach(p => {
+      p.setAttribute("data-ring", String(this.state.ring) === p.getAttribute("data-panel") ? "1" : "0");
+    });
+  }
+
+  f(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009"); }
+
+  MENU_IDS = ["d1", "d2", "d3", "d4", "d5", "d6"];
+
+  totals() {
+    const S = this.state;
+    const M = this.menuData();
+    let items = 0;
+    S.order.forEach(l => {
+      const d = M.find(x => x.id === l.id);
+      if (!d) return;
+      const mods = (l.mods || []).reduce((a, i) => a + (this.MODP[i] || 0), 0);
+      items += (d.p + mods) * l.qty;
+    });
+    const service = Math.round(items * 0.1);
+    const discount = S.loyalty ? Math.round(items * 0.05) : 0;
+    const total = items + service - discount;
+    return { items, service, discount, total, vat: Math.round(total - total / 1.12) };
+  }
+
+  MODP = [18000, 22000, 6000, 0];
+
+  menuData() {
+    const L = ["uz", "ru", "en"].indexOf(this.state.lang);
+    const P = (a, b, c) => [a, b, c][L];
+    return [
+      { id: "d1", c: 1, n: P("Osh, to'y oshi", "Плов, свадебный", "Plov, wedding style"), d: P("Devzira guruchi, mol go'shti, dumba, bedana tuxumi", "Рис девзира, говядина, курдюк, перепелиное яйцо", "Devzira rice, beef, tail fat, quail egg"), p: 48000, g: P("380 g", "380 г", "380 g"), a: P("Tuxum", "Яйцо", "Egg"),
+        desc: P("Devzira guruchi, mol go'shti va dumba, sabzi va zira bilan qozonda pishirilgan. Tepasida bedana tuxumi va qazi.", "Рис девзира, говядина и курдючное сало, морковь и зира, приготовлено в казане. Сверху перепелиное яйцо и казы.", "Devzira rice, beef and tail fat, carrot and cumin, cooked in a kazan. Topped with quail egg and qazi."),
+        ing: P("Devzira guruchi, mol go'shti, dumba yog'i, sabzi, piyoz, zira, zirk, bedana tuxumi, qazi, paxta yog'i, tuz", "Рис девзира, говядина, курдючный жир, морковь, лук, зира, барбарис, перепелиное яйцо, казы, хлопковое масло, соль", "Devzira rice, beef, tail fat, carrot, onion, cumin, barberry, quail egg, qazi, cottonseed oil, salt"),
+        al: P("Tuxum. Yeryong'oq bo'lgan bir xonada tayyorlanadi. Glyuten yo'q.", "Яйцо. Готовится в помещении, где есть арахис. Без глютена.", "Egg. Prepared in a room where peanuts are present. Gluten free.") },
+      { id: "d2", c: 1, n: P("Lag'mon, qovurma", "Лагман, жареный", "Lagman, fried"), d: P("Qo'lda cho'zilgan xamir, mol go'shti, sabzavot", "Тесто вытянутое вручную, говядина, овощи", "Hand-pulled noodles, beef, vegetables"), p: 52000, g: P("450 g", "450 г", "450 g"), a: P("Glyuten, tuxum", "Глютен, яйцо", "Gluten, egg"), hot: true,
+        desc: P("Qo'lda cho'zilgan xamir, mol go'shti, bulg'or qalampiri va pomidor bilan qovurilgan. Achchiqligi buyurtmada sozlanadi.", "Тесто вытянутое вручную, говядина, болгарский перец и помидор, обжарено. Острота настраивается при заказе.", "Hand-pulled noodles with beef, pepper and tomato, stir-fried. Heat level is adjustable at order."),
+        ing: P("Bug'doy xamiri, mol go'shti, bulg'or qalampiri, pomidor, piyoz, sarimsoq, soya sousi, achchiq qalampir, ko'kat", "Пшеничное тесто, говядина, болгарский перец, помидор, лук, чеснок, соевый соус, острый перец, зелень", "Wheat noodles, beef, pepper, tomato, onion, garlic, soy sauce, chilli, herbs"),
+        al: P("Glyuten, tuxum, soya. Achchiq qalampir bor.", "Глютен, яйцо, соя. Содержит острый перец.", "Gluten, egg, soy. Contains chilli.") },
+      { id: "d3", c: 1, n: P("Manti", "Манты", "Manti"), d: P("Mol go'shti va piyoz, bug'da pishirilgan · 5 dona", "Говядина и лук, на пару · 5 штук", "Beef and onion, steamed · 5 pieces"), p: 42000, g: P("400 g", "400 г", "400 g"), a: P("Glyuten", "Глютен", "Gluten"),
+        desc: P("Yupqa xamir, qo'lda maydalangan mol go'shti va piyoz. Bug'da 40 daqiqa pishiriladi.", "Тонкое тесто, рубленая вручную говядина и лук. Готовится на пару 40 минут.", "Thin dough, hand-chopped beef and onion. Steamed for 40 minutes."),
+        ing: P("Bug'doy xamiri, mol go'shti, piyoz, dumba yog'i, qora murch, tuz, qatiq bilan beriladi", "Пшеничное тесто, говядина, лук, курдючный жир, чёрный перец, соль, подаётся с катыком", "Wheat dough, beef, onion, tail fat, black pepper, salt, served with qatiq"),
+        al: P("Glyuten, sut mahsulotlari (qatiq).", "Глютен, молочные продукты (катык).", "Gluten, dairy (qatiq).") },
+      { id: "d4", c: 1, n: P("Achichuk salat", "Салат ачичук", "Achichuk salad"), d: P("Pomidor, piyoz, achchiq qalampir, ko'kat", "Помидор, лук, острый перец, зелень", "Tomato, onion, chilli, herbs"), p: 22000, g: P("250 g", "250 г", "250 g"), veg: true, hot: true,
+        desc: P("Yupqa to'g'ralgan pomidor va piyoz, achchiq qalampir va ko'kat bilan. Osh bilan beriladi.", "Тонко нарезанные помидор и лук с острым перцем и зеленью. Подаётся к плову.", "Thinly sliced tomato and onion with chilli and herbs. Served alongside plov."),
+        ing: P("Pomidor, piyoz, achchiq qalampir, jambil, ko'k piyoz, tuz", "Помидор, лук, острый перец, райхон, зелёный лук, соль", "Tomato, onion, chilli, basil, spring onion, salt"),
+        al: P("Allergen yo'q. Achchiq qalampir bor.", "Аллергенов нет. Содержит острый перец.", "No allergens. Contains chilli.") },
+      { id: "d5", c: 2, n: P("Somsa, go'shtli", "Самса с мясом", "Somsa, beef"), d: P("Tandirda pishirilgan · 2 dona", "Испечена в тандыре · 2 штуки", "Baked in a tandoor · 2 pieces"), p: 24000, g: P("240 g", "240 г", "240 g"), a: P("Glyuten", "Глютен", "Gluten"),
+        desc: P("Qatlama xamir, mol go'shti va piyoz. Tandirda 25 daqiqa pishiriladi.", "Слоёное тесто, говядина и лук. Печётся в тандыре 25 минут.", "Layered dough, beef and onion. Baked in a tandoor for 25 minutes."),
+        ing: P("Bug'doy xamiri, mol go'shti, piyoz, dumba yog'i, zira, kunjut", "Пшеничное тесто, говядина, лук, курдючный жир, зира, кунжут", "Wheat dough, beef, onion, tail fat, cumin, sesame"),
+        al: P("Glyuten, kunjut.", "Глютен, кунжут.", "Gluten, sesame.") },
+      { id: "d6", c: 5, n: P("Choy, ko'k", "Чай зелёный", "Green tea"), d: P("Choynak · 1 litr", "Чайник · 1 литр", "Pot · 1 litre"), p: 8000, g: P("1 l", "1 л", "1 l"), veg: true,
+        desc: P("Ko'k choy, choynakda. Bir litr, to'rt kishiga yetadi.", "Зелёный чай в чайнике. Один литр, на четверых.", "Green tea in a pot. One litre, enough for four."),
+        ing: P("Ko'k choy bargi, suv", "Листовой зелёный чай, вода", "Loose green tea, water"),
+        al: P("Allergen yo'q.", "Аллергенов нет.", "No allergens.") },
+    ];
+  }
+
+  renderVals() {
+    const L = ["uz", "ru", "en"].indexOf(this.state.lang);
+    const P = (a, b, c) => [a, b, c][L];
+    const S = this.state;
+
+    const t = {
+      eyebrow: P("Mehmon sirti", "Гостевая часть", "Guest surface"),
+      h1: P("Mehmon telefoni", "Телефон гостя", "The guest's phone"),
+      lede: P("Mehmon tizimning foydalanuvchisi emas — u ro'yxatdan o'tmaydi, parol kiritmaydi, ilova yuklamaydi. Stoldagi QR kodni skanerlaydi va shu yerda qoladi. Oltita ekran: kirish, menyu, taom, holat, hisob, baho.", "Гость не пользователь системы — он не регистрируется, не вводит пароль, не скачивает приложение. Он сканирует QR-код на столе и остаётся здесь. Шесть экранов: вход, меню, блюдо, статус, счёт, оценка.", "The guest is not a system user — no signup, no password, no app download. They scan the QR code on the table and stay here. Six screens: landing, menu, dish, status, bill, rating."),
+
+      s1: P("QR skanerlangandan keyin", "После сканирования QR", "After the QR scan"),
+      s2: P("Menyu", "Меню", "Menu"),
+      s3: P("Taom kartochkasi", "Карточка блюда", "Dish detail"),
+      s4: P("Buyurtma holati", "Статус заказа", "Order status"),
+      s5: P("Hisob va to'lov", "Счёт и оплата", "Bill and payment"),
+      s6: P("To'lovdan keyin · baho", "После оплаты · оценка", "After payment · rating"),
+
+      branch: P("Chilonzor filiali", "Филиал Чиланзар", "Chilonzor branch"),
+      yourTable: P("Sizning stolingiz · 12", "Ваш стол · 12", "Your table · 12"),
+      tableMeta: P("Ofitsiant Jasur · 4 mehmon", "Официант Жасур · 4 гостя", "Waiter Jasur · 4 guests"),
+      openMenu: P("Menyuni ko'rish", "Посмотреть меню", "Open the menu"),
+      openMenuSub: P("142 taom · narxlar QQS bilan", "142 блюда · цены с НДС", "142 dishes · prices include VAT"),
+      callWaiter: P("Ofitsiantni chaqirish", "Позвать официанта", "Call the waiter"),
+      callWaiterSub: P("O'rtacha javob 40 soniya", "Средний ответ 40 секунд", "Average response 40 seconds"),
+      payBill: P("Hisobni to'lash", "Оплатить счёт", "Pay the bill"),
+      payBillSub: P("Karta, Click yoki Payme", "Карта, Click или Payme", "Card, Click or Payme"),
+      noApp: P("Ilova yuklash shart emas. Ro'yxatdan o'tish ham talab qilinmaydi — buyurtma stol raqamiga bog'lanadi.", "Приложение скачивать не нужно. Регистрация не требуется — заказ привязан к номеру стола.", "No app to download. No signup either — the order is tied to the table number."),
+      wifi: P("Wi-Fi: SmartGuest · parolsiz", "Wi-Fi: SmartGuest · без пароля", "Wi-Fi: SmartGuest · no password"),
+
+      menu: P("Menyu", "Меню", "Menu"),
+      table12: P("Stol 12", "Стол 12", "Table 12"),
+      veg: P("VEG", "VEG", "VEG"),
+      hot: P("ACHCHIQ", "ОСТРО", "SPICY"),
+      viewOrder: P("Buyurtmani ko'rish", "Посмотреть заказ", "View order"),
+      offDish: P("Qozon kabob", "Казан-кебаб", "Qozon kebab"),
+      offLbl: P("TUGADI", "ЗАКОНЧИЛОСЬ", "SOLD OUT"),
+      offNote: P("Bugun tugadi. Ertaga 12:00 dan mavjud bo'ladi.", "На сегодня закончилось. Будет доступно завтра с 12:00.", "Sold out today. Available again tomorrow from 12:00."),
+      som: P("so'm", "сум", "UZS"),
+
+      dishName: P("Osh, to'y oshi", "Плов, свадебный", "Plov, wedding style"),
+      portion: P("1 porsiya · 380 g", "1 порция · 380 г", "1 portion · 380 g"),
+      dishDesc: P("Devzira guruchi, mol go'shti va dumba, sabzi va zira bilan qozonda pishirilgan. Tepasida bedana tuxumi va qazi.", "Рис девзира, говядина и курдючное сало, морковь и зира, приготовлено в казане. Сверху перепелиное яйцо и казы.", "Devzira rice, beef and tail fat, carrot and cumin, cooked in a kazan. Topped with quail egg and qazi."),
+      ingredients: P("Tarkibi", "Состав", "Ingredients"),
+      ingList: P("Devzira guruchi, mol go'shti, dumba yog'i, sabzi, piyoz, zira, zirk, bedana tuxumi, qazi, paxta yog'i, tuz", "Рис девзира, говядина, курдючный жир, морковь, лук, зира, барбарис, перепелиное яйцо, казы, хлопковое масло, соль", "Devzira rice, beef, tail fat, carrot, onion, cumin, barberry, quail egg, qazi, cottonseed oil, salt"),
+      allergens: P("Allergenlar", "Аллергены", "Allergens"),
+      allergList: P("Tuxum. Yeryong'oq bo'lgan bir xonada tayyorlanadi. Glyuten yo'q.", "Яйцо. Готовится в помещении, где есть арахис. Без глютена.", "Egg. Prepared in a room where peanuts are present. Gluten free."),
+      modGroup1: P("Qo'shimchalar", "Добавки", "Add-ons"),
+      optional: P("ixtiyoriy", "необязательно", "optional"),
+      note: P("Oshxonaga izoh", "Комментарий на кухню", "Note to the kitchen"),
+      notePh: P("Masalan: piyoz solmang", "Например: без лука", "For example: no onion"),
+      addFor: P("Qo'shish ·", "Добавить ·", "Add ·"),
+
+      orderStatus: P("Buyurtma holati", "Статус заказа", "Order status"),
+      orderNo: P("Buyurtma № 4812", "Заказ № 4812", "Order № 4812"),
+      cooking: P("Tayyorlanmoqda", "Готовится", "Cooking"),
+      about: P("Taxminan", "Примерно", "About"),
+      min: P("daqiqa", "минут", "minutes"),
+      readyBy: P("Tayyor bo'ladi:", "Будет готово:", "Ready by:"),
+      yourOrder: P("Buyurtmangiz", "Ваш заказ", "Your order"),
+      addMore: P("Yana buyurtma qo'shish", "Добавить к заказу", "Add to the order"),
+
+      bill: P("Hisob", "Счёт", "Bill"),
+      guests: P("mehmon", "гостя", "guests"),
+      items: P("Taomlar", "Блюда", "Items"),
+      service: P("Xizmat haqi 10%", "Сервисный сбор 10%", "Service charge 10%"),
+      discount: P("Chegirma · Oltin karta 5%", "Скидка · Золотая карта 5%", "Discount · Gold card 5%"),
+      searchPh: P("Taom qidirish", "Поиск блюда", "Search dishes"),
+      noDish: P("Taom topilmadi", "Блюдо не найдено", "No dish found"),
+      noDishSub: P("Boshqa nom kiriting yoki kategoriyadan tanlang.", "Введите другое название или выберите категорию.", "Try another name, or pick a category."),
+      showAll: P("Hammasini ko'rsatish", "Показать всё", "Show everything"),
+      orderEmpty: P("Savat bo'sh. Menyudan taom qo'shsangiz, shu yerda ko'rinadi.", "Корзина пуста. Добавьте блюдо из меню — оно появится здесь.", "The order is empty. Add a dish from the menu and it appears here."),
+      splitH: P("Hisobni bo'lish", "Разделить счёт", "Split the bill"),
+      splitSub: P("Teng bo'linadi. Yaxlitlash farqi birinchi chekka qo'shiladi.", "Делится ровно. Разница от округления идёт в первый чек.", "Split evenly. The rounding difference goes onto the first share."),
+      splitWays: P("mehmon", "гостей", "guests"),
+      splitNote: P("Har bir mehmon o'z ulushini alohida to'laydi. Ofitsiant chaqirilmaydi.", "Каждый гость платит свою долю отдельно. Официанта звать не нужно.", "Each guest pays their own share. No need to call the waiter."),
+      close: P("Yopish", "Закрыть", "Close"),
+      splitEach: P("Har biriga", "Каждому", "Each share"),
+      splitFirst: P("Birinchi chekka", "Первый чек", "First share"),
+      total: P("Jami", "Итого", "Total"),
+      vatIncl: P("shundan QQS 12%", "в том числе НДС 12%", "of which VAT 12%"),
+      howPay: P("Qanday to'laysiz", "Как оплатите", "How will you pay"),
+      tip: P("Choypuli", "Чай", "Tip"),
+      tipNote: P("to'liq ofitsiantga", "полностью официанту", "goes fully to the waiter"),
+      payNow: P("To'lash ·", "Оплатить ·", "Pay ·"),
+      splitBill: P("Hisobni bo'lish", "Разделить счёт", "Split the bill"),
+
+      paidH: P("To'lov qabul qilindi", "Оплата принята", "Payment received"),
+      paidP: P("257 070 so'm · Uzcard ···4417. Chek soliq.uz da saqlanadi.", "257 070 сум · Uzcard ···4417. Чек сохранён на soliq.uz.", "257 070 UZS · Uzcard ···4417. The receipt is stored on soliq.uz."),
+      getReceipt: P("Chekni yuklab olish", "Скачать чек", "Download the receipt"),
+      rateH: P("Bugun qanday o'tdi?", "Как всё прошло?", "How was it today?"),
+      rateSub: P("Baho ofitsiantga va menejerga ko'rinadi", "Оценку видят официант и менеджер", "The waiter and the manager see your rating"),
+      whatGood: P("Nima yaxshi bo'ldi?", "Что было хорошо?", "What went well?"),
+      commentPh: P("Xohlasangiz, batafsil yozing", "Если хотите, напишите подробнее", "Add a comment if you like"),
+      loyaltyOptIn: P("Keyingi tashrifda 5% chegirma olish uchun telefon raqamimni saqlang", "Сохранить мой номер, чтобы получить 5% скидки в следующий раз", "Save my number for a 5% discount on my next visit"),
+      sendRating: P("Bahoni yuborish", "Отправить оценку", "Send rating"),
+      skip: P("Keyinroq", "Позже", "Later"),
+
+      rulesH: P("Mehmon sirtining qoidalari", "Правила гостевой части", "Rules for the guest surface"),
+
+      n1: P("Stol raqami QR kodning ichida — mehmon uni yozmaydi. Til tanlovi shu ekranda, chunki keyin uni topish kerak bo'lmaydi.", "Номер стола внутри QR-кода — гость его не вводит. Выбор языка здесь же, чтобы потом его не искать.", "The table number is inside the QR code — the guest never types it. Language sits here so it never has to be found later."),
+      n2: P("Tugagan taom yashirilmaydi. Mehmon kechagi menyuni eslaydi, shuning uchun chizib qo'yish va qachon qaytishini aytish tinchlantiradi.", "Закончившееся блюдо не скрывается. Гость помнит вчерашнее меню, поэтому зачёркнуть и сказать, когда вернётся, — спокойнее.", "Sold-out dishes stay visible. The guest remembers yesterday's menu, so a strike-through and a return time is calmer than a gap."),
+      n3: P("Allergen va tarkib mehmonning o'zida. Ofitsiant esidan chiqarishi mumkin, yozilgan matn esdan chiqmaydi.", "Аллергены и состав — у самого гостя. Официант может забыть, написанный текст не забывает.", "Allergens and ingredients sit with the guest. A waiter can forget; written text does not."),
+      n4: P("«Taxminan 12 daqiqa» — eng ko'p so'raladigan savolning javobi. Shu ekran bo'lmasa, mehmon ofitsiantni chaqiradi.", "«Примерно 12 минут» — ответ на самый частый вопрос. Без этого экрана гость позовёт официанта.", "\u201cAbout 12 minutes\u201d answers the single most-asked question. Without this screen, the guest calls the waiter."),
+      n5: P("QQS narx ichida, xizmat haqi alohida qator. Yashirin qo'shimcha yo'q — kassada raqam oshmaydi.", "НДС в цене, сервисный сбор — отдельной строкой. Скрытых надбавок нет: на кассе сумма не вырастет.", "VAT is inside the price and the service charge is its own line. Nothing hidden, so the number never grows at the till."),
+      n6: P("Baho to'lovdan keyin so'raladi, majburlanmaydi. Teglar yulduzdan keyin ochiladi — bir vaqtda ikkita savol berilmaydi.", "Оценку просят после оплаты и не принуждают. Теги открываются после звёзд — два вопроса сразу не задаются.", "The rating is asked after payment and never forced. Tags open after the stars, so the guest is never asked two things at once."),
+    };
+
+    const CATS = [
+      P("Hammasi", "Всё", "All"), P("Milliy taomlar", "Национальные", "Uzbek"),
+      P("Grill", "Гриль", "Grill"), P("Lavash", "Лаваш", "Lavash"),
+      P("Pizza", "Пицца", "Pizza"), P("Ichimliklar", "Напитки", "Drinks"),
+    ];
+    const cats = CATS.map((n, i) => {
+      const on = !S.q && S.cat === i;
+      return {
+        n, bg: on ? "var(--n-900)" : "var(--n-0)", fg: on ? "#fff" : "var(--fg)", bd: on ? "var(--n-900)" : "var(--border)",
+        pick: () => this.setState({ cat: i, q: "" }),
+      };
+    });
+
+    const M = this.menuData();
+    const qq = S.q.trim().toLowerCase();
+    const shown = M.filter(d => qq
+      ? (d.n.toLowerCase().indexOf(qq) >= 0 || d.d.toLowerCase().indexOf(qq) >= 0 || CATS[d.c].toLowerCase().indexOf(qq) >= 0)
+      : (S.cat === 0 || d.c === S.cat));
+
+    const qtyOf = (id) => S.order.filter(l => l.id === id).reduce((a, l) => a + l.qty, 0);
+
+    const dishes = shown.map(d => {
+      const q = qtyOf(d.id);
+      return {
+        n: d.n, d: d.d, p: this.f(d.p) + " " + t.som, g: d.g,
+        veg: !!d.veg, hot: !!d.hot, allerg: d.a || "",
+        btn: q > 0 ? String(q) : "+",
+        btnBg: q > 0 ? "var(--brand-500)" : "var(--n-0)",
+        btnFg: q > 0 ? "#fff" : "var(--fg)",
+        btnBd: q > 0 ? "var(--brand-500)" : "var(--border)",
+        open: () => { this.setState({ detId: d.id, detQty: 1, detMods: {}, detNote: "" }); this.jump(3); },
+        add: () => {
+          const order = S.order.slice();
+          const k = order.findIndex(l => l.id === d.id && !(l.mods || []).length && !l.note);
+          if (k >= 0) order[k] = { ...order[k], qty: order[k].qty + 1 };
+          else order.push({ id: d.id, qty: 1, mods: [], note: "" });
+          this.setState({ order });
+          this.flash(d.n + " · " + P("savatga qo'shildi", "добавлено в корзину", "added to the order"));
+        },
+      };
+    });
+
+    const MODS = [
+      { n: P("Qo'shimcha go'sht", "Дополнительное мясо", "Extra meat"), p: 18000 },
+      { n: P("Qazi", "Казы", "Qazi"), p: 22000 },
+      { n: P("Bedana tuxumi", "Перепелиное яйцо", "Quail egg"), p: 6000 },
+      { n: P("Dumba yog'i solmang", "Без курдючного жира", "No tail fat"), p: 0 },
+    ];
+    const mods = MODS.map((m, i) => {
+      const on = !!S.detMods[i];
+      return {
+        n: m.n, p: m.p ? "+" + this.f(m.p) : "—", on,
+        bg: on ? "var(--brand-50)" : "var(--n-0)",
+        bd: on ? "var(--brand-200)" : "var(--border)",
+        dot: on ? "var(--brand-500)" : "var(--n-300)",
+        dotBg: on ? "var(--brand-500)" : "transparent",
+        pick: () => this.setState(s => ({ detMods: { ...s.detMods, [i]: !s.detMods[i] } })),
+      };
+    });
+
+    const STEPS = [
+      [P("Buyurtma yuborildi", "Заказ отправлен", "Order sent"), "21:14", 1],
+      [P("Oshxona qabul qildi", "Кухня приняла", "Kitchen accepted"), "21:15", 1],
+      [P("Tayyorlanmoqda", "Готовится", "Cooking"), "21:18", 2],
+      [P("Tayyor", "Готово", "Ready"), P("kutilmoqda", "ожидается", "pending"), 0],
+      [P("Stolga berildi", "Подано", "Served"), P("kutilmoqda", "ожидается", "pending"), 0],
+    ];
+    const steps = STEPS.map((s, i) => ({
+      n: s[0], time: s[1],
+      done: s[2] === 1,
+      ring: s[2] === 1 ? "var(--success-500)" : s[2] === 2 ? "var(--warning-500)" : "var(--n-200)",
+      fill: s[2] === 1 ? "var(--success-500)" : "transparent",
+      line: i === STEPS.length - 1 ? "transparent" : s[2] ? "var(--success-500)" : "var(--n-150)",
+      gap: i === STEPS.length - 1 ? "0" : "22px",
+      fw: s[2] === 2 ? "700" : "500",
+      fg: s[2] ? "var(--fg)" : "var(--fg-subtle)",
+    }));
+
+    const MODN = MODS.map(m => m.n);
+    const lineRows = S.order.map(l => {
+      const d = M.find(x => x.id === l.id);
+      if (!d) return null;
+      const extra = (l.mods || []).reduce((a, i) => a + (this.MODP[i] || 0), 0);
+      const bits = (l.mods || []).map(i => MODN[i]).filter(Boolean);
+      if (l.note) bits.push("\u201c" + l.note + "\u201d");
+      return { q: l.qty, n: d.n, m: bits.join(" \u00b7 "), p: this.f((d.p + extra) * l.qty) };
+    }).filter(Boolean);
+
+    const T = this.totals();
+    const orderLines = lineRows;
+    const billLines = lineRows;
+
+    const PAYS = [
+      [P("Karta", "Карта", "Card"), P("Uzcard, Humo, Visa", "Uzcard, Humo, Visa", "Uzcard, Humo, Visa")],
+      [P("Click", "Click", "Click"), P("Ilova ochiladi", "Откроется приложение", "Opens the app")],
+      [P("Payme", "Payme", "Payme"), P("Ilova ochiladi", "Откроется приложение", "Opens the app")],
+      [P("Naqd · ofitsiantga", "Наличными официанту", "Cash · to the waiter"), P("Ofitsiant chaqiriladi", "Официант будет вызван", "The waiter will be called")],
+    ];
+    const payWays = PAYS.map((p, i) => {
+      const on = S.pay === i;
+      return {
+        n: p[0], d: p[1], on,
+        bg: on ? "var(--brand-50)" : "var(--n-0)",
+        bd: on ? "var(--brand-200)" : "var(--border)",
+        dot: on ? "var(--brand-500)" : "var(--n-300)",
+        pick: () => this.setState({ pay: i }),
+      };
+    });
+
+    const TIPS = [0, 5, 10, 15];
+    const tips = TIPS.map((v, i) => {
+      const on = S.tip === i;
+      return {
+        l: v === 0 ? P("Yo'q", "Нет", "None") : v + "%",
+        bg: on ? "var(--n-900)" : "var(--n-0)",
+        fg: on ? "#fff" : "var(--fg)",
+        bd: on ? "var(--n-900)" : "var(--border)",
+        pick: () => this.setState({ tip: i }),
+      };
+    });
+    const base = T.total;
+    const tipVal = Math.round(base * TIPS[S.tip] / 100);
+
+    const STAR_LBL = [
+      "",
+      P("Yaxshi emas edi", "Было плохо", "Not good"),
+      P("O'rtacha", "Так себе", "Below average"),
+      P("Yaxshi", "Нормально", "Fine"),
+      P("Juda yaxshi", "Очень хорошо", "Very good"),
+      P("Ajoyib", "Отлично", "Excellent"),
+    ];
+    const stars = [1, 2, 3, 4, 5].map(i => {
+      const on = S.stars >= i;
+      return {
+        fill: on ? "var(--rating-star)" : "none",
+        stroke: on ? "var(--rating-star)" : "var(--n-300)",
+        bg: on ? "var(--warning-50)" : "var(--n-50)",
+        pick: () => this.setState({ stars: i }),
+      };
+    });
+
+    const TAGS = [
+      P("Taom mazali", "Вкусная еда", "Great food"),
+      P("Tez keldi", "Быстро подали", "Served fast"),
+      P("Ofitsiant e'tiborli", "Внимательный официант", "Attentive waiter"),
+      P("Toza", "Чисто", "Clean"),
+      P("Narx munosib", "Цена оправдана", "Good value"),
+      P("Jim va tinch", "Тихо и спокойно", "Calm and quiet"),
+    ];
+    const tags = TAGS.map((n, i) => {
+      const on = !!S.tags[i];
+      return {
+        n,
+        bg: on ? "var(--n-900)" : "var(--n-0)",
+        fg: on ? "#fff" : "var(--fg)",
+        bd: on ? "var(--n-900)" : "var(--border)",
+        pick: () => this.setState(s => ({ tags: { ...s.tags, [i]: !s.tags[i] } })),
+      };
+    });
+
+    const det = M.find(x => x.id === S.detId) || M[0];
+    const detExtra = Object.keys(S.detMods).filter(k => S.detMods[k]).reduce((a, k) => a + (this.MODP[k] || 0), 0);
+    const detSum = (det.p + detExtra) * S.detQty;
+
+    const splitWays = S.splitWays;
+    const each = Math.floor(base / splitWays / 1000) * 1000;
+    const firstShare = base - each * (splitWays - 1);
+
+    const rules = [
+      { t: P("Ro'yxatdan o'tish yo'q", "Без регистрации", "No signup"), d: P("Mehmon QR kodni skanerlaydi va darhol menyuni ko'radi. Telefon raqami faqat chegirma xohlasa so'raladi — u ham ixtiyoriy.", "Гость сканирует QR и сразу видит меню. Номер телефона спрашивается только если он хочет скидку — и то необязательно.", "The guest scans the QR and sees the menu immediately. A phone number is asked only if they want the discount, and even then it is optional.") },
+      { t: P("Tugagan taom ko'rinadi", "Закончившееся блюдо видно", "Sold-out dishes stay visible"), d: P("Yashirilmaydi — chizib tashlanadi va qachon qaytishi yoziladi. Yashirilgan taom mijozni chalkashtiradi: u kechagi menyuni eslaydi.", "Не скрывается — зачёркивается и указывается, когда вернётся. Скрытое блюдо путает: гость помнит вчерашнее меню.", "Not hidden — struck through with a note on when it returns. Hiding it confuses a guest who remembers yesterday's menu.") },
+      { t: P("Allergen har bir taomda", "Аллерген у каждого блюда", "Allergens on every dish"), d: P("Ofitsiant esidan chiqarishi mumkin, yozilgan matn esdan chiqmaydi. \u201cYeryong'oq bo'lgan xonada tayyorlanadi\u201d kabi ogohlantirish ham yoziladi.", "Официант может забыть, написанный текст не забывает. Пишется и предупреждение вроде \u201cготовится в помещении, где есть арахис\u201d.", "A waiter can forget; written text does not. Cross-contact warnings are stated too.") },
+      { t: P("Narx doim QQS bilan", "Цена всегда с НДС", "Prices always include VAT"), d: P("Menyuda ko'rgan raqam — to'laydigan raqam. Xizmat haqi 10% hisobda alohida qator bo'lib chiqadi, yashirin emas.", "Цифра в меню — цифра к оплате. Сервисный сбор 10% отдельной строкой в счёте, не спрятан.", "The number in the menu is the number they pay. The 10% service charge is a separate line on the bill, never hidden.") },
+      { t: P("Choypuli ofitsiantga", "Чай официанту", "The tip goes to the waiter"), d: P("Kartadan olingan choypuli to'liq ofitsiantga o'tadi va tushumga kirmaydi. Bu ekranda ham yozilgan — mehmon shubhalanmasligi kerak.", "Чай с карты полностью уходит официанту и не входит в выручку. Это написано и на экране — у гостя не должно быть сомнений.", "A card tip goes entirely to the waiter and never counts as revenue. It says so on screen, so the guest has no doubt.") },
+      { t: P("Baho majburiy emas", "Оценка необязательна", "Rating is optional"), d: P("\u201cKeyinroq\u201d tugmasi doim bor va u jazolanmaydi. Majburlangan baho \u2014 yolg'on baho, u menejerga hech narsa bermaydi.", "Кнопка \u201cПозже\u201d всегда есть и ни к чему не приводит. Принуждённая оценка \u2014 ложная оценка, менеджеру она ничего не даёт.", "A \u201cLater\u201d button is always there with no penalty. A forced rating is a false rating and tells the manager nothing.") },
+    ];
+
+    return {
+      t, cats, dishes, mods, steps, orderLines, billLines, payWays, tips, stars, tags, rules,
+      hasOff: !S.q && (S.cat === 0 || S.cat === 1),
+      menuEmpty: shown.length === 0,
+      menuCount: shown.length + " " + P("taom", "блюд", "dishes") + (S.q ? " \u00b7 \u201c" + S.q + "\u201d" : ""),
+      menuSub: M.length + " " + P("taom \u00b7 narxlar QQS bilan", "блюд \u00b7 цены с НДС", "dishes \u00b7 prices include VAT"),
+      q: S.q, hasQ: !!S.q, searchOpen: S.searchOpen,
+      setQ: (e) => this.setState({ q: e.target.value }),
+      clearQ: () => this.setState({ q: "", searchOpen: false, cat: 1 }),
+      toggleSearch: () => this.setState(s => ({ searchOpen: !s.searchOpen, q: s.searchOpen ? "" : s.q })),
+      srchBg: S.searchOpen ? "var(--n-900)" : "var(--n-0)",
+      srchBd: S.searchOpen ? "var(--n-900)" : "var(--border)",
+      srchFg: S.searchOpen ? "#fff" : "var(--fg)",
+      langShort: S.lang.toUpperCase(),
+      heroLangs: ["UZ", "RU", "EN"].map((l, i) => {
+        const on = ["uz", "ru", "en"][i] === S.lang;
+        return { l, bg: on ? "rgba(255,255,255,.22)" : "rgba(255,255,255,.08)", fg: on ? "#fff" : "rgba(255,255,255,.6)", fw: on ? "600" : "500",
+          pick: () => this.setState({ lang: ["uz", "ru", "en"][i] }) };
+      }),
+
+      hasCart: S.order.length > 0,
+      cartQty: S.order.reduce((a, l) => a + l.qty, 0),
+      cartTotal: this.f(T.items),
+      orderEmpty: S.order.length === 0,
+      orderCount: S.order.reduce((a, l) => a + l.qty, 0) + " " + P("pozitsiya", "позиций", "items"),
+      guestCount: splitWays + " " + t.guests,
+
+      det: { n: det.n, p: this.f(det.p), g: det.g, desc: det.desc, ing: det.ing, allerg: det.al },
+      qty: S.detQty, decFg: S.detQty > 1 ? "var(--fg-muted)" : "var(--n-300)",
+      qtyInc: () => this.setState(s => ({ detQty: Math.min(20, s.detQty + 1) })),
+      qtyDec: () => this.setState(s => ({ detQty: Math.max(1, s.detQty - 1) })),
+      detTotal: this.f(detSum),
+      note: S.detNote,
+      noteLeft: S.detNote.length + " / 90",
+      setNote: (e) => this.setState({ detNote: e.target.value.slice(0, 90) }),
+
+      sumItems: this.f(T.items), sumService: this.f(T.service),
+      sumDiscount: "\u2212" + this.f(T.discount), hasDiscount: T.discount > 0,
+      sumTotal: this.f(T.total), sumVat: this.f(T.vat),
+      tipAmount: tipVal ? "+" + this.f(tipVal) + " " + t.som : P("Choypuli qo\u2019shilmadi", "Чай не добавлен", "No tip added"),
+      payTotal: this.f(base + tipVal),
+      paidLine: this.f(base + tipVal) + " " + t.som + " \u00b7 " + payWays[S.pay].n + " \u00b7 " + P("chek soliq.uz da", "чек на soliq.uz", "receipt on soliq.uz"),
+
+      splitOpen: S.splitOpen, splitWays,
+      splitDecFg: splitWays > 2 ? "var(--fg)" : "var(--n-300)",
+      splitInc: () => this.setState(s => ({ splitWays: Math.min(12, s.splitWays + 1) })),
+      splitDec: () => this.setState(s => ({ splitWays: Math.max(2, s.splitWays - 1) })),
+      splitRows: [
+        { l: t.splitEach + " \u00d7 " + (splitWays - 1), v: this.f(each) },
+        { l: t.splitFirst, v: this.f(firstShare) },
+      ],
+      toggleSplit: () => this.setState(s => ({ splitOpen: !s.splitOpen })),
+      closeSplit: () => this.setState({ splitOpen: false }),
+      splitBtnLabel: S.splitOpen ? t.close : t.splitBill,
+      splitBtnBg: S.splitOpen ? "var(--n-100)" : "transparent",
+      splitBtnFg: S.splitOpen ? "var(--fg)" : "var(--fg-muted)",
+
+      rated: S.stars > 0,
+      starLabel: STAR_LBL[S.stars],
+      sendBg: S.stars > 0 ? "var(--brand-500)" : "var(--n-100)",
+      sendFg: S.stars > 0 ? "#fff" : "#98A1B0",
+      comment: S.comment,
+      setComment: (e) => this.setState({ comment: e.target.value.slice(0, 300) }),
+      loyalty: S.loyalty,
+      loyRing: S.loyalty ? "var(--brand-500)" : "var(--n-300)",
+      loyFill: S.loyalty ? "var(--brand-500)" : "transparent",
+      loyBg: S.loyalty ? "var(--brand-50)" : "var(--n-25)",
+      loyBd: S.loyalty ? "var(--brand-200)" : "var(--border)",
+      toggleLoyalty: () => {
+        const on = !S.loyalty;
+        this.setState({ loyalty: on });
+        this.flash(on
+          ? P("Oltin karta chegirmasi qo\u2019llandi \u00b7 5%", "Скидка золотой карты применена \u00b7 5%", "Gold card discount applied \u00b7 5%")
+          : P("Chegirma olib tashlandi", "Скидка убрана", "Discount removed"));
+      },
+
+      hasToast: !!S.toast, toast: S.toast,
+      goMenu: () => this.jump(2),
+      goStatus: () => this.jump(4),
+      goBill: () => this.jump(5),
+      tapOff: () => this.flash(t.offNote),
+      getReceipt: () => this.flash(P("Chek yuklab olindi \u00b7 PDF", "Чек скачан \u00b7 PDF", "Receipt downloaded \u00b7 PDF")),
+      callWaiter: () => this.flash(P("Ofitsiant chaqirildi \u00b7 Jasur yo\u2019lda", "Официант вызван \u00b7 Жасур идёт", "Waiter called \u00b7 Jasur is on the way")),
+      addDetail: () => {
+        const picked = Object.keys(S.detMods).filter(k => S.detMods[k]).map(Number);
+        const order = S.order.concat([{ id: det.id, qty: S.detQty, mods: picked, note: S.detNote }]);
+        this.setState({ order, detQty: 1, detMods: {}, detNote: "" });
+        this.flash(S.detQty + " \u00d7 " + det.n + " \u00b7 " + P("savatga qo\u2019shildi", "добавлено в корзину", "added to the order"));
+      },
+      doPay: () => { this.jump(6); this.flash(P("Namoyish rejimi \u00b7 to\u2019lov yuborilmadi", "Демо-режим \u00b7 платёж не отправлен", "Demo mode \u00b7 no payment sent")); },
+      sendRating: () => {
+        if (!S.stars) return this.flash(P("Avval yulduz tanlang", "Сначала выберите звёзды", "Pick a star rating first"));
+        const n = Object.keys(S.tags).filter(k => S.tags[k]).length;
+        this.flash(P("Rahmat \u00b7 ", "Спасибо \u00b7 ", "Thank you \u00b7 ") + S.stars + "\u2605" + (n ? " \u00b7 " + n + " " + P("teg", "тега", "tags") : "") + " \u00b7 " + P("menejerga yuborildi", "отправлено менеджеру", "sent to the manager"));
+      },
+      skipRating: () => { this.setState({ stars: 0, tags: {}, comment: "" }); this.flash(P("Baho o\u2019tkazib yuborildi", "Оценка пропущена", "Rating skipped")); },
+      setUz: () => this.setState({ lang: "uz" }),
+      setRu: () => this.setState({ lang: "ru" }),
+      setEn: () => this.setState({ lang: "en" }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

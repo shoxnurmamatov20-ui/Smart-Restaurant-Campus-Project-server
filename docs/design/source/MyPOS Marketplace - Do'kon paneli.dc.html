@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyPOS Marketplace — Do'kon paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.45}
+a{color:#1C5AD1;text-decoration:none}
+a:hover{color:#1947A8;text-decoration:underline}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+input,textarea,select{outline:none}
+input::placeholder,textarea::placeholder{color:#98A1B0}
+
+[data-theme="light"]{
+--n-0:#FFFFFF;--n-50:#F8F9FB;--n-100:#F1F3F7;--n-150:#E7EAF0;--n-200:#D9DEE6;--n-300:#BFC6D2;--n-400:#98A1B0;--n-500:#6E7789;--n-600:#4C5568;--n-800:#1F2533;--n-900:#0F1320;
+--page:#F8F9FB;--surface:#FFFFFF;--sunken:#F1F3F7;--fg:#0F1320;--fg-muted:#4C5568;--fg-subtle:#6E7789;--fg-disabled:#98A1B0;
+--border:#E7EAF0;--border-strong:#D9DEE6;--divider:#F1F3F7;
+--brand:#2E74EA;--brand-dark:#1C5AD1;--brand-soft:#EEF5FF;--font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--brand-line:#BDD7FC;
+--ok:#12B76A;--ok-soft:#ECFDF3;--ok-fg:#027A48;
+--warn:#F79009;--warn-line:rgba(247,144,9,.28);--warn-soft:#FFFAEB;--warn-fg:#B54708;
+--bad:#F04438;--bad-soft:#FEF3F2;--bad-fg:#B42318;
+--star:#FFB020;--shadow-card:0 1px 2px rgba(16,24,40,.05);--shadow-pop:0 12px 20px -6px rgba(16,24,40,.10),0 4px 8px -4px rgba(16,24,40,.05);
+}
+[data-theme="dark"]{
+--n-0:#0B0E16;--n-50:#12161F;--n-100:#1A1F2B;--n-150:#232A38;--n-200:#2E3648;--n-300:#3D465A;--n-400:#566073;--n-500:#79839A;--n-600:#9AA3B4;--n-800:#DDE2EA;--n-900:#EDF0F5;
+--page:#0B0E16;--surface:#12161F;--sunken:#1A1F2B;--fg:#EDF0F5;--fg-muted:#9AA3B4;--fg-subtle:#79839A;--fg-disabled:#566073;
+--border:#232A38;--border-strong:#2E3648;--divider:#1C2230;
+--brand:#3B82F6;--brand-dark:#2E74EA;--brand-soft:rgba(59,130,246,.14);--brand-line:rgba(59,130,246,.30);
+--ok:#12B76A;--ok-soft:rgba(18,183,106,.14);--ok-fg:#5AD69B;
+--warn:#F79009;--warn-soft:rgba(247,144,9,.14);--warn-fg:#F2B15C;
+--bad:#F04438;--bad-soft:rgba(240,68,56,.14);--bad-fg:#F58C84;
+--star:#FFB020;--shadow-card:none;--shadow-pop:0 16px 28px -8px rgba(0,0,0,.55);
+}
+
+[data-fd]{font-family:'Inter Tight',system-ui,sans-serif}
+[data-num]{font-variant-numeric:tabular-nums}
+[data-mono]{font-family:'JetBrains Mono',monospace}
+[data-press]{transition:transform 120ms cubic-bezier(.4,0,.2,1),background-color 120ms cubic-bezier(.4,0,.2,1),border-color 120ms cubic-bezier(.4,0,.2,1),color 120ms cubic-bezier(.4,0,.2,1)}
+[data-press]:active{transform:scale(.98)}
+[data-nav]:hover{background:var(--sunken) !important}
+[data-nav][data-on="true"]{background:var(--brand-soft) !important;color:var(--fg) !important;font-weight:600}
+[data-nav][data-on="true"] svg{stroke:var(--brand-dark) !important}
+[data-row]:hover{background:var(--sunken)}
+[data-seg][data-on="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow-card)}
+[data-chip]:hover{border-color:var(--border-strong)}
+[data-chip][data-on="true"]{background:var(--fg);border-color:var(--fg);color:var(--surface)}
+[data-scroll]::-webkit-scrollbar{height:6px;width:6px}
+[data-scroll]::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+[data-scroll]::-webkit-scrollbar-track{background:transparent}
+[data-navlabel]{transition:width 200ms cubic-bezier(.4,0,.2,1),opacity 160ms cubic-bezier(.4,0,.2,1)}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(46,116,234,.55);outline-offset:2px}
+@keyframes shimmer{0%{background-position:-320px 0}100%{background-position:320px 0}}
+@media (max-width:1200px){[data-side]{width:76px !important}[data-navlabel]{width:0 !important;opacity:0 !important;overflow:hidden}[data-navsection]{opacity:0}[data-brandword]{display:none}}
+@media (max-width:1080px){[data-two]{grid-template-columns:1fr !important}[data-kpi]{grid-template-columns:1fr 1fr !important}}
+@media (max-width:820px){[data-side]{display:none}[data-pad]{padding-left:18px !important;padding-right:18px !important}[data-kpi]{grid-template-columns:1fr 1fr !important}[data-hidesm]{display:none !important}}
+@media (max-width:560px){[data-kpi]{grid-template-columns:1fr !important}}
+</style>
+</helmet>
+
+<div data-theme="{{theme}}" style="min-height:100vh;background:var(--page);color:var(--fg);display:flex">
+
+  <aside data-side="1" style="width:246px;flex:none;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+    <div style="height:64px;flex:none;display:flex;align-items:center;gap:11px;padding:0 16px;border-bottom:1px solid var(--divider)">
+      <span style="width:32px;height:32px;flex:none;border-radius:9px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter Tight',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.03em">M</span>
+      <span data-brandword="1" style="min-width:0">
+        <span data-fd="1" style="display:block;font-size:15px;font-weight:700;letter-spacing:-.02em;white-space:nowrap">MyPOS</span>
+        <span style="display:block;font-size:11px;color:var(--fg-subtle);white-space:nowrap">{{t.partner}}</span>
+      </span>
+    </div>
+
+    <div data-scroll="1" style="flex:1;min-height:0;overflow-y:auto;padding:14px 10px">
+      <div data-navsection="1" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);padding:0 8px;margin:0 0 7px">{{t.secDaily}}</div>
+      <sc-for list="{{navDaily}}" as="n" hint-placeholder-count="4">
+        <button onClick="{{n.go}}" data-nav="1" data-on="{{n.on}}" data-press="1" title="{{n.label}}" style="width:100%;display:flex;align-items:center;gap:12px;height:38px;padding:0 8px;margin-bottom:2px;border:0;border-radius:10px;background:transparent;color:var(--fg-muted);font-size:14px;font-weight:500;text-align:left">
+          <span style="width:19px;height:19px;flex:none;display:flex;align-items:center;justify-content:center" data-icon="{{n.icon}}"></span>
+          <span data-navlabel="1" style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{n.label}}</span>
+          <sc-if value="{{n.hasBadge}}" hint-placeholder-val="{{false}}">
+            <span data-navlabel="1" data-num="1" style="flex:none;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:{{n.badgeBg}};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{n.badge}}</span>
+          </sc-if>
+        </button>
+      </sc-for>
+
+      <div data-navsection="1" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);padding:0 8px;margin:18px 0 7px">{{t.secMoney}}</div>
+      <sc-for list="{{navMoney}}" as="n" hint-placeholder-count="3">
+        <button onClick="{{n.go}}" data-nav="1" data-on="{{n.on}}" data-press="1" title="{{n.label}}" style="width:100%;display:flex;align-items:center;gap:12px;height:38px;padding:0 8px;margin-bottom:2px;border:0;border-radius:10px;background:transparent;color:var(--fg-muted);font-size:14px;font-weight:500;text-align:left">
+          <span style="width:19px;height:19px;flex:none;display:flex;align-items:center;justify-content:center" data-icon="{{n.icon}}"></span>
+          <span data-navlabel="1" style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{n.label}}</span>
+          <sc-if value="{{n.hasBadge}}" hint-placeholder-val="{{false}}">
+            <span data-navlabel="1" data-num="1" style="flex:none;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:{{n.badgeBg}};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{n.badge}}</span>
+          </sc-if>
+        </button>
+      </sc-for>
+
+      <div data-navsection="1" style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);padding:0 8px;margin:18px 0 7px">{{t.secGrow}}</div>
+      <sc-for list="{{navGrow}}" as="n" hint-placeholder-count="3">
+        <button onClick="{{n.go}}" data-nav="1" data-on="{{n.on}}" data-press="1" title="{{n.label}}" style="width:100%;display:flex;align-items:center;gap:12px;height:38px;padding:0 8px;margin-bottom:2px;border:0;border-radius:10px;background:transparent;color:var(--fg-muted);font-size:14px;font-weight:500;text-align:left">
+          <span style="width:19px;height:19px;flex:none;display:flex;align-items:center;justify-content:center" data-icon="{{n.icon}}"></span>
+          <span data-navlabel="1" style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{n.label}}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="flex:none;padding:10px;border-top:1px solid var(--divider)">
+      <button onClick="{{goSettings}}" data-nav="1" data-on="{{atSettings}}" data-press="1" title="{{t.navSettings}}" style="width:100%;display:flex;align-items:center;gap:12px;height:38px;padding:0 8px;border:0;border-radius:10px;background:transparent;color:var(--fg-muted);font-size:14px;font-weight:500;text-align:left">
+        <span style="width:19px;height:19px;flex:none;display:flex;align-items:center;justify-content:center" data-icon="cog"></span>
+        <span data-navlabel="1" style="white-space:nowrap">{{t.navSettings}}</span>
+      </button>
+    </div>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <header style="position:sticky;top:0;z-index:50;flex:none;background:var(--surface);border-bottom:1px solid var(--border)">
+      <div data-pad="1" style="min-height:64px;display:flex;align-items:center;gap:14px;padding:10px 26px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <h1 data-fd="1" style="margin:0;font-size:20px;font-weight:600;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{title}}</h1>
+          <div style="font-size:12px;color:var(--fg-subtle);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{subtitle}}</div>
+        </div>
+
+        <button onClick="{{toggleOpen}}" data-press="1" data-hidesm="1" style="flex:none;display:flex;align-items:center;gap:8px;height:38px;padding:0 13px;border:1px solid {{openBorder}};border-radius:10px;background:{{openBg}};color:{{openFg}};font-size:13px;font-weight:600">
+          <span style="width:7px;height:7px;border-radius:999px;background:{{openDot}};flex:none"></span>{{openLabel}}
+        </button>
+
+        <div style="display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--border);border-radius:10px;flex:none">
+          <sc-for list="{{langs}}" as="l" hint-placeholder-count="3">
+            <button onClick="{{l.pick}}" data-seg="1" data-on="{{l.on}}" data-press="1" style="height:28px;padding:0 9px;border:0;border-radius:7px;background:transparent;color:var(--fg-muted);font-size:12px;font-weight:600">{{l.code}}</button>
+          </sc-for>
+          <span style="width:1px;height:18px;background:var(--divider);margin:0 3px"></span>
+          <button onClick="{{toggleTheme}}" data-press="1" title="{{t.theme}}" style="width:30px;height:28px;border:0;border-radius:7px;background:transparent;color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+            <span style="width:16px;height:16px;display:flex" data-icon="{{themeIcon}}"></span>
+          </button>
+        </div>
+
+        <div data-hidesm="1" style="display:flex;align-items:center;gap:9px;flex:none;padding-left:14px;border-left:1px solid var(--divider)">
+          <span style="width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">OX</span>
+          <span style="min-width:0">
+            <span style="display:block;font-size:13px;font-weight:600;white-space:nowrap">Osh Xona</span>
+            <span style="display:block;font-size:11px;color:var(--fg-subtle);white-space:nowrap">{{t.chilonzor}}</span>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main data-scroll="1" style="flex:1;min-height:0;overflow-y:auto">
+      <div data-pad="1" style="max-width:1320px;margin:0 auto;padding:26px">
+
+        <sc-if value="{{at.orders}}" hint-placeholder-val="{{true}}">
+          <div data-kpi="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{ordKpis}}" as="k" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 18px">
+                <div style="font-size:12px;font-weight:500;color:var(--fg-subtle)">{{k.l}}</div>
+                <div data-fd="1" data-num="1" style="font-size:30px;font-weight:700;letter-spacing:-.022em;margin-top:5px;line-height:1.05">{{k.v}}</div>
+                <div data-num="1" style="font-size:12px;color:{{k.c}};margin-top:4px;font-weight:500">{{k.d}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin:22px 0 14px;flex-wrap:wrap">
+            <sc-for list="{{ordFilters}}" as="f" hint-placeholder-count="4">
+              <button onClick="{{f.pick}}" data-chip="1" data-on="{{f.on}}" data-press="1" style="height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--fg-muted);font-size:13px;font-weight:600">{{f.l}}</button>
+            </sc-for>
+            <span style="flex:1"></span>
+            <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{ordCount}}</span>
+          </div>
+
+          <sc-if value="{{ordEmpty}}" hint-placeholder-val="{{false}}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:44px 24px;text-align:center">
+              <div style="font-size:15px;font-weight:600">{{t.ordEmptyH}}</div>
+              <div style="font-size:13px;color:var(--fg-subtle);margin-top:5px;line-height:1.5">{{t.ordEmptyP}}</div>
+            </div>
+          </sc-if>
+
+          <div style="display:grid;gap:12px">
+            <sc-for list="{{orders}}" as="o" hint-placeholder-count="5">
+              <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid {{o.edge}};border-radius:14px;padding:17px 19px">
+                <div data-two="1" style="display:grid;grid-template-columns:1fr 260px;gap:18px;align-items:start">
+                  <div style="min-width:0">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                      <span data-mono="1" style="font-size:13px;font-weight:600;color:var(--fg-muted)">{{o.no}}</span>
+                      <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{o.chipBg}};color:{{o.chipFg}}">{{o.status}}</span>
+                      <sc-if value="{{o.isNew}}" hint-placeholder-val="{{false}}">
+                        <span data-num="1" style="font-size:12px;font-weight:600;color:var(--bad-fg)">{{o.countdown}}</span>
+                      </sc-if>
+                      <span style="flex:1"></span>
+                      <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{o.ago}}</span>
+                    </div>
+                    <div data-fd="1" style="font-size:17px;font-weight:700;letter-spacing:-.014em;margin-top:8px">{{o.customer}}</div>
+                    <div style="font-size:13px;color:var(--fg-muted);margin-top:3px;line-height:1.5">{{o.address}}</div>
+                    <div style="display:flex;flex-direction:column;gap:3px;margin-top:11px">
+                      <sc-for list="{{o.lines}}" as="ln" hint-placeholder-count="3">
+                        <div style="display:flex;gap:9px;font-size:13px">
+                          <span data-num="1" style="width:22px;flex:none;font-weight:700;color:var(--brand-dark)">{{ln.q}}</span>
+                          <span style="flex:1;min-width:0">{{ln.n}}</span>
+                          <span data-num="1" style="flex:none;color:var(--fg-muted)">{{ln.sum}}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{o.hasNote}}" hint-placeholder-val="{{false}}">
+                      <div style="display:flex;gap:9px;align-items:flex-start;margin-top:11px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);border:1px solid rgba(247,144,9,.24)">
+                        <span style="width:6px;height:6px;border-radius:999px;background:var(--warn);flex:none;margin-top:6px"></span>
+                        <span style="font-size:12px;line-height:1.5;color:var(--warn-fg);font-weight:500">{{o.note}}</span>
+                      </div>
+                    </sc-if>
+                  </div>
+
+                  <div style="min-width:0">
+                    <div style="background:var(--sunken);border-radius:12px;padding:14px 15px">
+                      <sc-for list="{{o.money}}" as="m" hint-placeholder-count="4">
+                        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+                          <span style="font-size:{{m.size}};font-weight:{{m.w}};color:{{m.fg}}">{{m.l}}</span>
+                          <span data-num="1" data-fd="{{m.fd}}" style="font-size:{{m.size}};font-weight:{{m.w}};color:{{m.fg}}">{{m.v}}</span>
+                        </div>
+                      </sc-for>
+                      <div style="font-size:11px;color:var(--fg-subtle);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.45">{{o.payNote}}</div>
+                    </div>
+                    <div style="display:grid;gap:8px;margin-top:11px">
+                      <sc-for list="{{o.actions}}" as="a" hint-placeholder-count="2">
+                        <button onClick="{{a.go}}" data-press="1" style="width:100%;height:42px;border:{{a.border}};border-radius:10px;background:{{a.bg}};color:{{a.fg}};font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px">{{a.l}}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:22px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.slaH}}</div>
+            <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:7px">{{t.slaP}}</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.catalog}}" hint-placeholder-val="{{false}}">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 19px;margin-bottom:16px">
+            <div data-two="1" style="display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:center">
+              <div>
+                <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">{{t.catSyncH}}</div>
+                <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:5px">{{t.catSyncP}}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end">
+                <span style="font-size:12px;color:var(--fg-subtle);text-align:right">{{catSyncAge}}</span>
+                <button onClick="{{catSync}}" data-syncbtn="1" data-press="1" style="height:38px;padding:0 15px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:600">{{catSyncLabel}}</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+            <sc-for list="{{catCats}}" as="c" hint-placeholder-count="4">
+              <button onClick="{{c.pick}}" data-chip="1" data-on="{{c.on}}" data-press="1" style="height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--fg-muted);font-size:13px;font-weight:600">{{c.l}}</button>
+            </sc-for>
+            <span style="flex:1"></span>
+            <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{catCount}}</span>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div data-hidesm="1" style="display:grid;grid-template-columns:1fr 110px 110px 96px 92px 84px;gap:12px;padding:12px 18px;background:var(--sunken);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">
+              <span>{{t.colDish}}</span><span style="text-align:right">{{t.colPosPrice}}</span><span style="text-align:right">{{t.colMpPrice}}</span><span style="text-align:right">{{t.colMargin}}</span><span style="text-align:right">{{t.colSold}}</span><span style="text-align:right">{{t.colOn}}</span>
+            </div>
+            <sc-for list="{{catRows}}" as="r" hint-placeholder-count="7">
+              <div data-row="1" style="display:grid;grid-template-columns:1fr 110px 110px 96px 92px 84px;gap:12px;padding:13px 18px;border-bottom:1px solid var(--divider);align-items:center;opacity:{{r.op}}">
+                <div style="min-width:0">
+                  <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{r.n}}</div>
+                  <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{r.meta}}</div>
+                </div>
+                <div data-num="1" style="text-align:right;font-size:13px;color:var(--fg-muted)">{{r.posPrice}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;font-weight:600">{{r.mpPrice}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;font-weight:600;color:{{r.marFg}}">{{r.margin}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;color:var(--fg-muted)">{{r.sold}}</div>
+                <div style="display:flex;justify-content:flex-end">
+                  <button onClick="{{r.toggle}}" data-press="1" title="{{r.toggleLabel}}" style="width:42px;height:24px;flex:none;border:0;border-radius:999px;background:{{r.swBg}};position:relative;padding:0">
+                    <span style="position:absolute;top:3px;left:{{r.swX}};width:18px;height:18px;border-radius:50%;background:#fff;transition:left 160ms cubic-bezier(.4,0,.2,1);box-shadow:0 1px 2px rgba(16,24,40,.2)"></span>
+                  </button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div data-two="1" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+            <sc-for list="{{catNotes}}" as="c" hint-placeholder-count="2">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 19px">
+                <div style="font-size:14px;font-weight:600">{{c.h}}</div>
+                <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:6px">{{c.p}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.settle}}" hint-placeholder-val="{{false}}">
+          <div data-two="1" style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:21px 23px">
+              <div style="font-size:12px;color:var(--fg-subtle)">{{t.setNext}}</div>
+              <div data-fd="1" data-num="1" style="font-size:40px;font-weight:700;letter-spacing:-.024em;margin-top:4px;line-height:1">{{setNextAmount}}</div>
+              <div data-num="1" style="font-size:13px;color:var(--fg-muted);margin-top:6px">{{setNextWhen}}</div>
+
+              <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--divider)">
+                <sc-for list="{{setBreak}}" as="b" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px">
+                    <span style="font-size:{{b.size}};font-weight:{{b.w}};color:{{b.fg}}">{{b.l}}</span>
+                    <span data-num="1" data-fd="{{b.fd}}" style="font-size:{{b.size}};font-weight:{{b.w}};color:{{b.fg}}">{{b.v}}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:14px;padding-top:14px;border-top:1px solid var(--divider)">{{t.setNote}}</div>
+            </div>
+
+            <div style="display:grid;gap:12px;align-content:start">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 19px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.setBank}}</div>
+                <sc-for list="{{setBank}}" as="b" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:9px">
+                    <span style="font-size:13px;color:var(--fg-subtle);flex:none">{{b.l}}</span>
+                    <span data-num="1" data-mono="{{b.mono}}" style="font-size:13px;font-weight:500;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis">{{b.v}}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 19px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin-bottom:11px">{{t.setActs}}</div>
+                <div style="display:grid;gap:8px">
+                  <sc-for list="{{setActions}}" as="a" hint-placeholder-count="3">
+                    <button onClick="{{a.go}}" data-press="1" data-dl="{{a.done}}" style="width:100%;height:40px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{a.l}}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin:24px 0 10px">{{t.setHistory}}</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div data-hidesm="1" style="display:grid;grid-template-columns:140px 1fr 120px 120px 120px 110px;gap:12px;padding:12px 18px;background:var(--sunken);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">
+              <span>{{t.colPeriod}}</span><span>{{t.colInvoice}}</span><span style="text-align:right">{{t.colGross}}</span><span style="text-align:right">{{t.colFee}}</span><span style="text-align:right">{{t.colNet}}</span><span style="text-align:right">{{t.colState}}</span>
+            </div>
+            <sc-for list="{{setRows}}" as="r" hint-placeholder-count="6">
+              <div data-row="1" style="display:grid;grid-template-columns:140px 1fr 120px 120px 120px 110px;gap:12px;padding:13px 18px;border-bottom:1px solid var(--divider);align-items:center">
+                <div data-num="1" style="font-size:13px;font-weight:500">{{r.period}}</div>
+                <div data-mono="1" style="font-size:12px;color:var(--fg-muted);min-width:0;overflow:hidden;text-overflow:ellipsis">{{r.invoice}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;color:var(--fg-muted)">{{r.gross}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;color:var(--bad-fg)">{{r.fee}}</div>
+                <div data-num="1" style="text-align:right;font-size:13px;font-weight:600">{{r.net}}</div>
+                <div style="display:flex;justify-content:flex-end">
+                  <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{r.chipBg}};color:{{r.chipFg}}">{{r.state}}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.disputes}}" hint-placeholder-val="{{false}}">
+          <div data-kpi="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <sc-for list="{{dspKpis}}" as="k" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 18px">
+                <div style="font-size:12px;font-weight:500;color:var(--fg-subtle)">{{k.l}}</div>
+                <div data-fd="1" data-num="1" style="font-size:30px;font-weight:700;letter-spacing:-.022em;margin-top:5px;line-height:1.05">{{k.v}}</div>
+                <div style="font-size:12px;color:{{k.c}};margin-top:4px;font-weight:500">{{k.d}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{dspEmpty}}" hint-placeholder-val="{{false}}">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:44px 24px;text-align:center">
+              <div style="font-size:15px;font-weight:600">{{t.dspEmptyH}}</div>
+              <div style="font-size:13px;color:var(--fg-subtle);margin-top:5px;line-height:1.5">{{t.dspEmptyP}}</div>
+            </div>
+          </sc-if>
+
+          <div style="display:grid;gap:12px">
+            <sc-for list="{{disputes}}" as="d" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid {{d.edge}};border-radius:14px;padding:17px 19px">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{d.chipBg}};color:{{d.chipFg}}">{{d.kind}}</span>
+                  <span data-mono="1" style="font-size:12px;color:var(--fg-muted)">{{d.no}}</span>
+                  <span style="flex:1"></span>
+                  <span data-num="1" style="font-size:12px;font-weight:600;color:{{d.dueFg}}">{{d.due}}</span>
+                </div>
+                <div data-two="1" style="display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start;margin-top:12px">
+                  <div style="min-width:0">
+                    <div data-fd="1" style="font-size:16px;font-weight:700;letter-spacing:-.012em">{{d.title}}</div>
+                    <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:5px">{{d.body}}</div>
+                    <div style="display:flex;gap:9px;align-items:flex-start;margin-top:11px;padding:11px 13px;border-radius:10px;background:var(--sunken)">
+                      <span style="width:26px;height:26px;flex:none;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--fg-muted)">{{d.init}}</span>
+                      <span style="min-width:0">
+                        <span style="display:block;font-size:12px;font-weight:600">{{d.who}}</span>
+                        <span style="display:block;font-size:12px;color:var(--fg-muted);line-height:1.5;margin-top:2px">{{d.quote}}</span>
+                      </span>
+                    </div>
+                    <sc-if value="{{d.hasPhoto}}" hint-placeholder-val="{{false}}">
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:var(--fg-subtle)">
+                        <span style="width:14px;height:14px;display:flex" data-icon="image"></span>{{d.photoNote}}
+                      </div>
+                    </sc-if>
+                  </div>
+                  <div>
+                    <div style="background:var(--sunken);border-radius:12px;padding:13px 15px">
+                      <div style="font-size:11px;color:var(--fg-subtle)">{{t.dspAtStake}}</div>
+                      <div data-fd="1" data-num="1" style="font-size:22px;font-weight:700;letter-spacing:-.018em;margin-top:3px">{{d.amount}}</div>
+                      <div style="font-size:11px;color:var(--fg-subtle);margin-top:4px;line-height:1.45">{{d.split}}</div>
+                    </div>
+                    <sc-if value="{{d.pending}}" hint-placeholder-val="{{true}}">
+                      <div style="display:grid;gap:8px;margin-top:11px">
+                        <button onClick="{{d.accept}}" data-press="1" style="width:100%;height:42px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{t.dspAccept}}</button>
+                        <button onClick="{{d.contest}}" data-press="1" style="width:100%;height:42px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--fg);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">{{t.dspContest}}</button>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{d.done}}" hint-placeholder-val="{{false}}">
+                      <div style="margin-top:11px;padding:11px 13px;border-radius:10px;background:var(--sunken);font-size:12px;font-weight:600;color:{{d.doneFg}};line-height:1.45">{{d.doneLabel}}</div>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:20px;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.dspRulesH}}</div>
+            <div style="display:grid;gap:7px;margin-top:9px">
+              <sc-for list="{{dspRules}}" as="r" hint-placeholder-count="4">
+                <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--fg-muted);line-height:1.5">
+                  <span style="width:5px;height:5px;border-radius:999px;background:var(--border-strong);flex:none;margin-top:7px"></span>{{r.l}}
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.perf}}" hint-placeholder-val="{{false}}">
+          <div data-kpi="1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{perfKpis}}" as="k" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:17px 18px">
+                <div style="font-size:12px;font-weight:500;color:var(--fg-subtle)">{{k.l}}</div>
+                <div data-fd="1" data-num="1" style="font-size:30px;font-weight:700;letter-spacing:-.022em;margin-top:5px;line-height:1.05">{{k.v}}</div>
+                <div style="height:3px;border-radius:999px;background:var(--sunken);margin-top:11px;overflow:hidden"><div style="height:100%;width:{{k.w}};background:{{k.bar}};border-radius:999px"></div></div>
+                <div style="font-size:11px;color:var(--fg-subtle);margin-top:5px">{{k.note}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div data-two="1" style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:21px 23px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                <div>
+                  <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">{{t.perfFunnelH}}</div>
+                  <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px">{{t.perfFunnelP}}</div>
+                </div>
+              </div>
+              <div style="display:grid;gap:11px;margin-top:18px">
+                <sc-for list="{{perfFunnel}}" as="f" hint-placeholder-count="4">
+                  <div>
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
+                      <span style="font-size:13px;font-weight:500">{{f.l}}</span>
+                      <span style="display:flex;align-items:baseline;gap:10px">
+                        <span data-num="1" style="font-size:13px;font-weight:600">{{f.v}}</span>
+                        <span data-num="1" style="font-size:12px;font-weight:600;color:{{f.dropFg}};width:52px;text-align:right">{{f.drop}}</span>
+                      </span>
+                    </div>
+                    <div style="height:8px;border-radius:4px;background:var(--sunken);overflow:hidden"><div style="height:100%;width:{{f.w}};background:{{f.bar}};border-radius:4px"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:12px 14px;border-radius:10px;background:var(--warn-soft);border:1px solid rgba(247,144,9,.24)">
+                <span style="width:6px;height:6px;border-radius:999px;background:var(--warn);flex:none;margin-top:6px"></span>
+                <span style="font-size:13px;line-height:1.55;color:var(--warn-fg);font-weight:500">{{t.perfFunnelWhy}}</span>
+              </div>
+            </div>
+
+            <div style="display:grid;gap:12px;align-content:start">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:19px 21px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle)">{{t.perfRating}}</div>
+                <div style="display:flex;align-items:baseline;gap:9px;margin-top:7px">
+                  <span data-fd="1" data-num="1" style="font-size:34px;font-weight:700;letter-spacing:-.022em;line-height:1">4.7</span>
+                  <span data-num="1" style="font-size:13px;color:var(--fg-subtle)">{{t.perfReviews}}</span>
+                </div>
+                <div style="display:grid;gap:5px;margin-top:14px">
+                  <sc-for list="{{perfStars}}" as="s" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:9px">
+                      <span data-num="1" style="width:10px;font-size:12px;color:var(--fg-subtle)">{{s.n}}</span>
+                      <span style="flex:1;height:6px;border-radius:3px;background:var(--sunken);overflow:hidden"><span style="display:block;height:100%;width:{{s.w}};background:var(--star);border-radius:3px"></span></span>
+                      <span data-num="1" style="width:34px;text-align:right;font-size:12px;color:var(--fg-muted)">{{s.c}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:19px 21px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin-bottom:11px">{{t.perfTop}}</div>
+                <sc-for list="{{perfTop}}" as="p" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--divider)">
+                    <span style="font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{p.n}}</span>
+                    <span data-num="1" style="font-size:13px;font-weight:600;flex:none">{{p.c}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin:24px 0 10px">{{t.perfPenalty}}</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <sc-for list="{{perfPenalties}}" as="p" hint-placeholder-count="4">
+              <div style="display:flex;align-items:flex-start;gap:13px;padding:15px 19px;border-bottom:1px solid var(--divider)">
+                <span style="width:7px;height:7px;border-radius:999px;background:{{p.dot}};flex:none;margin-top:7px"></span>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14px;font-weight:600">{{p.h}}</div>
+                  <div style="font-size:13px;color:var(--fg-muted);line-height:1.5;margin-top:3px">{{p.p}}</div>
+                </div>
+                <div data-num="1" style="flex:none;font-size:13px;font-weight:600;color:{{p.valFg}};text-align:right">{{p.val}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.promos}}" hint-placeholder-val="{{false}}">
+          <div data-two="1" style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+            <div>
+              <div style="display:grid;gap:12px">
+                <sc-for list="{{promos}}" as="p" hint-placeholder-count="4">
+                  <div style="background:var(--surface);border:1px solid {{p.border}};border-radius:14px;padding:18px 20px">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                      <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{p.chipBg}};color:{{p.chipFg}}">{{p.state}}</span>
+                      <span style="flex:1"></span>
+                      <span data-num="1" style="font-size:12px;color:var(--fg-subtle)">{{p.window}}</span>
+                    </div>
+                    <div data-fd="1" style="font-size:17px;font-weight:700;letter-spacing:-.014em;margin-top:9px">{{p.title}}</div>
+                    <div style="font-size:13px;color:var(--fg-muted);line-height:1.55;margin-top:4px">{{p.body}}</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--divider);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-top:14px">
+                      <sc-for list="{{p.stats}}" as="s" hint-placeholder-count="3">
+                        <div style="background:var(--surface);padding:12px 13px">
+                          <div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-subtle)">{{s.l}}</div>
+                          <div data-fd="1" data-num="1" style="font-size:17px;font-weight:700;margin-top:3px">{{s.v}}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:13px">
+                      <sc-for list="{{p.actions}}" as="a" hint-placeholder-count="2">
+                        <button onClick="{{a.go}}" data-press="1" style="height:38px;padding:0 15px;border:{{a.border}};border-radius:10px;background:{{a.bg}};color:{{a.fg}};font-size:13px;font-weight:600">{{a.l}}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;gap:12px;align-content:start">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:19px 21px">
+                <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">{{t.proSpendH}}</div>
+                <div data-fd="1" data-num="1" style="font-size:30px;font-weight:700;letter-spacing:-.022em;margin-top:6px;line-height:1">{{proSpend}}</div>
+                <div data-num="1" style="font-size:12px;color:var(--fg-subtle);margin-top:5px">{{t.proSpendNote}}</div>
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--divider)">
+                  <sc-for list="{{proReturn}}" as="r" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+                      <span style="font-size:13px;color:var(--fg-muted)">{{r.l}}</span>
+                      <span data-num="1" style="font-size:13px;font-weight:600;color:{{r.fg}}">{{r.v}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:19px 21px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);margin-bottom:11px">{{t.proBuyH}}</div>
+                <div style="display:grid;gap:8px">
+                  <sc-for list="{{proBuy}}" as="b" hint-placeholder-count="3">
+                    <button onClick="{{b.go}}" data-press="1" style="width:100%;text-align:left;padding:13px 14px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--fg)">
+                      <span style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                        <span style="font-size:13px;font-weight:600">{{b.l}}</span>
+                        <span data-num="1" style="font-size:13px;font-weight:600;color:var(--brand-dark);flex:none">{{b.price}}</span>
+                      </span>
+                      <span style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:5px">
+                        <span style="font-size:12px;color:var(--fg-subtle);line-height:1.45;min-width:0">{{b.note}}</span>
+                        <span style="flex:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{b.ctaBg}};color:{{b.ctaFg}}">{{b.cta}}</span>
+                      </span>
+                    </button>
+                  </sc-for>
+                </div>
+                <div style="font-size:11px;color:var(--fg-subtle);line-height:1.5;margin-top:11px">{{t.proBuyNote}}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{at.settings}}" hint-placeholder-val="{{false}}">
+          <div data-two="1" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <sc-for list="{{setGroups}}" as="g" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:19px 21px">
+                <div data-fd="1" style="font-size:15px;font-weight:700;letter-spacing:-.012em">{{g.h}}</div>
+                <div style="font-size:12px;color:var(--fg-subtle);margin-top:3px;line-height:1.45">{{g.note}}</div>
+                <div style="margin-top:15px">
+                  <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--divider)">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:13px;font-weight:500">{{r.l}}</div>
+                        <sc-if value="{{r.hasNote}}" hint-placeholder-val="{{false}}">
+                          <div style="font-size:12px;color:var(--fg-subtle);margin-top:2px;line-height:1.45">{{r.note}}</div>
+                        </sc-if>
+                      </div>
+                      <div data-num="1" style="flex:none;font-size:13px;font-weight:600;color:{{r.vFg}};text-align:right;max-width:170px;overflow:hidden;text-overflow:ellipsis">{{r.v}}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;background:var(--n-900);color:var(--n-0);box-shadow:var(--shadow-pop);font-size:14px;font-weight:500;max-width:calc(100vw - 40px)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#12B76A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M20 6 9 17l-5-5"></path></svg>
+      <span style="min-width:0">{{toast}}</span>
+    </div>
+  </sc-if>
+
+
+<sc-if value="{{rejOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{mClose}}" style="position:fixed;inset:0;background:rgba(15,19,32,.42);z-index:120"></div>
+  <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;width:min(94vw,460px);max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop);padding:26px 28px 24px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;letter-spacing:-.018em">{{rejTitle}}</div>
+        <div style="font-size:13px;color:var(--fg-muted);margin-top:5px;line-height:1.5">{{rejSub}}</div>
+      </div>
+      <button onClick="{{mClose}}" aria-label="{{t.close}}" style="width:32px;height:32px;flex:none;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div style="display:grid;gap:8px;margin-top:20px">
+      <sc-for list="{{rejReasons}}" as="r" hint-placeholder-count="4">
+        <button onClick="{{r.pick}}" style="width:100%;text-align:left;display:flex;align-items:flex-start;gap:12px;padding:13px 14px;border:1px solid {{r.border}};border-radius:12px;background:{{r.bg}};font-family:inherit">
+          <span style="width:19px;height:19px;flex:none;border-radius:50%;border:1.5px solid {{r.ring}};background:{{r.fill}};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px">{{r.mark}}</span>
+          <span style="min-width:0">
+            <span style="display:block;font-size:14px;font-weight:600;color:var(--fg)">{{r.l}}</span>
+            <span style="display:block;font-size:12px;color:var(--fg-muted);margin-top:2px;line-height:1.45">{{r.note}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-top:16px;padding:12px 14px;border:1px solid var(--warn-line);background:var(--warn-soft);border-radius:12px">
+      <span style="width:6px;height:6px;border-radius:999px;background:var(--warn);flex:none;margin-top:6px"></span>
+      <span style="font-size:12px;line-height:1.5;color:var(--warn-fg);font-weight:500">{{t.rejWarn}}</span>
+    </div>
+    <button onClick="{{rejSend}}" style="width:100%;height:46px;margin-top:16px;border:0;border-radius:12px;background:{{rejBg}};color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:inherit">{{t.rejSend}}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{rcpOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{mClose}}" style="position:fixed;inset:0;background:rgba(15,19,32,.42);z-index:120"></div>
+  <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;width:min(94vw,460px);max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop);padding:26px 28px 24px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;letter-spacing:-.018em">{{rcpTitle}}</div>
+        <div style="font-size:13px;color:var(--fg-muted);margin-top:5px;line-height:1.5">{{rcpSub}}</div>
+      </div>
+      <button onClick="{{mClose}}" aria-label="{{t.close}}" style="width:32px;height:32px;flex:none;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div style="margin-top:20px;padding:18px 16px;border:1px solid var(--border);border-radius:14px;background:var(--sunken)">
+      <sc-for list="{{rcpLines}}" as="l" hint-placeholder-count="4">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:6px 0">
+          <span style="font-size:13px;color:var(--fg);min-width:0">{{l.n}}</span>
+          <span data-num="1" style="font-family:var(--font-mono);font-size:13px;color:var(--fg-muted);flex:none">{{l.v}}</span>
+        </div>
+      </sc-for>
+      <div style="border-top:1px dashed var(--border-strong);margin:10px 0"></div>
+      <sc-for list="{{rcpTotals}}" as="r" hint-placeholder-count="3">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:4px 0">
+          <span style="font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}}">{{r.l}}</span>
+          <span data-num="1" style="font-family:var(--font-mono);font-size:{{r.size}};font-weight:{{r.w}};color:{{r.fg}};flex:none">{{r.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:12px;color:var(--fg-subtle);line-height:1.55;margin-top:14px">{{t.rcpNote}}</div>
+  </div>
+</sc-if>
+
+<sc-if value="{{bankOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{mClose}}" style="position:fixed;inset:0;background:rgba(15,19,32,.42);z-index:120"></div>
+  <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;width:min(94vw,460px);max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop);padding:26px 28px 24px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;letter-spacing:-.018em">{{bankTitle}}</div>
+        <div style="font-size:13px;color:var(--fg-muted);margin-top:5px;line-height:1.5">{{bankSub}}</div>
+      </div>
+      <button onClick="{{mClose}}" aria-label="{{t.close}}" style="width:32px;height:32px;flex:none;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <label style="display:block;font-size:13px;font-weight:600;margin-top:20px">{{t.bankName}}</label>
+    <input value="{{bankBank}}" onChange="{{setBankBank}}" placeholder="Kapitalbank" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:11px;font-size:15px;color:var(--fg);background:var(--surface)">
+    <label style="display:block;font-size:13px;font-weight:600;margin-top:16px">{{t.bankAcc}}</label>
+    <input value="{{bankAcc}}" onChange="{{setBankAcc}}" placeholder="2020 8000 0000 0000" style="width:100%;height:44px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:11px;font-family:var(--font-mono);font-size:15px;letter-spacing:.04em;color:var(--fg);background:var(--surface)">
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-top:16px;padding:12px 14px;border:1px solid var(--warn-line);background:var(--warn-soft);border-radius:12px">
+      <span style="width:6px;height:6px;border-radius:999px;background:var(--warn);flex:none;margin-top:6px"></span>
+      <span style="font-size:12px;line-height:1.5;color:var(--warn-fg);font-weight:500">{{t.bankWarn}}</span>
+    </div>
+    <button onClick="{{bankSave}}" style="width:100%;height:46px;margin-top:16px;border:0;border-radius:12px;background:{{bankBg}};color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:inherit">{{t.bankSave}}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{budOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{mClose}}" style="position:fixed;inset:0;background:rgba(15,19,32,.42);z-index:120"></div>
+  <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;width:min(94vw,460px);max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop);padding:26px 28px 24px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;letter-spacing:-.018em">{{budTitle}}</div>
+        <div style="font-size:13px;color:var(--fg-muted);margin-top:5px;line-height:1.5">{{budSub}}</div>
+      </div>
+      <button onClick="{{mClose}}" aria-label="{{t.close}}" style="width:32px;height:32px;flex:none;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <label style="display:block;font-size:13px;font-weight:600;margin-top:20px">{{t.budLabel}}</label>
+    <input value="{{budVal}}" onChange="{{setBudVal}}" placeholder="840000" style="width:100%;height:48px;margin-top:7px;padding:0 13px;border:1px solid var(--border-strong);border-radius:11px;font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;color:var(--fg);background:var(--surface)">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <sc-for list="{{budQuick}}" as="q" hint-placeholder-count="3">
+        <button onClick="{{q.pick}}" style="flex:1;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--fg-muted);font-size:13px;font-weight:600;font-family:inherit">{{q.l}}</button>
+      </sc-for>
+    </div>
+    <div style="margin-top:18px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--sunken)">
+      <sc-for list="{{budCalc}}" as="c" hint-placeholder-count="3">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:4px 0">
+          <span style="font-size:13px;color:var(--fg-muted)">{{c.l}}</span>
+          <span data-num="1" style="font-size:13px;font-weight:600;color:{{c.fg}};flex:none">{{c.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <button onClick="{{budSave}}" style="width:100%;height:46px;margin-top:16px;border:0;border-radius:12px;background:var(--brand);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:inherit">{{t.budSave}}</button>
+  </div>
+</sc-if>
+
+<sc-if value="{{cancelOpen}}" hint-placeholder-val="{{false}}">
+  <div onClick="{{mClose}}" style="position:fixed;inset:0;background:rgba(15,19,32,.42);z-index:120"></div>
+  <div style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:121;width:min(94vw,460px);max-height:86vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop);padding:26px 28px 24px">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-family:'Inter Tight', system-ui, sans-serif;font-size:20px;font-weight:700;letter-spacing:-.018em">{{cxTitle}}</div>
+        <div style="font-size:13px;color:var(--fg-muted);margin-top:5px;line-height:1.5">{{cxSub}}</div>
+      </div>
+      <button onClick="{{mClose}}" aria-label="{{t.close}}" style="width:32px;height:32px;flex:none;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--fg-muted);display:flex;align-items:center;justify-content:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div style="margin-top:18px;display:grid;gap:9px">
+      <sc-for list="{{cxFacts}}" as="f" hint-placeholder-count="3">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--fg-muted)">{{f.l}}</span>
+          <span data-num="1" style="font-size:13px;font-weight:600;color:{{f.fg}};flex:none">{{f.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:20px">
+      <button onClick="{{cxGo}}" style="flex:1;height:46px;border:0;border-radius:12px;background:var(--bad);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:inherit">{{t.cxGo}}</button>
+      <button onClick="{{mClose}}" style="flex:1;height:46px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface);color:var(--fg);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:inherit">{{t.cxKeep}}</button>
+    </div>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { lang: "uz", theme: "light", view: "orders", toast: "",
+    isOpen: true, ordF: "all", catCat: 0, catOff: {}, ordDone: {}, dspDone: {} };
+
+  ICONS = {
+    inbox: '<path d="M3 12h5l2 3h4l2-3h5"></path><path d="M5.5 4.5h13l2.5 7.5v6.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5V12z"></path>',
+    book: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v18H5.5A1.5 1.5 0 0 1 4 19.5z"></path><path d="M8 3v18"></path>',
+    wallet: '<path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4.5A1.5 1.5 0 0 1 3 17.5z"></path><path d="M16 12h2"></path>',
+    scale: '<path d="M12 4v16"></path><path d="M7 8h10"></path><path d="M4 20h16"></path><path d="m7 8-3 6h6z"></path><path d="m17 8-3 6h6z"></path>',
+    chart: '<path d="M4 20V10"></path><path d="M10 20V4"></path><path d="M16 20v-7"></path><path d="M22 20H2"></path>',
+    star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"></path>',
+    mega: '<path d="M4 10v4a1 1 0 0 0 1 1h3l5 4V5L8 9H5a1 1 0 0 0-1 1z"></path><path d="M17 9.5a4 4 0 0 1 0 5"></path>',
+    cog: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path>',
+    sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.9 4.9 1.4 1.4"></path><path d="m17.7 17.7 1.4 1.4"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.3 17.7-1.4 1.4"></path><path d="m19.1 4.9-1.4 1.4"></path>',
+    moon: '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"></path>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="m21 15-5-4-4.5 5"></path>',
+  };
+
+  componentDidMount() { this.paint(); }
+  componentDidUpdate() { this.paint(); }
+
+  paint() {
+    document.querySelectorAll("[data-icon]").forEach(el => {
+      const k = el.getAttribute("data-icon");
+      const p = this.ICONS[k];
+      if (!p) return;
+      const want = 'i' + k;
+      if (el.getAttribute("data-painted") === want) return;
+      el.setAttribute("data-painted", want);
+      el.innerHTML = '<svg width="' + (el.style.width === '16px' ? 16 : 19) + '" height="' + (el.style.width === '16px' ? 16 : 19) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+    });
+  }
+
+  L(v) { return v && typeof v === "object" ? (v[this.state.lang] || v.en) : v; }
+  T(u, r, e) { return { uz: u, ru: r, en: e }; }
+  f(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u2009"); }
+
+  flash(m) {
+    clearTimeout(this._t);
+    this.setState({ toast: m });
+    this._t = setTimeout(() => this.setState({ toast: "" }), 2600);
+  }
+
+  renderVals() {
+    const S = this.state;
+    const P = (u, r, e) => this.L(this.T(u, r, e));
+    const som = P("so'm", "сум", "so'm");
+    const F = (n) => this.f(n);
+
+    const t = {
+      partner: P("Hamkor paneli", "Панель партнёра", "Partner panel"),
+      chilonzor: P("Chilonzor · Toshkent", "Чиланзар · Ташкент", "Chilonzor · Tashkent"),
+      secDaily: P("Kunlik ish", "Ежедневно", "Daily"),
+      secMoney: P("Pul", "Деньги", "Money"),
+      secGrow: P("O'sish", "Рост", "Growth"),
+      navSettings: P("Sozlamalar", "Настройки", "Settings"),
+      theme: P("Kunduzgi va tungi rejim", "Светлая и тёмная тема", "Light and dark theme"),
+
+      ordEmptyH: P("Bu filtrda buyurtma yo'q", "В этом фильтре заказов нет", "No orders in this filter"),
+      ordEmptyP: P("Boshqa filtrni tanlang yoki barchasini ko'ring.", "Выберите другой фильтр или посмотрите все.", "Pick another filter, or view all."),
+      slaH: P("Nima uchun 90 soniya", "Почему 90 секунд", "Why 90 seconds"),
+      slaP: P("Yangi buyurtma 90 soniya ichida qabul qilinmasa, mijoz kutishni to'xtatadi va buyurtma bekor qilinadi. Ikki daqiqadan uzoq kutish reytingga ta'sir qiladi \u2014 shuning uchun sanoq ko'rinib turadi.", "Если новый заказ не принят за 90 секунд, гость перестаёт ждать и заказ отменяется. Ожидание дольше двух минут влияет на рейтинг \u2014 поэтому счётчик виден.", "If a new order is not accepted within 90 seconds the guest stops waiting and the order cancels. Waits over two minutes affect the rating \u2014 which is why the countdown is visible."),
+
+      catSyncH: P("Menyu POS tizimidan keladi", "Меню приходит из POS", "The menu comes from the POS"),
+      catSyncP: P("Nom, tarkib va tugagan taomlar POS'da o'zgaradi \u2014 bu yerda faqat marketplace narxi va ko'rinishi boshqariladi. Ikki joyda menyu yuritilmaydi.", "Название, состав и стоп-лист меняются в POS \u2014 здесь управляется только цена и видимость на маркетплейсе. Меню не ведётся в двух местах.", "Names, recipes and the stop-list change in the POS \u2014 here you control only the marketplace price and visibility. The menu is never maintained twice."),
+      catSyncBtn: P("Hozir sinxronlash", "Синхронизировать", "Sync now"),
+      colDish: P("Taom", "Блюдо", "Dish"),
+      colPosPrice: P("Zal narxi", "Цена в зале", "In-house"),
+      colMpPrice: P("Marketplace", "Маркетплейс", "Marketplace"),
+      colMargin: P("Marja", "Маржа", "Margin"),
+      colSold: P("30 kun", "30 дней", "30 days"),
+      colOn: P("Ko'rinadi", "Видно", "Visible"),
+
+      setNext: P("Keyingi to'lov", "Следующая выплата", "Next payout"),
+      setNote: P("To'lov har payshanba, o'tgan hafta uchun. Bank kuni bo'lmasa keyingi ish kuniga suriladi. Nizo ochiq bo'lsa, o'sha buyurtma summasi keyingi davrga o'tadi.", "Выплата каждый четверг за прошлую неделю. Если день нерабочий \u2014 переносится. При открытом споре сумма заказа переходит в следующий период.", "Payouts run every Thursday for the previous week. Non-banking days shift to the next working day. An open dispute moves that order's amount to the next period."),
+      setBank: P("Bank rekvizitlari", "Банковские реквизиты", "Bank details"),
+      setActs: P("Amallar", "Действия", "Actions"),
+      rejWarn: P("Rad etish darajasi 3% dan oshsa qidiruvda pastga tushasiz. Oyda 2 marta rad etish me'yor ichida.", "Если доля отклонений превысит 3%, вы опуститесь в поиске. Два отклонения в месяц — в норме.", "Above a 3% rejection rate you drop in search. Two rejections a month is within target."),
+      rejSend: P("Rad etish va mijozga xabar berish", "Отклонить и уведомить гостя", "Reject and tell the guest"),
+      rcpNote: P("Chek POS tizimida ham saqlanadi. Fiskal chek mijozga Telegram orqali yuborilgan.", "Чек также хранится в POS. Фискальный чек отправлен гостю в Telegram.", "The receipt is also kept in the POS. The fiscal receipt went to the guest on Telegram."),
+      bankName: P("Bank nomi", "Название банка", "Bank name"),
+      bankAcc: P("Hisob raqami", "Номер счёта", "Account number"),
+      bankWarn: P("Rekvizit o'zgartirilganda to'lov tasdiqlangunga qadar to'xtatiladi. Joriy hisob-kitob eski rekvizitga o'tadi.", "При смене реквизитов выплаты приостанавливаются до подтверждения. Текущий расчёт уйдёт на старые реквизиты.", "Payouts pause until the change is verified. The current settlement goes to the old account."),
+      bankSave: P("Tekshirishga yuborish", "Отправить на проверку", "Submit for verification"),
+      budSave: P("Byudjetni saqlash", "Сохранить бюджет", "Save the budget"),
+      cxGo: P("Ha, bekor qilish", "Да, отменить", "Yes, cancel it"),
+      cxKeep: P("Qoldirish", "Оставить", "Keep it"),
+      close: P("Yopish", "Закрыть", "Close"),
+      setHistory: P("To'lov tarixi", "История выплат", "Payout history"),
+      colPeriod: P("Davr", "Период", "Period"),
+      colInvoice: P("Hisob-faktura", "Счёт", "Invoice"),
+      colGross: P("Aylanma", "Оборот", "Gross"),
+      colFee: P("Komissiya", "Комиссия", "Fee"),
+      colNet: P("Qo'lga", "К выплате", "Net"),
+      colState: P("Holat", "Статус", "State"),
+
+      dspEmptyH: P("Ochiq nizo yo'q", "Открытых споров нет", "No open disputes"),
+      dspEmptyP: P("Mijoz shikoyat qilsa, u shu yerda paydo bo'ladi va javob berish uchun 24 soat bo'ladi.", "Если гость жалуется, обращение появится здесь; на ответ есть 24 часа.", "When a guest complains it appears here, and you have 24 hours to respond."),
+      dspAtStake: P("Bahs summasi", "Сумма спора", "At stake"),
+      dspAccept: P("Qabul qilish", "Признать", "Accept"),
+      dspContest: P("E'tiroz bildirish", "Оспорить", "Contest"),
+      dspRulesH: P("Nizo qanday hal qilinadi", "Как решается спор", "How a dispute is settled"),
+
+      perfFunnelH: P("Ko'rildi \u2192 buyurtma", "Просмотры \u2192 заказ", "Views \u2192 order"),
+      perfFunnelP: P("Oxirgi 30 kun", "Последние 30 дней", "Last 30 days"),
+      perfFunnelWhy: P("Eng katta yo'qotish savatda: 41% tashlab ketadi. Sabab \u2014 yetkazish narxi savatda ko'rinadi, kartada emas. Yetkazish narxini kartada ko'rsatsangiz, yo'qotish kamayadi.", "Основная потеря в корзине: 41% уходит. Причина \u2014 стоимость доставки видна только в корзине. Покажите её на карточке, и потеря снизится.", "The biggest loss is in the cart: 41% leave. The cause is that the delivery fee appears only in the cart. Show it on the card and the loss falls."),
+      perfRating: P("Reyting", "Рейтинг", "Rating"),
+      perfReviews: P("· 812 baho", "· 812 оценок", "· 812 ratings"),
+      perfTop: P("Eng ko'p buyurtma", "Чаще всего заказывают", "Ordered most"),
+      perfPenalty: P("Reytingga ta'sir qiladigan narsalar", "Что влияет на рейтинг", "What affects the rating"),
+
+      proSpendH: P("Reklama xarajati", "Расходы на рекламу", "Ad spend"),
+      proSpendNote: P("so'm · shu oy", "сум · этот месяц", "so'm · this month"),
+      proBuyH: P("Joy sotib olish", "Купить размещение", "Buy placement"),
+      proBuyNote: P("Reklama qidiruvda va lentada belgi bilan ko'rsatiladi \u2014 mijozdan yashirilmaydi.", "Реклама в поиске и в лентах помечается \u2014 от гостя не скрывается.", "Promoted placements are labelled in search and in the rails \u2014 never hidden from the guest."),
+    };
+
+    const nav = (key, icon, label, badge, badgeBg) => ({
+      icon, label, on: (S.view || "orders") === key,
+      hasBadge: !!badge, badge: badge ? String(badge) : "", badgeBg: badgeBg || "var(--brand)",
+      go: () => this.setState({ view: key }),
+    });
+
+    const pendingOrders = 3 - Object.keys(S.ordDone || {}).length;
+    const openDisputes = 2 - Object.keys(S.dspDone || {}).length;
+
+    const navDaily = [
+      nav("orders", "inbox", P("Buyurtmalar", "Заказы", "Orders"), pendingOrders > 0 ? pendingOrders : 0, "var(--bad)"),
+      nav("catalog", "book", P("Katalog", "Каталог", "Catalogue")),
+    ];
+    const navMoney = [
+      nav("settle", "wallet", P("To'lovlar", "Выплаты", "Payouts")),
+      nav("disputes", "scale", P("Nizolar", "Споры", "Disputes"), openDisputes > 0 ? openDisputes : 0, "var(--warn)"),
+    ];
+    const navGrow = [
+      nav("perf", "chart", P("Natijalar", "Показатели", "Performance")),
+      nav("promos", "mega", P("Aksiyalar", "Акции", "Promotions")),
+    ];
+
+    const view = S.view || "orders";
+    const at = {};
+    ["orders", "catalog", "settle", "disputes", "perf", "promos", "settings"].forEach(k => { at[k] = view === k; });
+
+    const titles = {
+      orders: [P("Buyurtmalar", "Заказы", "Orders"), P("Bugun 47 buyurtma \u00b7 3 tasi javob kutmoqda", "Сегодня 47 заказов \u00b7 3 ждут ответа", "47 orders today \u00b7 3 awaiting your answer")],
+      catalog: [P("Katalog", "Каталог", "Catalogue"), P("Marketplace narxi va ko'rinishi \u00b7 menyu POS'dan keladi", "Цена и видимость на маркетплейсе \u00b7 меню из POS", "Marketplace price and visibility \u00b7 the menu comes from the POS")],
+      settle: [P("To'lovlar", "Выплаты", "Payouts"), P("Har payshanba \u00b7 komissiya 9%", "Каждый четверг \u00b7 комиссия 9%", "Every Thursday \u00b7 9% commission")],
+      disputes: [P("Nizolar", "Споры", "Disputes"), P("Javob berish muddati 24 soat", "Срок ответа 24 часа", "You have 24 hours to respond")],
+      perf: [P("Natijalar", "Показатели", "Performance"), P("Oxirgi 30 kun \u00b7 Chilonzor", "Последние 30 дней \u00b7 Чиланзар", "Last 30 days \u00b7 Chilonzor")],
+      promos: [P("Aksiyalar", "Акции", "Promotions"), P("Aksiya va reklama joyi", "Акции и рекламные места", "Offers and paid placement")],
+      settings: [P("Sozlamalar", "Настройки", "Settings"), P("Do'kon profili, ish vaqti, yetkazish", "Профиль, часы работы, доставка", "Store profile, hours, delivery")],
+    };
+
+    // ---- orders
+    const ORD = [
+      { id: "o1", no: "#MP-4471", st: "new", customer: "Nilufar Yusupova", address: P("Chilonzor 24, 3-podyezd, 47-xonadon \u00b7 2.4 km", "Чиланзар 24, подъезд 3, кв 47 \u00b7 2.4 км", "Chilonzor 24, entrance 3, flat 47 \u00b7 2.4 km"),
+        lines: [[2, P("Osh, to'y oshi", "Плов свадебный", "Plov, wedding style"), 96000], [1, P("Achchiq lag'mon", "Острый лагман", "Spicy lagman"), 42000], [3, P("Ko'k choy", "Зелёный чай", "Green tea"), 24000]],
+        gross: 162000, note: P("Mijoz izohi: achchiq qilmang, bola bor", "Комментарий: не остро, с ребёнком", "Guest note: not spicy, there is a child"), pay: "click", cd: 74 },
+      { id: "o2", no: "#MP-4470", st: "cooking", customer: "Sardor Aliyev", address: P("Yunusobod 12, 8-xonadon \u00b7 3.1 km", "Юнусабад 12, кв 8 \u00b7 3.1 км", "Yunusobod 12, flat 8 \u00b7 3.1 km"),
+        lines: [[1, P("Pepperoni, 30 sm", "Пепперони 30 см", "Pepperoni 30 cm"), 64000], [2, P("Kola, 0.5", "Кола 0.5", "Cola 0.5"), 24000]],
+        gross: 88000, pay: "cash" },
+      { id: "o3", no: "#MP-4469", st: "new", customer: "Kamola Rasulova", address: P("Sergeli 4, 2-podyezd \u00b7 1.8 km", "Сергели 4, подъезд 2 \u00b7 1.8 км", "Sergeli 4, entrance 2 \u00b7 1.8 km"),
+        lines: [[1, P("Tovuqli lavash", "Лаваш с курицей", "Chicken lavash"), 32000], [1, P("Ayron", "Айран", "Ayran"), 10000]],
+        gross: 42000, pay: "payme", cd: 38 },
+      { id: "o4", no: "#MP-4468", st: "ready", customer: "Jahongir Toshev", address: P("Chilonzor 8, 15-xonadon \u00b7 1.2 km", "Чиланзар 8, кв 15 \u00b7 1.2 км", "Chilonzor 8, flat 15 \u00b7 1.2 km"),
+        lines: [[3, P("Manti, 5 dona", "Манты, 5 шт", "Manti, 5 pcs"), 114000]],
+        gross: 114000, pay: "click" },
+      { id: "o5", no: "#MP-4467", st: "new", customer: "Dilnoza Karimova", address: P("Mirzo Ulug'bek 31 \u00b7 4.6 km", "Мирзо Улугбек 31 \u00b7 4.6 км", "Mirzo Ulug'bek 31 \u00b7 4.6 km"),
+        lines: [[1, P("Margherita, 30 sm", "Маргарита 30 см", "Margherita 30 cm"), 56000], [1, P("Sezar salat", "Салат Цезарь", "Caesar salad"), 34000]],
+        gross: 90000, pay: "cash", cd: 12 },
+      { id: "o6", no: "#MP-4462", st: "done", customer: "Aziz Normatov", address: P("Chilonzor 19 \u00b7 2.0 km", "Чиланзар 19 \u00b7 2.0 км", "Chilonzor 19 \u00b7 2.0 km"),
+        lines: [[2, P("Double beef", "Double beef", "Double beef"), 116000]],
+        gross: 116000, pay: "click" },
+    ];
+
+    const OST = {
+      new: { l: P("Javob kutmoqda", "Ждёт ответа", "Awaiting answer"), bg: "var(--bad-soft)", fg: "var(--bad-fg)", edge: "var(--bad)" },
+      cooking: { l: P("Tayyorlanmoqda", "Готовится", "Cooking"), bg: "var(--warn-soft)", fg: "var(--warn-fg)", edge: "var(--warn)" },
+      ready: { l: P("Kuryer kutmoqda", "Ждёт курьера", "Awaiting courier"), bg: "var(--brand-soft)", fg: "var(--brand-dark)", edge: "var(--brand)" },
+      done: { l: P("Yetkazildi", "Доставлен", "Delivered"), bg: "var(--ok-soft)", fg: "var(--ok-fg)", edge: "var(--ok)" },
+      rejected: { l: P("Rad etilgan", "Отклонён", "Rejected"), bg: "var(--sunken)", fg: "var(--fg-muted)", edge: "var(--n-300)" },
+    };
+    const PAYN = {
+      click: P("Click bilan to'langan \u00b7 pul to'lov davrida keladi", "Оплачено Click \u00b7 деньги придут в выплату", "Paid by Click \u00b7 money arrives with the payout"),
+      payme: P("Payme bilan to'langan \u00b7 pul to'lov davrida keladi", "Оплачено Payme \u00b7 деньги придут в выплату", "Paid by Payme \u00b7 money arrives with the payout"),
+      cash: P("Naqd \u00b7 kuryer yig'adi, komissiya to'lovdan ushlanadi", "Наличные \u00b7 собирает курьер, комиссия удержится из выплаты", "Cash \u00b7 the courier collects; commission is withheld from the payout"),
+    };
+
+    const ordFilters = [["all", P("Barchasi", "Все", "All")], ["new", P("Javob kutmoqda", "Ждут ответа", "Awaiting")], ["active", P("Ishda", "В работе", "In progress")], ["done", P("Yetkazilgan", "Доставленные", "Delivered")]]
+      .map(([k, l]) => ({ l, on: (S.ordF || "all") === k, pick: () => this.setState({ ordF: k }) }));
+
+    const done = S.ordDone || {};
+    const delay = S.ordDelay || {};
+    const dl = S.setDl || {};
+    const prState = S.proState || {};
+    const budNow = S.proBudget === undefined ? 840000 : S.proBudget;
+    const adBooked = S.adBooked || {};
+    const filt = (o) => {
+      const st = done[o.id] || o.st;
+      const f = S.ordF || "all";
+      if (f === "all") return true;
+      if (f === "new") return st === "new";
+      if (f === "active") return st === "cooking" || st === "ready" || st === "accepted";
+      return st === "done" || st === "rejected";
+    };
+    const shown = ORD.filter(filt);
+
+    const orders = shown.map(o => {
+      const st = done[o.id] || o.st;
+      const M = OST[st] || OST.cooking;
+      const fee = Math.round(o.gross * 0.09);
+      const acts = st === "new"
+        ? [{ l: P("Qabul qilish \u00b7 25 daq", "Принять \u00b7 25 мин", "Accept \u00b7 25 min"), bg: "var(--brand)", fg: "#fff", border: "0",
+             go: () => { this.setState({ ordDone: { ...done, [o.id]: "cooking" } }); this.flash(P("Qabul qilindi \u00b7 oshxonaga yuborildi", "Принято \u00b7 отправлено на кухню", "Accepted \u00b7 sent to the kitchen")); } },
+           { l: P("Rad etish", "Отклонить", "Reject"), bg: "var(--surface)", fg: "var(--fg-muted)", border: "1px solid var(--border)",
+             go: () => this.setState({ rejFor: o.id, rejWhy: undefined }) }]
+        : st === "cooking"
+        ? [{ l: P("Tayyor", "Готово", "Ready"), bg: "var(--brand)", fg: "#fff", border: "0",
+             go: () => { this.setState({ ordDone: { ...done, [o.id]: "ready" } }); this.flash(P("Kuryer chaqirildi", "Курьер вызван", "Courier called")); } },
+           { l: P("Vaqt kerak", "Нужно время", "Need more time"), bg: "var(--surface)", fg: "var(--fg-muted)", border: "1px solid var(--border)",
+             go: () => { const n = (delay[o.id] || 0) + 10; this.setState({ ordDelay: { ...delay, [o.id]: n } }); this.flash(P("Mijozga +10 daqiqa xabar yuborildi · jami +", "Гостю отправлено +10 минут · всего +", "The guest has been told +10 minutes · total +") + n); } }]
+        : st === "ready"
+        ? [{ l: P("Kuryerga berildi", "Передано курьеру", "Handed to courier"), bg: "var(--surface)", fg: "var(--fg)", border: "1px solid var(--border-strong)",
+             go: () => { this.setState({ ordDone: { ...done, [o.id]: "done" } }); this.flash(P("Kuryerga berildi", "Передано курьеру", "Handed to the courier")); } }]
+        : st === "rejected"
+        ? []
+        : [{ l: P("Chekni ko'rish", "Посмотреть чек", "View receipt"), bg: "var(--surface)", fg: "var(--fg-muted)", border: "1px solid var(--border)",
+             go: () => this.setState({ rcpFor: o.id }) }];
+
+      return {
+        no: o.no, status: M.l, chipBg: M.bg, chipFg: M.fg, edge: M.edge,
+        isNew: st === "new",
+        countdown: o.cd ? o.cd + " " + P("soniya qoldi", "секунд осталось", "seconds left") : "",
+        delayed: !!delay[o.id],
+        delayNote: delay[o.id] ? "+" + delay[o.id] + " " + P("daqiqa \u00b7 mijozga aytilgan", "минут \u00b7 гость предупреждён", "min \u00b7 the guest was told") : "",
+        ago: st === "done" ? P("42 daqiqa oldin", "42 минуты назад", "42 min ago") : P("2 daqiqa oldin", "2 минуты назад", "2 min ago"),
+        customer: o.customer, address: o.address,
+        lines: o.lines.map(([q, n, sum]) => ({ q: q + " \u00d7", n, sum: F(sum) })),
+        hasNote: !!o.note, note: o.note || "",
+        money: [
+          { l: P("Taomlar", "Блюда", "Items"), v: F(o.gross), size: "13px", w: "500", fg: "var(--fg-muted)", fd: "" },
+          { l: P("Komissiya 9%", "Комиссия 9%", "Commission 9%"), v: "\u2212" + F(fee), size: "13px", w: "500", fg: "var(--bad-fg)", fd: "" },
+          { l: P("Qo'lga", "К выплате", "You receive"), v: F(o.gross - fee), size: "19px", w: "700", fg: "var(--fg)", fd: "1" },
+        ],
+        payNote: PAYN[o.pay],
+        actions: acts,
+      };
+    });
+
+    const ordKpis = [
+      { l: P("Bugungi buyurtma", "Заказов сегодня", "Orders today"), v: "47", d: "+12 " + P("kechaga nisbatan", "к вчера", "vs yesterday"), c: "var(--ok-fg)" },
+      { l: P("Bugungi aylanma", "Оборот сегодня", "Gross today"), v: "4.18 " + P("mln", "млн", "M"), d: som + " \u00b7 " + P("komissiyadan oldin", "до комиссии", "before commission"), c: "var(--fg-subtle)" },
+      { l: P("O'rtacha javob", "Среднее время ответа", "Average answer"), v: "38 " + P("son", "сек", "s"), d: P("me'yor 90 son", "норма 90 сек", "target 90 s"), c: "var(--ok-fg)" },
+      { l: P("Bekor qilingan", "Отменено", "Cancelled"), v: "2", d: P("me'yor 3% dan kam", "норма ниже 3%", "target under 3%"), c: "var(--fg-subtle)" },
+    ];
+
+    // ---- catalog
+    const CAT = [P("Barchasi", "Все", "All"), P("Milliy", "Национальная", "Uzbek"), P("Burger", "Бургеры", "Burgers"), P("Pitsa", "Пицца", "Pizza"), P("Ichimlik", "Напитки", "Drinks")];
+    const DISH = [
+      { id: "d1", c: 1, n: P("Osh, to'y oshi", "Плов свадебный", "Plov, wedding style"), pos: 42000, mp: 48000, cost: 15400, sold: 412 },
+      { id: "d2", c: 1, n: P("Achchiq lag'mon", "Острый лагман", "Spicy lagman"), pos: 38000, mp: 42000, cost: 14100, sold: 268 },
+      { id: "d3", c: 1, n: P("Manti, 5 dona", "Манты, 5 шт", "Manti, 5 pcs"), pos: 34000, mp: 38000, cost: 12800, sold: 194 },
+      { id: "d4", c: 2, n: P("Chizburger", "Чизбургер", "Cheeseburger"), pos: 36000, mp: 39000, cost: 15900, sold: 0, off: true },
+      { id: "d5", c: 2, n: P("Double beef", "Double beef", "Double beef"), pos: 54000, mp: 58000, cost: 26800, sold: 141 },
+      { id: "d6", c: 3, n: P("Margherita, 30 sm", "Маргарита 30 см", "Margherita 30 cm"), pos: 52000, mp: 56000, cost: 18200, sold: 226 },
+      { id: "d7", c: 3, n: P("Pepperoni, 30 sm", "Пепперони 30 см", "Pepperoni 30 cm"), pos: 60000, mp: 64000, cost: 24600, sold: 188 },
+      { id: "d8", c: 4, n: P("Kola, 0.5", "Кола 0.5", "Cola 0.5"), pos: 11000, mp: 12000, cost: 6400, sold: 502 },
+      { id: "d9", c: 4, n: P("Ko'k choy", "Зелёный чай", "Green tea"), pos: 7000, mp: 8000, cost: 900, sold: 388 },
+    ];
+    const cOff = S.catOff || {};
+    const cIdx = S.catCat === undefined ? 0 : S.catCat;
+    const catShown = DISH.filter(d => cIdx === 0 || d.c === cIdx);
+
+    const catRows = catShown.map(d => {
+      const off = cOff[d.id] !== undefined ? cOff[d.id] : !!d.off;
+      const fee = d.mp * 0.09;
+      const mar = Math.round(((d.mp - d.cost - fee) / d.mp) * 1000) / 10;
+      return {
+        n: d.n,
+        meta: !off
+          ? P("+", "+", "+") + F(d.mp - d.pos) + " " + P("marketplace ustamasi", "надбавка маркетплейса", "marketplace uplift")
+          : d.off && cOff[d.id] === undefined
+            ? P("POS'da tugagan \u00b7 avtomatik yashirildi", "Стоп-лист в POS \u00b7 скрыто автоматически", "On the POS stop-list \u00b7 hidden automatically")
+            : P("Siz yashirdingiz \u00b7 POS'da mavjud", "Скрыто вами \u00b7 в POS есть", "You hid this \u00b7 available in the POS"),
+        posPrice: F(d.pos), mpPrice: F(d.mp),
+        margin: mar.toFixed(1) + "%",
+        marFg: mar >= 50 ? "var(--ok-fg)" : mar >= 35 ? "var(--fg)" : "var(--bad-fg)",
+        sold: d.sold ? F(d.sold) : "\u2014",
+        op: off ? "0.5" : "1",
+        swBg: off ? "var(--border-strong)" : "var(--brand)",
+        swX: off ? "3px" : "21px",
+        toggleLabel: off ? P("Ko'rsatish", "Показать", "Show") : P("Yashirish", "Скрыть", "Hide"),
+        toggle: () => {
+          const next = !off;
+          this.setState({ catOff: { ...cOff, [d.id]: next } });
+          this.flash(next
+            ? this.L(d.n) + " \u2014 " + P("marketplace'da yashirildi", "скрыто на маркетплейсе", "hidden on the marketplace")
+            : this.L(d.n) + " \u2014 " + P("marketplace'da ko'rinadi", "видно на маркетплейсе", "visible on the marketplace"));
+        },
+      };
+    });
+
+    // ---- settlement
+    const setRows = [
+      { period: "10\u201316 avg", invoice: "MP-INV-2026-0833", gross: 24180000, fee: 2176200, st: "next" },
+      { period: "3\u20139 avg", invoice: "MP-INV-2026-0791", gross: 21940000, fee: 1974600, st: "paid" },
+      { period: "27 iyul\u20132 avg", invoice: "MP-INV-2026-0744", gross: 19620000, fee: 1765800, st: "paid" },
+      { period: "20\u201326 iyul", invoice: "MP-INV-2026-0698", gross: 22410000, fee: 2016900, st: "paid" },
+      { period: "13\u201319 iyul", invoice: "MP-INV-2026-0651", gross: 18870000, fee: 1698300, st: "paid" },
+      { period: "6\u201312 iyul", invoice: "MP-INV-2026-0604", gross: 20130000, fee: 1811700, st: "paid" },
+    ].map(r => {
+      const M = r.st === "next"
+        ? { l: P("To'lanadi", "К выплате", "Due"), bg: "var(--brand-soft)", fg: "var(--brand-dark)" }
+        : { l: P("To'langan", "Выплачено", "Paid"), bg: "var(--ok-soft)", fg: "var(--ok-fg)" };
+      return { period: r.period, invoice: r.invoice, gross: F(r.gross), fee: "\u2212" + F(r.fee), net: F(r.gross - r.fee), state: M.l, chipBg: M.bg, chipFg: M.fg };
+    });
+
+    // ---- disputes
+    const dDone = S.dspDone || {};
+    const DSP = [
+      { id: "x1", kind: P("Taom kelmadi", "Блюдо не привезли", "Item missing"), no: "#MP-4455", amount: 42000, hours: 19,
+        title: P("Bir pozitsiya yetkazilmagan", "Одна позиция не доставлена", "One line was not delivered"),
+        body: P("Mijoz 1 \u00d7 Achchiq lag'mon buyurtma qilgan, lekin paketda bo'lmagan. Kuryer paketni yopiq holda olgan.", "Гость заказал 1 \u00d7 Острый лагман, в пакете его не было. Курьер получил пакет закрытым.", "The guest ordered 1 \u00d7 Spicy lagman; it was not in the bag. The courier received the bag sealed."),
+        who: "Nilufar Y.", init: "NY", quote: P("\u201cLag'mon yo'q edi, faqat osh va choy keldi.\u201d", "\u201cЛагмана не было, пришёл только плов и чай.\u201d", "\u201cThe lagman was missing, only plov and tea arrived.\u201d"),
+        photo: P("2 fotosurat ilova qilingan", "Приложено 2 фото", "2 photos attached"),
+        split: P("Qabul qilsangiz: 42 000 mijozga qaytadi, komissiya qaytariladi.", "При признании: 42 000 вернутся гостю, комиссия возвращается.", "If you accept: 42 000 goes back to the guest and the commission is reversed.") },
+      { id: "x2", kind: P("Sifat", "Качество", "Quality"), no: "#MP-4441", amount: 56000, hours: 7,
+        title: P("Taom sovuq yetib borgan", "Блюдо приехало холодным", "The dish arrived cold"),
+        body: P("Yetkazish 52 daqiqa davom etgan \u2014 va'da qilingan 35 daqiqa o'rniga. Termosumka ishlatilmagan.", "Доставка заняла 52 минуты вместо обещанных 35. Термосумка не использовалась.", "Delivery took 52 minutes against the 35 promised. No thermal bag was used."),
+        who: "Sardor A.", init: "SA", quote: P("\u201cPitsa sovuq edi, isitib yedik.\u201d", "\u201cПицца была холодной, пришлось греть.\u201d", "\u201cThe pizza was cold, we had to reheat it.\u201d"),
+        split: P("Kechikish kuryer tomonida \u2014 e'tiroz bildirsangiz, zarar platforma va kuryer o'rtasida bo'linadi.", "Задержка на стороне курьера \u2014 при возражении убыток делится между платформой и курьером.", "The delay was on the courier's side \u2014 if you contest, the cost splits between the platform and the courier.") },
+      { id: "x3", kind: P("Hal qilindi", "Решено", "Resolved"), no: "#MP-4402", amount: 24000, hours: 0, resolved: "accepted",
+        title: P("Ichimlik almashtirilgan", "Перепутан напиток", "Wrong drink sent"),
+        body: P("Ayron o'rniga kola yuborilgan. Qabul qilindi, summa qaytarildi.", "Вместо айрана отправили колу. Признано, сумма возвращена.", "Cola was sent instead of ayran. Accepted, and the amount was refunded."),
+        who: "Kamola R.", init: "KR", quote: P("\u201cAyron so'ragan edim.\u201d", "\u201cЯ просила айран.\u201d", "\u201cI asked for ayran.\u201d"),
+        split: P("24 000 mijozga qaytarilgan, komissiya bekor qilingan.", "24 000 возвращены гостю, комиссия отменена.", "24 000 refunded to the guest, commission reversed.") },
+    ];
+
+    const disputes = DSP.map(d => {
+      const state = dDone[d.id] || d.resolved;
+      const M = state === "accepted"
+        ? { bg: "var(--ok-soft)", fg: "var(--ok-fg)", edge: "var(--ok)" }
+        : state === "contested"
+        ? { bg: "var(--brand-soft)", fg: "var(--brand-dark)", edge: "var(--brand)" }
+        : d.hours <= 8
+        ? { bg: "var(--bad-soft)", fg: "var(--bad-fg)", edge: "var(--bad)" }
+        : { bg: "var(--warn-soft)", fg: "var(--warn-fg)", edge: "var(--warn)" };
+      return {
+        kind: state ? (state === "accepted" ? P("Qabul qilindi", "Признано", "Accepted") : P("E'tiroz bildirilgan", "Оспорено", "Contested")) : d.kind,
+        no: d.no, chipBg: M.bg, chipFg: M.fg, edge: M.edge,
+        due: state ? P("Yopilgan", "Закрыто", "Closed") : d.hours + " " + P("soat qoldi", "часов осталось", "hours left"),
+        dueFg: state ? "var(--fg-subtle)" : d.hours <= 8 ? "var(--bad-fg)" : "var(--warn-fg)",
+        title: d.title, body: d.body, who: d.who, init: d.init, quote: d.quote,
+        hasPhoto: !!d.photo, photoNote: d.photo || "",
+        amount: F(d.amount) + " " + som, split: d.split,
+        pending: !state, done: !!state,
+        doneFg: state === "accepted" ? "var(--ok-fg)" : "var(--brand-dark)",
+        doneLabel: state === "accepted"
+          ? P("Qabul qilindi \u00b7 summa keyingi to'lovdan ushlanadi", "Признано \u00b7 сумма удержится из следующей выплаты", "Accepted \u00b7 the amount is withheld from the next payout")
+          : P("E'tiroz yuborildi \u00b7 platforma 48 soatda hal qiladi", "Возражение отправлено \u00b7 платформа решит за 48 часов", "Contested \u00b7 the platform decides within 48 hours"),
+        accept: () => { this.setState({ dspDone: { ...dDone, [d.id]: "accepted" } }); this.flash(P("Qabul qilindi \u00b7 mijozga pul qaytariladi", "Признано \u00b7 гостю вернут деньги", "Accepted \u00b7 the guest will be refunded")); },
+        contest: () => { this.setState({ dspDone: { ...dDone, [d.id]: "contested" } }); this.flash(P("E'tiroz yuborildi \u00b7 dalil qo'shishingiz mumkin", "Возражение отправлено \u00b7 можно добавить доказательства", "Contested \u00b7 you may add evidence")); },
+      };
+    });
+
+    return {
+      theme: S.theme || "light",
+      themeIcon: (S.theme || "light") === "light" ? "moon" : "sun",
+      toggleTheme: () => this.setState({ theme: (S.theme || "light") === "light" ? "dark" : "light" }),
+      langs: [["uz", "UZ"], ["ru", "RU"], ["en", "EN"]].map(([k, code]) => ({ code, on: S.lang === k, pick: () => this.setState({ lang: k }) })),
+      hasToast: !!S.toast, toast: S.toast,
+      t, at, navDaily, navMoney, navGrow,
+      atSettings: view === "settings",
+      goSettings: () => this.setState({ view: "settings" }),
+      title: this.L(titles[view][0]), subtitle: this.L(titles[view][1]),
+
+      isOpen: S.isOpen,
+      openLabel: S.isOpen ? P("Ochiq \u00b7 buyurtma qabul qilinmoqda", "Открыто \u00b7 принимаем заказы", "Open \u00b7 accepting orders") : P("Yopiq \u00b7 buyurtma kelmaydi", "Закрыто \u00b7 заказы не поступают", "Closed \u00b7 no orders arrive"),
+      openBg: S.isOpen ? "var(--ok-soft)" : "var(--bad-soft)",
+      openFg: S.isOpen ? "var(--ok-fg)" : "var(--bad-fg)",
+      openBorder: S.isOpen ? "rgba(18,183,106,.30)" : "rgba(240,68,56,.30)",
+      openDot: S.isOpen ? "var(--ok)" : "var(--bad)",
+      toggleOpen: () => {
+        const n = !S.isOpen;
+        this.setState({ isOpen: n });
+        this.flash(n ? P("Do'kon ochildi \u00b7 marketplace'da ko'rinadi", "Магазин открыт \u00b7 виден на маркетплейсе", "Store open \u00b7 visible on the marketplace")
+                     : P("Do'kon yopildi \u00b7 mijozlar buyurtma bera olmaydi", "Магазин закрыт \u00b7 гости не могут заказать", "Store closed \u00b7 guests cannot order"));
+      },
+
+      mClose: () => this.setState({ rejFor: undefined, rejWhy: undefined, rcpFor: undefined, bankOpen: false, budOpen: false, cancelFor: undefined }),
+
+      rejOpen: !!S.rejFor,
+      rejTitle: P("Buyurtmani rad etish", "Отклонить заказ", "Reject the order"),
+      rejSub: (() => { const o = ORD.find(x => x.id === S.rejFor); return o ? o.no + " \u00b7 " + F(o.gross) + " " + som : ""; })(),
+      rejReasons: [
+        { k: "stock", l: P("Mahsulot tugagan", "Продукт закончился", "Out of stock"), note: P("Taom stop-listga tushadi va marketplace'da yashiriladi", "Позиция уйдёт в стоп-лист и скроется на маркетплейсе", "The item goes to the stop-list and hides on the marketplace") },
+        { k: "busy", l: P("Oshxona to'lib ketgan", "Кухня перегружена", "Kitchen overloaded"), note: P("Tayyorlash vaqti 25 daqiqadan oshadi", "Время готовки превысит 25 минут", "Prep time would exceed 25 minutes") },
+        { k: "closing", l: P("Yopilish vaqti", "Время закрытия", "Closing time"), note: P("Do'kon avtomatik yopiladi \u00b7 keyingi buyurtma kelmaydi", "Магазин закроется автоматически \u00b7 новых заказов не будет", "The store closes automatically \u00b7 no new orders arrive") },
+        { k: "addr", l: P("Manzil yetkazish zonasidan tashqarida", "Адрес вне зоны доставки", "Address outside the delivery zone"), note: P("Operator mijozga qo'ng'iroq qiladi", "Оператор позвонит гостю", "The operator will call the guest") },
+      ].map(r => ({
+        l: r.l, note: r.note,
+        mark: S.rejWhy === r.k ? "\u2713" : "",
+        ring: S.rejWhy === r.k ? "var(--brand)" : "var(--border-strong)",
+        fill: S.rejWhy === r.k ? "var(--brand)" : "transparent",
+        border: S.rejWhy === r.k ? "var(--brand)" : "var(--border)",
+        bg: S.rejWhy === r.k ? "var(--brand-soft)" : "var(--surface)",
+        pick: () => this.setState({ rejWhy: r.k }),
+      })),
+      rejBg: S.rejWhy ? "var(--bad)" : "var(--border-strong)",
+      rejSend: () => {
+        if (!S.rejWhy) return this.flash(P("Avval sababni tanlang", "Сначала выберите причину", "Pick a reason first"));
+        const id = S.rejFor;
+        this.setState({ ordDone: { ...done, [id]: "rejected" }, rejFor: undefined, rejWhy: undefined });
+        this.flash(P("Rad etildi \u00b7 mijozga xabar ketdi, pul qaytariladi", "Отклонено \u00b7 гость уведомлён, деньги вернутся", "Rejected \u00b7 the guest was told and will be refunded"));
+      },
+
+      rcpOpen: !!S.rcpFor,
+      rcpTitle: P("Chek", "Чек", "Receipt"),
+      rcpSub: (() => { const o = ORD.find(x => x.id === S.rcpFor); return o ? o.no + " \u00b7 MyPOS \u00b7 " + P("bugun 12:04", "сегодня 12:04", "today 12:04") : ""; })(),
+      rcpLines: (() => {
+        const o = ORD.find(x => x.id === S.rcpFor);
+        if (!o) return [];
+        return [
+          { n: "2 \u00d7 " + P("Osh, to'y oshi", "Плов свадебный", "Plov, wedding style"), v: F(96000) },
+          { n: "1 \u00d7 " + P("Achchiq lag'mon", "Острый лагман", "Spicy lagman"), v: F(42000) },
+          { n: "3 \u00d7 " + P("Ko'k choy", "Зелёный чай", "Green tea"), v: F(24000) },
+        ];
+      })(),
+      rcpTotals: (() => {
+        const o = ORD.find(x => x.id === S.rcpFor);
+        const g = o ? o.gross : 0;
+        const fee = Math.round(g * 0.09);
+        return [
+          { l: P("Aylanma", "Оборот", "Gross"), v: F(g), size: "13px", w: "500", fg: "var(--fg-muted)" },
+          { l: P("Komissiya 9%", "Комиссия 9%", "Commission 9%"), v: "\u2212" + F(fee), size: "13px", w: "500", fg: "var(--bad-fg)" },
+          { l: P("Qo'lga", "К выплате", "You receive"), v: F(g - fee), size: "17px", w: "700", fg: "var(--fg)" },
+        ];
+      })(),
+
+      bankOpen: !!S.bankOpen,
+      bankTitle: P("Rekvizitni o'zgartirish", "Изменить реквизиты", "Change bank details"),
+      bankSub: P("Hozirgi: Kapitalbank \u00b7 2020 8000 4471 9012", "Сейчас: Kapitalbank \u00b7 2020 8000 4471 9012", "Currently: Kapitalbank \u00b7 2020 8000 4471 9012"),
+      bankBank: S.bankBank || "",
+      bankAcc: S.bankAcc || "",
+      setBankBank: (e) => this.setState({ bankBank: e.target.value }),
+      setBankAcc: (e) => this.setState({ bankAcc: e.target.value }),
+      bankBg: (S.bankBank && S.bankAcc) ? "var(--brand)" : "var(--border-strong)",
+      bankSave: () => {
+        if (!S.bankBank || !S.bankAcc) return this.flash(P("Bank va hisob raqamini kiriting", "Введите банк и номер счёта", "Enter the bank and the account number"));
+        this.setState({ bankOpen: false });
+        this.flash(P("Yuborildi \u00b7 platforma 1\u20132 ish kunida tasdiqlaydi, shu vaqtda to'lov to'xtaydi", "Отправлено \u00b7 платформа подтвердит за 1\u20132 рабочих дня, выплаты приостановятся", "Submitted \u00b7 the platform verifies in 1\u20132 working days and payouts pause until then"));
+      },
+
+      budOpen: !!S.budOpen,
+      budTitle: P("Byudjetni o'zgartirish", "Изменить бюджет", "Change the budget"),
+      budSub: P("Bepul yetkazish, 120 000 dan \u00b7 22\u201324 avgust", "Бесплатная доставка от 120 000 \u00b7 22\u201324 августа", "Free delivery over 120 000 \u00b7 22\u201324 August"),
+      budLabel: P("Byudjet, so'm", "Бюджет, сум", "Budget, so'm"),
+      budVal: S.budVal === undefined ? "840000" : S.budVal,
+      setBudVal: (e) => this.setState({ budVal: e.target.value.replace(/[^0-9]/g, "") }),
+      budQuick: ["420000", "840000", "1260000"].map(v => ({ l: F(Number(v)), pick: () => this.setState({ budVal: v }) })),
+      budCalc: (() => {
+        const b = Number(S.budVal === undefined ? "840000" : S.budVal) || 0;
+        const share = 6000;
+        const orders = Math.floor(b / share);
+        return [
+          { l: P("Bir buyurtmaga sizning ulushingiz", "Ваша доля на заказ", "Your share per order"), v: F(share), fg: "var(--fg-muted)" },
+          { l: P("Yetadigan buyurtma", "Хватит на заказов", "Covers orders"), v: String(orders), fg: "var(--fg)" },
+          { l: P("Kutilgan qo'shimcha aylanma", "Ожидаемый доп. оборот", "Expected extra gross"), v: F(orders * 96000), fg: "var(--ok-fg)" },
+        ];
+      })(),
+      budSave: () => {
+        const b = Number(S.budVal || 0);
+        if (b < 120000) return this.flash(P("Eng kam byudjet 120 000 so'm", "Минимальный бюджет 120 000 сум", "The minimum budget is 120 000 so'm"));
+        this.setState({ budOpen: false, proBudget: b });
+        this.flash(P("Byudjet o'zgartirildi \u00b7 ", "Бюджет изменён \u00b7 ", "Budget changed \u00b7 ") + F(b) + " " + som);
+      },
+
+      cancelOpen: !!S.cancelFor,
+      cxTitle: P("Aksiyani bekor qilish", "Отменить акцию", "Cancel the promotion"),
+      cxSub: P("Bepul yetkazish, 120 000 dan \u00b7 hali boshlanmagan", "Бесплатная доставка от 120 000 \u00b7 ещё не началась", "Free delivery over 120 000 \u00b7 not started yet"),
+      cxFacts: [
+        { l: P("Sarflangan", "Израсходовано", "Spent so far"), v: F(0), fg: "var(--fg)" },
+        { l: P("Qaytariladigan byudjet", "Вернётся из бюджета", "Budget returned"), v: F(840000), fg: "var(--ok-fg)" },
+        { l: P("Reytingga ta'siri", "Влияние на рейтинг", "Effect on rating"), v: P("Yo'q", "Нет", "None"), fg: "var(--fg-muted)" },
+      ],
+      cxGo: () => {
+        this.setState({ proState: { ...prState, p2: "cancelled" }, cancelFor: undefined });
+        this.flash(P("Aksiya bekor qilindi \u00b7 byudjet qaytarildi", "Акция отменена \u00b7 бюджет возвращён", "Promotion cancelled \u00b7 the budget was returned"));
+      },
+
+      ordKpis, ordFilters, orders,
+      ordCount: shown.length + " " + P("buyurtma", "заказов", "orders"),
+      ordEmpty: shown.length === 0,
+
+      catCats: CAT.map((l, i) => ({ l, on: i === cIdx, pick: () => this.setState({ catCat: i }) })),
+      catCount: catShown.length + " " + P("pozitsiya", "позиций", "items"),
+      catRows,
+      catSyncAge: S.catSynced
+        ? P("Oxirgi sinxron: hozir \u00b7 hammasi POS bilan bir xil", "Последняя синхронизация: сейчас \u00b7 всё совпадает с POS", "Last sync: just now \u00b7 everything matches the POS")
+        : P("Oxirgi sinxron: 4 daqiqa oldin \u00b7 2 pozitsiya POS'dan orqada", "Последняя синхронизация: 4 минуты назад \u00b7 2 позиции отстают от POS", "Last sync: 4 minutes ago \u00b7 2 items behind the POS"),
+      catSyncLabel: S.catSynced ? P("Sinxronlangan", "Синхронизировано", "In sync") : P("POS bilan sinxronlash", "Синхронизировать с POS", "Sync with the POS"),
+      catSyncFg: S.catSynced ? "var(--ok-fg)" : "var(--fg)",
+      catSync: () => {
+        if (S.catSynced) return this.flash(P("Allaqachon sinxronlangan", "Уже синхронизировано", "Already in sync"));
+        this.setState({ catSynced: true });
+        this.flash(P("Sinxronlandi \u00b7 2 pozitsiya yangilandi", "Синхронизировано \u00b7 обновлено 2 позиции", "Synced \u00b7 2 items updated"));
+      },
+      catNotes: [
+        { h: P("Nima uchun marketplace narxi boshqa", "Почему цена на маркетплейсе другая", "Why the marketplace price differs"),
+          p: P("Marketplace narxiga komissiya 9% va qadoqlash kiradi. Zal narxini qo'yib qo'ysangiz, marjangiz 9% ga tushadi \u2014 shuning uchun ustama qo'shiladi.", "В цену маркетплейса входит комиссия 9% и упаковка. Если поставить цену зала, маржа упадёт на 9% \u2014 поэтому есть надбавка.", "The marketplace price absorbs the 9% commission and packaging. Using the in-house price cuts your margin by 9% \u2014 hence the uplift.") },
+        { h: P("Tugagan taom o'zi yashiriladi", "Стоп-лист скрывает автоматически", "The stop-list hides items for you"),
+          p: P("Oshpaz POS'da taomni tugadi deb belgilasa, u marketplace'da shu zahoti yo'qoladi. Mijoz buyurtma bera olmaydi va sizga qo'ng'iroq qilish kerak bo'lmaydi.", "Когда повар отмечает стоп-лист в POS, позиция исчезает с маркетплейса сразу. Гость не сможет заказать, и звонить не придётся.", "When the kitchen 86s an item in the POS it disappears from the marketplace at once. The guest cannot order it and nobody has to phone.") },
+      ],
+
+      setNextAmount: F(24180000 - 2176200),
+      setNextWhen: P("Payshanba, 20-avgust \u00b7 UZS", "Четверг, 20 августа \u00b7 UZS", "Thursday, 20 August \u00b7 UZS"),
+      setBreak: [
+        { l: P("Aylanma", "Оборот", "Gross"), v: F(24180000), size: "13px", w: "500", fg: "var(--fg-muted)", fd: "" },
+        { l: P("Komissiya 9%", "Комиссия 9%", "Commission 9%"), v: "\u2212" + F(2176200), size: "13px", w: "500", fg: "var(--bad-fg)", fd: "" },
+        { l: P("Nizo bo'yicha ushlangan", "Удержано по спорам", "Withheld for disputes"), v: "\u2212" + F(24000), size: "13px", w: "500", fg: "var(--bad-fg)", fd: "" },
+        { l: P("Reklama", "Реклама", "Advertising"), v: "\u2212" + F(480000), size: "13px", w: "500", fg: "var(--bad-fg)", fd: "" },
+        { l: P("Qo'lga", "К выплате", "You receive"), v: F(24180000 - 2176200 - 24000 - 480000), size: "22px", w: "700", fg: "var(--fg)", fd: "1" },
+      ],
+      setBank: [
+        { l: P("Bank", "Банк", "Bank"), v: "Kapitalbank", mono: "" },
+        { l: P("Hisob", "Счёт", "Account"), v: "2020 8000 4471 9012", mono: "1" },
+        { l: "INN", v: "302 481 776", mono: "1" },
+        { l: P("Holat", "Статус", "State"), v: P("Tasdiqlangan", "Подтверждён", "Verified"), mono: "" },
+      ],
+      setActions: [
+        { l: (dl.inv ? P("Hisob-faktura yuklandi", "Счёт скачан", "Invoice downloaded") : P("Hisob-fakturani yuklash", "Скачать счёт", "Download invoice")),
+          done: !!dl.inv,
+          go: () => { this.setState({ setDl: { ...dl, inv: 1 } }); this.flash(P("PDF yuklab olindi · MP-2026-08-1142.pdf", "PDF скачан · MP-2026-08-1142.pdf", "PDF downloaded · MP-2026-08-1142.pdf")); } },
+        { l: (dl.act ? P("Akt yuklandi", "Акт скачан", "Statement downloaded") : P("Aktni yuklash", "Скачать акт", "Download statement")),
+          done: !!dl.act,
+          go: () => { this.setState({ setDl: { ...dl, act: 1 } }); this.flash(P("Akt yuklab olindi · 20-avgust hisob-kitobi", "Акт скачан · расчёт 20 августа", "Statement downloaded · 20 August settlement")); } },
+        { l: P("Rekvizitni o'zgartirish", "Изменить реквизиты", "Change bank details"), done: false,
+          go: () => this.setState({ bankOpen: true, bankBank: "", bankAcc: "" }) },
+      ],
+      setRows,
+
+      dspKpis: [
+        { l: P("Ochiq nizo", "Открытых споров", "Open disputes"), v: String(disputes.filter(d => d.pending).length), d: P("javob kutmoqda", "ждут ответа", "awaiting you"), c: "var(--bad-fg)" },
+        { l: P("30 kunda", "За 30 дней", "Last 30 days"), v: "7", d: P("1 042 buyurtmadan", "из 1 042 заказов", "of 1 042 orders"), c: "var(--fg-subtle)" },
+        { l: P("Nizo darajasi", "Доля споров", "Dispute rate"), v: "0.67%", d: P("me'yor 1% dan kam", "норма ниже 1%", "target under 1%"), c: "var(--ok-fg)" },
+        { l: P("Ushlangan summa", "Удержано", "Withheld"), v: F(184000), d: som + " \u00b7 " + P("shu oy", "этот месяц", "this month"), c: "var(--fg-subtle)" },
+      ],
+      disputes, dspEmpty: disputes.filter(d => d.pending).length === 0,
+      dspRules: [
+        { l: P("Javob bermasangiz, 24 soatdan keyin nizo mijoz foydasiga hal qilinadi.", "Без ответа через 24 часа спор решается в пользу гостя.", "With no answer, after 24 hours the dispute is settled for the guest.") },
+        { l: P("Qabul qilsangiz, summa keyingi to'lovdan ushlanadi va komissiya qaytariladi.", "При признании сумма удерживается из следующей выплаты, комиссия возвращается.", "If you accept, the amount is withheld from the next payout and the commission is reversed.") },
+        { l: P("E'tiroz bildirsangiz, platforma 48 soatda qaror qabul qiladi. Dalil sifatida oshxona cheki va tayyorlash vaqti ishlatiladi.", "При возражении платформа решает за 48 часов. Как доказательство используются кухонный чек и время приготовления.", "If you contest, the platform decides within 48 hours, using the kitchen ticket and the prep time as evidence.") },
+        { l: P("Nizo darajasi 3% dan oshsa, do'kon qidiruvda pastga tushadi.", "Если доля споров выше 3%, магазин опускается в поиске.", "A dispute rate above 3% pushes the store down in search.") },
+      ],
+
+      perfKpis: [
+        { l: P("Buyurtma", "Заказов", "Orders"), v: "1 042", w: "84%", bar: "var(--brand)", note: P("o'tgan oyga nisbatan +18%", "к прошлому месяцу +18%", "+18% vs last month") },
+        { l: P("O'rtacha chek", "Средний чек", "Average ticket"), v: "96 000", w: "72%", bar: "var(--brand)", note: P("marketplace o'rtachasi 84 000", "средний по маркетплейсу 84 000", "marketplace average 84 000") },
+        { l: P("Tayyorlash vaqti", "Время приготовления", "Prep time"), v: "23 " + P("daq", "мин", "min"), w: "62%", bar: "var(--ok)", note: P("va'da qilingan 25 daqiqa", "обещано 25 минут", "25 minutes promised") },
+        { l: P("Bekor qilish", "Отмены", "Cancellations"), v: "1.9%", w: "38%", bar: "var(--warn)", note: P("me'yor 3% dan kam", "норма ниже 3%", "target under 3%") },
+      ],
+      perfFunnel: [
+        { l: P("Ko'rildi", "Просмотры", "Impressions"), v: "18 420", drop: "", dropFg: "var(--fg-subtle)", w: "100%", bar: "var(--brand-line)" },
+        { l: P("Do'kon ochildi", "Открыли магазин", "Store opened"), v: "6 840", drop: "\u221263%", dropFg: "var(--fg-subtle)", w: "37%", bar: "var(--brand-line)" },
+        { l: P("Savatga qo'shildi", "Добавили в корзину", "Added to cart"), v: "1 762", drop: "\u221274%", dropFg: "var(--bad-fg)", w: "10%", bar: "var(--warn)" },
+        { l: P("Buyurtma berildi", "Оформили заказ", "Ordered"), v: "1 042", drop: "\u221241%", dropFg: "var(--bad-fg)", w: "6%", bar: "var(--brand)" },
+      ],
+      perfStars: [
+        { n: "5", w: "78%", c: "634" }, { n: "4", w: "14%", c: "114" },
+        { n: "3", w: "5%", c: "41" }, { n: "2", w: "2%", c: "16" }, { n: "1", w: "1%", c: "7" },
+      ],
+      perfTop: [
+        { n: P("Osh, to'y oshi", "Плов свадебный", "Plov, wedding style"), c: "412" },
+        { n: P("Kola, 0.5", "Кола 0.5", "Cola 0.5"), c: "502" },
+        { n: P("Ko'k choy", "Зелёный чай", "Green tea"), c: "388" },
+        { n: P("Achchiq lag'mon", "Острый лагман", "Spicy lagman"), c: "268" },
+        { n: P("Margherita, 30 sm", "Маргарита 30 см", "Margherita 30 cm"), c: "226" },
+      ],
+      perfPenalties: [
+        { h: P("90 soniyada javob berish", "Ответ за 90 секунд", "Answer within 90 seconds"), p: P("O'rtacha 38 soniya \u2014 me'yor ichida", "В среднем 38 секунд \u2014 в норме", "38 seconds on average \u2014 within target"), val: "38 " + P("son", "сек", "s"), valFg: "var(--ok-fg)", dot: "var(--ok)" },
+        { h: P("Tayyorlash vaqtiga rioya", "Соблюдение времени", "Prep time kept"), p: P("94% buyurtma va'da qilingan vaqtda tayyor bo'lgan", "94% заказов готовы к обещанному времени", "94% of orders were ready on time"), val: "94%", valFg: "var(--ok-fg)", dot: "var(--ok)" },
+        { h: P("Bekor qilish darajasi", "Доля отмен", "Cancellation rate"), p: P("Do'kon tomonidan bekor qilingan buyurtmalar", "Заказы, отменённые магазином", "Orders cancelled by the store"), val: "1.9%", valFg: "var(--fg)", dot: "var(--warn)" },
+        { h: P("Nizo darajasi", "Доля споров", "Dispute rate"), p: P("3% dan oshsa qidiruvda pastga tushasiz", "Выше 3% \u2014 понижение в поиске", "Above 3% you drop in search"), val: "0.67%", valFg: "var(--ok-fg)", dot: "var(--ok)" },
+      ],
+
+      promos: [
+        { id: "p1", state: prState.p1 === "paused" ? P("To'xtatilgan", "Остановлена", "Paused") : P("Ishlab turgan", "Активна", "Running"),
+          chipBg: prState.p1 === "paused" ? "var(--sunken)" : "var(--ok-soft)",
+          chipFg: prState.p1 === "paused" ? "var(--fg-muted)" : "var(--ok-fg)",
+          border: prState.p1 === "paused" ? "var(--border)" : "var(--ok)",
+          window: P("11\u201318 avgust", "11\u201318 августа", "11\u201318 August"),
+          title: P("Ikkinchi osh yarim narxda", "Второй плов за полцены", "Second plov half price"),
+          body: P("Ikki va undan ko'p osh buyurtma qilganda ikkinchisiga 50% chegirma. Chegirma sizning hisobingizdan.", "При заказе двух и более плова второй со скидкой 50%. Скидка за ваш счёт.", "Order two or more plov and the second is 50% off. The discount is at your cost."),
+          stats: [{ l: P("Ko'rildi", "Показов", "Views"), v: "4 210" }, { l: P("Ishlatildi", "Использовано", "Used"), v: "186" }, { l: P("Qo'shimcha aylanma", "Доп. оборот", "Extra gross"), v: "3.9 " + P("mln", "млн", "M") }],
+          actions: prState.p1 === "paused"
+            ? [{ l: P("Qayta yoqish", "Возобновить", "Resume"), bg: "var(--brand)", fg: "#fff", border: "0", go: () => { this.setState({ proState: { ...prState, p1: undefined } }); this.flash(P("Aksiya qayta yoqildi", "Акция возобновлена", "Promotion resumed")); } }]
+            : [{ l: P("To'xtatish", "Остановить", "Pause"), bg: "var(--surface)", fg: "var(--fg)", border: "1px solid var(--border-strong)", go: () => { this.setState({ proState: { ...prState, p1: "paused" } }); this.flash(P("Aksiya to'xtatildi · mijozlar ko'rmaydi", "Акция остановлена · гости её не видят", "Promotion paused · guests no longer see it")); } },
+               { l: P("Natijani ko'rish", "Смотреть отчёт", "See report"), bg: "var(--surface)", fg: "var(--fg-muted)", border: "1px solid var(--border)", go: () => this.setState({ view: "perf" }) }] },
+        { id: "p2", state: prState.p2 === "cancelled" ? P("Bekor qilingan", "Отменена", "Cancelled") : P("Rejalashtirilgan", "Запланирована", "Scheduled"),
+          chipBg: prState.p2 === "cancelled" ? "var(--sunken)" : "var(--brand-soft)",
+          chipFg: prState.p2 === "cancelled" ? "var(--fg-muted)" : "var(--brand-dark)",
+          border: "var(--border)",
+          window: P("22\u201324 avgust", "22\u201324 августа", "22\u201324 August"),
+          title: P("Bepul yetkazish, 120 000 dan", "Бесплатная доставка от 120 000", "Free delivery over 120 000"),
+          body: P("Yetkazish narxi platforma va do'kon o'rtasida yarmi-yarmi bo'linadi.", "Стоимость доставки делится пополам между платформой и магазином.", "The delivery fee splits evenly between the platform and the store."),
+          stats: [{ l: P("Kutilgan buyurtma", "Ожидаемые заказы", "Expected orders"), v: "+" + Math.floor(budNow / 6000) }, { l: P("Sizning ulushingiz", "Ваша доля", "Your share"), v: F(6000) }, { l: P("Byudjet", "Бюджет", "Budget"), v: F(budNow) }],
+          actions: prState.p2 === "cancelled" ? [] : [
+            { l: P("Byudjetni o'zgartirish", "Изменить бюджет", "Change budget"), bg: "var(--surface)", fg: "var(--fg)", border: "1px solid var(--border-strong)", go: () => this.setState({ budOpen: true, budVal: String(budNow) }) },
+            { l: P("Bekor qilish", "Отменить", "Cancel"), bg: "var(--surface)", fg: "var(--fg-muted)", border: "1px solid var(--border)", go: () => this.setState({ cancelFor: "p2" }) }] },
+        { id: "p3", state: P("Tugagan", "Завершена", "Ended"), chipBg: "var(--sunken)", chipFg: "var(--fg-muted)", border: "var(--border)",
+          window: P("1\u20137 avgust", "1\u20137 августа", "1\u20137 August"),
+          title: P("Yangi mijozga 15% chegirma", "Новому гостю 15%", "15% for new guests"),
+          body: P("Faqat birinchi buyurtma uchun. Platforma yarmini o'z hisobidan qo'shdi.", "Только для первого заказа. Половину покрыла платформа.", "First order only. The platform covered half."),
+          stats: [{ l: P("Yangi mijoz", "Новых гостей", "New guests"), v: "94" }, { l: P("Qaytgan", "Вернулись", "Returned"), v: "41" }, { l: P("Xarajat", "Расход", "Cost"), v: "620 000" }],
+          actions: [{ l: P("Qaytarish", "Повторить", "Run again"), bg: "var(--brand)", fg: "#fff", border: "0", go: () => { this.setState({ proState: { ...prState, p4: "draft" } }); this.flash(P("Nusxa qoralama sifatida qo'shildi · sanani tanlang", "Копия добавлена как черновик · выберите даты", "A draft copy was added · pick the dates")); } }] },
+      ],
+      proSpend: F(1940000),
+      proReturn: [
+        { l: P("Qo'shimcha aylanma", "Доп. оборот", "Extra gross"), v: F(11400000), fg: "var(--fg)" },
+        { l: P("Har 1 so'mga", "На 1 сум", "Per 1 so'm"), v: "5.9 " + som, fg: "var(--ok-fg)" },
+        { l: P("Yangi mijoz", "Новых гостей", "New guests"), v: "94", fg: "var(--fg)" },
+      ],
+      proBuy: [
+        { k: "top", l: P("Qidiruvda yuqorida", "Верх поиска", "Top of search"), price: F(180000) + " / " + P("kun", "день", "day"), note: P("O'z oshxonangiz turkumida birinchi uchlikda", "В тройке первых в своей кухне", "In the first three of your cuisine"), wait: 0 },
+        { k: "rail", l: P("Bosh sahifa lentasi", "Лента на главной", "Home rail"), price: F(320000) + " / " + P("kun", "день", "day"), note: P("\u201cBugungi aksiyalar\u201d lentasida", "В ленте \u201cАкции сегодня\u201d", "In the \u201cToday's offers\u201d rail"), wait: 0 },
+        { k: "banner", l: P("Banner", "Баннер", "Banner"), price: F(640000) + " / " + P("kun", "день", "day"), note: P("Bosh sahifadagi katta banner \u00b7 kuniga 1 do'kon", "Большой баннер на главной \u00b7 1 магазин в день", "The large home banner \u00b7 one store a day"), wait: 4 },
+      ].map(s => ({
+        l: s.l, price: s.price,
+        note: adBooked[s.k]
+          ? (s.wait ? P("Navbatda \u00b7 ", "В очереди \u00b7 ", "Queued \u00b7 ") + s.wait + " " + P("kundan keyin boshlanadi", "дней до старта", "days until it starts") : P("Ertadan boshlanadi \u00b7 har kuni to'lanadi", "Старт завтра \u00b7 списание ежедневно", "Starts tomorrow \u00b7 billed daily"))
+          : s.note,
+        cta: adBooked[s.k] ? P("Band qilingan", "Забронировано", "Booked") : P("Band qilish", "Забронировать", "Book it"),
+        ctaBg: adBooked[s.k] ? "var(--sunken)" : "var(--brand)",
+        ctaFg: adBooked[s.k] ? "var(--ok-fg)" : "#fff",
+        go: () => {
+          if (adBooked[s.k]) {
+            const n = Object.assign({}, adBooked); delete n[s.k];
+            this.setState({ adBooked: n });
+            return this.flash(P("Bandlov bekor qilindi", "Бронь отменена", "Booking released"));
+          }
+          this.setState({ adBooked: { ...adBooked, [s.k]: 1 } });
+          this.flash(s.wait
+            ? P("Band qilindi \u00b7 navbat 4 kun", "Забронировано \u00b7 очередь 4 дня", "Booked \u00b7 a 4-day queue")
+            : P("Joy band qilindi \u00b7 ertadan boshlanadi", "Место забронировано \u00b7 старт завтра", "Slot booked \u00b7 starts tomorrow"));
+        },
+      })),
+
+      setGroups: [
+        { h: P("Do'kon profili", "Профиль магазина", "Store profile"), note: P("Marketplace'da mijoz ko'radigan ma'lumot", "Что гость видит на маркетплейсе", "What the guest sees on the marketplace"),
+          rows: [
+            { l: P("Nom", "Название", "Name"), v: "Osh Xona", vFg: "var(--fg)", hasNote: false },
+            { l: P("Oshxona", "Кухня", "Cuisine"), v: P("O'zbek \u00b7 Milliy", "Узбекская \u00b7 Национальная", "Uzbek \u00b7 National"), vFg: "var(--fg)", hasNote: false },
+            { l: P("Rasmlar", "Фотографии", "Photos"), v: P("4 dan 12 ta", "4 из 12", "4 of 12"), vFg: "var(--warn-fg)", hasNote: true, note: P("Rasmi bor do'kon uch barobar ko'p buyurtma oladi", "Магазин с фото получает в три раза больше заказов", "A store with photos takes three times more orders") },
+            { l: P("Tavsif", "Описание", "Description"), v: "184 / 240", vFg: "var(--fg-muted)", hasNote: false },
+          ] },
+        { h: P("Ish vaqti", "Часы работы", "Opening hours"), note: P("POS sozlamasidan keladi \u00b7 bu yerda faqat marketplace uchun", "Приходит из настроек POS \u00b7 здесь только для маркетплейса", "Comes from the POS \u00b7 here only for the marketplace"),
+          rows: [
+            { l: P("Dushanba\u2013Juma", "Пн\u2013Пт", "Mon\u2013Fri"), v: "10:00 \u2013 23:00", vFg: "var(--fg)", hasNote: false },
+            { l: P("Shanba\u2013Yakshanba", "Сб\u2013Вс", "Sat\u2013Sun"), v: "10:00 \u2013 01:00", vFg: "var(--fg)", hasNote: false },
+            { l: P("Oxirgi buyurtma", "Последний заказ", "Last order"), v: P("Yopilishdan 40 daqiqa oldin", "За 40 минут до закрытия", "40 minutes before closing"), vFg: "var(--fg-muted)", hasNote: false },
+            { l: P("Bayram kunlari", "Праздники", "Holidays"), v: P("Alohida jadval", "Отдельный график", "Separate schedule"), vFg: "var(--fg-muted)", hasNote: false },
+          ] },
+        { h: P("Yetkazish", "Доставка", "Delivery"), note: P("Kim yetkazadi va qancha turadi", "Кто доставляет и сколько стоит", "Who delivers and what it costs"),
+          rows: [
+            { l: P("Kuryer", "Курьер", "Courier"), v: P("Platforma kuryeri", "Курьер платформы", "Platform courier"), vFg: "var(--fg)", hasNote: true, note: P("O'z kuryeringizga o'tsangiz komissiya 6% ga tushadi", "Со своим курьером комиссия снижается до 6%", "With your own courier the commission falls to 6%") },
+            { l: P("Zona", "Зона", "Zone"), v: "5 km", vFg: "var(--fg)", hasNote: false },
+            { l: P("Yetkazish narxi", "Стоимость доставки", "Delivery fee"), v: F(12000) + " " + som, vFg: "var(--fg)", hasNote: false },
+            { l: P("Bepul yetkazish", "Бесплатная доставка", "Free delivery"), v: P("O'chirilgan", "Выключено", "Off"), vFg: "var(--fg-subtle)", hasNote: false },
+          ] },
+        { h: P("Shartnoma", "Договор", "Contract"), note: P("Komissiya va to'lov shartlari", "Комиссия и условия выплат", "Commission and payout terms"),
+          rows: [
+            { l: P("Komissiya", "Комиссия", "Commission"), v: "9%", vFg: "var(--fg)", hasNote: true, note: P("Agregatorlarda 15\u201320%", "У агрегаторов 15\u201320%", "Aggregators charge 15\u201320%") },
+            { l: P("To'lov davri", "Период выплат", "Payout period"), v: P("Haftalik \u00b7 payshanba", "Недельно \u00b7 четверг", "Weekly \u00b7 Thursday"), vFg: "var(--fg)", hasNote: false },
+            { l: P("Shartnoma", "Договор", "Agreement"), v: "MP-2026-0412", vFg: "var(--fg-muted)", hasNote: false },
+            { l: P("Holat", "Статус", "State"), v: P("Faol", "Активен", "Active"), vFg: "var(--ok-fg)", hasNote: false },
+          ] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
+</div>
